@@ -1,0 +1,133 @@
+/* navbar.component.css */
+.navbar {
+    background: #2d2d2d;
+    padding: 1rem 2rem;
+    position: relative;
+    font-family: 'Arial', sans-serif;
+}
+
+.nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.nav-item {
+    position: static;
+    padding: 0.5rem 0;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #e51937;
+}
+
+/* Mega Menu Styles */
+.mega-menu {
+    position: absolute;
+    left: 0;
+    right: 0; /* بدلًا من left:50% و transform */
+    top: 100%;
+    width: auto; /* إزالة 100vw */
+    background: rgb(255, 255, 255);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1000;
+    padding: 2rem 0;
+    border-top: 3px solid #e51937;
+}
+
+.nav-item:hover .mega-menu {
+    display: block;
+}
+
+.menu-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0rem;
+    padding: 0 1rem;
+    align-items: flex-start;
+}
+
+.menu-column {
+    padding: 0 1rem;
+}
+
+.subcategory-title {
+    color: #000000;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #eee;
+    text-transform: uppercase;
+}
+
+.subcategory-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.subcategory-link {
+    color: #444;
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: block;
+    padding: 0.3rem 0;
+    transition: all 0.2s ease;
+}
+
+.subcategory-link:hover {
+    color: #e51937;
+    padding-left: 0.5rem;
+}
+
+/* Sale Item Styles */
+.sale-item .sale-link {
+    color: #e51937 !important;
+    font-weight: 700;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-list {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .mega-menu {
+        position: static;
+        width: 100% !important;
+        transform: none !important;
+        box-shadow: none;
+    }
+    
+    .menu-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .menu-column {
+        padding: 1rem;
+    }
+}

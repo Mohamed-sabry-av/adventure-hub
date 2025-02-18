@@ -1,0 +1,55 @@
+/* جعل السلايدر في منتصف الصفحة */
+.slider-container {
+  position: relative;
+  width: 60%; /* عرض متوسط */
+  margin: 50px auto; /* توسيطه في الصفحة */
+  text-align: center;
+}
+
+/* ضبط الصور داخل السلايدر */
+.slide img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px; /* زوايا ناعمة */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* ظل خفيف */
+}
+
+/* أزرار التنقل */
+button.prev,
+button.next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none; /* بدون خلفية */
+  color: rgb(156, 153, 153);
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+button.prev {
+  left: 10px;
+}
+
+button.next {
+  right: 10px;
+}
+
+
+@media (max-width: 768px) {
+  .slider-container {
+    width: 90%;
+  }
+
+  button.prev,
+  button.next {
+    font-size: 20px;
+    padding: 8px;
+  }
+
+  @media(max-width : 480px){
+    .slider-container {
+      width: 100%; 
+    }
+  }
+}

@@ -35,19 +35,22 @@
 
       <div class="d-flex gap-3">
         <a
-          class="text-dark text-decoration-none d-flex flex-column align-items-center" href=""
+          class="text-dark text-decoration-none d-flex flex-column align-items-center"
+          href=""
         >
           <i class="bi bi-person fs-5"></i>
           <span>My Account</span>
         </a>
         <a
-          class="text-dark text-decoration-none d-flex flex-column align-items-center" href=""
+          class="text-dark text-decoration-none d-flex flex-column align-items-center"
+          href=""
         >
           <i class="bi bi-arrow-right-circle fs-5"></i>
           <span>Checkout</span>
         </a>
         <a
-          class="text-dark text-decoration-none d-flex flex-column align-items-center" href=""
+          class="text-dark text-decoration-none d-flex flex-column align-items-center"
+          href=""
         >
           <i class="bi bi-heart fs-5"></i>
           <span>Wishlist</span>
@@ -56,30 +59,8 @@
     </div>
   </div>
 
-  <!-- الطبقة الثالثة -->
-  <nav class="bottom-bar navbar-expand-lg bg-dark">
-    <div class="container">
-      <div class="collapse navbar-collapse">
-        <div class="navbar-nav gap-3 flex-grow-1 justify-content-center">
-          <a class="nav-link">Water Sports Hub</a>
-          <a class="nav-link">Camping Hub</a>
-          <a class="nav-link">Hiking Hub</a>
-          <a class="nav-link">Diving Hub</a>
-          <a class="nav-link">Biking Hub</a>
-          <a class="nav-link">Cycling Hub</a>
-          <a class="nav-link text-danger fw-bold">SALE!</a>
-        </div>
-
-        <!-- عربة التسوق -->
-        <div class="d-flex align-items-center gap-2">
-          <span class="fw-bold text-white">AED:0</span>
-          <button class="btn btn-link p-0 position-relative">
-            <i class="bi bi-bag fs-4 position-relative"
-              ><span class="cart-badge">0</span></i
-            >
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
+  <app-navbar 
+  [mainCategories]="mainCategories"
+  [subCategories]="subCategories">
+</app-navbar>
 </header>

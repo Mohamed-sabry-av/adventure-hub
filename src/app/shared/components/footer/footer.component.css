@@ -6,7 +6,7 @@
 
 footer {
     background-color: black;
-    position: fixed; /* تثبيت الفوتر */
+    position: relative; /* تثبيت الفوتر */
     bottom: 0; /* وضعه في أسفل الصفحة */
     width: 100%;
     min-height: 350px;

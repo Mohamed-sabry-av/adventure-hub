@@ -1,0 +1,28 @@
+<div class="product-card">
+  <!-- عرض الصور -->
+  <ngx-slick-carousel
+  class="slick-slider"
+  #slickModal="slick-carousel"
+  [config]="slideConfig"
+  (mouseenter)="slickModal.slickPlay()"
+  (mouseleave)="slickModal.slickPause()"
+>
+  <div ngxSlickItem *ngFor="let image of product?.images?.slice(0, 3)">
+    <img [src]="image.src" [alt]="product.name" class="product-slide-image" />
+  </div>
+</ngx-slick-carousel>
+
+  <!-- أيقونة القلب -->
+  <i class="fas fa-heart heart-icon"></i>
+
+  <!-- تفاصيل المنتج -->
+  <div class="product-details">
+    <h3 class="product-name">{{ product.name }}</h3>
+    <p class="product-price">
+      Price: {{ product.price }} {{ product.currency || "AED" }}
+    </p>
+  </div>
+
+  <!-- زر الشراء -->
+  <button class="buy-button">Buy Now</button>
+</div>

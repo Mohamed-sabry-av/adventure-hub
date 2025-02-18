@@ -5,7 +5,6 @@
   border-bottom: 1px solid #ddd;
 }
 
-
 .top-bar span {
   margin: 0 10px;
 }
@@ -27,60 +26,5 @@
 .search-bar:focus {
   border-color: #e74c3c; /* لون مميز عند الكتابة */
   outline: none;
-}
-
-
-/* ===== الطبقة الثالثة ===== */
-.bottom-bar {
-  background: #111;
-}
-
-.bottom-bar .nav-link {
-  color: #fff;
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.bottom-bar .nav-link:hover {
-  color: #e74c3c;
-}
-
-.currency {
-  color: #fff;
-  font-weight: bold;
-}
-
-.cart-count {
-  background: #fff;
-  color: #000;
-  padding: 2px 5px;
-  border-radius: 50%;
-  font-size: 0.8rem;
-  margin-left: 5px;
-}
-
-/* here the Bootstrap Icons */
-.bi-bag::after {
-  /* content: "3"; الرقم داخل الأيقونة */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -35%);
-  font-size: 12px;
-  font-weight: bold;
-  color: rgb(255, 255, 255);
-}
-.bi-bag{
-    color: white;
-}
-.cart-badge {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -34%);
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
 }
 
