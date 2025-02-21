@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class HandelErrorsService {
+export class HandleErrorsService {
   handelError(errorResponse: HttpErrorResponse): Observable<any> {
     if (errorResponse.status === 0) {
       console.log(`an error occured ${errorResponse.error}`);
@@ -19,3 +19,5 @@ export class HandelErrorsService {
     );
   }
 }
+
+

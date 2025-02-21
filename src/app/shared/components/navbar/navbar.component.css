@@ -1,9 +1,11 @@
 /* navbar.component.css */
 .navbar {
-    background: #2d2d2d;
-    padding: 1rem 2rem;
+    background: #121212;
+    padding: 0;
     position: relative;
     font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
 }
 
 .nav-list {
@@ -73,6 +75,11 @@
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #eee;
     text-transform: uppercase;
+    
+}
+.subcategory-title a{
+    color: #000000;
+    text-decoration: none;
 }
 
 .subcategory-list {

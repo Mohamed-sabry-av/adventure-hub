@@ -8,12 +8,10 @@
   (mouseleave)="slickModal.slickPause()"
 >
   <div ngxSlickItem *ngFor="let image of product?.images?.slice(0, 3)">
-    <img [src]="image.src" [alt]="product.name" class="product-slide-image" />
+    <img [src]="image.src" loading="lazy" [alt]="product.name" class="product-slide-image" />
   </div>
 </ngx-slick-carousel>
 
-  <!-- أيقونة القلب -->
-  <i class="fas fa-heart heart-icon"></i>
 
   <!-- تفاصيل المنتج -->
   <div class="product-details">

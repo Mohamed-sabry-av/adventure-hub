@@ -18,4 +18,36 @@
   gap: 20px;            /* فراغ بين بطاقات المنتجات */
 }
 
-/* في حال كنت تستخدم gap في .products-page يمكنك إلغاؤه لضمان التصاق ال sidebar بالمنتجات */
+.products-page {
+  display: flex;
+  gap: 20px;
+}
+
+.sidebar {
+  flex: 0 0 250px;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.skeleton-item {
+  height: 250px; /* أو حسب حجم الـ product card بتاعتك */
+  background: #e0e0e0;
+  border-radius: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+.skeleton-grid.loading .skeleton-item {
+  background: #d0d0d0; /* لون مختلف للـ loading */
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+

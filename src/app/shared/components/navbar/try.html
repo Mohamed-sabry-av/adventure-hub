@@ -1,0 +1,45 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { NavbarComponent } from '../navbar/navbar.component';
+import { Category } from '../../../interfaces/category.model';
+import { Observable, merge } from 'rxjs';
+
+@Component({
+  selector: 'app-header',
+  standalone: true,
+  imports: [CommonModule, NgbDropdownModule, NavbarComponent],
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css'],
+  providers: [CategoriesService],
+})
+export class HeaderComponent implements OnInit {
+  mainCategories: Category[] = [];
+  subCategories: { [key: number]: Category[] } = {};
+  allCategories: Category[] = [];
+
+  constructor(private categoriesService: CategoriesService) {}
+
+  ngOnInit(): void {
+    this.fetchMainCategories();
+  }
+
+  /**
+   * Fetch main categories and populate mainCategories and allCategories arrays.
+   */
+  private fetchMainCategories(): void {
+    const mainCategoryIds = [397, 338, 71, 4238, 67, 62];
+    const categoryObservables: Observable<Category>[] = mainCategoryIds.map((id) =>
+      this.categoriesService.getCategoryById(id)
+    );
+
+    merge(...categoryObservables).subscribe({
+      next: (category: Category) => {
+        this.mainCategories.push(category);
+        this.allCategories.push(category);
+      },
+      error: (err) => console.error('Error fetching main categories:', err),
+    });
+  }
+}

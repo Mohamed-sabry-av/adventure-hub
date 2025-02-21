@@ -7,7 +7,7 @@ import { SlickCarouselModule } from 'ngx-slick-carousel';
   imports: [CommonModule, SlickCarouselModule],
   standalone: true,
   templateUrl: './product-card.component.html',
-  styleUrl: './product-card.component.css'
+  styleUrl: './product-card.component.css',
 })
 export class ProductCardComponent {
   @Input() product: any;
@@ -16,9 +16,10 @@ export class ProductCardComponent {
     slidesToShow: 1,
     slidesToScroll: 1,
     dots: true,
-    infinite: false, // لمنع التكرار اللانهائي
-    autoplay: false, // تشغيل تلقائي لو عايز
-    arrows: true, // إظهار الأسهم للتنقل
+    infinite: false,
+    autoplay: false, 
+    arrows: true, 
+    adaptiveHeight: false 
   };
   
 }

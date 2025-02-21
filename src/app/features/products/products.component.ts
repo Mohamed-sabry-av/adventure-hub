@@ -1,31 +1,73 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../../core/services/product.service';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
-import { FilterSidebarComponent } from "../../shared/components/filter-sidebar/filter-sidebar.component";
+import { FilterSidebarComponent } from '../../shared/components/filter-sidebar/filter-sidebar.component';
+import { CategoriesService } from '../../core/services/categories.service';
+import { map, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-products',
   standalone: true,
   imports: [CommonModule, ProductCardComponent, FilterSidebarComponent],
   templateUrl: './products.component.html',
-  styleUrl: './products.component.css',
+  styleUrls: ['./products.component.css'],
+  providers: [ProductService]
 })
-export class ProductsComponent {
+export class ProductsComponent implements OnInit {
   products: any[] = [];
+  isLoading = true;
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private categoriesService: CategoriesService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit() {
-    this.productService.getAllProducts().subscribe((data) => {
-      this.products = data;
+    this.route.params.pipe(
+      switchMap(params => {
+        const slugs = [
+          params['mainCategorySlug'],
+          params['subCategorySlug'],
+          params['subSubCategorySlug']
+        ].filter(s => s);
+        const deepestSlug = slugs.pop();
+        if (deepestSlug) {
+          this.isLoading = true;
+          return this.categoriesService.getCategoryBySlug(deepestSlug).pipe(
+            map(category => category ? category.id : null)
+          );
+        }
+        return of(null);
+      })
+    ).subscribe({
+      next: (categoryId) => {
+        if (categoryId !== null) {
+          this.loadProducts(categoryId);
+        } else {
+          this.loadAllProducts();
+        }
+      },
+      error: () => this.isLoading = false,
+      complete: () => this.isLoading = false
     });
   }
 
-
-
-  onFilterChange(event: any) {
-    console.log('Filter Changed:', event);
+  private loadProducts(categoryId: number) {
+    this.productService.getProductsByCategoryId(categoryId)
+      .subscribe(products => {
+        this.products = products;
+        this.isLoading = false;
+      });
   }
-  
+
+  private loadAllProducts() {
+    this.productService.getAllProducts()
+      .subscribe(products => {
+        this.products = products;
+        this.isLoading = false;
+      });
+  }
 }

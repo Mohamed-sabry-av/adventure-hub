@@ -4,16 +4,9 @@ import { ApiService } from './api.service';
 import { Observable, of } from 'rxjs';
 import { CacheService } from './cashing.service';
 import { catchError, map } from 'rxjs/operators';
-
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  images: { src: string }[]; // تحديد نوع الصور
-  categories: string[];
-  description: string;
-}
+import { shareReplay } from 'rxjs/operators';
+import { Product } from '../../interfaces/product';
+import { HandleErrorsService } from './handel-errors.service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,10 +15,12 @@ export class ProductService {
   constructor(
     private http: HttpClient,
     private WooAPI: ApiService,
-    private cachingService: CacheService
+    private cachingService: CacheService,
+    private handleErrorsService: HandleErrorsService
   ) {}
 
-  getAllProducts(): Observable<any> {
+  // GET ALL PRODUCTS
+  getAllProducts(): Observable<Product[]> {
     const cacheKey = 'products';
     return this.cachingService.cacheObservable(
       cacheKey,
@@ -34,26 +29,52 @@ export class ProductService {
           .set('_fields', 'id,name,price,images,categories,description')
           .set('per_page', '16'),
       }).pipe(
-        map((products:any) =>
+        map((products: any) =>
           products.map((product: any) => ({
             ...product,
-            images: product.images.slice(0, 3) || [], // تحديد أول 3 صور فقط
+            images: product.images.slice(0, 3),
           }))
         ),
-        catchError((error) => {
-          console.error('Error fetching products:', error);
-          return of([]);
-        })
+        catchError((error) => this.handleErrorsService.handelError(error)),
+
+        shareReplay(1)
       ),
       300000
     );
   }
 
-  getProductById(id: number): Observable<any> {
+  
+
+  // GET A SINGLE PRODUCT BY ID
+  getProductById(id: number): Observable<Product> {
     return this.WooAPI.getRequest(`products/${id}`);
   }
 
-  getProductByCategory(categoryID: string): Observable<any> {
-    return this.WooAPI.getRequest(`products?category=${categoryID}`);
+
+
+
+  // GET PRODUCTS BY CATEGORY ID
+  getProductsByCategoryId(categoryId: number): Observable<Product[]> {
+    const cacheKey = `products_category_${categoryId}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequest(`products`, {
+        params: new HttpParams()
+          .set('category', categoryId.toString()) // استخدام معرّف الفئة
+          .set('_fields', 'id,name,price,images,categories,description')
+          .set('per_page', '18'),
+      }).pipe(
+        map((products: any) =>
+          products.map((product: any) => ({
+            ...product,
+            images: product.images.slice(0, 3) || [],
+          }))
+        ),
+        catchError((error) => this.handleErrorsService.handelError(error)),
+
+        shareReplay(1)
+      ),
+      300000
+    );
   }
 }

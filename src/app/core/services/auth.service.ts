@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { HandelErrorsService } from './handel-errors.service';
+import { HandleErrorsService } from './handel-errors.service';
 import { catchError, Observable } from 'rxjs';
 
 @Injectable({
@@ -11,7 +11,7 @@ export class AuthService {
   private consumerSecret = 'cs_4c9f3b5fd41a135d862e973fc65d5c049e05fee4';
 
   http = inject(HttpClient);
-  handelErrorService = inject(HandelErrorsService);
+  handelErrorService = inject(HandleErrorsService);
 
   getAuthHeaders(): HttpHeaders {
     return new HttpHeaders({

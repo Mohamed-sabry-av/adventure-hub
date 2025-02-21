@@ -59,8 +59,20 @@
     </div>
   </div>
 
-  <app-navbar 
-  [mainCategories]="mainCategories"
-  [subCategories]="subCategories">
-</app-navbar>
+  @defer (hydrate on idle) {
+    <app-navbar
+      [mainCategories]="mainCategories"
+      [subCategories]="subCategories"
+      [allCategories]="allCategories"
+    ></app-navbar>
+  } @placeholder {
+    <div class="navbar-placeholder">
+      <ul class="nav-list">
+        <li class="nav-item" *ngFor="let category of mainCategories">
+          <a class="nav-link">{{ category.name }}</a>
+        </li>
+        <li class="nav-item sale-item"><a class="sale-link">SALE!</a></li>
+      </ul>
+    </div>
+  }
 </header>

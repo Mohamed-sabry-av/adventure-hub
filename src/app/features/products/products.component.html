@@ -2,7 +2,24 @@
   <app-filter-sidebar class="sidebar">
     <!-- محتوى ال sidebar -->
   </app-filter-sidebar>
-  <section class="products-grid">
-    <app-product-card *ngFor="let product of products" [product]="product"></app-product-card>
-  </section>
+
+  @if (isLoading) {
+    <div class="skeleton-grid">
+      <div class="skeleton-item" *ngFor="let item of [].constructor(5)"></div>
+    </div>
+    } @else {
+    @defer (on viewport) {
+      <section class="products-grid">
+        <app-product-card *ngFor="let product of products" [product]="product"></app-product-card>
+      </section>
+    } @placeholder {
+      <div class="skeleton-grid">
+        <div class="skeleton-item" *ngFor="let item of [].constructor(5)"></div>
+      </div>
+        } @loading (minimum 500ms) {
+          <div class="skeleton-grid loading">
+            <div class="skeleton-item" *ngFor="let item of [].constructor(5)"></div>
+          </div>
+            }
+  }
 </div>

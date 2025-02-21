@@ -6,7 +6,7 @@ import {
   HttpParams,
 } from '@angular/common/http';
 
-import { HandelErrorsService } from './handel-errors.service';
+import { HandleErrorsService } from './handel-errors.service';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -18,14 +18,14 @@ export class ApiService {
   constructor(
     private http: HttpClient,
     private authService: AuthService,
-    private handelErrorsService: HandelErrorsService
+    private handelErrorsService: HandleErrorsService
   ) {}
 
   getRequest<T>(endpoint: string, options: { params?: HttpParams } = {}): Observable<T> {
     return this.http
       .get<T>(`${this.baseUrl}${endpoint}`, {
         headers: this.authService.getAuthHeaders(),
-        ...options, // هنا نضيف `params` لو موجود
+        ...options, 
       })
       .pipe(catchError(this.handelErrorsService.handelError));
   }
