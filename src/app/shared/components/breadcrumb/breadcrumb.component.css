@@ -1,0 +1,15 @@
+/* breadcrumb.component.css */
+.breadcrumb {
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+  
+  .breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    padding: 0 0.5rem;
+  }
+  
+  .breadcrumb-item.active {
+    color: #6c757d;
+  }

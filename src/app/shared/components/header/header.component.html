@@ -60,11 +60,9 @@
   </div>
 
   @defer (hydrate on idle) {
-    <app-navbar
-      [mainCategories]="mainCategories"
-      [subCategories]="subCategories"
-      [allCategories]="allCategories"
-    ></app-navbar>
+    <header>
+      <app-navbar [mainCategories]="mainCategories" [allCategories]="allCategories"></app-navbar>
+    </header>
   } @placeholder {
     <div class="navbar-placeholder">
       <ul class="nav-list">

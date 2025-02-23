@@ -1,105 +1,98 @@
 import { Injectable } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { ApiService } from './api.service';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, catchError, Observable, of, shareReplay, tap } from 'rxjs';
 import { CacheService } from './cashing.service';
-import { map, timeout } from 'rxjs';
 import { HandleErrorsService } from './handel-errors.service';
 import { Category } from '../../interfaces/category.model';
-
-
-
+import { LocalStorageService } from './local-storage.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CategoriesService {
-  private categoriesCache: Category[] | null = null;
-  private categoriesSubject = new BehaviorSubject<Category[]>([]);
+  private readonly LOCAL_STORAGE_KEY = 'categories';
+  private readonly CACHE_TTL = 24 * 60 * 60 * 1000; // 24 Hours
 
   constructor(
-    private http: HttpClient,
     private WooAPI: ApiService,
     private cachingService: CacheService,
-    private handelErrorsService: HandleErrorsService
+    private handleErrorsService: HandleErrorsService,
+    private localStorageService: LocalStorageService
   ) {}
 
-  getCategories(parentId: number): Observable<Category[]> {
-    const cacheKey = `categories_${parentId}`;
-    return this.cachingService.cacheObservable(
-      cacheKey,
-      this.WooAPI.getRequest<Category[]>('products/categories', {
-        params: new HttpParams()
-          .set('_fields', 'id,name,slug,parent,display')
-          .set('parent', parentId.toString())
-          .set('per_page', '100'),
-      }),
-      300000
+  /**
+   * Retrieves all categories from WooCommerce API or localStorage with pagination handling.
+   * @returns Observable<Category[]> containing all categories (main, sub, and sub-sub).
+   */
+  getAllCategories(): Observable<Category[]> {
+    const cachedCategories = this.localStorageService.getItem<Category[]>(
+      this.LOCAL_STORAGE_KEY,
+      this.CACHE_TTL
+    );
+
+    if (cachedCategories) {
+      console.log('Categories loaded from localStorage:', cachedCategories);
+      return of(cachedCategories);
+    }
+
+    console.log('Fetching categories from API...');
+    return this.fetchAllCategories().pipe(
+      map((categories) => {
+        this.localStorageService.setItem(this.LOCAL_STORAGE_KEY, categories);
+        return categories;
+      })
     );
   }
 
-  getCategoryById(id: number): Observable<Category> {
-    const cacheKey = `category_${id}`;
-    return this.cachingService.cacheObservable(
-      cacheKey,
-      this.WooAPI.getRequest<Category>(`products/categories/${id}`, {
-        params: new HttpParams()
-          .set('_fields', 'id,name,slug,parent,display')
-          .set('per_page', '50'),
-      }),
-      300000 // Cache for 5 minutes (300000 milliseconds)
-    );
-  }
-
-  getSubCategories(parentId: number): Observable<any[]> {
-    return this.WooAPI.getRequest<any[]>('products/categories', {
+  /**
+   * Helper method to fetch all categories page by page from the API.
+   * @param page The current page number (default: 1).
+   * @param accumulatedCategories Accumulated categories from previous pages (default: []).
+   * @returns Observable<Category[]> containing all fetched categories.
+   */
+  private fetchAllCategories(page: number = 1, accumulatedCategories: Category[] = []): Observable<Category[]> {
+    return this.WooAPI.getRequest<Category[]>('products/categories', {
       params: new HttpParams()
         .set('_fields', 'id,name,slug,parent,display')
-        .set('parent', parentId.toString())
-        .set('per_page', '50'),
-    });
-  }
-
-  getSubSubCategories(parentId: number): Observable<Category[]> {
-    const cacheKey = `subsubcategories_${parentId}`;
-    return this.cachingService.cacheObservable(
-      cacheKey,
-      this.WooAPI.getRequest<Category[]>('products/categories', {
-        params: new HttpParams()
-          .set('_fields', 'id,name,slug,parent,display')
-          .set('parent', parentId.toString())
-          .set('per_page', '50'),
-      }).pipe(
-        catchError(error => {
-          console.error(`[CategoriesService] Error fetching sub-subcategories for parent ${parentId}:`, error);
-          return of([]); // إرجاع مصفوفة فارغة في حالة الخطأ
-        })
-      ),
-      300000 // Cache for 5 minutes
-    );
-  }
-  
-getCategoryBySlug(slug: string): Observable<Category | null> {
-  const cacheKey = `category_slug_${slug}`;
-  return this.cachingService.cacheObservable(
-    cacheKey,
-    this.WooAPI.getRequest<Category[]>('products/categories', {
-      params: new HttpParams()
-        .set('slug', slug)
-        .set('_fields', 'id,name,slug,parent,display')
+        .set('per_page', '100')
+        .set('page', page.toString()),
     }).pipe(
-      map(response => response.length > 0 ? response[0] : null),
-      catchError(error => {
-        console.error(`Error fetching category by slug ${slug}:`, error);
+      switchMap((categories: Category[]) => {
+        console.log(`Page ${page} fetched with ${categories.length} categories`);
+        const updatedCategories = accumulatedCategories.concat(categories);
+
+        if (categories.length < 100) {
+          console.log('All categories fetched. Total:', updatedCategories.length);
+          return of(updatedCategories);
+        }
+
+        return this.fetchAllCategories(page + 1, updatedCategories);
+      }),
+      catchError((error) => {
+        console.error(`Error fetching categories at page ${page}:`, error);
+        return this.handleErrorsService.handelError(error);
+      })
+    );
+  }
+
+  /**
+   * Retrieves a category by its slug from cached categories.
+   * @param slug The slug of the category to find.
+   * @returns Observable<Category | null>
+   */
+  getCategoryBySlug(slug: string): Observable<Category | null> {
+    return this.getAllCategories().pipe(
+      map((categories) => {
+        const category = categories.find((cat) => cat.slug === slug);
+        console.log(`Category for slug "${slug}":`, category || 'Not found');
+        return category || null;
+      }),
+      catchError((error) => {
+        console.error(`Error finding category by slug "${slug}":`, error);
         return of(null);
       })
-    ),
-    300000
-  ).pipe(
-    // Add a timeout or immediate fallback if it takes too long
-    timeout(5000), // Timeout after 5 seconds
-    catchError(() => of(null))
-  );
-}
-
+    );
+  }
 }

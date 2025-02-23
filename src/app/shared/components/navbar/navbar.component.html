@@ -1,36 +1,36 @@
 <nav class="navbar">
-    <ul class="nav-list">
-      <!-- Main Categories -->
-      <li class="nav-item" *ngFor="let category of mainCategories" (mouseover)="fetchSubCategories(category.id)">
-        <a class="nav-link" [routerLink]="getCategoryRoute(category)">
-          {{ category.name }}
-        </a>
-  
-        <!-- Mega Menu -->
-        <div class="mega-menu" *ngIf="hasSubCategories(category.id)">
-          <div class="menu-container">
-            <!-- Subcategories -->
-            <div class="menu-column" *ngFor="let sub of subCategories[category.id]">
-              <h4 class="subcategory-title">
-                <a [routerLink]="getCategoryRoute(sub)">
-                  {{ sub.name }}
+  <ul class="nav-list">
+    <!-- Main Categories -->
+    <li class="nav-item" *ngFor="let category of mainCategories">
+      <a class="nav-link" [routerLink]="getCategoryRoute(category)">
+        {{ category.name }}
+      </a>
+
+      <!-- Mega Menu -->
+      <div class="mega-menu" *ngIf="getSubCategories(category.id).length > 0">
+        <div class="menu-container">
+          <!-- Subcategories -->
+          <div class="menu-column" *ngFor="let sub of getSubCategories(category.id)">
+            <h4 class="subcategory-title">
+              <a [routerLink]="getCategoryRoute(sub)">
+                {{ sub.name }}
+              </a>
+            </h4>
+            <ul class="subcategory-list">
+              <li *ngFor="let subSub of getSubCategories(sub.id)">
+                <a class="subcategory-link" [routerLink]="getCategoryRoute(subSub)">
+                  {{ subSub.name }}
                 </a>
-              </h4>
-              <ul class="subcategory-list">
-                <li *ngFor="let subSub of subCategories[sub.id]">
-                  <a class="subcategory-link" [routerLink]="getCategoryRoute(subSub)">
-                    {{ subSub.name }}
-                  </a>
-                </li>
-              </ul>
-            </div>
+              </li>
+            </ul>
           </div>
         </div>
-      </li>
-  
-      <!-- SALE Section -->
-      <li class="nav-item sale-item">
-        <a class="sale-link">SALE!</a>
-      </li>
-    </ul>
-  </nav>
+      </div>
+    </li>
+
+    <!-- SALE Section -->
+    <li class="nav-item sale-item">
+      <a class="sale-link">SALE!</a>
+    </li>
+  </ul>
+</nav>

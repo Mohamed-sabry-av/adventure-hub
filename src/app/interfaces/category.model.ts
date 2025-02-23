@@ -4,4 +4,5 @@ export interface Category {
   slug: string;
   parent: number ;
   display?: string;
+  children?: Category[]; 
 }

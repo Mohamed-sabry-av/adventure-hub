@@ -12,15 +12,20 @@ export const routes: Routes = [
     path: ':mainCategorySlug',
     component: ProductsComponent,
     pathMatch: 'full',
+    data: { breadcrumb: 'Main Category' } 
   },
   {
     path: ':mainCategorySlug/:subCategorySlug',
     component: ProductsComponent,
     pathMatch: 'full',
+    data: { breadcrumb: 'Sub Category' } 
+
   },
   {
     path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug',
     component: ProductsComponent,
     pathMatch: 'full',
+    data: { breadcrumb: 'Sub-Sub Category' }
+
   },
 ];

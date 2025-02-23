@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Category } from '../../../interfaces/category.model';
-import { CategoriesService } from '../../../core/services/categories.service';
 
 @Component({
   selector: 'app-navbar',
@@ -13,22 +12,27 @@ import { CategoriesService } from '../../../core/services/categories.service';
 })
 export class NavbarComponent {
   @Input() mainCategories: Category[] = [];
-  @Input() subCategories: { [key: string]: Category[] } = {};
   @Input() allCategories: Category[] = [];
 
-constructor(private categoriesService: CategoriesService) {}
-
+  /**
+   * Builds the full route path for a given category based on its parent hierarchy.
+   * @param category The category to build the route for.
+   * @returns Array of path segments.
+   */
   getCategoryRoute(category: Category): string[] {
     const pathSegments: string[] = [];
     this.buildFullPath(category, pathSegments);
     return pathSegments;
   }
 
+  /**
+   * Recursively builds the path segments for a category by traversing its parents.
+   * @param category The current category.
+   * @param path The array to store path segments.
+   */
   private buildFullPath(category: Category, path: string[]): void {
     if (category.parent !== 0) {
-      const parentCategory = this.allCategories.find(
-        (c) => c.id === category.parent
-      );
+      const parentCategory = this.allCategories.find((c) => c.id === category.parent);
       if (parentCategory) {
         this.buildFullPath(parentCategory, path);
       }
@@ -36,32 +40,12 @@ constructor(private categoriesService: CategoriesService) {}
     path.push(category.slug);
   }
 
-
-  fetchSubCategories(categoryId: number): void {
-    if (!this.subCategories[categoryId]) {
-      this.categoriesService.getSubCategories(categoryId).subscribe({
-        next: (subCategories) => {
-          // تخزين الفئات الفرعية
-          this.subCategories[categoryId] = subCategories;
-          this.allCategories.push(...subCategories);
-
-          // جلب الفئات الفرعية الفرعية لكل فئة فرعية
-          subCategories.forEach((sub) => {
-            this.categoriesService.getSubCategories(sub.id).subscribe({
-              next: (subSubCategories) => {
-                this.subCategories[sub.id] = subSubCategories;
-                this.allCategories.push(...subSubCategories);
-              },
-              error: (err) => console.error(`Error fetching sub-sub categories for ${sub.id}:`, err),
-            });
-          });
-        },
-        error: (err) => console.error(`Error fetching subcategories for ${categoryId}:`, err),
-      });
-    }
+  /**
+   * Gets subcategories for a given category ID from allCategories.
+   * @param categoryId The ID of the parent category.
+   * @returns Array of subcategories.
+   */
+  getSubCategories(categoryId: number): Category[] {
+    return this.allCategories.filter((cat) => cat.parent === categoryId);
   }
-
-  hasSubCategories(categoryId: number): boolean {
-    return this.subCategories[categoryId] && this.subCategories[categoryId].length > 0;
-}
 }
