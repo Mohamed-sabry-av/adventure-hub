@@ -1,9 +1,6 @@
 .custom-sidebar {
-  background-color: #f8f9fa; /* لون خلفية فاتح */
-  padding: 20px;
-  border: 1px solid #e9ecef; /* حد خفيف */
-  border-radius: 4px; /* زوايا مدورة خفيفة */
-  /* إزالة الظل لو عايز مظهر أبسط */
+  background-color: #f8f9fa;
+  padding-right: 19px;
   box-shadow: none;
 }
 
@@ -25,7 +22,7 @@
 }
 
 .custom-sidebar .dropdown-toggle {
-  border: 1px solid #ced4da;
+  /* border: 1px solid #ced4da; */
   border-radius: 4px;
 }
 

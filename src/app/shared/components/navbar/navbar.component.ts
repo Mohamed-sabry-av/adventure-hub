@@ -48,4 +48,5 @@ export class NavbarComponent {
   getSubCategories(categoryId: number): Category[] {
     return this.allCategories.filter((cat) => cat.parent === categoryId);
   }
+
 }

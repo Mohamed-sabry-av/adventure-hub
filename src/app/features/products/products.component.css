@@ -1,7 +1,7 @@
 .products-page {
   display: flex;
-  max-width: 1200px;    /* عرض أقصى للصفحة */
-  margin: 0 auto;       /* توسيط الصفحة */
+  max-width: 1400px;   
+  margin: 0 auto;       
   padding: 0 20px;      /* حواف داخلية على اليمين والشمال */
 }
 
@@ -14,8 +14,8 @@
 .products-grid {
   flex: 1;              /* تملأ المساحة المتبقية */
   display: grid;
-  grid-template-columns: repeat(3, minmax(250px, 1fr)); /* ثلاث أعمدة للمنتجات */
-  gap: 20px;            /* فراغ بين بطاقات المنتجات */
+  grid-template-columns: repeat(4, minmax(230px, 1fr)); /* ثلاث أعمدة للمنتجات */
+  gap: 5px;            /* فراغ بين بطاقات المنتجات */
 }
 
 .products-page {
@@ -29,8 +29,8 @@
 
 .skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(250px, 1fr)); /* ثلاث أعمدة للمنتجات */
-  gap: 20px;
+  grid-template-columns: repeat(4, minmax(230px, 1fr)); /* ثلاث أعمدة للمنتجات */
+  gap: 5px;
   padding: 20px;
 }
 

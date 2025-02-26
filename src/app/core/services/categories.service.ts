@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, map, switchMap, shareReplay, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { CacheService } from './cashing.service';
 import { HandleErrorsService } from './handel-errors.service';
@@ -14,6 +14,14 @@ import { LocalStorageService } from './local-storage.service';
 export class CategoriesService {
   private readonly LOCAL_STORAGE_KEY = 'categories';
   private readonly CACHE_TTL = 24 * 60 * 60 * 1000; // 24 Hours
+  private categoriesSubject = new BehaviorSubject<Category[] | null>(null);
+  private categories$: Observable<Category[]> | null = null;
+  private readonly EXCLUDED_SLUGS = [
+    'home',
+    'men',
+    'women',
+    'uncategorized'
+  ];
 
   constructor(
     private WooAPI: ApiService,
@@ -23,34 +31,52 @@ export class CategoriesService {
   ) {}
 
   /**
-   * Retrieves all categories from WooCommerce API or localStorage with pagination handling.
-   * @returns Observable<Category[]> containing all categories (main, sub, and sub-sub).
+   * Retrieves all categories as an observable, filtering by display if needed.
+   * @param displayFilter Optional filter to include only categories with specific display values.
+   * @returns Observable<Category[]> containing filtered categories.
    */
-  getAllCategories(): Observable<Category[]> {
-    const cachedCategories = this.localStorageService.getItem<Category[]>(
-      this.LOCAL_STORAGE_KEY,
-      this.CACHE_TTL
-    );
+  getAllCategories(displayFilter?: string[]): Observable<Category[]> {
+     const cachedCategories = this.localStorageService.getItem<Category[]>(
+          this.LOCAL_STORAGE_KEY,
+          this.CACHE_TTL
+        );
+    
+        if (cachedCategories && !this.categoriesSubject.value) {
+          console.log('Categories initialized from localStorage:', cachedCategories);
+          const filteredCategories = this.excludeUnwantedCategories(cachedCategories);
+          this.categoriesSubject.next(filteredCategories);
+        }
+    
+        if (this.categoriesSubject.value) {
+          // console.log('Returning cached categories from subject:', this.categoriesSubject.value);
+          return of(this.categoriesSubject.value);
+        }
 
-    if (cachedCategories) {
-      console.log('Categories loaded from localStorage:', cachedCategories);
-      return of(cachedCategories);
+        if (!this.categories$) {
+          console.log('Initializing shared categories observable...');
+          this.categories$ = this.fetchAllCategories().pipe(
+            map((categories) => this.excludeUnwantedCategories(categories)),
+            tap((filteredCategories) => {
+              this.localStorageService.setItem(this.LOCAL_STORAGE_KEY, filteredCategories);
+              this.categoriesSubject.next(filteredCategories);
+            }),
+        catchError((error) => {
+          console.error('Error fetching categories:', error);
+          return of([]); // لا داعي لاستدعاء next هنا
+        }),
+        tap((filteredCategories) => {
+          this.categoriesSubject.next(filteredCategories);
+        }),
+        shareReplay(1)
+      );
     }
 
-    console.log('Fetching categories from API...');
-    return this.fetchAllCategories().pipe(
-      map((categories) => {
-        this.localStorageService.setItem(this.LOCAL_STORAGE_KEY, categories);
-        return categories;
-      })
-    );
+    console.log('Subscribing to shared categories observable...');
+    return this.categories$;
   }
 
   /**
-   * Helper method to fetch all categories page by page from the API.
-   * @param page The current page number (default: 1).
-   * @param accumulatedCategories Accumulated categories from previous pages (default: []).
-   * @returns Observable<Category[]> containing all fetched categories.
+   * Fetches all categories page by page from the API.
    */
   private fetchAllCategories(page: number = 1, accumulatedCategories: Category[] = []): Observable<Category[]> {
     return this.WooAPI.getRequest<Category[]>('products/categories', {
@@ -79,8 +105,6 @@ export class CategoriesService {
 
   /**
    * Retrieves a category by its slug from cached categories.
-   * @param slug The slug of the category to find.
-   * @returns Observable<Category | null>
    */
   getCategoryBySlug(slug: string): Observable<Category | null> {
     return this.getAllCategories().pipe(
@@ -95,4 +119,16 @@ export class CategoriesService {
       })
     );
   }
+
+  /**
+   * Filters categories based on the display field.
+   * @param categories The categories to filter.
+   * @param displayFilter Optional array of display values to include (e.g., ['default', 'both']).
+   * @returns Filtered array of categories.
+   */
+  private excludeUnwantedCategories(categories: Category[]): Category[] {
+     const filtered = categories.filter((category) => !this.EXCLUDED_SLUGS.includes(category.slug));
+     console.log(`Filtered categories. Original: ${categories.length}, After exclusion: ${filtered.length}`);
+     return filtered;
+   }
 }

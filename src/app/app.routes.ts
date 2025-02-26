@@ -28,4 +28,16 @@ export const routes: Routes = [
     data: { breadcrumb: 'Sub-Sub Category' }
 
   },
+  {
+    path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug',
+    component: ProductsComponent,
+    pathMatch: 'full',
+    data: { breadcrumb: 'Sub-Sub-Sub Category' }
+  },
+  {
+    path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug/:subSubSubSubCategorySlug',
+    component: ProductsComponent,
+    pathMatch: 'full',
+    data: { breadcrumb: 'Sub-Sub-Sub-Sub Category' }
+  },
 ];

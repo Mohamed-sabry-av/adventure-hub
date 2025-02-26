@@ -1,4 +1,17 @@
-<div class="mb-4">
+<div class="filter-sidebar custom-sidebar">
+  <!-- Subroutes Section -->
+  <div class="mb-4 subroutes-section">
+    <app-breadcrumb-routes [categoryId]="categoryId" > </app-breadcrumb-routes>
+  </div>
+
+  <!-- Title -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Filter</h4>
+    <button class="btn btn-link text-primary p-0">Reset</button>
+  </div>
+
+  <!-- Categories -->
+  <div class="mb-4">
     <h5 class="mb-3">Categories</h5>
     <div class="list-group">
       <div
@@ -19,13 +32,7 @@
     </div>
   </div>
 
-<div class="filter-sidebar custom-sidebar">
-  <!-- Title -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">Filter</h4>
-    <button class="btn btn-link text-primary p-0">Reset</button>
-  </div>
-
+  <!-- Fulfillment -->
   <div class="mb-4">
     <h5 class="mb-3">Fulfillment</h5>
     <div class="dropdown">
@@ -53,6 +60,7 @@
     </div>
   </div>
 
+  <!-- Size -->
   <div class="mb-4">
     <h5 class="mb-3">Size</h5>
     <div class="dropdown">
@@ -80,7 +88,7 @@
     </div>
   </div>
 
-  <!-- Sizes -->
+  <!-- Color -->
   <div class="mb-4">
     <h5 class="mb-3">Color</h5>
     <div class="dropdown">
@@ -108,7 +116,7 @@
     </div>
   </div>
 
-<!-- Brand -->
+  <!-- Gender -->
   <div class="mb-4">
     <h5 class="mb-3">Gender</h5>
     <div class="dropdown">
@@ -136,6 +144,7 @@
     </div>
   </div>
 
+  <!-- Brand -->
   <div class="mb-4">
     <h5 class="mb-3">Brand</h5>
     <div class="dropdown">
@@ -163,7 +172,7 @@
     </div>
   </div>
 
-  <!-- قسم السعر -->
+  <!-- Price Range -->
   <div class="mb-4">
     <h5 class="mb-3">Price Range</h5>
     <div class="px-3">
@@ -175,7 +184,7 @@
     </div>
   </div>
 
-  <!-- قسم التقييم -->
+  <!-- Rating -->
   <div class="mb-4">
     <h5 class="mb-3">Rating</h5>
     <div class="list-group">

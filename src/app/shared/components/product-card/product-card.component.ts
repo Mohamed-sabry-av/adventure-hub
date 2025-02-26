@@ -19,7 +19,9 @@ export class ProductCardComponent {
     infinite: false,
     autoplay: false, 
     arrows: true, 
-    adaptiveHeight: false 
+    adaptiveHeight: false ,
+    // time to next photo
+    autoplaySpeed: 500,
   };
   
 }

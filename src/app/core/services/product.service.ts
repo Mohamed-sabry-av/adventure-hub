@@ -1,10 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable, of } from 'rxjs';
 import { CacheService } from './cashing.service';
-import { catchError, map } from 'rxjs/operators';
-import { shareReplay } from 'rxjs/operators';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { Product } from '../../interfaces/product';
 import { HandleErrorsService } from './handel-errors.service';
 
@@ -19,62 +18,147 @@ export class ProductService {
     private handleErrorsService: HandleErrorsService
   ) {}
 
-  // GET ALL PRODUCTS
-  getAllProducts(): Observable<Product[]> {
-    const cacheKey = 'products';
+  // GET ALL PRODUCTS WITH PAGINATION
+  getAllProducts(page: number = 1, perPage: number = 16): Observable<Product[]> {
+    const cacheKey = `products_page_${page}_per_${perPage}`;
     return this.cachingService.cacheObservable(
       cacheKey,
-      this.WooAPI.getRequest('products', {
+      this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('_fields', 'id,name,price,images,categories,description')
-          .set('per_page', '16'),
+          .set('per_page', perPage.toString())
+          .set('page', page.toString()),
+        observe: 'response'
       }).pipe(
-        map((products: any) =>
-          products.map((product: any) => ({
+        map((response: HttpResponse<any>) => {
+          console.log(`API response for all products (page ${page}, perPage ${perPage}):`, response.body.length);
+          const products = this.getUniqueProducts(response.body.map((product: any) => ({
             ...product,
-            images: product.images.slice(0, 3),
-          }))
-        ),
-        catchError((error) => this.handleErrorsService.handelError(error)),
-
+            images: product.images.slice(0, 3) || [],
+          })));
+          return products;
+        }),
+        catchError((error) => {
+          console.error('Error fetching all products:', error);
+          return of([]); // إرجاع مصفوفة فريدة فارغة في حالة الخطأ
+        }),
         shareReplay(1)
       ),
-      300000
+      300000 // TTL 5 دقائق
     );
   }
 
-  
+  // GET TOTAL PRODUCTS FOR PAGINATION
+  getTotalProducts(): Observable<number> {
+    const cacheKey = `total_products`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequestProducts<any>('products', {
+        params: new HttpParams()
+          .set('_fields', 'id')
+          .set('per_page', '1')
+          .set('page', '1'),
+        observe: 'response'
+      }).pipe(
+        map((response: HttpResponse<any>) => {
+          const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
+          if (isNaN(total)) {
+            console.warn('X-WP-Total header not found or invalid, defaulting to 0');
+            return 0;
+          }
+          console.log('Total products fetched:', total);
+          return total;
+        }),
+        catchError((error) => {
+          console.error('Error fetching total products:', error);
+          return of(0); // إرجاع 0 كقيمة افتراضية
+        })
+      ),
+      300000 // TTL 5 دقائق
+    );
+  }
+
+  // GET PRODUCTS BY CATEGORY ID WITH PAGINATION
+  getProductsByCategoryId(categoryId: number, page: number = 1, perPage: number = 18): Observable<Product[]> {
+    const cacheKey = `products_category_${categoryId}_page_${page}_per_${perPage}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequestProducts<any>('products', {
+        params: new HttpParams()
+          .set('category', categoryId.toString())
+          .set('_fields', 'id,name,price,images,categories,description')
+          .set('per_page', perPage.toString())
+          .set('page', page.toString()),
+        observe: 'response'
+      }).pipe(
+        map((response: HttpResponse<any>) => {
+          console.log(`API response for category ${categoryId} (page ${page}, perPage ${perPage}):`, response.body.length);
+          const products = this.getUniqueProducts(response.body.map((product: any) => ({
+            ...product,
+            images: product.images.slice(0, 3) || [],
+          })));
+          return products;
+        }),
+        catchError((error) => {
+          console.error(`Error fetching products for category ${categoryId}:`, error);
+          return of([]); // إرجاع مصفوفة فريدة فارغة في حالة الخطأ
+        }),
+        shareReplay(1)
+      ),
+      300000 // TTL 5 دقائق
+    );
+  }
+
+  // GET TOTAL PRODUCTS BY CATEGORY ID FOR PAGINATION
+  getTotalProductsByCategoryId(categoryId: number): Observable<number> {
+    const cacheKey = `total_products_category_${categoryId}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequestProducts<any>('products', {
+        params: new HttpParams()
+          .set('category', categoryId.toString())
+          .set('_fields', 'id')
+          .set('per_page', '1')
+          .set('page', '1'),
+        observe: 'response'
+      }).pipe(
+        map((response: HttpResponse<any>) => {
+          const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
+          if (isNaN(total)) {
+            console.warn('X-WP-Total header not found or invalid for category, defaulting to 0');
+            return 0;
+          }
+          console.log(`Total products for category ${categoryId} fetched:`, total);
+          return total;
+        }),
+        catchError((error) => {
+          console.error(`Error fetching total products for category ${categoryId}:`, error);
+          return of(0); // إرجاع 0 كقيمة افتراضية
+        })
+      ),
+      300000 // TTL 5 دقائق
+    );
+  }
 
   // GET A SINGLE PRODUCT BY ID
   getProductById(id: number): Observable<Product> {
-    return this.WooAPI.getRequest(`products/${id}`);
+    return this.WooAPI.getRequestProducts<any>(`products/${id}`, {
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<any>) => response.body),
+      catchError((error) => this.handleErrorsService.handelError(error))
+    );
   }
 
-
-
-
-  // GET PRODUCTS BY CATEGORY ID
-  getProductsByCategoryId(categoryId: number): Observable<Product[]> {
-    const cacheKey = `products_category_${categoryId}`;
-    return this.cachingService.cacheObservable(
-      cacheKey,
-      this.WooAPI.getRequest(`products`, {
-        params: new HttpParams()
-          .set('category', categoryId.toString()) // استخدام معرّف الفئة
-          .set('_fields', 'id,name,price,images,categories,description')
-          .set('per_page', '18'),
-      }).pipe(
-        map((products: any) =>
-          products.map((product: any) => ({
-            ...product,
-            images: product.images.slice(0, 3) || [],
-          }))
-        ),
-        catchError((error) => this.handleErrorsService.handelError(error)),
-
-        shareReplay(1)
-      ),
-      300000
-    );
+  private getUniqueProducts(products: any[]): any[] {
+    const uniqueProducts = [];
+    const seenIds = new Set();
+    for (const product of products) {
+      if (!seenIds.has(product.id)) {
+        seenIds.add(product.id);
+        uniqueProducts.push(product);
+      }
+    }
+    return uniqueProducts;
   }
 }

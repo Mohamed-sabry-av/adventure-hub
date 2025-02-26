@@ -4,6 +4,7 @@ import {
   HttpClient,
   HttpErrorResponse,
   HttpParams,
+  HttpResponse,
 } from '@angular/common/http';
 
 import { HandleErrorsService } from './handel-errors.service';
@@ -28,6 +29,28 @@ export class ApiService {
         ...options, 
       })
       .pipe(catchError(this.handelErrorsService.handelError));
+  }
+
+  getRequestProducts<T>(
+    endpoint: string,
+    options: { 
+      params?: HttpParams;
+      observe?: 'body' | 'response' | 'events';
+    } = {}
+  ): Observable<T | HttpResponse<T>> {
+    const httpOptions: Object = {
+      headers: this.authService.getAuthHeaders(),
+      ...options,
+      observe: options.observe || 'body'
+    };
+
+    return this.http.get<T>(
+      `${this.baseUrl}${endpoint}`,
+      httpOptions as Object // Type assertion هنا
+    ).pipe(
+      catchError((error: HttpErrorResponse) => 
+        this.handelErrorsService.handelError(error)
+    ))
   }
   
 
