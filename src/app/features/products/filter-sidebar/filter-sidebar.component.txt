@@ -1,0 +1,70 @@
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { ProductService } from '../../../core/services/product.service';
+
+@Component({
+  selector: 'app-filter-sidebar',
+  standalone: true,
+  imports: [CommonModule, FormsModule, BreadcrumbRoutesComponent],
+  templateUrl: './filter-sidebar.component.html',
+  styleUrls: ['./filter-sidebar.component.css'],
+})
+export class FilterSidebarComponent implements OnInit {
+  @Input() categoryId: number | null = null;
+  @Input() attributes: any[] = [];
+  @Output() categoryIdChange = new EventEmitter<number | null>();
+  @Output() filtersChange = new EventEmitter<{ [key: string]: number[] }>();
+
+  selectedFilters: { [key: string]: number[] } = {};
+
+  constructor(
+    private categoriesService: CategoriesService,
+    private productsService: ProductService
+  ) {}
+
+  ngOnInit() {
+  console.log('Attributes received in FilterSidebar:', this.attributes);
+}
+
+  loadAttributes() {
+    if (this.categoryId !== null) {
+      this.productsService.getAttributesByCategoryId(this.categoryId).subscribe({
+        next: (attributes) => {
+          this.attributes = attributes;
+          console.log('Available Attributes for current category:', this.attributes);
+        },
+        error: (error) => {
+          console.error('Error loading attributes:', error);
+          this.attributes = [];
+        },
+      });
+    }
+  }
+
+  onFilterChange(attributeSlug: string, optionId: number) {
+    if (!this.selectedFilters[attributeSlug]) {
+      this.selectedFilters[attributeSlug] = [];
+    }
+
+    const index = this.selectedFilters[attributeSlug].indexOf(optionId);
+    if (index === -1) {
+      this.selectedFilters[attributeSlug].push(optionId);
+    } else {
+      this.selectedFilters[attributeSlug].splice(index, 1);
+    }
+    console.log('Selected filters:', this.selectedFilters);
+    this.filtersChange.emit(this.selectedFilters);
+  }
+
+  onCategoryChange(newCategoryId: number | null) {
+    console.log('Category changed to:', newCategoryId);
+    this.categoryId = newCategoryId;
+    this.categoryIdChange.emit(newCategoryId);
+    if (!this.attributes.length) {
+      this.loadAttributes();
+    }
+  }
+}

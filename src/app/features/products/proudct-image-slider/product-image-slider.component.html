@@ -1,0 +1,29 @@
+<div class="product-gallery">
+  <div class="thumbnails-column">
+    <div
+      *ngFor="let image of images; trackBy: trackByFn"
+      class="thumbnail-item"
+      [class.active]="selectedImage === image.src"
+      (click)="selectImage(image.src)"
+    >
+      <img
+        [src]="image.src"
+        [alt]="image.alt || productName"
+        class="thumbnail-img"
+      />
+    </div>
+  </div>
+  <div class="main-image">
+    <lib-ngx-image-zoom
+      [thumbImage]="selectedImage || images[0]?.src || 'placeholder.jpg'"
+      [fullImage]="selectedImage || images[0]?.src || 'placeholder.jpg'"
+      [magnification]="1.3"
+      [zoomMode]="'hover'"
+      [lensWidth]="100"
+      [lensHeight]="100"
+      [enableLens]="false" 
+      [enableScrollZoom]="false" 
+      class="main-img"
+    ></lib-ngx-image-zoom>
+  </div>
+</div>

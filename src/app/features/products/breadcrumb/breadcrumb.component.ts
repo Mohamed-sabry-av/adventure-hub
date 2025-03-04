@@ -72,7 +72,7 @@ export class BreadcrumbComponent implements OnInit {
               url: ['/', ...pathSegments],
             });
             currentParentId = category.id;
-            console.log(`Breadcrumb step: ${category.name} (ID: ${category.id})`);
+            // console.log(`Breadcrumb step: ${category.name} (ID: ${category.id})`);
           } else {
             console.warn(`Category with slug "${slug}" not found or not a child of parent ${currentParentId}`);
             break;

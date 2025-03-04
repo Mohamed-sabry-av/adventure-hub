@@ -1,5 +1,5 @@
 .navbar {
-    background: #121212;
+    background: #1d1d1d;
     padding: 0;
     position: relative;
     font-family: 'Arial', sans-serif;
@@ -163,5 +163,8 @@
     
     .menu-column {
         padding: 1rem;
+    }
+    .navbar{
+        display: none;
     }
 }

@@ -28,3 +28,30 @@
   outline: none;
 }
 
+.logo{
+  width: 350px;
+   height: auto
+}
+
+
+
+@media screen and (max-width: 768px) {
+  .logo{
+    width: 200px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+  }
+  .first-bar{
+    display: none !important;
+  }
+  .icons{
+    display:none !important;
+  }
+  .search-container{
+    display: none !important;
+  }
+
+}

@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { ProductService } from '../../core/services/product.service';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -27,9 +27,10 @@ export class ProductsComponent implements OnInit {
   isLoadingMore = false;
   currentCategoryId: number | null = null;
   currentPage: number = 1;
-  itemPerPage: number = 20; 
+  itemPerPage: number = 20;
   totalProducts: number = 0;
-  @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
+  filters: { [key: string]: number[] } = {}; // غيرنا من string[] لـ number[]
+  attributes: any[] = [];
 
   constructor(
     private productService: ProductService,
@@ -58,10 +59,10 @@ export class ProductsComponent implements OnInit {
       })
     ).subscribe({
       next: (categoryId) => {
-        console.log('Received categoryId from route:', categoryId);
         this.currentCategoryId = categoryId;
         this.currentPage = 1;
         this.products = [];
+        console.log('Current Category ID in ProductsComponent:', this.currentCategoryId);
         if (categoryId !== null) {
           this.loadProducts(categoryId, this.currentPage);
           this.loadTotalProducts(categoryId);
@@ -74,20 +75,9 @@ export class ProductsComponent implements OnInit {
         console.error('Error fetching category ID:', error);
         this.isLoading = false;
       },
-      complete: () => {
-        this.isLoading = false;
-      },
+      complete: () => (this.isLoading = false),
     });
   }
-
-
-
-ngAfterViewInit() {
-  this.filterSidebar.filtersChanges.subscribe((filters) => {
-    console.log('Received filters in ProductsComponent:', filters);
-    this.loadProductsWithFilters(this.currentCategoryId, filters);
-  });
-}
 
   onCategoryIdChange(categoryId: number | null) {
     this.currentCategoryId = categoryId;
@@ -110,7 +100,6 @@ ngAfterViewInit() {
     const documentHeight = document.documentElement.scrollHeight;
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     
-    // Check if we're near the bottom (within 200px)
     if (scrollTop + windowHeight >= documentHeight - 500 && !this.isLoading && !this.isLoadingMore) {
       this.loadMoreProducts();
     }
@@ -123,21 +112,36 @@ ngAfterViewInit() {
     } else {
       this.isLoadingMore = true;
     }
-    const filters = this.filterSidebar?.selectedFilters || {};
-    this.productService.getFilteredProductsByCategory(categoryId, filters, page, this.itemPerPage).subscribe({
-      next: (products) => {
-        console.log(`Loaded ${products.length} products for page ${page}`);
-        // Only append new products, don't duplicate
-        this.products = isInitialLoad ? products : [...this.products, ...products];
-      },
-      error: (error) => {
-        console.error('Error loading products:', error);
-      },
-      complete: () => {
-        this.isLoading = false;
-        this.isLoadingMore = false;
-      }
-    });
+
+    if (Object.keys(this.filters).length > 0) {
+      this.productService.getProductsByAttributesAndCategory(categoryId, this.filters, page, this.itemPerPage).subscribe({
+        next: (products) => {
+          console.log(`Loaded ${products.length} filtered products for page ${page}`);
+          this.products = isInitialLoad ? products : [...this.products, ...products];
+        },
+        error: (error) => {
+          console.error('Error loading filtered products:', error);
+        },
+        complete: () => {
+          this.isLoading = false;
+          this.isLoadingMore = false;
+        }
+      });
+    } else {
+      this.productService.getProductsByCategoryId(categoryId, page, this.itemPerPage).subscribe({
+        next: (products) => {
+          console.log(`Loaded ${products.length} products for page ${page}`);
+          this.products = isInitialLoad ? products : [...this.products, ...products];
+        },
+        error: (error) => {
+          console.error('Error loading products:', error);
+        },
+        complete: () => {
+          this.isLoading = false;
+          this.isLoadingMore = false;
+        }
+      });
+    }
   }
 
   private loadAllProducts(page: number) {
@@ -148,8 +152,7 @@ ngAfterViewInit() {
       this.isLoadingMore = true;
     }
 
-    const filters = this.filterSidebar?.selectedFilters || {};
-    this.productService.getFilteredProductsByCategory(null, filters, page, this.itemPerPage).subscribe({
+    this.productService.getAllProducts(page, this.itemPerPage).subscribe({
       next: (products) => {
         console.log(`Loaded ${products.length} all products for page ${page}`);
         this.products = isInitialLoad ? products : [...this.products, ...products];
@@ -184,13 +187,16 @@ ngAfterViewInit() {
 
   private loadTotalProducts(categoryId: number) {
     this.productService.getTotalProductsByCategoryId(categoryId).subscribe({
-      next: (total) => {
+      next: ({ total, attributes }) => {
         console.log('Total products for category loaded:', total);
+        console.log('Attributes for category loaded:', attributes);
         this.totalProducts = total;
+        this.attributes = attributes;
       },
       error: (error) => {
         console.error('Error loading total products:', error);
-        this.totalProducts = 0; // تعيين قيمة افتراضية
+        this.totalProducts = 0;
+        this.attributes = [];
       },
     });
   }
@@ -203,7 +209,7 @@ ngAfterViewInit() {
       },
       error: (error) => {
         console.error('Error loading total all products:', error);
-        this.totalProducts = 0; // تعيين قيمة افتراضية
+        this.totalProducts = 0;
       },
     });
   }
@@ -216,27 +222,35 @@ ngAfterViewInit() {
       .filter((s) => s);
   }
 
+  onFilterChange(filters: { [key: string]: number[] }) { // غيرنا من string[] لـ number[]
+    this.filters = filters;
+    this.currentPage = 1;
+    this.products = [];
+    this.isLoading = true;
+    console.log('Filters updated:', this.filters);
+    if (this.currentCategoryId !== null) {
+      this.loadProductsWithFilters(this.currentCategoryId, this.filters, this.currentPage);
+    } else {
+      this.loadAllProducts(this.currentPage);
+    }
+  }
 
-// ===========================================FilterSide===============================================
+  private loadProductsWithFilters(categoryId: number, filters: { [key: string]: number[] }, page: number) { // غيرنا من string[] لـ number[]
+    this.productService.getProductsByAttributesAndCategory(categoryId, filters, page, this.itemPerPage).subscribe({
+      next: (products) => {
+        console.log(`Loaded ${products.length} filtered products for page ${page}`);
+        this.products = products;
+      },
+      error: (error) => {
+        console.error('Error loading filtered products:', error);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
+  }
 
-private loadProductsWithFilters(categoryId: number | null, filters: { [key: string]: string[] }) {
-  this.isLoading = true;
-  this.currentPage = 1;
-  this.products = [];
-
-  this.productService.getFilteredProductsByCategory(categoryId, filters, this.currentPage, this.itemPerPage).subscribe({
-    next: (products) => {
-      this.products = products;
-      console.log('Filtered products loaded:', products);
-    },
-    error: (error) => {
-      console.error('Error loading filtered products:', error);
-      this.products = [];
-    },
-    complete: () => {
-      this.isLoading = false;
-    },
-  });
-}
-
+  trackByAttrId(index: number, item: any): string {
+    return item.attrId;
+  }
 }

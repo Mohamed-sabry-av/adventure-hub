@@ -1,13 +1,20 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './features/Home/home.component';
 import { ProductsComponent } from './features/products/products.component';
+import { ProductsPageComponent } from './features/products/products-page/products-page.component';
 
 export const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
     pathMatch: 'full',
-  },
+  },{
+    
+      path:'product/:id',
+      component:ProductsPageComponent,
+      pathMatch: 'full',
+  }
+  ,
   {
     path: ':mainCategorySlug',
     component: ProductsComponent,
@@ -40,4 +47,5 @@ export const routes: Routes = [
     pathMatch: 'full',
     data: { breadcrumb: 'Sub-Sub-Sub-Sub Category' }
   },
+  
 ];

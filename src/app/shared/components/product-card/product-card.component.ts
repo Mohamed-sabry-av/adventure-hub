@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
 
 @Component({
   selector: 'app-product-card',
-  imports: [CommonModule, SlickCarouselModule],
+  imports: [CommonModule, SlickCarouselModule ,RouterLink],
   standalone: true,
   templateUrl: './product-card.component.html',
   styleUrl: './product-card.component.css',
@@ -20,8 +21,7 @@ export class ProductCardComponent {
     autoplay: false, 
     arrows: true, 
     adaptiveHeight: false ,
-    // time to next photo
-    autoplaySpeed: 500,
+ 
   };
   
 }

@@ -1,76 +1,54 @@
+<!-- src/app/components/header/header.component.html -->
 <header>
   <!-- الطبقة الأولى -->
-  <div class="top-bar d-flex py-1">
-    <span class="flex-grow-1 text-center"
-      ><i class="bi bi-truck fs-6"></i> Free Delivery</span
-    >
-    <span class="flex-grow-1 text-center"
-      ><i class="bi bi-globe-americas fs-6"></i> Worldwide Shipping</span
-    >
-    <span class="flex-grow-1 text-center"
-      ><i class="bi bi-lightning-charge-fill fs-6"></i> Fast Delivery</span
-    >
+  <div class="first-bar top-bar d-flex py-1">
+    <span class="flex-grow-1 text-center"><i class="bi bi-icask fs-6"></i> Free Delivery</span>
+    <span class="flex-grow-1 text-center"><i class="bi bi-globe-americas fs-6"></i> Worldwide Shipping</span>
+    <span class="flex-grow-1 text-center"><i class="bi bi-lightning-charge-fill fs-6"></i> Fast Delivery</span>
   </div>
 
   <!-- الطبقة الثانية -->
-  <div class="middle-bar py-9 bg-white border-bottom">
+  <div class="middle-bar py-3 bg-white border-bottom">
     <div class="container d-flex justify-content-between align-items-center">
-      <img
-        class="img-fluid"
-        style="width: 350px; height: auto"
-        src="header/adv-hub-logo-n.png"
-        alt=""
-      />
+      <!-- Mobile Navbar -->
+      <app-mobile-navbar class="d-lg-none" [mainCategories]="mainCategories" [allCategories]="allCategories"></app-mobile-navbar>
 
+      <!-- Logo -->
+      <img class="img-fluid logo" src="header/adv-hub-logo-n.png" alt="Logo" />
+
+      <!-- Search -->
       <div class="search-container flex-grow-1">
         <div class="input-group w-50">
-          <input
-            type="text"
-            class="form-control search-input"
-            placeholder="Search..."
-            style="border-radius: 20px"
-          />
+          <input type="text" class="form-control search-input" placeholder="Search..." style="border-radius: 20px" />
         </div>
       </div>
 
-      <div class="d-flex gap-3">
-        <a
-          class="text-dark text-decoration-none d-flex flex-column align-items-center"
-          href=""
-        >
-          <i class="bi bi-person fs-5"></i>
-          <span>My Account</span>
+      <!-- Icons -->
+      <div class="icons d-flex gap-3">
+        <a class="text-dark text-decoration-none d-flex flex-column align-items-center" href="">
+          <i class="bi bi-person fs-5"></i><span>My Account</span>
         </a>
-        <a
-          class="text-dark text-decoration-none d-flex flex-column align-items-center"
-          href=""
-        >
-          <i class="bi bi-arrow-right-circle fs-5"></i>
-          <span>Checkout</span>
+        <a class="text-dark text-decoration-none d-flex flex-column align-items-center" href="">
+          <i class="bi bi-arrow-right-circle fs-5"></i><span>Checkout</span>
         </a>
-        <a
-          class="text-dark text-decoration-none d-flex flex-column align-items-center"
-          href=""
-        >
-          <i class="bi bi-heart fs-5"></i>
-          <span>Wishlist</span>
+        <a class="text-dark text-decoration-none d-flex flex-column align-items-center" href="">
+          <i class="bi bi-heart fs-5"></i><span>Wishlist</span>
         </a>
       </div>
     </div>
   </div>
 
-  @defer (hydrate on idle) {
-    <header>
-      <app-navbar [mainCategories]="mainCategories" [allCategories]="allCategories"></app-navbar>
-    </header>
-  } @placeholder {
-    <div class="navbar-placeholder">
-      <ul class="nav-list">
-        <li class="nav-item" *ngFor="let category of mainCategories">
-          <a class="nav-link">{{ category.name }}</a>
-        </li>
-        <li class="nav-item sale-item"><a class="sale-link">SALE!</a></li>
-      </ul>
-    </div>
-  }
+      <!-- Desktop Navbar with Defer -->
+      @defer (on idle) {
+        <app-navbar class="d-none d-lg-block" [mainCategories]="mainCategories" [allCategories]="allCategories"></app-navbar>
+      } @placeholder {
+        <div class="navbar-placeholder d-none d-lg-block">
+          <ul class="nav-list">
+            <li class="nav-item" *ngFor="let category of mainCategories">
+              <a class="nav-link">{{ category.name }}</a>
+            </li>
+            <li class="nav-item sale-item"><a class="sale-link">SALE!</a></li>
+          </ul>
+        </div>
+      }
 </header>

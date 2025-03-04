@@ -3,17 +3,16 @@
 ></app-breadcrumb>
 
 <div class="products-page">
-  <app-filter-sidebar 
-    (categoryIdChange)="onCategoryIdChange($event)"
+  <app-filter-sidebar
     [categoryId]="currentCategoryId"
   ></app-filter-sidebar>
 
   <div class="products-container">
     @if (isLoading && products.length === 0) {
       <div class="skeleton-grid">
-        <div class="skeleton-item" *ngFor="let item of [].constructor(18)"></div>
+        <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
       </div>
-    } @else {
+    } @else { 
       @defer (on viewport) {
         <section class="products-grid">
           <app-product-card
@@ -23,19 +22,17 @@
         </section>
       } @placeholder {
         <div class="skeleton-grid">
-          <div class="skeleton-item" *ngFor="let item of [].constructor(20)"></div>
+          <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
         </div>
       }
-    }
-    
+    } 
     @if (isLoadingMore) {
       <div class="loading-more">
         <div class="skeleton-grid">
-          <div class="skeleton-item" *ngFor="let item of [].constructor(12)"></div>
+          <div class="skeleton-item" *ngFor="let item of [].constructor(4)"></div>
         </div>
       </div>
-    }
-    
+    } 
     @if (!isLoading && !isLoadingMore && products.length === 0) {
       <div class="no-products">No products found</div>
     }

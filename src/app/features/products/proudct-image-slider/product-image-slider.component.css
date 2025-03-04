@@ -1,0 +1,41 @@
+.product-gallery {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px; /* مسافة بين الـ thumbnails والصورة الرئيسية */
+}
+
+.thumbnails-column {
+  display: flex;
+  flex-direction: column; /* الـ thumbnails في عمود */
+  gap: 10px; /* مسافة بين كل thumbnail */
+  width: 50px;
+}
+
+.thumbnail-item {
+  cursor: pointer;
+  border: 2px solid transparent; /* حدود افتراضية */
+  transition: border 0.3s ease; /* تأثير لما تختار */
+}
+
+.thumbnail-item.active {
+  border: 2px solid #000; /* حدود سودا للـ thumbnail المختار */
+}
+
+.thumbnail-img {
+  width: 100%; /* الصورة تملأ العرض */
+  height: auto;
+  object-fit: cover; /* عشان الصورة تظهر بشكل متناسق */
+}
+
+.main-image {
+  width: 500px; /* عرض ثابت للحاوية */
+  height: 500px; /* ارتفاع ثابت للحاوية */
+  overflow: hidden; /* أي حاجة زايدة تتقطع */
+}
+.main-img {
+  width: 500px !important;
+  height: 500px !important;
+  object-fit: fill !important;
+  display: block;
+  transition: all 0.3s ease; /* تأثير انتقال ناعم */
+}

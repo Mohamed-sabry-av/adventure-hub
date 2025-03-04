@@ -1,17 +1,18 @@
+// src/app/components/header/header.component.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { Category } from '../../../interfaces/category.model';
+import { MobileNavbarComponent } from '../navbar/Mobile-navbar/mobile-navbar.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, NgbDropdownModule, NavbarComponent],
+  imports: [CommonModule, NgbDropdownModule, NavbarComponent, MobileNavbarComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
-  // providers: [CategoriesService],
 })
 export class HeaderComponent implements OnInit {
   mainCategories: Category[] = [];
@@ -23,13 +24,10 @@ export class HeaderComponent implements OnInit {
     this.fetchAllCategories();
   }
 
-  /**
-   * Fetches all categories and filters the main ones.
-   */
   private fetchAllCategories(): void {
     this.categoriesService.getAllCategories(['default']).subscribe((categories) => {
-      this.allCategories = categories; // كل الفئات
-      this.mainCategories = categories.filter((cat) => cat.parent === 0); // الفئات الرئيسية فقط
+      this.allCategories = categories;
+      this.mainCategories = categories.filter((cat) => cat.parent === 0);
     });
   }
 }

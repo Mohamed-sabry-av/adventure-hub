@@ -42,7 +42,7 @@ export class CategoriesService {
         );
     
         if (cachedCategories && !this.categoriesSubject.value) {
-          console.log('Categories initialized from localStorage:', cachedCategories);
+          // console.log('Categories initialized from localStorage:', cachedCategories);
           const filteredCategories = this.excludeUnwantedCategories(cachedCategories);
           this.categoriesSubject.next(filteredCategories);
         }
@@ -53,7 +53,7 @@ export class CategoriesService {
         }
 
         if (!this.categories$) {
-          console.log('Initializing shared categories observable...');
+          // console.log('Initializing shared categories observable...');
           this.categories$ = this.fetchAllCategories().pipe(
             map((categories) => this.excludeUnwantedCategories(categories)),
             tap((filteredCategories) => {
@@ -71,7 +71,7 @@ export class CategoriesService {
       );
     }
 
-    console.log('Subscribing to shared categories observable...');
+    // console.log('Subscribing to shared categories observable...');
     return this.categories$;
   }
 
@@ -86,11 +86,11 @@ export class CategoriesService {
         .set('page', page.toString()),
     }).pipe(
       switchMap((categories: Category[]) => {
-        console.log(`Page ${page} fetched with ${categories.length} categories`);
+        // console.log(`Page ${page} fetched with ${categories.length} categories`);
         const updatedCategories = accumulatedCategories.concat(categories);
 
         if (categories.length < 100) {
-          console.log('All categories fetched. Total:', updatedCategories.length);
+          // console.log('All categories fetched. Total:', updatedCategories.length);
           return of(updatedCategories);
         }
 
@@ -110,7 +110,7 @@ export class CategoriesService {
     return this.getAllCategories().pipe(
       map((categories) => {
         const category = categories.find((cat) => cat.slug === slug);
-        console.log(`Category for slug "${slug}":`, category || 'Not found');
+        // console.log(`Category for slug "${slug}":`, category || 'Not found');
         return category || null;
       }),
       catchError((error) => {
@@ -128,7 +128,7 @@ export class CategoriesService {
    */
   private excludeUnwantedCategories(categories: Category[]): Category[] {
      const filtered = categories.filter((category) => !this.EXCLUDED_SLUGS.includes(category.slug));
-     console.log(`Filtered categories. Original: ${categories.length}, After exclusion: ${filtered.length}`);
+    //  console.log(`Filtered categories. Original: ${categories.length}, After exclusion: ${filtered.length}`);
      return filtered;
    }
 }

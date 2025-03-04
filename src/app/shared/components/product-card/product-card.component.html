@@ -1,26 +1,22 @@
 <div class="product-card">
-  <!-- عرض الصور -->
   <ngx-slick-carousel
-  class="slick-slider"
-  #slickModal="slick-carousel"
-  [config]="slideConfig"
-  (mouseenter)="slickModal.slickPlay()"
-  (mouseleave)="slickModal.slickPause()"
->
-  <div ngxSlickItem *ngFor="let image of product?.images?.slice(0, 3)">
-    <img [src]="image.src" loading="lazy" [alt]="product.name" class="product-slide-image" />
-  </div>
-</ngx-slick-carousel>
+    class="slick-slider"
+    #slickModal="slick-carousel"
+    [config]="slideConfig">
+    <div ngxSlickItem *ngFor="let image of product?.images">
+      <img [src]="image.src" loading="lazy" [alt]="product.name" />
+    </div>
+  </ngx-slick-carousel>
 
-
-  <!-- تفاصيل المنتج -->
   <div class="product-details">
     <h3 class="product-name">{{ product.name }}</h3>
+    <p class="product-variant">{{ product.variant }}</p>
+    <p class="product-color">{{ product.color }}</p>
     <p class="product-price">
-      Price: {{ product.price }} {{ product.currency || "AED" }}
+      <span class="original-price" *ngIf="product.originalPrice">{{ product.originalPrice }}</span>
+      {{ product.price }} {{ product.currency || "AED" }}
     </p>
   </div>
 
-  <!-- زر الشراء -->
-  <button class="buy-button">Buy Now</button>
+  <a><button class="buy-button" routerLink="/product/{{ product.id }}" >Buy Now</button></a>
 </div>

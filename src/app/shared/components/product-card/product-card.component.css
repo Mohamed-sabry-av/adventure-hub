@@ -1,70 +1,94 @@
 .product-card {
-  border: 1px solid #e0e0e0;
-  /* border-radius: 8px; */
-  overflow: hidden;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease;
-  position: relative;
-  height: 444px;
+  border: 1px solid #e0e0e0; /* Light border */
+  overflow: hidden; /* Prevents content overflow */
+  background: white; /* Clean background */
+  display: flex; /* Flex layout */
+  flex-direction: column; /* Stack vertically */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effects */
+  position: relative; /* For absolute positioning of children if needed */
+  height: 444px; /* Fixed height for uniformity */
 }
-/* 
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-} */
 
+.product-card:hover {
+  transform: translateY(-5px); /* Slight lift on hover */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Slick Carousel Styles */
 .slick-slide {
-  height: 250px !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
+  height: 250px !important; /* Fixed height for slides */
+  display: flex !important; /* Center content */
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
 }
 
 .slick-slide img {
-  max-height: 100% !important;
-  max-width: 100% !important;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+  max-height: 100% !important; /* Fit within slide */
+  max-width: 100% !important; /* Fit within slide */
+  width: auto; /* Maintain aspect ratio */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: contain; /* Ensure full image visibility */
 }
 
-
-
+/* Product Details */
 .product-details {
-  padding: 16px;
-  text-align: center;
+  padding: 16px; /* Consistent padding */
+  text-align: center; /* Centered text */
+  flex-grow: 1; /* Allows it to fill space between image and button */
+  display: flex; /* Flex for better control */
+  flex-direction: column; /* Stack details vertically */
+  justify-content: center; /* Center details vertically */
 }
 
 .product-name {
-  font-size: 16px;
-  color: #2d3436;
-  margin-bottom: 8px;
-  overflow-wrap: break-word;
+  font-size: 16px; /* Readable size */
+  color: #2d3436; /* Dark gray for contrast */
+  margin-bottom: 8px; /* Spacing */
+  overflow-wrap: break-word; /* Wrap long names */
+}
+
+.product-variant,
+.product-color {
+  font-size: 14px; /* Slightly smaller */
+  color: #6c757d; /* Muted gray for secondary info */
+  margin-bottom: 4px; /* Tight spacing */
 }
 
 .product-price {
-  font-size: 1rem;
-  color: #98473e;
-  font-weight: bold;
+  font-size: 1rem; /* Consistent size */
+  color: #98473e; /* Distinct reddish-brown */
+  font-weight: bold; /* Emphasize price */
+  margin-bottom: 0; /* No extra space below */
 }
 
+.original-price {
+  font-size: 0.875rem; /* Smaller for original price */
+  color: #a9a9a9; /* Grayed out */
+  text-decoration: line-through; /* Strikethrough for discount */
+  margin-right: 8px; /* Space before discounted price */
+}
+
+/* Buy Button */
 .buy-button {
-  width: 100%;
-  padding: 12px;
-  background: #03191e;
-  color: white;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  opacity: 0;
-  transform: translateY(20px);
-  margin-top: auto;
+  width: 100%; /* Full width */
+  padding: 12px; /* Comfortable padding */
+  background: #03191e; /* Dark background */
+  color: white; /* White text */
+  border: none; /* No border */
+  font-weight: 600; /* Bold text */
+  cursor: pointer; /* Clickable */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth transition */
+  opacity: 0; /* Hidden by default */
+  transform: translateY(20px); /* Starts below */
+  margin-top: auto; /* Pushes to bottom */
 }
 
 .product-card:hover .buy-button {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 1; /* Visible on hover */
+  transform: translateY(0); /* Slides up */
+}
+
+/* Optional: Button hover state */
+.buy-button:hover {
+  background: #0a2e38; /* Slightly lighter on hover */
 }

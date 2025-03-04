@@ -1,31 +1,51 @@
 .custom-sidebar {
-  background-color: #f8f9fa;
-  padding-right: 19px;
-  box-shadow: none;
+  background-color: #f8f9fa; /* Light gray background */
+  padding-right: 19px; /* Matches your original padding */
+  padding-left: 15px; /* Added for symmetry */
+  box-shadow: none; /* No shadow as specified */
+  position: sticky; /* Sticks to viewport as you scroll */
+  top: 0; /* Sticks to the top */
+  align-self: flex-start; /* Works in flex containers */
+  height: 100vh; /* Full viewport height */
+  overflow-y: hidden; /* No scrollbar on the sidebar itself */
+  width: 250px; /* Fixed width for consistency, adjust as needed */
+}
+
+.sidebar-content {
+  height: 100%; /* Fills the sidebar height */
+  overflow-y: auto; /* Scrollable content */
+  padding-bottom: 20px; /* Prevents cutting off last item */
 }
 
 .custom-sidebar h4 {
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: 1.25rem; /* Larger heading */
+  font-weight: 500; /* Medium weight */
+  margin-bottom: 1.5rem; /* Consistent spacing */
 }
 
 .custom-sidebar h5 {
-  font-size: 1rem;
-  font-weight: 500;
-  border-bottom: 1px solid #e9ecef;
-  padding-bottom: 0.5rem;
+  font-size: 1rem; /* Smaller subheading */
+  font-weight: 500; /* Medium weight */
+  border-bottom: 1px solid #e9ecef; /* Subtle divider */
+  padding-bottom: 0.5rem; /* Spacing below border */
+  margin-bottom: 1rem; /* Spacing before options */
 }
 
 .custom-sidebar .list-group-item {
-  background-color: transparent;
-  padding: 0.5rem 0;
-}
-
-.custom-sidebar .dropdown-toggle {
-  /* border: 1px solid #ced4da; */
-  border-radius: 4px;
+  background-color: transparent; /* No background */
+  padding: 0.5rem 0; /* Vertical padding */
+  border: none; /* Explicitly no border */
 }
 
 .custom-sidebar .form-check-input {
-  margin-right: 0.5rem;
+  margin-right: 0.5rem; /* Space between checkbox and label */
+}
+
+.custom-sidebar .form-check-label {
+  cursor: pointer; /* Indicates clickability */
+}
+
+/* Optional: Hover effect for options */
+.custom-sidebar .list-group-item:hover {
+  background-color: #e9ecef; /* Light hover effect */
 }
