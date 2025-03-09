@@ -127,6 +127,7 @@ ngAfterViewInit() {
     this.productService.getFilteredProductsByCategory(categoryId, filters, page, this.itemPerPage).subscribe({
       next: (products) => {
         console.log(`Loaded ${products.length} products for page ${page}`);
+        console.log(products);
         // Only append new products, don't duplicate
         this.products = isInitialLoad ? products : [...this.products, ...products];
       },

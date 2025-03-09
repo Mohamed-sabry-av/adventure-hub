@@ -1,6 +1,6 @@
 .custom-sidebar {
   background-color: #f8f9fa; /* Light gray background */
-  padding-right: 19px; /* Matches your original padding */
+  /* padding-right: 19px; Matches your original padding */
   padding-left: 15px; /* Added for symmetry */
   box-shadow: none; /* No shadow as specified */
   position: sticky; /* Sticks to viewport as you scroll */
@@ -48,4 +48,13 @@
 /* Optional: Hover effect for options */
 .custom-sidebar .list-group-item:hover {
   background-color: #e9ecef; /* Light hover effect */
+}
+
+@media (max-width : 712px) {
+  .custom-sidebar{
+    display: none !important;
+  }
+  .filter-sidebar{
+    display:none !important;
+  }
 }

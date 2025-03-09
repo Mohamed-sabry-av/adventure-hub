@@ -1,12 +1,28 @@
 <div class="product-card">
-  <ngx-slick-carousel
-    class="slick-slider"
-    #slickModal="slick-carousel"
-    [config]="slideConfig">
-    <div ngxSlickItem *ngFor="let image of product?.images">
-      <img [src]="image.src" loading="lazy" [alt]="product.name" />
+  <div class="image-slider">
+    <div class="slider-container" #sliderContainer>
+      <div class="slide" *ngFor="let image of product?.images; let i = index" [ngClass]="{'active': i === currentSlide}">
+        <img [src]="image.src" loading="lazy" [alt]="product.name" />
+      </div>
     </div>
-  </ngx-slick-carousel>
+
+    <div class="slider-dots">
+      <span *ngFor="let i of getDotCount(); let index = index" 
+            class="dot" 
+            [class.active]="index === currentSlide" 
+            (click)="goToSlide(index)"></span>
+    </div>
+  </div>
+
+  <div class="color-swatches" *ngIf="colorOptions.length > 0">
+    <div 
+      *ngFor="let option of colorOptions" 
+      class="swatch"
+      [class.selected]="selectedColor === option.color"
+      (click)="selectColor(option.color, option.image)">
+      <img [src]="option.image" [alt]="option.color" />
+    </div>
+  </div>
 
   <div class="product-details">
     <h3 class="product-name">{{ product.name }}</h3>
@@ -18,5 +34,5 @@
     </p>
   </div>
 
-  <a><button class="buy-button" routerLink="/product/{{ product.id }}" >Buy Now</button></a>
+  <a><button class="buy-button" routerLink="/product/{{ product.id }}">Buy Now</button></a>
 </div>

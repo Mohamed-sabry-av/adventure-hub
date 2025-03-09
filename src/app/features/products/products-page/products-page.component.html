@@ -15,9 +15,10 @@
         <div class="product-details">
           <!-- Product Gallery Section -->
           <app-product-image-slider 
-            [images]="selectedVariation ? [selectedVariation.image] : data.product.images" 
-            [productName]="data.product.name">
-          </app-product-image-slider>
+          [images]="sliderImage"
+          [productName]="data.product.name">
+</app-product-image-slider>
+
 
           <!-- Product Info Section -->
           <div class="product-info">
@@ -53,6 +54,7 @@
                         <div
                           class="size-box"
                           [class.active]="selectedSize === size"
+                          (click)="selectedSize = size"
                         >
                           {{ size }}
                         </div>

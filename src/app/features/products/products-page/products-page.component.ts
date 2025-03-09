@@ -22,9 +22,16 @@ export class ProductsPageComponent implements OnInit {
     isLoading: true,
   });
   variations$: Observable<Variation[]> = of([]);
+  variations: Variation[] = [];
   selectedVariation: Variation | null = null;
-  selectedImage: string = '';
+
+  
+  colorOptions: { color: string; image: string; inStock: boolean }[] = [];
+  uniqueSizes: { size: string; inStock: boolean }[] = [];
+  selectedColor:string | null = null;
   selectedSize: string = '';
+  selectedImage: string = '';
+  sliderImage :any[] =[];
 
   constructor(
     private route: ActivatedRoute,
@@ -42,6 +49,13 @@ export class ProductsPageComponent implements OnInit {
     this.variations$ = this.route.paramMap.pipe(
       switchMap((params) => this.fetchVariationsById(params.get('id')))
     );
+
+    this.product$.subscribe((data)=>{
+      if(data.product && !this.selectedVariation){
+        this.sliderImage = data.product.images;
+        console.log('sliderImage:', this.sliderImage);
+      }
+    })
   }
 
   private fetchProductById(id: string | null): Observable<{ product: Product | null; isLoading: boolean }> {
@@ -73,7 +87,18 @@ export class ProductsPageComponent implements OnInit {
     return this.productService.getProductVariations(productId).pipe(
       map((variations) => {
         console.log('Loaded variations:', variations);
-        return variations;
+        
+        // تصفية الألوان الفريدة
+        const uniqueColorsMap = new Map<string, Variation>();
+  
+        variations.forEach((variation:any) => {
+          const colorAttr = variation.attributes.find((attr:any) => attr.name.toLowerCase() === 'color');
+          if (colorAttr && !uniqueColorsMap.has(colorAttr.option)) {
+            uniqueColorsMap.set(colorAttr.option, variation);
+          }
+        });
+  
+        return Array.from(uniqueColorsMap.values()); // تحويل الـ Map إلى Array
       }),
       catchError((error) => {
         console.error('Failed to load variations:', error);
@@ -81,11 +106,13 @@ export class ProductsPageComponent implements OnInit {
       })
     );
   }
+  
 
   selectVariation(variation: Variation) {
     this.selectedVariation = variation;
-    this.selectedImage = variation.image.src;
-    this.selectedSize = variation.attributes.find((attr:any) => attr.name.toLowerCase() === 'size')?.option || '';
+    this.selectedImage = variation.image.src; // الصورة الرئيسية
+    this.sliderImage = variation.images ? variation.images : [variation.image]; // إذا كان هناك صور متعددة، استخدمها، وإلا استخدم الصورة الواحدة
+    this.selectedSize = variation.attributes.find((attr: any) => attr.name.toLowerCase() === 'size')?.option || '';
   }
 
   addToCart() {

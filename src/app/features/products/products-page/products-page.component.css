@@ -1,5 +1,5 @@
 .container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -80,12 +80,12 @@
 
 .main-image {
   flex: 1;
-  max-width: 500px !important;
+  max-width: 800px !important;
 }
 
 .main-img {
   width: 100% !important;
-  max-height: 400px !important;
+  max-height: 600px !important;
   object-fit: contain;
 }
 

@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ProductService } from '../../../core/services/product.service';
+import { FilterService } from '../../../core/services/filter.service';
 
 @Component({
   selector: 'app-filter-sidebar',
@@ -31,7 +32,8 @@ export class FilterSidebarComponent implements OnInit {
 
   constructor(
     private categoriesService: CategoriesService,
-    private productsService: ProductService
+    private productsService: ProductService,
+    private filterService: FilterService
   ) {}
 
   ngOnInit() {
@@ -39,7 +41,7 @@ export class FilterSidebarComponent implements OnInit {
   }
 
   loadAttirbutes() {
-    this.productsService.getProductAttributes().subscribe((attribute) => {
+    this.filterService.getProductAttributes().subscribe((attribute) => {
       this.attributes = attribute;
       console.log('Avilable Attributes : ', this.attributes);
     });
