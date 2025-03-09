@@ -1,12 +1,12 @@
-<div class="product-card">
+<div class="product-card" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
   <div class="image-slider">
     <div class="slider-container" #sliderContainer>
       <div class="slide" *ngFor="let image of product?.images; let i = index" [ngClass]="{'active': i === currentSlide}">
-        <img [src]="image.src" loading="lazy" [alt]="product.name" />
-      </div>
+       <a  routerLink="/product/{{ product.id }}"> <img [src]="image.src" loading="lazy" [alt]="product.name" />
+      </a></div>
     </div>
 
-    <div class="slider-dots">
+    <div class="slider-dots" *ngIf="colorOptions.length > 0">
       <span *ngFor="let i of getDotCount(); let index = index" 
             class="dot" 
             [class.active]="index === currentSlide" 
@@ -14,25 +14,78 @@
     </div>
   </div>
 
-  <div class="color-swatches" *ngIf="colorOptions.length > 0">
-    <div 
-      *ngFor="let option of colorOptions" 
-      class="swatch"
-      [class.selected]="selectedColor === option.color"
-      (click)="selectColor(option.color, option.image)">
-      <img [src]="option.image" [alt]="option.color" />
+  <div class="product-details">
+    <!-- التصنيفات -->
+    <div class="categories" *ngIf="product?.categories?.length > 0">
+      {{ product.categories[product.categories.length - 3].name }}
+    </div>
+
+    <!-- اسم المنتج -->
+    <h3 class="product-name">{{ product.name }}</h3>
+
+    <!-- السعر -->
+    <div class="price">
+      @if(product.on_sale && (product.sale_price)){
+        <span class="sale-price">
+          {{ product.sale_price }} {{ product.currency || "AED" }}
+        </span>
+      }@else {
+
+        <span class="current-price">
+          {{ product.sale_price || product.regular_price || product.price || 'Un Avilable' }} {{ product.currency || "AED" }}
+        </span>
+      }
+      @if(product.on_sale && (product.sale_price || product.price)){
+        <span class="old-price">
+          {{ product.regular_price || product.price }}
+        </span>
+      }
+      </div>
+
+    <!-- عرض الألوان أو المقاسات بناءً على وجود ألوان -->
+    <div class="color-swatches" *ngIf="colorOptions.length > 0">
+      <div 
+        *ngFor="let option of colorOptions" 
+        class="swatch"
+        [class.selected]="selectedColor === option.color"
+        (click)="selectColor(option.color, option.image)">
+        <img [src]="option.image" [alt]="option.color" />
+      </div>
+    </div>
+
+  <!-- Popup للمقاسات إذا كانت هناك ألوان -->
+  <div class="size-popup" *ngIf="isHovered && colorOptions.length > 0 && uniqueSizes.length > 0">
+    <div class="variant-details">
+      <p class="selected-color" >Quick Add </p>
+      <div class="size-selector size-slider">
+        <button class="nav-btn prev-btn" (click)="scrollSizes(-1)" [disabled]="sizeScrollIndex === 0"><</button>
+        <button *ngFor="let size of visibleSizes" 
+                class="size-btn-alot" 
+                [class.active]="selectedSize === size.size"
+          [class.out-of-stock]="!size.inStock"
+          (click)="size.inStock ">
+          {{ size.size }}
+        </button>
+        <button class="nav-btn next-btn" (click)="scrollSizes(1)" [disabled]="sizeScrollIndex >= maxScrollIndex">></button>
+      </div>
     </div>
   </div>
 
-  <div class="product-details">
-    <h3 class="product-name">{{ product.name }}</h3>
-    <p class="product-variant">{{ product.variant }}</p>
-    <p class="product-color">{{ product.color }}</p>
-    <p class="product-price">
-      <span class="original-price" *ngIf="product.originalPrice">{{ product.originalPrice }}</span>
-      {{ product.price }} {{ product.currency || "AED" }}
-    </p>
-  </div>
+  <div class="size-swatches-slider" *ngIf="isHovered && colorOptions.length === 0 && uniqueSizes.length > 1">
+    <div class="variant-details">
+          <p class="selected-color" >Quick Add </p>
 
-  <a><button class="buy-button" routerLink="/product/{{ product.id }}">Buy Now</button></a>
+      <div class="size-selector size-slider">
+        <button class="nav-btn prev-btn" (click)="scrollSizes(-1)" [disabled]="sizeScrollIndex === 0"><</button>
+        <button *ngFor="let size of visibleSizes" 
+                class="size-btn-alot" 
+                [class.active]="selectedSize === size.size"
+          [class.out-of-stock]="!size.inStock"
+          (click)="size.inStock ">
+          {{ size.size }}
+        </button>
+        <button class="nav-btn next-btn" (click)="scrollSizes(1)" [disabled]="sizeScrollIndex >= maxScrollIndex">></button>
+      </div>
+    </div>
+  </div>
 </div>

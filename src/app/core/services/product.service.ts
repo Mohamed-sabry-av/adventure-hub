@@ -197,7 +197,7 @@ export class ProductService {
     );
   }
 
-  private getUniqueProducts(products: any[]): any[] {
+   getUniqueProducts(products: any[]): any[] {
     const uniqueProducts = [];
     const seenIds = new Set();
     for (const product of products) {
@@ -211,173 +211,32 @@ export class ProductService {
 
 
 
-  getProductVariations(productId:number){
+  getProductVariations(productId: number): Observable<Variation[]> {
     const cacheKey = `product_variations_${productId}`;
     return this.cachingService.cacheObservable(
       cacheKey,
-    this.WooAPI.getRequestProducts<Variation[]>(`products/${productId}/variations`))
+      this.WooAPI.getRequestProducts<Variation[]>(`products/${productId}/variations`)
+    );
   }
+
+  getImageById(mediaId: number): Observable<any> {
+    const cacheKey = `media_${mediaId}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequestProducts<any>(`media/${mediaId}`).pipe(
+        map(media => ({
+          src: media.source_url, 
+          alt: media.alt_text || '' 
+        })),
+        catchError((error) => {
+          console.error(`Error fetching media ${mediaId}:`, error);
+          return of(null);
+        })
+      ),
+      300000 // 5 minutes TTL
+    );
+  }
+
   // ============================================Attributes===============================================
 
-  getProductAttributes(): Observable<any[]> {
-    return this.WooAPI.getRequestProducts<any>('products/attributes', {
-      params: new HttpParams(),
-    }).pipe(
-      map((response) => response),
-      catchError((error) => this.handleErrorsService.handelError(error))
-    );
   }
-
-  getAttributesAndTermsByCategory(
-    categoryId: number,
-    page: number = 1,
-    perPage: number = 100
-  ): Observable<{ [key: string]: string[] }> {
-    const cacheKey = `attributes_terms_category_${categoryId}_page_${page}`;
-    return this.cachingService.cacheObservable(
-      cacheKey,
-      this.WooAPI.getRequestProducts<any>('products', {
-        params: new HttpParams()
-          .set('category', categoryId.toString())
-          .set('_fields', 'id,attributes')
-          .set('per_page', perPage.toString())
-          .set('page', page.toString()),
-      }).pipe(
-        map((products) => {
-          const termsMap = new Map<string, Set<string>>();
-          products.forEach((product: any) => {
-            product.attributes.forEach((attr: any) => {
-              if (!termsMap.has(attr.name)) {
-                termsMap.set(attr.name, new Set());
-              }
-              attr.option.forEach((option: string) => termsMap.get);
-            });
-          });
-
-          return Object.fromEntries(
-            Array.from(termsMap.entries()).map(([name, terms]) => [
-              name,
-              Array.from(terms),
-            ])
-          );
-        }),
-        catchError((error) => {
-          console.error(
-            `Error fetching attributes/terms for category ${categoryId}:`,
-            error
-          );
-          return of({});
-        }),
-        shareReplay(1)
-      ),
-      300000 // 5 دقايق TTL
-    );
-  }
-
-  getAllAttributesAndTermsByCategory(
-    categoryId: number
-  ): Observable<{ [key: string]: string[] }> {
-    const allTerms = new Map<string, Set<string>>();
-    let page = 1;
-    const perPage = 100;
-
-    const fetchPage = (currentPage: number): Observable<any> =>
-      this.getAttributesAndTermsByCategory(
-        categoryId,
-        currentPage,
-        perPage
-      ).pipe(
-        switchMap((terms) => {
-          Object.entries(terms).forEach(([attr, options]) => {
-            if (!allTerms.has(attr)) {
-              allTerms.set(attr, new Set());
-            }
-            options.forEach((opt) => allTerms.get(attr)!.add(opt));
-          });
-          // لو رجع عدد المنتجات أقل من perPage، يبقى مفيش صفحات تانية
-          return this.getProductsByCategoryId(
-            categoryId,
-            currentPage,
-            perPage
-          ).pipe(
-            map((products) => {
-              if (products.length === perPage) {
-                return fetchPage(currentPage + 1);
-              } else {
-                return Object.fromEntries(
-                  Array.from(allTerms.entries()).map(([name, terms]) => [
-                    name,
-                    Array.from(terms),
-                  ])
-                );
-              }
-            })
-          );
-        })
-      );
-    return fetchPage(page);
-  }
-
-  getFilteredProductsByCategory(
-    categoryId: number | null,
-    filters: { [key: string]: string[] },
-    page: number = 1,
-    perPage: number = 18
-  ): Observable<Product[]> {
-    const cacheKey = `filtered_products_category_${
-      categoryId || 'all'
-    }_filters_${JSON.stringify(filters)}_page_${page}`;
-    return this.cachingService.cacheObservable(
-      cacheKey,
-      this.WooAPI.getRequestProducts<any>('products', {
-        params: this.buildFilterParams(categoryId, filters, page, perPage),
-        observe: 'response',
-      }).pipe(
-        map((response: HttpResponse<any>) => {
-          console.log(
-            `API response for filtered products (category: ${categoryId}, page: ${page}):`,
-            response.body.length
-          );
-          const products = this.getUniqueProducts(
-            response.body.map((product: any) => ({
-              ...product,
-              images: product.images.slice(0, 3) || [],
-            }))
-          );
-          return products;
-        }),
-        catchError((error) => {
-          console.error('Error fetching filtered products:', error);
-          return of([]);
-        }),
-        shareReplay(1)
-      ),
-      300000 // 5 دقايق TTL
-    );
-  }
-
-  private buildFilterParams(
-    categoryId: number | null,
-    filters: { [key: string]: string[] },
-    page: number,
-    perPage: number
-  ): HttpParams {
-    let params = new HttpParams()
-      .set('per_page', perPage.toString())
-      .set('page', page.toString())
-      .set('_fields', 'id,name,price,images,categories,description')
-      .set('stock_status', 'instock');
-
-    if (categoryId) {
-      params = params.set('category', categoryId.toString());
-    }
-
-    // إضافة الفلاتر للـ params
-    Object.entries(filters).forEach(([attr, terms]) => {
-      params = params.set('attribute', attr);
-      params = params.set('attribute_term', terms.join(',')); // دعم أكتر من term
-    });
-
-    return params;
-  }
-}

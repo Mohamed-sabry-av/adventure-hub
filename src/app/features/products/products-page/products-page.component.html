@@ -1,6 +1,6 @@
 <div class="container BayesArabicFont">
-  @if (product$ | async; as data) {
-    @if (data.isLoading) {
+  <ng-container *ngIf="product$ | async as data">
+    <div *ngIf="data.isLoading">
       <!-- Skeleton Loading -->
       <div class="skeleton-product">
         <div class="skeleton-image"></div>
@@ -10,72 +10,79 @@
           <div class="skeleton-description"></div>
         </div>
       </div>
-    } @else {
-      @if (data.product) {
-        <div class="product-details">
-          <!-- Product Gallery Section -->
-          <app-product-image-slider 
-          [images]="sliderImage"
-          [productName]="data.product.name">
-</app-product-image-slider>
+    </div>
 
+    <div *ngIf="!data.isLoading && data.product">
+      <!-- ✅ Product Details -->
+      <div class="product-details">
+        <!-- ✅ Product Gallery Section -->
+        <div class="product-image-slider">
+          <app-product-image-slider [images]="data.product.images" [productName]="data.product.name"></app-product-image-slider>
+        </div>
 
-          <!-- Product Info Section -->
-          <div class="product-info">
-            <h1 class="product-title">{{ data.product.name }}</h1>
-            <div class="product-price">{{ (selectedVariation?.price || data.product.price) }} AED</div>
+        <!-- ✅ Product Info Section -->
+        <div class="product-info">
+          <h2 class="brand-name">{{ data.product.brand }}</h2> <!-- ✅ Brand Name -->
+          <h1 class="product-title">{{ data.product.name }}</h1>
+          
+          <!-- ✅ Price & Stock Info -->
+          <div class="product-meta">
+            <span class="product-price">{{ data.product.price }} AED</span>
+            <span class="product-stock">
+              In Stock: {{ data.product.stock_quantity }} pcs
+            </span>
+            <span class="out-of-stock-label" *ngIf="data.product.stock_quantity === 0">Out of Stock</span>
+          </div>
 
-            <!-- عرض صور الـ Variations -->
-            @if (variations$ | async; as variations) {
-              <div class="variation-options">
-                <div class="variation-title">Available Colors:</div>
-                <div class="variations-container">
-                  @for (variation of variations; track variation.id) {
-                    <div
-                      class="variation-image"
-                      [class.active]="selectedVariation?.id === variation.id"
-                      (click)="selectVariation(variation)"
-                    >
-                      <img [src]="variation.image.src" [alt]="getVariationColor(variation)" />
-                    </div>
-                  }
-                </div>
+          <!-- ✅ Variations -->
+          @if(data.product.type === 'variable') {
+          <div class="variation-options">
+            <div class="variation-title">Available Colors:</div>
+            <div class="variations-container">
+              <div class="variation-image"
+                   *ngFor="let option of getColorOptions()"
+                   (click)="selectColor(option.color)" 
+                   [class.selected]="selectedColor === option.color">
+
+                <img [src]="option.image" [alt]="option.color" [class.out-of-stock]="!option.inStock" />
+                <span *ngIf="!option.inStock" class="out-of-stock-label">Out of Stock</span>
               </div>
-            }
-
-            <!-- المقاسات (اختياري) -->
-            @if (data.product.attributes && data.product.attributes.length > 0) {
-              @for (attr of data.product.attributes; track attr.name) {
-                @if (attr.name.toLowerCase() === 'size') {
-                  <div class="size-options">
-                    <div class="size-title">Available Sizes:</div>
-                    <div class="sizes-container">
-                      @for (size of attr.options; track size) {
-                        <div
-                          class="size-box"
-                          [class.active]="selectedSize === size"
-                          (click)="selectedSize = size"
-                        >
-                          {{ size }}
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-              }
-            }
-
-            <button class="add-to-cart" (click)="addToCart()">Add to Cart</button>
-
-            <div class="product-description">
-              <h3>Product Description:</h3>
-              <div [innerHTML]="data.product.description"></div>
             </div>
           </div>
+
+          <!-- ✅ Sizes -->
+          <div class="size-options">
+            <div class="size-title">Available Sizes:</div>
+            <div class="sizes-container">
+              <div class="size-box"
+                   *ngFor="let size of getSizesForColor(selectedColor || '')"
+                   [class.out-of-stock]="!size.inStock">
+                <span>{{ size.size }}</span>
+                @if(!size.inStock) {
+                  <span class="out-of-stock-label">Out of Stock</span>
+                }
+              </div>
+            </div>
+          </div>
+          }
+
+          <button class="add-to-cart">Add to Cart</button>
+          <div class="instructions">
+            <i class="bi bi-check-circle" style="font-size: 12px;"></i> Free Shipping in UAE For orders above AED 100.<br>
+            <i class="bi bi-check-circle" style="font-size: 12px;"></i> 7 days easy returns.<br>
+            <i class="bi bi-check-circle" style="font-size: 12px;"></i> Delivery within 1-2 working days.<br>
+            <i class="bi bi-check-circle" style="font-size: 12px;"></i>World wide shipping.<br>
         </div>
-      } @else {
-        <div class="no-product">Product not found</div>
-      }
-    }
-  }
+        </div>
+
+        
+      </div>
+
+      <!--  Product Description Section -->
+      <div class="product-description">
+        <h3>Product Description:</h3>
+        <div class="desc" [innerHTML]="data.product.description"></div>
+      </div>
+    </div>
+  </ng-container>
 </div>

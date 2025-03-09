@@ -1,4 +1,5 @@
-<div class="product-gallery">
+<div class="product-gallery" *ngIf="images.length > 0; else noImages">
+  <!-- Thumbnails -->
   <div class="thumbnails-column">
     <div
       *ngFor="let image of images; trackBy: trackByFn"
@@ -13,17 +14,32 @@
       />
     </div>
   </div>
-  <div class="main-image">
-    <lib-ngx-image-zoom
-      [thumbImage]="selectedImage || images[0]?.src || 'placeholder.jpg'"
-      [fullImage]="selectedImage || images[0]?.src || 'placeholder.jpg'"
-      [magnification]="1.3"
-      [zoomMode]="'hover'"
-      [lensWidth]="100"
-      [lensHeight]="100"
-      [enableLens]="false" 
-      [enableScrollZoom]="false" 
-      class="main-img"
-    ></lib-ngx-image-zoom>
+
+  <div
+    class="main-image zoom-container"
+    (mousemove)="zoom($event)"
+    (mouseleave)="resetZoom()"
+    #zoomContainer
+  >
+    <button class="prev" (click)="slickCarousel.slickPrev()">❮</button>
+    <button class="next" (click)="slickCarousel.slickNext()">❯</button>
+    <ngx-slick-carousel
+      #slickCarousel
+      class="carousel"
+      [config]="slideConfig"
+      (afterChange)="afterChange($event)"
+    >
+      <div ngxSlickItem *ngFor="let image of images; trackBy: trackByFn" class="slide">
+        <img
+          [src]="image.src"
+          [alt]="image.alt || productName"
+          class="main-img"
+        />
+      </div>
+    </ngx-slick-carousel>
   </div>
 </div>
+
+<ng-template #noImages>
+  <div class="no-images">No images available</div>
+</ng-template>

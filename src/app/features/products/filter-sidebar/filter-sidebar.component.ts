@@ -1,17 +1,16 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  Attribute,
-  OnInit,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ProductService } from '../../../core/services/product.service';
 import { FilterService } from '../../../core/services/filter.service';
+import { forkJoin, map, of } from 'rxjs';
+
+interface Attribute {
+  slug: string;
+  terms: { id: string; name: string }[];
+}
 
 @Component({
   selector: 'app-filter-sidebar',
@@ -21,14 +20,12 @@ import { FilterService } from '../../../core/services/filter.service';
   styleUrls: ['./filter-sidebar.component.css'],
 })
 export class FilterSidebarComponent implements OnInit {
-  
   @Input() categoryId: number | null = null;
   @Output() categoryIdChange = new EventEmitter<number | null>();
+  @Output() filtersChanges = new EventEmitter<{ [key: string]: string[] }>();
 
-  @Output() filtersChanges = new EventEmitter<any>();
-  attributes: any[] = [];
+  attributes: Attribute[] = [];
   selectedFilters: { [key: string]: string[] } = {};
-
 
   constructor(
     private categoriesService: CategoriesService,
@@ -37,35 +34,83 @@ export class FilterSidebarComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadAttirbutes();
+    this.loadAttributes();
   }
 
-  loadAttirbutes() {
-    this.filterService.getProductAttributes().subscribe((attribute) => {
-      this.attributes = attribute;
-      console.log('Avilable Attributes : ', this.attributes);
-    });
+  loadAttributes() {
+    if (this.categoryId) {
+      this.filterService.getAllAttributesAndTermsByCategory(this.categoryId).subscribe((attributes) => {
+        console.log('Attributes from category:', attributes);
+        this.filterService.getProductAttributes().subscribe((allAttributes) => {
+          const attrMap = new Map<string, number>();
+          const slugMap = new Map<number, string>();
+          allAttributes.forEach((attr: any) => {
+            const key = attr.slug || attr.name;
+            attrMap.set(key, attr.id);
+            slugMap.set(attr.id, attr.slug || attr.name);
+          });
+  
+          const termRequests = Object.keys(attributes).map((attrKey) => {
+            const attrId = attrMap.get(attrKey);
+            if (!attrId) {
+              console.warn(`No attribute ID for ${attrKey}`);
+              return of({ slug: attrKey, terms: [] });
+            }
+            return this.filterService.getAttributeTerms(attrId).pipe(
+              map((terms) => {
+                const attrSlug = slugMap.get(attrId);
+                if (!attrSlug) {
+                  console.error(`No slug found for attribute ID ${attrId}`);
+                  return { slug: attrKey, terms: [] };
+                }
+                const filteredTerms = terms
+                  .filter((term: any) => attributes[attrKey].includes(term.name.trim().toLowerCase()))
+                  .map((term: any) => ({ id: term.id.toString(), name: term.name.trim() }));
+                console.log(`Slug: ${attrSlug}, Terms:`, filteredTerms);
+                return { slug: attrSlug, terms: filteredTerms };
+              })
+            );
+          });
+  
+          forkJoin(termRequests).subscribe((attrArray) => {
+            this.attributes = attrArray.filter((attr) => attr.terms.length > 0);
+            console.log('Final attributes:', this.attributes);
+          });
+        });
+      });
+    } else {
+      this.filterService.getProductAttributes().subscribe((attributes) => {
+        this.attributes = attributes.map((attr: any) => ({
+          slug: attr.slug || attr.name,
+          terms: [],
+        }));
+        console.log('Attributes without category:', this.attributes);
+      });
+    }
   }
 
-  onFilterChange(attributeId:number, term:string){
-    if(!this.selectedFilters[attributeId]){
-      this.selectedFilters[attributeId] = [];
+  
+  onFilterChange(attributeSlug: string, termId: string) {
+    if (!this.selectedFilters[attributeSlug]) {
+      this.selectedFilters[attributeSlug] = [];
     }
 
-    const index =this.selectedFilters[attributeId].indexOf(term)
-
-    if(index === -1){
-      this.selectedFilters[attributeId].push(term)
-    }else{
-      this.selectedFilters[attributeId].splice(index,1)
+    const index = this.selectedFilters[attributeSlug].indexOf(termId);
+    if (index === -1) {
+      this.selectedFilters[attributeSlug].push(termId);
+    } else {
+      this.selectedFilters[attributeSlug].splice(index, 1);
     }
-    this.filtersChanges.emit(this.selectedFilters)
-  }
 
+    console.log('Emitting filters with IDs:', this.selectedFilters);
+    this.filtersChanges.emit(this.selectedFilters);
+  }
 
   onCategoryChange(newCategoryId: number | null) {
     console.log('Category changed to:', newCategoryId);
     this.categoryId = newCategoryId;
     this.categoryIdChange.emit(newCategoryId);
+    this.selectedFilters = {};
+    this.loadAttributes();
   }
 }

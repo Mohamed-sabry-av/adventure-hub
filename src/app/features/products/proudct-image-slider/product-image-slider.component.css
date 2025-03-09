@@ -1,41 +1,124 @@
 .product-gallery {
   display: flex;
   align-items: flex-start;
-  gap: 10px; /* مسافة بين الـ thumbnails والصورة الرئيسية */
+  gap: 10px;
 }
 
 .thumbnails-column {
   display: flex;
-  flex-direction: column; /* الـ thumbnails في عمود */
-  gap: 10px; /* مسافة بين كل thumbnail */
+  flex-direction: column;
+  gap: 10px;
   width: 50px;
 }
 
 .thumbnail-item {
   cursor: pointer;
-  border: 2px solid transparent; /* حدود افتراضية */
-  transition: border 0.3s ease; /* تأثير لما تختار */
+  border: 2px solid transparent;
+  transition: border 0.3s ease;
 }
 
 .thumbnail-item.active {
-  border: 2px solid #000; /* حدود سودا للـ thumbnail المختار */
+  border: 2px solid #000;
 }
 
 .thumbnail-img {
-  width: 100%; /* الصورة تملأ العرض */
+  width: 100%;
   height: auto;
-  object-fit: cover; /* عشان الصورة تظهر بشكل متناسق */
+  object-fit: cover;
 }
 
 .main-image {
-  width: 500px; /* عرض ثابت للحاوية */
-  height: 500px; /* ارتفاع ثابت للحاوية */
-  overflow: hidden; /* أي حاجة زايدة تتقطع */
+  width: 700px;
+  height: 100% !important;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e0e0e0;
 }
+
+.carousel {
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  outline: none;
+  height: 100%;
+}
+
 .main-img {
-  width: 500px !important;
-  height: 500px !important;
-  object-fit: fill !important;
-  display: block;
-  transition: all 0.3s ease; /* تأثير انتقال ناعم */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.1s ease;
+  transform-origin: 0 0;
+  cursor: crosshair;}
+
+
+/* Styling لـ Slick */
+.slick-slider {
+  width: 100%;
+  height: 100%;
+}
+
+.slick-slide {
+  height: 100%;
+}
+
+/* التأكد من إن الـ zoom يشتغل صح */
+:host ::ng-deep .ngxImageZoomContainer {
+  width: 100%;
+  height: 100%;
+}
+
+
+.zoom-container {
+  position: relative;
+  width: 700px;
+  height: 500px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  object-fit: contain;
+
+}
+
+.main-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.1s ease;
+}
+
+
+
+/* الأزرار للتحريك */
+button.prev,
+button.next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+button.prev {
+  left: 10px;
+}
+
+button.next {
+  right: 10px;
+}
+
+button.prev:hover,
+button.next:hover {
+  background-color: rgba(0, 0, 0, 0.8);
 }

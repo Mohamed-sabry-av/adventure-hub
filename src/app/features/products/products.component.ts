@@ -7,6 +7,7 @@ import { CategoriesService } from '../../core/services/categories.service';
 import { map, of, switchMap } from 'rxjs';
 import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 import { FilterSidebarComponent } from './filter-sidebar/filter-sidebar.component';
+import { FilterService } from '../../core/services/filter.service';
 
 @Component({
   selector: 'app-products',
@@ -34,7 +35,8 @@ export class ProductsComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private categoriesService: CategoriesService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private filterService: FilterService
   ) {}
 
   ngOnInit() {
@@ -82,12 +84,16 @@ export class ProductsComponent implements OnInit {
 
 
 
-ngAfterViewInit() {
-  this.filterSidebar.filtersChanges.subscribe((filters) => {
-    console.log('Received filters in ProductsComponent:', filters);
-    this.loadProductsWithFilters(this.currentCategoryId, filters);
-  });
-}
+  ngAfterViewInit() {
+    if (this.filterSidebar) {
+      this.filterSidebar.filtersChanges.subscribe((filters) => {
+        console.log('Received filters in ProductsComponent:', filters);
+        this.loadProductsWithFilters(this.currentCategoryId, filters);
+      });
+    } else {
+      console.warn('FilterSidebarComponent not initialized in ngAfterViewInit');
+    }
+  }
 
   onCategoryIdChange(categoryId: number | null) {
     this.currentCategoryId = categoryId;
@@ -123,8 +129,8 @@ ngAfterViewInit() {
     } else {
       this.isLoadingMore = true;
     }
-    const filters = this.filterSidebar?.selectedFilters || {};
-    this.productService.getFilteredProductsByCategory(categoryId, filters, page, this.itemPerPage).subscribe({
+    const filters:any = this.filterSidebar?.selectedFilters || {};
+    this.filterService.getFilteredProductsByCategory(categoryId, filters, page, this.itemPerPage).subscribe({
       next: (products) => {
         console.log(`Loaded ${products.length} products for page ${page}`);
         console.log(products);
@@ -149,8 +155,8 @@ ngAfterViewInit() {
       this.isLoadingMore = true;
     }
 
-    const filters = this.filterSidebar?.selectedFilters || {};
-    this.productService.getFilteredProductsByCategory(null, filters, page, this.itemPerPage).subscribe({
+    const filters :any= this.filterSidebar?.selectedFilters || {};
+    this.filterService.getFilteredProductsByCategory(null, filters, page, this.itemPerPage).subscribe({
       next: (products) => {
         console.log(`Loaded ${products.length} all products for page ${page}`);
         this.products = isInitialLoad ? products : [...this.products, ...products];
@@ -225,7 +231,7 @@ private loadProductsWithFilters(categoryId: number | null, filters: { [key: stri
   this.currentPage = 1;
   this.products = [];
 
-  this.productService.getFilteredProductsByCategory(categoryId, filters, this.currentPage, this.itemPerPage).subscribe({
+  this.filterService.getFilteredProductsByCategory(categoryId, filters, this.currentPage, this.itemPerPage).subscribe({
     next: (products) => {
       this.products = products;
       console.log('Filtered products loaded:', products);

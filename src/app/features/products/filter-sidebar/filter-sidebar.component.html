@@ -7,20 +7,22 @@
   <div class="sidebar-content">
     <h4 class="mb-4">Filter</h4>
     <div *ngFor="let attr of attributes" class="mb-4">
-      <h5 class="mb-3">{{ attr.name }}</h5>
+      <h5 class="mb-3">{{ attr.slug }}</h5>
       <div class="list-group">
-        <div *ngFor="let option of attr.options" class="list-group-item border-0 px-0">
+        <div *ngFor="let term of attr.terms" class="list-group-item border-0 px-0">
           <div class="form-check">
             <input
               class="form-check-input"
               type="checkbox"
-              [id]="'attr-' + attr.name + '-' + option"
-              (change)="onFilterChange(attr.name, option)"
+              [id]="'attr-' + attr.slug + '-' + term.id"
+              (change)="onFilterChange(attr.slug, term.id)"
             />
-            <label class="form-check-label" [for]="'attr-' + attr.name + '-' + option">
-              {{ option }}
+            <label class="form-check-label" [for]="'attr-' + attr.slug + '-' + term.id">
+              {{ term.name }}
             </label>
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
