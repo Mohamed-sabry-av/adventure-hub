@@ -29,7 +29,11 @@
       [config]="slideConfig"
       (afterChange)="afterChange($event)"
     >
-      <div ngxSlickItem *ngFor="let image of images; trackBy: trackByFn" class="slide">
+      <div
+        ngxSlickItem
+        *ngFor="let image of images; trackBy: trackByFn"
+        class="slide"
+      >
         <img
           [src]="image.src"
           [alt]="image.alt || productName"

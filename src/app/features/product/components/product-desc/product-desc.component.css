@@ -1,0 +1,16 @@
+::ng-deep .p-tabs .p-component {
+  @apply bg-white  border-b font-thin text-gray-600;
+}
+
+::ng-deep .p-tablist-tab-list,
+::ng-deep .content {
+  @apply bg-white max-w-[1250px] lg:px-10 px-4 mx-auto;
+}
+
+::ng-deep .p-tablist-active-bar {
+  @apply h-[2px] bg-black w-[2px];
+}
+
+::ng-deep .p-tab.p-tab-active {
+  @apply text-black font-semibold !important;
+}

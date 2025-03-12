@@ -1,0 +1,34 @@
+<div class="bg-[#f8f8f8]">
+  <div class="max-w-[1250px] lg:px-10 px-4 mx-auto">
+    <!-- Product Slug -->
+    <div class="lg:h-[52px] h-10 flex items-center w-full text-black">
+      <nav class="truncate overflow-hidden">
+        <a [routerLink]="" class="text-xs">Home</a>
+        <span class="opacity-40 font-normal text-xs p-2"> / </span>
+        <a [routerLink]="" class="text-xs">Hiking Hub</a>
+        <span class="opacity-40 font-normal text-xs p-2"> / </span>
+        <a [routerLink]="" class="text-xs">Hiking Bags</a>
+        <span class="opacity-40 font-normal text-xs p-2"> / </span>
+        <a [routerLink]="" class="text-xs">Hiking..</a>
+      </nav>
+    </div>
+
+    <div class="flex md:flex-row flex-col gap-x-10">
+      <div class="w-full md:max-w-[63%] h-full mb-8 sm:mb-0">
+        @if (productData?.images) {
+        <app-product-images [productImages]="productData.images" />
+
+        }
+      </div>
+      <div class="w-full md:max-w-[37%] h-full">
+        @if (productData !== undefined) {
+        <app-product-info [productInfo]="productData" />
+        }
+      </div>
+    </div>
+  </div>
+  @if (productData !== undefined) {
+  <app-product-desc [productAdditionlInfo]="productData" />
+  }
+  <!-- <app-product-related /> -->
+</div>

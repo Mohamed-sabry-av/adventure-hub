@@ -4,8 +4,6 @@
   padding: 20px;
 }
 
-
-
 /* Skeleton Loading */
 .skeleton-product {
   display: flex;
@@ -109,21 +107,23 @@
   font-weight: bold;
 }
 
-.color-options, .size-options {
+.color-options,
+.size-options {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.color-title, .size-title {
+.color-title,
+.size-title {
   font-weight: 500;
 }
 
-.colors-container, .sizes-container {
+.colors-container,
+.sizes-container {
   display: flex;
   gap: 10px;
 }
-
 
 .size-box {
   padding: 8px 12px;
@@ -152,22 +152,22 @@
   background: #0a2e38;
 }
 
-.product-description .desc{
-  padding: 16px;
+.product-description .desc {
+  /* padding: 16px; */
   /* Remove these properties */
   /* display: flex;
   flex-direction: column;
   gap: 10px;
   justify-content: center;
   align-items: center; */
-  
+
   /* Add these instead */
-  width: 100%;
+  /* width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 auto; */
 }
 
-.product-description h3 .desc{
+.product-description h3 .desc {
   font-size: 1.5rem;
   margin-bottom: 1rem;
   align-self: flex-start;
@@ -182,12 +182,12 @@
   text-align: justify;
 }
 
-.product-description img .desc{
+.product-description img .desc {
   max-width: 100%;
   height: auto;
   margin: 1rem 0;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .no-product {
   text-align: center;
@@ -195,7 +195,6 @@
   font-size: 18px;
   color: #666;
 }
-
 
 @media (max-width: 768px) {
   .product-details {
@@ -206,10 +205,12 @@
     flex-direction: column;
   }
 
-  .skeleton-image, .skeleton-details {
+  .skeleton-image,
+  .skeleton-details {
     width: 100%;
   }
-}.img-container {
+}
+.img-container {
   position: relative !important;
   display: inline-block !important;
 }
@@ -222,20 +223,14 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-
-
-
-
-
-
 /* ==============================Variations ================================== */
-.variations-container{
+.variations-container {
   display: flex;
   flex-wrap: wrap;
-  gap:10px
+  gap: 10px;
 }
 
-.variation-image{
+.variation-image {
   justify-content: center;
   width: 60px;
   height: 60px;
@@ -245,13 +240,12 @@
   transition: all 0.2s ease;
 }
 
-.variation-image img{
+.variation-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.variation-image.active{
+.variation-image.active {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
-

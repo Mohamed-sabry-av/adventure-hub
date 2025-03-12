@@ -1,11 +1,20 @@
 import { HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of, shareReplay, switchMap } from 'rxjs';
+import {
+  catchError,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  switchMap,
+  debounceTime,
+  forkJoin,
+} from 'rxjs';
 import { ApiService } from './api.service';
-import { HandleErrorsService } from './handel-errors.service';
-import { CacheService } from './cashing.service';
 import { ProductService } from './product.service';
 import { Product } from '../../interfaces/product';
+import { HandleErrorsService } from './handel-errors.service';
+import { CacheService } from './cashing.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +27,6 @@ export class FilterService {
     private productsService: ProductService
   ) {}
 
-  // Fetch all attributes
   getProductAttributes(): Observable<any[]> {
     return this.WooAPI.getRequestProducts<any>('products/attributes', {
       params: new HttpParams(),
@@ -28,25 +36,29 @@ export class FilterService {
     );
   }
 
-  // Fetch terms for a specific attribute by attribute ID
   getAttributeTerms(attributeId: number): Observable<any[]> {
-    return this.WooAPI.getRequestProducts<any>(`products/attributes/${attributeId}/terms`, {
-      params: new HttpParams().set('per_page', '100'), // Adjust as needed
-    }).pipe(
+    return this.WooAPI.getRequestProducts<any>(
+      `products/attributes/${attributeId}/terms`,
+      {
+        params: new HttpParams().set('per_page', '100'),
+      }
+    ).pipe(
       map((response) => response),
       catchError((error) => {
-        console.error(`Error fetching terms for attribute ${attributeId}:`, error);
+        console.error(
+          `Error fetching terms for attribute ${attributeId}:`,
+          error
+        );
         return of([]);
       })
     );
   }
 
-  // Fetch attributes and terms by category
   getAttributesAndTermsByCategory(
     categoryId: number,
     page: number = 1,
     perPage: number = 100
-  ): Observable<{ terms: { [key: string]: string[] }, totalPages: number }> {
+  ): Observable<{ terms: { [key: string]: string[] }; totalPages: number }> {
     const cacheKey = `attributes_terms_category_${categoryId}_page_${page}`;
     return this.cachingService.cacheObservable(
       cacheKey,
@@ -56,11 +68,14 @@ export class FilterService {
           .set('_fields', 'id,attributes')
           .set('per_page', perPage.toString())
           .set('page', page.toString()),
-        observe: 'response', // نرجع الـ response كامل مع الـ headers
+        observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
           const products = response.body;
-          const totalPages = parseInt(response.headers.get('X-WP-TotalPages') || '1', 10);
+          const totalPages = parseInt(
+            response.headers.get('X-WP-TotalPages') || '1',
+            10
+          );
           const termsMap = new Map<string, Set<string>>();
           products.forEach((product: any) => {
             product.attributes.forEach((attr: any) => {
@@ -69,80 +84,79 @@ export class FilterService {
                 termsMap.set(attrKey, new Set());
               }
               if (attr.options) {
-                attr.options.forEach((option: string) => termsMap.get(attrKey)!.add(option.trim().toLowerCase()));
+                attr.options.forEach((option: string) =>
+                  termsMap.get(attrKey)!.add(option.trim().toLowerCase())
+                );
               }
             });
           });
           return {
             terms: Object.fromEntries(
-              Array.from(termsMap.entries()).map(([key, terms]) => [key, Array.from(terms)])
+              Array.from(termsMap.entries()).map(([key, terms]) => [
+                key,
+                Array.from(terms),
+              ])
             ),
             totalPages,
           };
         }),
         catchError((error) => {
-          console.error(`Error fetching attributes/terms for category ${categoryId}:`, error);
+          console.error(
+            `Error fetching attributes/terms for category ${categoryId}:`,
+            error
+          );
           return of({ terms: {}, totalPages: 1 });
         }),
         shareReplay(1)
       ),
-      300000 // 5 دقايق TTL
+      300000
     );
   }
 
-
-  // Fetch all attributes and terms recursively
-  getAllAttributesAndTermsByCategory(categoryId: number): Observable<{ [key: string]: string[] }> {
-    const allTerms = new Map<string, Set<string>>(); // لتخزين السمات والشروط المتراكمة
-    let page = 1;
-    const perPage = 100;
-  
-    const fetchPage = (currentPage: number): Observable<any> =>
-      this.getAttributesAndTermsByCategory(categoryId, currentPage, perPage).pipe(
-        switchMap((response) => {
-          const { terms, totalPages } = response;
-          // إضافة السمات والشروط من الصفحة الحالية
-          Object.entries(terms).forEach(([attr, options]) => {
-            if (!allTerms.has(attr)) {
-              allTerms.set(attr, new Set());
-            }
-            options.forEach((opt) => allTerms.get(attr)!.add(opt));
-          });
-          // إذا كانت هناك صفحات أخرى، جلب الصفحة التالية
-          if (currentPage < totalPages) {
-            return fetchPage(currentPage + 1);
-          } else {
-            // إرجاع النتيجة النهائية
-            return of(
-              Object.fromEntries(
-                Array.from(allTerms.entries()).map(([name, terms]) => [name, Array.from(terms)])
-              )
-            );
-          }
-        })
-      );
-  
-    return fetchPage(page);
+  getAllAttributesAndTermsByCategory(
+    categoryId: number
+  ): Observable<{ [key: string]: string[] }> {
+    return this.getAttributesAndTermsByCategory(categoryId, 1, 100).pipe(
+      switchMap((firstResponse) => {
+        const totalPages = firstResponse.totalPages;
+        if (totalPages <= 1) {
+          return of(firstResponse.terms);
+        }
+        const requests = Array.from({ length: totalPages - 1 }, (_, i) =>
+          this.getAttributesAndTermsByCategory(categoryId, i + 2, 100)
+        );
+        return forkJoin(requests).pipe(
+          map((responses) => {
+            const allTerms = { ...firstResponse.terms };
+            responses.forEach((res) => {
+              Object.entries(res.terms).forEach(([key, terms]) => {
+                allTerms[key] = [...(allTerms[key] || []), ...terms];
+              });
+            });
+            return allTerms;
+          })
+        );
+      })
+    );
   }
 
-
-
-  // Get filtered products by category
   getFilteredProductsByCategory(
     categoryId: number | null,
     filters: { [key: string]: string[] },
     page: number = 1,
     perPage: number = 18
   ): Observable<Product[]> {
-    const cacheKey = `filtered_products_category_${categoryId || 'all'}_filters_${JSON.stringify(filters)}_page_${page}`;
+    const cacheKey = `filtered_products_category_${
+      categoryId || 'all'
+    }_filters_${JSON.stringify(filters)}_page_${page}`;
     return this.cachingService.cacheObservable(
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
         params: this.buildFilterParams(categoryId, filters, page, perPage),
         observe: 'response',
       }).pipe(
+        debounceTime(300),
         map((response: HttpResponse<any>) => {
-          console.log(`API response for filtered products (category: ${categoryId}, page: ${page}):`, response.body.length);
           const products = this.productsService.getUniqueProducts(
             response.body.map((product: any) => ({
               ...product,
@@ -157,7 +171,7 @@ export class FilterService {
         }),
         shareReplay(1)
       ),
-      300000 // 5 minutes TTL
+      300000
     );
   }
 
@@ -170,8 +184,10 @@ export class FilterService {
     let params = new HttpParams()
       .set('per_page', perPage.toString())
       .set('page', page.toString())
-      .set('_fields', 'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency')
-      // .set('stock_status', 'instock');
+      .set(
+        '_fields',
+        'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency'
+      );
 
     if (categoryId) {
       params = params.set('category', categoryId.toString());
@@ -184,7 +200,53 @@ export class FilterService {
       }
     });
 
-    console.log('Built API params:', params.toString());
     return params;
+  }
+
+  getAllAttributeTerms(attributeId: number): Observable<any[]> {
+    const cacheKey = `all_attribute_terms_${attributeId}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      (() => {
+        const allTerms: any[] = [];
+        let page = 1;
+        const perPage = 100;
+
+        const fetchPage = (currentPage: number): Observable<any> =>
+          this.WooAPI.getRequestProducts<any>(
+            `products/attributes/${attributeId}/terms`,
+            {
+              params: new HttpParams()
+                .set('per_page', perPage.toString())
+                .set('page', currentPage.toString()),
+              observe: 'response',
+            }
+          ).pipe(
+            switchMap((response) => {
+              const terms = response.body || [];
+              allTerms.push(...terms);
+              const totalPages = parseInt(
+                response.headers.get('X-WP-TotalPages') || '1',
+                10
+              );
+              if (currentPage < totalPages) {
+                return fetchPage(currentPage + 1);
+              } else {
+                return of(allTerms);
+              }
+            }),
+            catchError((error) => {
+              console.error(
+                `Error fetching terms for attribute ${attributeId}:`,
+                error
+              );
+              return of(allTerms);
+            })
+          );
+
+        return fetchPage(page);
+      })(),
+      3600000
+    );
   }
 }

@@ -1,0 +1,50 @@
+<!-- <div class="flex md:flex-row flex-col-reverse gap-2 w-full">
+  <p-carousel
+    [value]="images"
+    [numVisible]="isMobile ? 3 : 4"
+    [numScroll]="1"
+    [orientation]="isMobile ? 'horizontal' : 'vertical'"
+    verticalViewPortHeight="550px"
+    class="bg-green-700 min-w-[130px]"
+  >
+    <ng-template let-image #item>
+      <div class="mb-2" (click)="onSelectedImage(image)">
+        <img
+          [src]="image"
+          [alt]=""
+          class="lg:w-[130px] lg:h-[130px] w-[110px] h-[110px] bg-cover"
+        />
+      </div>
+    </ng-template>
+  </p-carousel>
+
+  <img
+    [src]="selectedImagePath"
+    alt=""
+    class="w-full sm:w-[566px] h-auto bg-cover"
+  />
+</div> -->
+
+<div>
+  <p-galleria
+    [value]="productImages()"
+    [showItemNavigators]="true"
+    [circular]="true"
+    [numVisible]="3"
+    [thumbnailsPosition]="isMobile ? 'bottom' : 'left'"
+    verticalThumbnailViewPortHeight="450px"
+    class="max-w-full rounded-none"
+  >
+    <ng-template #item let-item>
+      <img [src]="item.src" class="w-full bg-cover" />
+    </ng-template>
+    <ng-template #thumbnail let-item>
+      <div class="mr-2 lg:mr-0">
+        <img
+          [src]="item?.src"
+          class="lg:w-[130px] lg:h-[130px] w-[110px] h-[110px] bg-cover"
+        />
+      </div>
+    </ng-template>
+  </p-galleria>
+</div>

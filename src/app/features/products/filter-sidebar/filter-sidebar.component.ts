@@ -8,6 +8,7 @@ import { FilterService } from '../../../core/services/filter.service';
 import { forkJoin, map, of } from 'rxjs';
 
 interface Attribute {
+  name?: string;
   slug: string;
   terms: { id: string; name: string }[];
 }
@@ -39,45 +40,93 @@ export class FilterSidebarComponent implements OnInit {
 
   loadAttributes() {
     if (this.categoryId) {
-      this.filterService.getAllAttributesAndTermsByCategory(this.categoryId).subscribe((attributes) => {
-        console.log('Attributes from category:', attributes);
-        this.filterService.getProductAttributes().subscribe((allAttributes) => {
-          const attrMap = new Map<string, number>();
-          const slugMap = new Map<number, string>();
-          allAttributes.forEach((attr: any) => {
-            const key = attr.slug || attr.name;
-            attrMap.set(key, attr.id);
-            slugMap.set(attr.id, attr.slug || attr.name);
-          });
-  
-          const termRequests = Object.keys(attributes).map((attrKey) => {
-            const attrId = attrMap.get(attrKey);
-            if (!attrId) {
-              console.warn(`No attribute ID for ${attrKey}`);
-              return of({ slug: attrKey, terms: [] });
-            }
-            return this.filterService.getAttributeTerms(attrId).pipe(
-              map((terms) => {
-                const attrSlug = slugMap.get(attrId);
-                if (!attrSlug) {
-                  console.error(`No slug found for attribute ID ${attrId}`);
-                  return { slug: attrKey, terms: [] };
+      this.filterService
+        .getAllAttributesAndTermsByCategory(this.categoryId)
+        .subscribe((attributes) => {
+          console.log('Attributes from category:', attributes);
+          this.filterService
+            .getProductAttributes()
+            .subscribe((allAttributes) => {
+              const attrMap = new Map<string, number>();
+              const slugMap = new Map<number, string>();
+              allAttributes.forEach((attr: any) => {
+                const key = attr.slug || attr.name;
+                attrMap.set(key, attr.id);
+                slugMap.set(attr.id, attr.slug || attr.name);
+              });
+
+              const termRequests = Object.keys(attributes).map((attrKey) => {
+                const attrId = attrMap.get(attrKey);
+                if (!attrId) {
+                  console.warn(`No attribute ID for ${attrKey}`);
+                  return of({ slug: attrKey, terms: [] });
                 }
-                const filteredTerms = terms
-                  .filter((term: any) => attributes[attrKey].includes(term.name.trim().toLowerCase()))
-                  .map((term: any) => ({ id: term.id.toString(), name: term.name.trim() }));
-                console.log(`Slug: ${attrSlug}, Terms:`, filteredTerms);
-                return { slug: attrSlug, terms: filteredTerms };
-              })
-            );
-          });
-  
-          forkJoin(termRequests).subscribe((attrArray) => {
-            this.attributes = attrArray.filter((attr) => attr.terms.length > 0);
-            console.log('Final attributes:', this.attributes);
-          });
+                return this.filterService.getAllAttributeTerms(attrId).pipe(
+                  map((terms) => {
+                    const attrSlug = slugMap.get(attrId);
+                    if (!attrSlug) {
+                      console.error(`No slug found for attribute ID ${attrId}`);
+                      return { slug: attrKey, terms: [] };
+                    }
+                    // Normalize terms from API and create a map
+                    const normalizedTermsMap = new Map<
+                      string,
+                      { id: string; name: string }
+                    >();
+                    terms.forEach((term: any) => {
+                      const normalizedTerm = term.name
+                        .replace(/\s+/g, ' ')
+                        .trim()
+                        .toLowerCase();
+                      normalizedTermsMap.set(normalizedTerm, {
+                        id: term.id.toString(),
+                        name: term.name.trim(),
+                      });
+                    });
+                    // Normalize product terms and match with all API terms
+                    const productTerms = attributes[attrKey].map(
+                      (opt: string) =>
+                        opt.replace(/\s+/g, ' ').trim().toLowerCase()
+                    );
+                    const filteredTerms = productTerms
+                      .map((term) => {
+                        const match = normalizedTermsMap.get(term);
+                        if (!match) {
+                          console.warn(
+                            `No match found for product term "${term}" in API terms`
+                          );
+                        }
+                        return match;
+                      })
+                      .filter(
+                        (term): term is { id: string; name: string } => !!term
+                      );
+
+                    console.log(
+                      `Slug: ${attrSlug}, Raw terms from API:`,
+                      terms
+                    );
+                    console.log(
+                      `Slug: ${attrSlug}, Product terms:`,
+                      productTerms
+                    );
+                    console.log(
+                      `Slug: ${attrSlug}, Filtered terms:`,
+                      filteredTerms
+                    );
+                    return { slug: attrSlug, terms: filteredTerms };
+                  })
+                );
+              });
+
+              forkJoin(termRequests).subscribe((attrArray) => {
+                this.attributes = attrArray.filter(
+                  (attr) => attr.terms.length > 0
+                );
+                console.log('Final attributes:', this.attributes);
+              });
+            });
         });
-      });
     } else {
       this.filterService.getProductAttributes().subscribe((attributes) => {
         this.attributes = attributes.map((attr: any) => ({
@@ -89,7 +138,6 @@ export class FilterSidebarComponent implements OnInit {
     }
   }
 
-  
   onFilterChange(attributeSlug: string, termId: string) {
     if (!this.selectedFilters[attributeSlug]) {
       this.selectedFilters[attributeSlug] = [];

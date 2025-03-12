@@ -1,6 +1,7 @@
-<div class="container BayesArabicFont">
+<!-- Delete BayesArabicFont -->
+<div class="max-w-full">
   <ng-container *ngIf="product$ | async as data">
-    <div *ngIf="data.isLoading">
+    <div *ngIf="data.isLoading" class="mx-20 p-5">
       <!-- Skeleton Loading -->
       <div class="skeleton-product">
         <div class="skeleton-image"></div>
@@ -13,75 +14,126 @@
     </div>
 
     <div *ngIf="!data.isLoading && data.product">
-      <!-- ✅ Product Details -->
-      <div class="product-details">
-        <!-- ✅ Product Gallery Section -->
-        <div class="product-image-slider">
-          <app-product-image-slider [images]="data.product.images" [productName]="data.product.name"></app-product-image-slider>
+      <div class="mx-20">
+        <!-- Product Slug -->
+        <div class="h-[52px] flex items-center w-full text-black">
+          <nav class="">
+            <a [routerLink]="">Home</a>
+            <span class="opacity-0.4 font-normal text-xs p-2"> / </span>
+            <a [routerLink]="">Hiking Hub</a>
+            <span class="opacity-0.4 font-normal text-xs p-2"> / </span>
+            <a [routerLink]="">Hiking Bags</a>
+            <span class="opacity-0.4 font-normal text-xs p-2"> / </span>
+            <a [routerLink]="">Hiking Backpacks</a>
+          </nav>
         </div>
-
-        <!-- ✅ Product Info Section -->
-        <div class="product-info">
-          <h2 class="brand-name">{{ data.product.brand }}</h2> <!-- ✅ Brand Name -->
-          <h1 class="product-title">{{ data.product.name }}</h1>
-          
-          <!-- ✅ Price & Stock Info -->
-          <div class="product-meta">
-            <span class="product-price">{{ data.product.price }} AED</span>
-            <span class="product-stock">
-              In Stock: {{ data.product.stock_quantity }} pcs
-            </span>
-            <span class="out-of-stock-label" *ngIf="data.product.stock_quantity === 0">Out of Stock</span>
+        <!-- ✅ Product Details -->
+        <div class="product-details">
+          <!-- ✅ Product Gallery Section -->
+          <div class="product-image-slider">
+            <app-product-image-slider
+              [images]="data.product.images"
+              [productName]="data.product.name"
+            ></app-product-image-slider>
           </div>
 
-          <!-- ✅ Variations -->
-          @if(data.product.type === 'variable') {
-          <div class="variation-options">
-            <div class="variation-title">Available Colors:</div>
-            <div class="variations-container">
-              <div class="variation-image"
-                   *ngFor="let option of getColorOptions()"
-                   (click)="selectColor(option.color)" 
-                   [class.selected]="selectedColor === option.color">
+          <!-- ✅ Product Info Section -->
+          <div class="product-info">
+            <h2 class="brand-name">{{ data.product.brand }}</h2>
+            <!-- ✅ Brand Name -->
+            <h1 class="product-title">{{ data.product.name }}</h1>
 
-                <img [src]="option.image" [alt]="option.color" [class.out-of-stock]="!option.inStock" />
-                <span *ngIf="!option.inStock" class="out-of-stock-label">Out of Stock</span>
+            <!-- ✅ Price & Stock Info -->
+            <div class="product-meta">
+              <span class="product-price">{{ data.product.price }} AED</span>
+              <span class="product-stock">
+                In Stock: {{ data.product.stock_quantity }} pcs
+              </span>
+              <span
+                class="out-of-stock-label"
+                *ngIf="data.product.stock_quantity === 0"
+                >Out of Stock</span
+              >
+            </div>
+
+            <!-- ✅ Variations -->
+            @if(data.product.type === 'variable') {
+            <div class="variation-options">
+              <div class="variation-title">Available Colors:</div>
+              <div class="variations-container">
+                <div
+                  class="variation-image"
+                  *ngFor="let option of getColorOptions()"
+                  (click)="selectColor(option.color)"
+                  [class.selected]="selectedColor === option.color"
+                >
+                  <img
+                    [src]="option.image"
+                    [alt]="option.color"
+                    [class.out-of-stock]="!option.inStock"
+                  />
+                  <span *ngIf="!option.inStock" class="out-of-stock-label"
+                    >Out of Stock</span
+                  >
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- ✅ Sizes -->
-          <div class="size-options">
-            <div class="size-title">Available Sizes:</div>
-            <div class="sizes-container">
-              <div class="size-box"
-                   *ngFor="let size of getSizesForColor(selectedColor || '')"
-                   [class.out-of-stock]="!size.inStock">
-                <span>{{ size.size }}</span>
-                @if(!size.inStock) {
+            <!-- ✅ Sizes -->
+            <div class="size-options">
+              <div class="size-title">Available Sizes:</div>
+              <div class="sizes-container">
+                <div
+                  class="size-box"
+                  *ngFor="let size of getSizesForColor(selectedColor || '')"
+                  [class.out-of-stock]="!size.inStock"
+                >
+                  <span>{{ size.size }}</span>
+                  @if(!size.inStock) {
                   <span class="out-of-stock-label">Out of Stock</span>
-                }
+                  }
+                </div>
               </div>
             </div>
+            }
+
+            <button class="add-to-cart">Add to Cart</button>
+            <div class="instructions">
+              <i class="bi bi-check-circle" style="font-size: 12px"></i> Free
+              Shipping in UAE For orders above AED 100.<br />
+              <i class="bi bi-check-circle" style="font-size: 12px"></i> 7 days
+              easy returns.<br />
+              <i class="bi bi-check-circle" style="font-size: 12px"></i>
+              Delivery within 1-2 working days.<br />
+              <i class="bi bi-check-circle" style="font-size: 12px"></i>World
+              wide shipping.<br />
+            </div>
           </div>
-          }
-
-          <button class="add-to-cart">Add to Cart</button>
-          <div class="instructions">
-            <i class="bi bi-check-circle" style="font-size: 12px;"></i> Free Shipping in UAE For orders above AED 100.<br>
-            <i class="bi bi-check-circle" style="font-size: 12px;"></i> 7 days easy returns.<br>
-            <i class="bi bi-check-circle" style="font-size: 12px;"></i> Delivery within 1-2 working days.<br>
-            <i class="bi bi-check-circle" style="font-size: 12px;"></i>World wide shipping.<br>
         </div>
-        </div>
-
-        
       </div>
 
       <!--  Product Description Section -->
-      <div class="product-description">
-        <h3>Product Description:</h3>
-        <div class="desc" [innerHTML]="data.product.description"></div>
+      <div class="mt-10 shadow-2xl">
+        <!-- <h3>Product Description:</h3>
+        <div class="desc" [innerHTML]="data.product.description"></div> -->
+        <div class="w-full">
+          <div class="flex mx-20">
+            <button
+              *ngFor="let tab of tabs; let i = index"
+              class="py-2 px-4 text-gray-600 border-b-2 transition-all duration-300"
+              [ngClass]="{
+                'border-black text-black font-semibold': selectedTab === i
+              }"
+              (click)="selectedTab = i"
+            >
+              {{ tab.title }}
+            </button>
+          </div>
+          <div class="border-b w-full h-fit"></div>
+          <div class="p-4 mx-20">
+            <p>{{ tabs[selectedTab].content }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </ng-container>

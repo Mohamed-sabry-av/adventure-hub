@@ -3,40 +3,36 @@
 ></app-breadcrumb>
 
 <div class="products-page">
-  <app-filter-sidebar
+  <!-- <app-filter-sidebar
   class="custom-sidebar"
     [categoryId]="currentCategoryId"
-  ></app-filter-sidebar>
+  ></app-filter-sidebar> -->
 
   <div class="products-container">
     @if (isLoading && products.length === 0) {
+    <div class="skeleton-grid">
+      <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
+    </div>
+    } @else { @defer (on viewport) {
+    <section class="products-grid">
+      <app-product-card
+        *ngFor="let product of products"
+        [product]="product"
+        class="product-card"
+      ></app-product-card>
+    </section>
+    } @placeholder {
+    <div class="skeleton-grid">
+      <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
+    </div>
+    } } @if (isLoadingMore) {
+    <div class="loading-more">
       <div class="skeleton-grid">
-        <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
+        <div class="skeleton-item" *ngFor="let item of [].constructor(4)"></div>
       </div>
-    } @else { 
-      @defer (on viewport) {
-        <section class="products-grid">
-          <app-product-card
-            *ngFor="let product of products"
-            [product]="product"
-            class="product-card"
-          ></app-product-card>
-        </section>
-      } @placeholder {
-        <div class="skeleton-grid">
-          <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
-        </div>
-      }
-    } 
-    @if (isLoadingMore) {
-      <div class="loading-more">
-        <div class="skeleton-grid">
-          <div class="skeleton-item" *ngFor="let item of [].constructor(4)"></div>
-        </div>
-      </div>
-    } 
-    @if (!isLoading && !isLoadingMore && products.length === 0) {
-      <div class="no-products">No products found</div>
+    </div>
+    } @if (!isLoading && !isLoadingMore && products.length === 0) {
+    <div class="no-products">No products found</div>
     }
   </div>
 </div>

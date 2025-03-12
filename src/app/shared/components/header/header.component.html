@@ -1,54 +1,79 @@
 <!-- src/app/components/header/header.component.html -->
 <header>
-  <!-- الطبقة الأولى -->
-  <div class="first-bar top-bar d-flex py-1">
-    <span class="flex-grow-1 text-center"><i class="bi bi-icask fs-6"></i> Free Delivery</span>
-    <span class="flex-grow-1 text-center"><i class="bi bi-globe-americas fs-6"></i> Worldwide Shipping</span>
-    <span class="flex-grow-1 text-center"><i class="bi bi-lightning-charge-fill fs-6"></i> Fast Delivery</span>
+  <!-- الكوبون -->
+  <div class="text-center bg-black">
+    <p class="text-white font-semibold">
+      Ramadan offer Use Code
+      <span class="bg-yellow-200 text-black">"Ramadan10"</span> & get 10%off
+    </p>
   </div>
 
+  <!-- الطبقة الأولى -->
+  <div
+    class="flex justify-between items-center max-w-[1250px] lg:px-10 px-4 mx-auto"
+  >
+    <span><i class="pi pi-truck"></i> Free Delivery</span>
+    <span><i class="pi pi-globe"></i> Worldwide Shipping</span>
+    <span><i class="pi pi-bolt"></i> Fast Delivery</span>
+  </div>
+  <hr />
+
   <!-- الطبقة الثانية -->
-  <div class="middle-bar py-3 bg-white border-bottom">
-    <div class="container d-flex justify-content-between align-items-center">
+  <div class="bg-white border-bottom max-w-[1250px] lg:px-10 px-4 mx-auto">
+    <div class="flex items-center justify-between">
       <!-- Mobile Navbar -->
-      <app-mobile-navbar class="d-lg-none" [mainCategories]="mainCategories" [allCategories]="allCategories"></app-mobile-navbar>
+      <!-- <app-mobile-navbar
+        class="d-lg-none"
+        [mainCategories]="mainCategories"
+        [allCategories]="allCategories"
+      ></app-mobile-navbar> -->
 
       <!-- Logo -->
       <img class="img-fluid logo" src="header/adv-hub-logo-n.png" alt="Logo" />
 
       <!-- Search -->
-      <div class="search-container flex-grow-1">
-        <div class="input-group w-50">
-          <input type="text" class="form-control search-input" placeholder="Search..." style="border-radius: 20px" />
-        </div>
+      <div class="">
+        <input
+          type="text"
+          placeholder="Search..."
+          class="rounded-none border py-[10px] bg-gray-200 px-[6px] lg:w-96 max-w-[400px]"
+        />
       </div>
 
-      <!-- Icons -->
-      <div class="icons d-flex gap-3">
-        <a class="text-dark text-decoration-none d-flex flex-column align-items-center" href="">
-          <i class="bi bi-person fs-5"></i><span>My Account</span>
-        </a>
-        <a class="text-dark text-decoration-none d-flex flex-column align-items-center" href="">
-          <i class="bi bi-arrow-right-circle fs-5"></i><span>Checkout</span>
-        </a>
-        <a class="text-dark text-decoration-none d-flex flex-column align-items-center" href="">
-          <i class="bi bi-heart fs-5"></i><span>Wishlist</span>
-        </a>
+      <div class="">
+        <!-- Icons -->
+        <div class="flex gap-3">
+          <a class="flex flex-col items-center border-r pr-2" href="">
+            <i class="pi pi-user text-xl"></i
+            ><span class="mt-1">My Account</span>
+          </a>
+          <a class="flex flex-col items-center border-r pr-2" href="">
+            <i class="pi pi-arrow-circle-right text-xl"></i
+            ><span class="mt-1">Checkout</span>
+          </a>
+          <a class="flex flex-col items-center border-r pr-2" href="">
+            <i class="pi pi-heart-fill text-xl"></i
+            ><span class="mt-1">Wishlist</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
-
-      <!-- Desktop Navbar with Defer -->
-      @defer (on idle) {
-        <app-navbar class="d-none d-lg-block" [mainCategories]="mainCategories" [allCategories]="allCategories"></app-navbar>
-      } @placeholder {
-        <div class="navbar-placeholder d-none d-lg-block">
-          <ul class="nav-list">
-            <li class="nav-item" *ngFor="let category of mainCategories">
-              <a class="nav-link">{{ category.name }}</a>
-            </li>
-            <li class="nav-item sale-item"><a class="sale-link">SALE!</a></li>
-          </ul>
-        </div>
-      }
+  <!-- Desktop Navbar with Defer -->
+  @defer (on idle) {
+  <app-navbar
+    class="d-none d-lg-block"
+    [mainCategories]="mainCategories"
+    [allCategories]="allCategories"
+  ></app-navbar>
+  } @placeholder {
+  <div class="navbar-placeholder d-none d-lg-block">
+    <ul class="nav-list">
+      <li class="nav-item" *ngFor="let category of mainCategories">
+        <a class="nav-link">{{ category.name }}</a>
+      </li>
+      <li class="nav-item sale-item"><a class="sale-link">SALE!</a></li>
+    </ul>
+  </div>
+  }
 </header>
