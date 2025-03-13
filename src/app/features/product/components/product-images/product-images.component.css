@@ -1,0 +1,7 @@
+::ng-deep .p-galleria-thumbnails-content {
+  @apply bg-transparent;
+}
+
+::ng-deep .p-icon {
+  @apply text-gray-500;
+}

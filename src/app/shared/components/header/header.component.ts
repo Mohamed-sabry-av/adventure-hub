@@ -1,7 +1,6 @@
 // src/app/components/header/header.component.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { Category } from '../../../interfaces/category.model';
@@ -11,7 +10,7 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, NgbDropdownModule, NavbarComponent, MobileNavbarComponent,RouterLink],
+  imports: [CommonModule, NavbarComponent, MobileNavbarComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
 })
@@ -26,9 +25,11 @@ export class HeaderComponent implements OnInit {
   }
 
   private fetchAllCategories(): void {
-    this.categoriesService.getAllCategories(['default']).subscribe((categories) => {
-      this.allCategories = categories;
-      this.mainCategories = categories.filter((cat) => cat.parent === 0);
-    });
+    this.categoriesService
+      .getAllCategories(['default'])
+      .subscribe((categories) => {
+        this.allCategories = categories;
+        this.mainCategories = categories.filter((cat) => cat.parent === 0);
+      });
   }
 }

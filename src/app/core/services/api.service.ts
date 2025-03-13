@@ -1,4 +1,4 @@
-import {Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { catchError, Observable } from 'rxjs';
 import {
   HttpClient,
@@ -22,18 +22,21 @@ export class ApiService {
     private handelErrorsService: HandleErrorsService
   ) {}
 
-  getRequest<T>(endpoint: string, options: { params?: HttpParams } = {}): Observable<T> {
+  getRequest<T>(
+    endpoint: string,
+    options: { params?: HttpParams } = {}
+  ): Observable<T> {
     return this.http
       .get<T>(`${this.baseUrl}${endpoint}`, {
         headers: this.authService.getAuthHeaders(),
-        ...options, 
+        ...options,
       })
       .pipe(catchError(this.handelErrorsService.handelError));
   }
 
   getRequestProducts<T>(
     endpoint: string,
-    options: { 
+    options: {
       params?: HttpParams;
       observe?: 'body' | 'response' | 'events';
     } = {}
@@ -41,18 +44,22 @@ export class ApiService {
     const httpOptions: Object = {
       headers: this.authService.getAuthHeaders(),
       ...options,
-      observe: options.observe || 'body'
+      observe: options.observe || 'body',
     };
 
-    return this.http.get<T>(
-      `${this.baseUrl}${endpoint}`,
-      httpOptions as Object // Type assertion هنا
-    ).pipe(
-      catchError((error: HttpErrorResponse) => 
-        this.handelErrorsService.handelError(error)
-    ))
+    console.log();
+
+    return this.http
+      .get<T>(
+        `${this.baseUrl}${endpoint}`,
+        httpOptions as Object // Type assertion هنا
+      )
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          this.handelErrorsService.handelError(error)
+        )
+      );
   }
-  
 
   postRequest<T>(endpoint: string, body: any): Observable<T> {
     return this.http

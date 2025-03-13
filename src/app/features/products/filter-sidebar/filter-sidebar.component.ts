@@ -8,7 +8,7 @@ import { FilterService } from '../../../core/services/filter.service';
 import { forkJoin, map, of } from 'rxjs';
 
 interface Attribute {
-  name?:string
+  name?: string;
   slug: string;
   terms: { id: string; name: string }[];
 }
@@ -112,6 +112,7 @@ export class FilterSidebarComponent implements OnInit {
     }
   }
 
+  
   onFilterChange(attributeSlug: string, termId: string) {
     if (!this.selectedFilters[attributeSlug]) {
       this.selectedFilters[attributeSlug] = [];

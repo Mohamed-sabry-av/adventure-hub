@@ -5,33 +5,47 @@ import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap, startWith } from 'rxjs/operators';
 import { Product, Variation } from '../../../interfaces/product';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { NgxImageZoomModule } from 'ngx-image-zoom';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
 import { ProductImageSliderComponent } from '../proudct-image-slider/product-image-slider.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-
 
 @Component({
   selector: 'app-products-page',
   standalone: true,
   imports: [
     CommonModule,
-    NgxImageZoomModule,
     SlickCarouselModule,
     ProductImageSliderComponent,
+    RouterLink,
   ],
   templateUrl: './products-page.component.html',
   styleUrls: ['./products-page.component.css'],
 })
 export class ProductsPageComponent {
-  product$: Observable<{product: Product | null;variations: Variation[];isLoading: boolean;}> = of({
+  product$: Observable<{
+    product: Product | null;
+    variations: Variation[];
+    isLoading: boolean;
+  }> = of({
     product: null,
     variations: [],
     isLoading: true,
   });
   variations: Variation[] = [];
   sanitizedDescription: SafeHtml = '';
-  selectedColor:string | null|any = null;
+  selectedColor: string | null | any = null;
+
+  selectedTab = 0;
+
+  tabs = [
+    { title: 'Description', content: 'This is the product description...' },
+    {
+      title: 'Additional information',
+      content: 'Product specifications details...',
+    },
+    { title: 'Reviews', content: 'User reviews go here...' },
+    { title: 'FAQ', content: 'Frequently Asked Questions...' },
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -50,13 +64,15 @@ export class ProductsPageComponent {
   }
 
   // هنجيب ال product
-  private fetchProductById(
-    id: string | null
-  ): Observable<{ product: Product | null;variations : Variation[] ; isLoading: boolean }> {
+  private fetchProductById(id: string | null): Observable<{
+    product: Product | null;
+    variations: Variation[];
+    isLoading: boolean;
+  }> {
     const productId = Number(id);
     if (!productId) {
       console.error('No product ID provided in route');
-      return of({ product: null,variations: [], isLoading: false });
+      return of({ product: null, variations: [], isLoading: false });
     }
 
     return this.productService.getProductById(productId).pipe(
@@ -64,9 +80,15 @@ export class ProductsPageComponent {
         return this.productService.getProductVariations(productId).pipe(
           map((variations) => {
             this.variations = variations || [];
-            console.log('Loaded Product:', product, 'Variations:', this.variations);
+            console.log(
+              'Loaded Product:',
+              product,
+              'Variations:',
+              this.variations
+            );
 
-            if(this.getColorOptions().length > 0){ //اللون الافتراضي لو مفيش اختيار للالوان
+            if (this.getColorOptions().length > 0) {
+              //اللون الافتراضي لو مفيش اختيار للالوان
               this.selectedColor = this.getColorOptions()[0].color;
             }
 
@@ -82,7 +104,7 @@ export class ProductsPageComponent {
     );
   }
 
-   getColorOptions(): {
+  getColorOptions(): {
     color: string;
     image: string;
     inStock: boolean;
@@ -107,59 +129,69 @@ export class ProductsPageComponent {
     return options.length > 1 ? options : [];
   }
 
+  getSizesForColor(color: string): { size: string; inStock: boolean }[] {
+    let sizes: { size: string; inStock: boolean }[] = [];
 
-  getSizesForColor(color:string):{size: string; inStock: boolean}[] {
-    let sizes:{size:string ; inStock:boolean}[]= [];
-
-    if(!color && this.getColorOptions().length === 0){
-      sizes = this.variations.map((v)=>{
-        const sizeAttr = v.attributes.find((attr:any)=> attr.name === 'Size')
-        return{
-          size: sizeAttr?.option || '',
-          inStock: v.stock_status === 'instock',
-        };
-      }).filter((item)=> item.size);
-
-    }else{
+    if (!color && this.getColorOptions().length === 0) {
       sizes = this.variations
-      .filter((v)=>
-        v.attributes.some(
-          (attr:any)=> attr.name === 'Color' && attr.option === color
+        .map((v) => {
+          const sizeAttr = v.attributes.find(
+            (attr: any) => attr.name === 'Size'
+          );
+          return {
+            size: sizeAttr?.option || '',
+            inStock: v.stock_status === 'instock',
+          };
+        })
+        .filter((item) => item.size);
+    } else {
+      sizes = this.variations
+        .filter((v) =>
+          v.attributes.some(
+            (attr: any) => attr.name === 'Color' && attr.option === color
+          )
         )
-      )
-      .map((v)=>{
-        const sizeAttr = v.attributes.find((attr:any)=> attr.name === 'Size');
-        return{
-          size: sizeAttr?.option || '',
-          inStock: v.stock_status === 'instock',
-        };
-      })
-      .filter((item)=> item.size);
+        .map((v) => {
+          const sizeAttr = v.attributes.find(
+            (attr: any) => attr.name === 'Size'
+          );
+          return {
+            size: sizeAttr?.option || '',
+            inStock: v.stock_status === 'instock',
+          };
+        })
+        .filter((item) => item.size);
     }
-    return Array.from(
-      new Map(sizes.map((item) => [item.size, item])).values()
-    )
+    return Array.from(new Map(sizes.map((item) => [item.size, item])).values());
   }
 
   // فانكشن بتجيب الصور الخاصة بكل لون
-  getGalleryImagesForSelectedColor(data: {product:Product|null; variations: Variation[]}):string[]{
-    if(this.selectedColor){
-      const variation =data.variations.find(v=>
-      v.attributes.some((attr:any) => attr.name === 'Color' && attr.option === this.selectedColor)
+  getGalleryImagesForSelectedColor(data: {
+    product: Product | null;
+    variations: Variation[];
+  }): string[] {
+    if (this.selectedColor) {
+      const variation = data.variations.find((v) =>
+        v.attributes.some(
+          (attr: any) =>
+            attr.name === 'Color' && attr.option === this.selectedColor
+        )
       );
-      if(variation){
-        const galleryMeta = variation.meta_data?.find(meta=> meta.key === 'gallery_images');
+      if (variation) {
+        const galleryMeta = variation.meta_data?.find(
+          (meta) => meta.key === 'gallery_images'
+        );
         const galleryImages = galleryMeta?.value || [];
-        
+
         return [variation.image?.src, ...galleryImages];
       }
-      return[];
-    }else{
-      return data.product?.images.map((img)=> img.src) || [];
+      return [];
+    } else {
+      return data.product?.images.map((img) => img.src) || [];
     }
   }
 
-  selectColor(color:string):void{
+  selectColor(color: string): void {
     this.selectedColor = color;
   }
 
@@ -167,6 +199,5 @@ export class ProductsPageComponent {
     return this.sanitizer.bypassSecurityTrustHtml(
       description.replace(/(<br\s*\/?>\s*)+/g, '<br>')
     );
- 
-}
+  }
 }

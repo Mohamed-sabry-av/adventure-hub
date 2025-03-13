@@ -1,0 +1,63 @@
+<p-tabs value="1">
+  <p-tablist>
+    <p-tab value="0">Description</p-tab>
+    <p-tab value="1">Additional information</p-tab>
+    <p-tab value="2">Reviews</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+    <p-tabpanel value="0">
+      <div class="content">
+        <h2 class="text-3xl font-semibold text-black my-3">
+          {{ productAdditionlInfo()?.name }}
+        </h2>
+        <p [innerHTML]="productAdditionlInfo().description"></p>
+      </div>
+    </p-tabpanel>
+    <p-tabpanel value="1">
+      <div class="content">
+        <h2 class="text-2xl font-semibold text-black my-3">
+          Additional information
+        </h2>
+        <div>
+          <ul class="flex flex-col">
+            <li class="flex justify-between items-center py-3">
+              <span class="font-semibold text-black">{{
+                productAdditionlInfo()?.attributes[0]?.name
+              }}</span>
+              <span class="underline">{{
+                productAdditionlInfo()?.attributes[0]?.options[0]
+              }}</span>
+            </li>
+            <hr />
+            <li class="flex justify-between items-center py-3">
+              <span class="font-semibold text-black">{{
+                productAdditionlInfo()?.attributes[1]?.name
+              }}</span>
+              <span class="underline">{{
+                productAdditionlInfo()?.attributes[1]?.options[0]
+              }}</span>
+            </li>
+            <hr />
+            <li class="flex justify-between items-center py-3">
+              <span class="font-semibold text-black">{{
+                productAdditionlInfo()?.attributes[2]?.name
+              }}</span>
+              <span class="underline">{{
+                productAdditionlInfo()?.attributes[2]?.options[0]
+              }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </p-tabpanel>
+    <p-tabpanel value="2">
+      <div class="content">
+        <h2 class="text-3xl font-semibold text-black my-3">Reviews</h2>
+        <p class="text-lg">
+          There are no reviews yet. Only logged in customers who have purchased
+          this product may leave a review.
+        </p>
+      </div>
+    </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>

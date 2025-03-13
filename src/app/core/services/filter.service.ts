@@ -33,7 +33,10 @@ export class FilterService {
     }).pipe(
       map((response) => response),
       catchError((error) => {
-        console.error(`Error fetching terms for attribute ${attributeId}:`, error);
+        console.error(
+          `Error fetching terms for attribute ${attributeId}:`,
+          error
+        );
         return of([]);
       })
     );
@@ -43,7 +46,7 @@ export class FilterService {
     categoryId: number,
     page: number = 1,
     perPage: number = 100
-  ): Observable<{ terms: { [key: string]: string[] }, totalPages: number }> {
+  ): Observable<{ terms: { [key: string]: string[] }; totalPages: number }> {
     const cacheKey = `attributes_terms_category_${categoryId}_page_${page}`;
     return this.cachingService.cacheObservable(
       cacheKey,
@@ -57,7 +60,10 @@ export class FilterService {
       }).pipe(
         map((response: HttpResponse<any>) => {
           const products = response.body;
-          const totalPages = parseInt(response.headers.get('X-WP-TotalPages') || '1', 10);
+          const totalPages = parseInt(
+            response.headers.get('X-WP-TotalPages') || '1',
+            10
+          );
           const termsMap = new Map<string, Set<string>>();
           products.forEach((product: any) => {
             product.attributes.forEach((attr: any) => {
@@ -66,19 +72,27 @@ export class FilterService {
                 termsMap.set(attrKey, new Set());
               }
               if (attr.options) {
-                attr.options.forEach((option: string) => termsMap.get(attrKey)!.add(option.trim().toLowerCase()));
+                attr.options.forEach((option: string) =>
+                  termsMap.get(attrKey)!.add(option.trim().toLowerCase())
+                );
               }
             });
           });
           return {
             terms: Object.fromEntries(
-              Array.from(termsMap.entries()).map(([key, terms]) => [key, Array.from(terms)])
+              Array.from(termsMap.entries()).map(([key, terms]) => [
+                key,
+                Array.from(terms),
+              ])
             ),
             totalPages,
           };
         }),
         catchError((error) => {
-          console.error(`Error fetching attributes/terms for category ${categoryId}:`, error);
+          console.error(
+            `Error fetching attributes/terms for category ${categoryId}:`,
+            error
+          );
           return of({ terms: {}, totalPages: 1 });
         }),
         shareReplay(1)
@@ -118,7 +132,9 @@ export class FilterService {
     page: number = 1,
     perPage: number = 18
   ): Observable<Product[]> {
-    const cacheKey = `filtered_products_category_${categoryId || 'all'}_filters_${JSON.stringify(filters)}_page_${page}`;
+    const cacheKey = `filtered_products_category_${
+      categoryId || 'all'
+    }_filters_${JSON.stringify(filters)}_page_${page}`;
     return this.cachingService.cacheObservable(
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {

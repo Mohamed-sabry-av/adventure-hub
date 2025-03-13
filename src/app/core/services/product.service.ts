@@ -58,6 +58,10 @@ export class ProductService {
     );
   }
 
+  // getProductByID() {
+  //   this.WooAPI.getRequestProducts();
+  // }
+
   // GET TOTAL PRODUCTS FOR PAGINATION
   getTotalProducts(): Observable<number> {
     const cacheKey = `total_products`;
@@ -197,7 +201,11 @@ export class ProductService {
     );
   }
 
-   getUniqueProducts(products: any[]): any[] {
+  // productID(id: number): Observable<Product> {
+  //   this.WooAPI.getRequestProducts(`products/${id}`, {});
+  // }
+
+  getUniqueProducts(products: any[]): any[] {
     const uniqueProducts = [];
     const seenIds = new Set();
     for (const product of products) {
@@ -209,13 +217,13 @@ export class ProductService {
     return uniqueProducts;
   }
 
-
-
   getProductVariations(productId: number): Observable<Variation[]> {
     const cacheKey = `product_variations_${productId}`;
     return this.cachingService.cacheObservable(
       cacheKey,
-      this.WooAPI.getRequestProducts<Variation[]>(`products/${productId}/variations`)
+      this.WooAPI.getRequestProducts<Variation[]>(
+        `products/${productId}/variations`
+      )
     );
   }
 
@@ -224,9 +232,9 @@ export class ProductService {
     return this.cachingService.cacheObservable(
       cacheKey,
       this.WooAPI.getRequestProducts<any>(`media/${mediaId}`).pipe(
-        map(media => ({
-          src: media.source_url, 
-          alt: media.alt_text || '' 
+        map((media) => ({
+          src: media.source_url,
+          alt: media.alt_text || '',
         })),
         catchError((error) => {
           console.error(`Error fetching media ${mediaId}:`, error);
@@ -238,5 +246,4 @@ export class ProductService {
   }
 
   // ============================================Attributes===============================================
-
-  }
+}
