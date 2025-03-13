@@ -1,5 +1,5 @@
 .product-card {
-  border: 1px solid #e0e0e0;
+  /* border: 1px solid #e0e0e0; */
   overflow: visible;
   background: white;
   display: flex;
@@ -8,16 +8,16 @@
   position: relative;
 width:275px;
 height: 450px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* border-radius: 8px; */
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
   padding: 16px;
   /* margin-bottom: 20px; */
   box-sizing: border-box;
 }
 
 .product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* transform: translateY(-2px); */
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
   z-index: 1002;
 }
 

@@ -6,11 +6,12 @@ import { CategoriesService } from '../../../core/services/categories.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { Category } from '../../../interfaces/category.model';
 import { MobileNavbarComponent } from '../navbar/Mobile-navbar/mobile-navbar.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, NgbDropdownModule, NavbarComponent, MobileNavbarComponent],
+  imports: [CommonModule, NgbDropdownModule, NavbarComponent, MobileNavbarComponent,RouterLink],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
 })

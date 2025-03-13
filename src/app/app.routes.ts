@@ -2,13 +2,21 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './features/Home/home.component';
 import { ProductsComponent } from './features/products/products.component';
 import { ProductsPageComponent } from './features/products/products-page/products-page.component';
+import { AuthComponent } from './features/auth/auth.component';
 
 export const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
     pathMatch: 'full',
-  },{
+  },
+  {
+    path:'myaccount',
+    component:AuthComponent,
+    pathMatch: 'full',
+}
+,
+  {
     
       path:'product/:id',
       component:ProductsPageComponent,
