@@ -18,6 +18,13 @@
     overflow: hidden;
 }
 
+.section.active {
+    @apply scale-100 opacity-100 bg-white;
+}
+
+.section.inactive {
+    @apply scale-95 opacity-50 bg-gray-200;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {

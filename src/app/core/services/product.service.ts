@@ -107,7 +107,7 @@ export class ProductService {
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('category', categoryId.toString())
-          .set('_fields', 'id,name,price,images,categories,description')
+          .set('_fields', 'id,name,price,images,categories,description,attributes')
           .set('per_page', perPage.toString())
           .set('page', page.toString())
           .set('stock_status', 'instock'),

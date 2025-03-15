@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, MobileNavbarComponent],
+  imports: [CommonModule, NavbarComponent, MobileNavbarComponent,RouterLink],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
 })

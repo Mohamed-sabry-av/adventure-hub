@@ -5,8 +5,33 @@
     <title>Advhub</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+            <link rel="icon" type="image/x-icon" href="favicon.ico" />
+            <script>
+              window.fbAsyncInit = function() {
+                FB.init({
+                  appId      : '639673088797642', // استخدم الـ App ID الخاص بتطبيقك
+                  cookie     : true,
+                  xfbml      : true,
+                  version    : 'v13.0'  // استخدم النسخة المناسبة
+                });
+                  
+                FB.AppEvents.logPageView();   
+                  
+              };
+            
+              (function(d, s, id){
+                 var js, fjs = d.getElementsByTagName(s)[0];
+                 if (d.getElementById(id)) {return;}
+                 js = d.createElement(s); js.id = id;
+                 js.src = "https://connect.facebook.net/en_US/sdk.js";
+                 fjs.parentNode.insertBefore(js, fjs);
+               }(document, 'script', 'facebook-jssdk'));
+            </script>
+            
+
   </head>
   <body>
     <app-root></app-root>

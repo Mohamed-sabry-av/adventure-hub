@@ -1,35 +1,35 @@
-// import { Injectable } from '@angular/core';
-// import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-// import { filter } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
 
-// @Injectable({
-//   providedIn: 'root',
-// })
-// export class BreadcrumbService {
-//   breadcrumb: Array <{label: string, url: string}> = [];
+@Injectable({
+  providedIn: 'root',
+})
+export class BreadcrumbService {
+  breadcrumb: Array <{label: string, url: string}> = [];
 
-//   constructor(private route: Router, private activatedRoute: ActivatedRoute){
-//     this.route.events.pipe(
-//       filter(event => event instanceof NavigationEnd).subscribe(()=>{
-//         this.breadcrumb = this.createBreadcrumbs(this.activatedRoute.root);
-//       })
-//     )
-//   }
+  constructor(private route: Router, private activatedRoute: ActivatedRoute){
+    this.route.events.pipe(
+      filter(event => event instanceof NavigationEnd).subscribe(()=>{
+        this.breadcrumb = this.createBreadcrumbs(this.activatedRoute.root);
+      })
+    )
+  }
 
-//   private createBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: Array<{ label: string, url: string }> = []): Array<{ label: string, url: string }> {
-//     const children: ActivatedRoute[] = route.children;
+  private createBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: Array<{ label: string, url: string }> = []): Array<{ label: string, url: string }> {
+    const children: ActivatedRoute[] = route.children;
 
-//     if(children.length === 0){
-//       return breadcrumbs;
-//     }
+    if(children.length === 0){
+      return breadcrumbs;
+    }
 
-//     for(const child of children){
-//       const routeUrl :string =child.snapshot.url.map(segment => segment.path).join('/');
-//       if(routeUrl !== ''){
-//         url += `/${routeUrl}`;
-//       }
-//       breadcrumbs.push({label: child.snapshot.data['breadcrumb'], url: url});
-//       return this.createBreadcrumbs(child, url, breadcrumbs);
-//     }
-//     return breadcrumbs
-// }}
+    for(const child of children){
+      const routeUrl :string =child.snapshot.url.map(segment => segment.path).join('/');
+      if(routeUrl !== ''){
+        url += `/${routeUrl}`;
+      }
+      breadcrumbs.push({label: child.snapshot.data['breadcrumb'], url: url});
+      return this.createBreadcrumbs(child, url, breadcrumbs);
+    }
+    return breadcrumbs
+}}

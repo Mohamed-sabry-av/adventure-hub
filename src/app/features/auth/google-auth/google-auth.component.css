@@ -1,0 +1,51 @@
+.google-signin-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 25px 0;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #000000; /* لون أسود مليان زي Google 'filled_black' */
+  color: white;
+  border: none;
+  border-radius: 50px; /* دائري خفيف زي الاستايل القديم */
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  width: 300px; /* عرض 300 زي Facebook */
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(59, 89, 152, 0.3);
+  transition: all 0.3s ease;
+}
+
+.google-btn:hover {
+  background: #333333; /* لون أغمق لما تمرر الماوس */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35); /* ظل أقوى */
+  transform: scale(1.05); /* تكبير خفيف */
+}
+
+.google-btn:active {
+  transform: scale(0.98);
+}
+
+.google-icon {
+  display: inline-block;
+  width: 27px;
+  height: 27px;
+  background: url('https://www.google.com/favicon.ico') no-repeat center;
+  background-size: contain;
+  order: -1; /* الشعار على الشمال */
+}
+
+.error {
+  color: #d32f2f;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
