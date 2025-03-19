@@ -30,4 +30,10 @@ export class ProductInfoComponent {
       this.quantity--;
     }
   }
+
+  get productSku() {
+    const shortTitle = this.productInfo().name.split(' ').slice(0, 2).join('');
+    const sku = this.productInfo().sku;
+    return { shortTitle, sku };
+  }
 }

@@ -45,6 +45,9 @@
   z-index: 1000;
   padding: 2rem 0;
   border-top: 3px solid #e51937;
+  transition-duration: 10s;
+  transition-property: display;
+  transition-delay: 1s;
 }
 
 .nav-item:hover .mega-menu {
@@ -172,5 +175,11 @@
   }
   .navbar {
     display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .links {
+    @apply hidden;
   }
 }

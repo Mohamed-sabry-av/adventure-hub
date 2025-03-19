@@ -1,0 +1,3 @@
+.product-info {
+  @apply w-full md:max-w-[45%] h-full;
+}

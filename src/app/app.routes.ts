@@ -16,6 +16,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/product/page/product-page/product-page.component').then(m => m.ProductPageComponent),
     pathMatch: 'full',
   },
+
   {
     path: ':mainCategorySlug',
     loadComponent: () => import('./features/products/pages/products.component').then(m => m.ProductsComponent),

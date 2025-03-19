@@ -1,0 +1,86 @@
+<p-drawer
+  header="Choose options"
+  [visible]="(sideCartVisible$ | async)!"
+  position="right"
+  (onHide)="hideSideCart()"
+  [transitionOptions]="'500ms cubic-bezier(0.4, 0, 0.2, 1)'"
+>
+  <div class="drawer-body h-[85%]">
+    <div class="flex flex-col">
+      <div class="flex mb-8">
+        <img src="slider/3.webp" alt="" class="w-[144px] h-[144px]" />
+        <div class="flex flex-1 flex-col pl-8">
+          <!-- SKU -->
+          <p class="border-b border-[#c3c4b5] pb-4">
+            Matador | SKU: MATFPZ001CH
+          </p>
+
+          <!-- Price -->
+          <p class="pt-4 text-xl font-semibold">186.00 AED</p>
+
+          <!-- Vat -->
+          <p class="pt-4 text-sm">VAT included</p>
+
+          <!-- Details -->
+          <a [routerLink]="" class="pt-4 underline text-xs">View details</a>
+        </div>
+      </div>
+
+      <p class="text-sm font-semibold mb-3">Color</p>
+      <p-select
+        [options]="colors"
+        optionLabel="name"
+        placeholder="Select a color"
+        class="w-full"
+      />
+
+      <p class="text-sm font-semibold mt-6 mb-3">Size</p>
+      <p-select
+        [options]="Sizes"
+        optionLabel="name"
+        placeholder="Select a size"
+        class="w-full"
+      />
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button
+      class="bg-orange-400 hover:bg-orange-500 transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full uppercase"
+    >
+      Add to cart
+    </button>
+
+    <button
+      class="bg-green-500 mt-4 hover:bg-green-600 transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full text-sm"
+    >
+      Buy with tabby
+    </button>
+
+    <div class="text-center mt-3">
+      <a [routerLink]="" class="underline cursor-pointer"
+        >More payment options</a
+      >
+    </div>
+  </div>
+</p-drawer>
+
+<!-- <div class="card flex justify-center">
+  <p-drawer
+    #drawerRef
+    position="right"
+    [visible]="(sideCartVisible$ | async)!"
+    (onHide)="hideSideCart()"
+  >
+    <ng-template #headless>
+      <div
+        class="flex items-center justify-between py-6 px-8 "
+      >
+        <p class="text-xl font-semibold">Your Cart</p>
+        <div class="flex items-center gap-x-8">
+          <a [routerLink]="" class="underline text-sm">view cart</a>
+          <i class="pi pi-times text-lg"></i>
+        </div>
+      </div>
+    </ng-template>
+  </p-drawer>
+</div> -->

@@ -1,0 +1,54 @@
+@if (keepOpen) {
+<div class="w-full h-[1px] bg-[#717261]"></div>
+
+<div
+  class="bg-[#4d4f3a] z-3 subLinks-child text-white w-full overflow-hidden grid grid-cols-12 md:gap-x-16 xl:gap-x-24 gap-y-2"
+  (mouseleave)="onLeave()"
+  (mouseenter)="onEnter()"
+  @visible
+>
+  @for (category of categoriesData; track category.id) {
+  <a class="col-span-3">
+    <span
+      class="block cursor-pointer border-b border-[#717261] py-3 mb-3 text-base font-semibold"
+      [innerHTML]="category.name"
+    ></span>
+    <div
+      class="max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800"
+    >
+      @for (childOfSubCategory of getSubCategories(category.id); track $index) {
+      <a>
+        <span
+          [innerHTML]="childOfSubCategory.name"
+          class="text-sm font-semibold cursor-pointer py-1 block hover:text-gray-400 transition-all duration-150 my-2"
+        >
+        </span>
+        @if (getSubCategories(childOfSubCategory.id).length > 0) { @for
+        (childOfChildOfSubCategory of getSubCategories(childOfSubCategory.id);
+        track $index) {
+        <p class="text-xs py-[2px]">{{ childOfChildOfSubCategory.name }}</p>
+        } }
+      </a>
+      }
+    </div>
+  </a>
+  }
+</div>
+}
+
+<!--
+      <div
+        class="max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800"
+      >
+        @for (childOfSubCategory of subCategories; track childOfSubCategory.id)
+        {
+        <a>
+          <span
+            [innerHTML]="childOfSubCategory.name"
+            class="text-sm font-semibold cursor-pointer py-1 block hover:text-gray-400 transition-all duration-150"
+          >
+          </span>
+        </a>
+        }
+      </div>
+       -->

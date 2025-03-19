@@ -9,44 +9,33 @@
       >
         {{ category.name }}
       </a>
-      <!-- Mega Menu -->
-      <div
-        *ngIf="getSubCategories(category.id).length > 0"
-        class="hidden group-hover:block absolute left-0 right-0 top-full bg-white shadow-md z-[1000] py-8 border-t-2 border-[#e51937] max-h-[50vh] overflow-y-auto"
-      >
-        <div
-          class="columns-4 gap-4 px-4 max-w-4xl mx-auto"
-        >
-          <div *ngFor="let sub of getSubCategories(category.id)" class="px-4">
-            <h4
-              class="text-black font-bold text-sm mb-4 pb-2 uppercase"
-            >
-              <a
-                class="text-black no-underline"
-                [routerLink]="getCategoryRoute(sub)"
-                >{{ sub.name }}</a
-              >
+      <div class="mega-menu" *ngIf="getSubCategories(category.id).length > 0">
+        <div class="menu-container">
+          <div
+            class="menu-column"
+            *ngFor="let sub of getSubCategories(category.id)"
+          >
+            <h4 class="subcategory-title">
+              <a [routerLink]="getCategoryRoute(sub)">{{ sub.name }}</a>
             </h4>
             <ul class="list-none p-0 m-0">
               <li *ngFor="let subSub of getSubCategories(sub.id)">
                 <a
-                  class="no-underline block py-1 transition-all duration-200"
                   [ngClass]="{
-                    'text-black font-bold text-[13px] after:content-[\'→\'] after:ml-1 after:text-xs after:text-[#291619] hover:text-[#e51937] hover:pl-2': getSubCategories(subSub.id).length > 0,
-                    'text-black pl-4 text-xs hover:underline hover:text-[#b11c32]': getSubCategories(subSub.id).length === 0
+                    'has-children': getSubCategories(subSub.id).length > 0,
+                    'subsubsub-link': getSubCategories(subSub.id).length === 0
                   }"
                   [routerLink]="getCategoryRoute(subSub)"
                 >
                   {{ subSub.name }}
                 </a>
-                <!-- Third Level Subcategories -->
                 <ul
+                  class="subsubcategory-list"
                   *ngIf="getSubCategories(subSub.id).length > 0"
-                  class="list-none p-0 m-0"
                 >
                   <li *ngFor="let subSubSub of getSubCategories(subSub.id)">
                     <a
-                      class="text-black pl-4 text-xs transition-all duration-300 no-underline hover:underline hover:text-[#b11c32]"
+                      class="subsubsub-link"
                       [routerLink]="getCategoryRoute(subSubSub)"
                     >
                       {{ subSubSub.name }}

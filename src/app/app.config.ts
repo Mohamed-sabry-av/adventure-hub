@@ -1,6 +1,8 @@
 import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
+import { provideAnimations } from '@angular/platform-browser/animations';
+
 import Aura from '@primeng/themes/aura';
 
 import { routes } from './app.routes';
@@ -11,6 +13,10 @@ import {
 } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
+import { provideEffects } from '@ngrx/effects';
+import { provideStore } from '@ngrx/store';
+import { CartEffect } from './Store/effects/cart.effect';
+import { reducers } from './Store/store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,6 +24,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideClientHydration(withIncrementalHydration()),
     provideHttpClient(withFetch()),
+    provideAnimations(),
+
     providePrimeNG({
       theme: {
         preset: Aura,
@@ -40,6 +48,9 @@ export const appConfig: ApplicationConfig = {
           }), provideServiceWorker('ngsw-worker.js', {
             enabled: !isDevMode(),
             registrationStrategy: 'registerWhenStable:30000'
-          })
-  ]
+          }),
+          provideStore(reducers),
+          provideEffects([CartEffect]),
+  ],
+
 };

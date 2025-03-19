@@ -1,79 +1,64 @@
-<!-- src/app/components/header/header.component.html -->
 <header>
-  <!-- الكوبون -->
-  <div class="text-center bg-black">
-    <p class="text-white font-semibold">
-      Ramadan offer Use Code
-      <span class="bg-yellow-200 text-black">"Ramadan10"</span> & get 10%off
-    </p>
+  <!-- معلومات فرعية -->
+  <div>
+    <p-carousel
+      [value]="announcements"
+      [numVisible]="1"
+      [numScroll]="1"
+      [circular]="true"
+      [showNavigators]="false"
+    >
+      <ng-template let-announcement #item>
+        <div class="py-[6px] text-center px-4 text-white">
+          <p class="text-sm" [innerHTML]="announcement"></p>
+        </div>
+      </ng-template>
+    </p-carousel>
   </div>
+  <hr class="-mt-2 md:hidden block" />
 
-  <!-- الطبقة الأولى -->
-  <div
-    class="flex justify-between items-center max-w-[1250px] lg:px-10 px-4 mx-auto"
-  >
-    <span><i class="pi pi-truck"></i> Free Delivery</span>
-    <span><i class="pi pi-globe"></i> Worldwide Shipping</span>
-    <span><i class="pi pi-bolt"></i> Fast Delivery</span>
-  </div>
-  <hr />
+  <!-- معلومات اساسيه -->
+  <app-app-container>
+    <div class="py-3">
+      <!-- Logo and Search and icons -->
+      <div class="grid grid-cols-1 md:grid-cols-12 items-center">
+        <!-- Logo -->
+        <div class="col-span-6 md:col-span-2 min-w-[150px]">
+          <img src="slider/Copy_of_Geardoor_Logo_White-03.avif" alt="" />
+        </div>
 
-  <!-- الطبقة الثانية -->
-  <div class="bg-white border-bottom max-w-[1250px] lg:px-10 px-4 mx-auto">
-    <div class="flex items-center justify-between">
-      <!-- Mobile Navbar -->
-      <!-- <app-mobile-navbar
-        class="d-lg-none"
-        [mainCategories]="mainCategories"
-        [allCategories]="allCategories"
-      ></app-mobile-navbar> -->
+        <!-- Search -->
+        <div
+          class="w-full col-span-12 md:col-span-9 md:w-[80%] mx-auto relative flex items-center order-3 md:order-2 mt-2 md:mt-0"
+        >
+          <input
+            type="text"
+            class="bg-[#5F614E] w-full py-2 pl-14 pr-[95px] col-span-9 rounded-xl outline-none border border-transparent focus:border-white transition-all duration-200 placeholder-gray-200 placeholder:text-sm"
+            placeholder="Search Gear.."
+          />
+          <i class="pi pi-search text-white left-6 text-lg absolute"></i>
+        </div>
 
-      <!-- Logo -->
-      <img class="img-fluid logo" src="header/adv-hub-logo-n.png" alt="Logo" />
-
-      <!-- Search -->
-      <div class="">
-        <input
-          type="text"
-          placeholder="Search..."
-          class="rounded-none border py-[10px] bg-gray-200 px-[6px] lg:w-96 max-w-[400px]"
-        />
-      </div>
-
-      <div class="">
         <!-- Icons -->
-        <div class="flex gap-3">
-          <a class="flex flex-col items-center border-r pr-2" routerLink="/myaccount">
-            <i class="pi pi-user text-xl"></i
-            ><span class="mt-1">My Account</span>
-          </a>
-          <a class="flex flex-col items-center border-r pr-2" href="">
-            <i class="pi pi-arrow-circle-right text-xl"></i
-            ><span class="mt-1">Checkout</span>
-          </a>
-          <a class="flex flex-col items-center border-r pr-2" href="">
-            <i class="pi pi-heart-fill text-xl"></i
-            ><span class="mt-1">Wishlist</span>
-          </a>
+        <div
+          class="flex items-center justify-end gap-6 col-span-6 md:col-span-1 order-2 md:order-3"
+        >
+          <i
+            class="pi pi-user text-white text-lg lg:text-2xl cursor-pointer"
+          ></i>
+          <i
+            class="pi pi-shopping-bag text-white text-lg lg:text-2xl cursor-pointer"
+          ></i>
+          <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
         </div>
       </div>
     </div>
-  </div>
-  <!-- Desktop Navbar with Defer -->
+  </app-app-container>
+
   @defer (on idle) {
-  <app-navbar
-    class="d-none d-lg-block"
+  <app-navbar-container
     [mainCategories]="mainCategories"
     [allCategories]="allCategories"
-  ></app-navbar>
-  } @placeholder {
-  <div class="navbar-placeholder d-none d-lg-block">
-    <ul class="nav-list">
-      <li class="nav-item" *ngFor="let category of mainCategories">
-        <a class="nav-link">{{ category.name }}</a>
-      </li>
-      <li class="nav-item sale-item"><a class="sale-link">SALE!</a></li>
-    </ul>
-  </div>
+  />
   }
 </header>

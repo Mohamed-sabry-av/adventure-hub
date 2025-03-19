@@ -4,6 +4,8 @@ import { ProductImagesComponent } from '../../components/product-images/product-
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
 import { RouterLink } from '@angular/router';
 import { ProductDescComponent } from '../../components/product-desc/product-desc.component';
+import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
+import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 
 @Component({
   selector: 'app-product-page',
@@ -12,7 +14,9 @@ import { ProductDescComponent } from '../../components/product-desc/product-desc
     ProductInfoComponent,
     RouterLink,
     ProductDescComponent,
-    
+    ProductRelatedComponent,
+    AppContainerComponent,
+
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',

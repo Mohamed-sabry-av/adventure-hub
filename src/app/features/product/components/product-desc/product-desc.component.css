@@ -2,6 +2,14 @@
   @apply bg-white  border-b font-thin text-gray-600;
 }
 
+::ng-deep .p-tab {
+  @apply p-0 sm:py-4 sm:px-[18px];
+}
+
+::ng-deep .p-tablist-tab-list {
+  @apply flex gap-x-6;
+}
+
 ::ng-deep .p-tablist-tab-list,
 ::ng-deep .content {
   @apply bg-white max-w-[1250px] lg:px-10 px-4 mx-auto;

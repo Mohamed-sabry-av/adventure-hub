@@ -1,0 +1,34 @@
+<div class="links-parent" (mouseleave)="selectedCategory(null)">
+  <ul class="links-child">
+    <div class="flex-grow flex gap-x-4">
+      @if (categories) { @for (category of categories; track $index) {
+      <li
+        class="links-name"
+        [class.active]="category.id === selectedCategoryId"
+        (mouseenter)="selectedCategory(category.id)"
+      >
+        <a class="py-3 cursor-pointer">
+          {{ category.name }} <i class="pi pi-angle-down"></i>
+        </a>
+      </li>
+      } }
+    </div>
+
+    <a
+      [routerLink]=""
+      class="text-white font-semibold bg-orange-600 px-5 py-1 rounded-lg text-sm flex items-center gap-2"
+    >
+      <i class="pi pi-percentage text-xs"></i>
+      <span>Deals</span>
+    </a>
+  </ul>
+</div>
+
+<p-drawer
+  header="Choose options"
+  [visible]="(sideNavIsVisible$ | async)!"
+  position="left"
+  (onHide)="hideSideNav()"
+  [transitionOptions]="'500ms cubic-bezier(0.4, 0, 0.2, 1)'"
+>
+</p-drawer>
