@@ -1,0 +1,28 @@
+<div class="product-details">
+  <div class="brand" *ngIf="getBrandName()">
+    {{ getBrandName() }}
+  </div>
+
+  <h3 class="product-name">{{ product.name }}</h3>
+
+  <div class="price">
+    @if(product.on_sale && (product.sale_price)){
+      <span class="sale-price">
+        {{ product.sale_price }} {{ product.currency || "AED" }}
+      </span>
+    } @else {
+      <span class="current-price">
+        {{ product.sale_price || product.regular_price || product.price || 'Un Avilable' }} {{ product.currency || "AED" }}
+      </span>
+    }
+    @if(product.on_sale && (product.sale_price || product.price)){
+      <span class="old-price">
+        {{ product.regular_price || product.price }}
+      </span>
+    }
+  </div>
+
+  <button class="quick-add-btn" *ngIf="colorOptions.length === 0 && uniqueSizes.length === 0">
+    Add to Cart
+  </button>
+</div>

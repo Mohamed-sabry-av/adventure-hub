@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './features/Home/home.component';
-import { ProductsComponent } from './features/products/products.component';
-import { ProductsPageComponent } from './features/products/products-page/products-page.component';
+import { ProductsComponent } from './features/products/pages/products.component';
 import { AuthComponent } from './features/auth/auth.component';
 import { ProductPageComponent } from './features/product/page/product-page/product-page.component';
 
@@ -12,10 +11,10 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path:'myaccount',
-    component:AuthComponent,
+    path: 'myaccount',
+    component: AuthComponent,
     pathMatch: 'full',
-},
+  },
   {
     path: 'product/:productId',
     component: ProductPageComponent,

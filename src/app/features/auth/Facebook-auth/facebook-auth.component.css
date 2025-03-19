@@ -11,11 +11,11 @@
     align-items: center;
     justify-content: center; /* الشعار والنص في النص مع بعض */
     gap: 10px; /* مسافة بين الشعار والنص */
-    background: #000000; /* لون أسود مليان زي Google 'filled_black' */
+    background: #202124; /* لون أسود مليان زي Google 'filled_black' */
     color: #ffffff; /* النص أبيض */
     border: none;
     border-radius: 50px; /* شكل دائري زي 'pill' */
-    padding: 12px 24px; /* padding كبير عشان يبقى 'large' */
+    padding: 5px ; 
     font-size: 16px; /* حجم الخط كبير */
     font-weight: 500;
     width: 300px; 
@@ -27,7 +27,7 @@
   .facebook-btn:hover {
     background: #333333; /* لون أغمق لما تمرر الماوس */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35); /* ظل أقوى */
-    transform: scale(1.05); /* تكبير خفيف */
+
   }
   
   .facebook-btn:active {
@@ -36,8 +36,8 @@
   
   .facebook-icon {
     display: inline-block;
-    width: 27px; /* حجم الشعار */
-    height: 27px;
+    width: 30px; /* حجم الشعار */
+    height: 30px;
     background: url('https://www.facebook.com/favicon.ico') no-repeat center;
     background-size: contain;
     order: -1; /* الشعار على الشمال زي 'logo_alignment: left' */

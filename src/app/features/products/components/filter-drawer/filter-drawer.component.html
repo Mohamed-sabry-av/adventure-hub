@@ -1,0 +1,25 @@
+<mat-drawer
+  #drawer
+  mode="over"
+  [opened]="isOpen"
+  class="lg:hidden max-w-xs w-full fixed top-0 left-0 h-screen bg-white shadow-lg z-50"
+>
+  <div class="flex flex-col h-full">
+    <div class="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Filters</h2>
+      <button
+        type="button"
+        (click)="close()"
+        class="p-2 text-gray-400 hover:text-gray-500"
+      >
+        <span class="sr-only">Close menu</span>
+        <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <app-filter-sidebar [categoryId]="categoryId"></app-filter-sidebar>
+    </div>
+  </div>
+</mat-drawer>

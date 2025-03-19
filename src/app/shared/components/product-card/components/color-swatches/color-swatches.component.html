@@ -1,0 +1,9 @@
+<div class="color-swatches" *ngIf="colorOptions.length > 0">
+  <div 
+    *ngFor="let option of colorOptions" 
+    class="swatch"
+    [class.selected]="selectedColor === option.color"
+    (click)="onSelectColor(option.color, option.image)">
+    <img [src]="option.image" [alt]="option.color" />
+  </div>
+</div>

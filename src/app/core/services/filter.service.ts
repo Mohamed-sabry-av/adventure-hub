@@ -10,6 +10,8 @@ import { CacheService } from './cashing.service';
   providedIn: 'root',
 })
 export class FilterService {
+
+  
   constructor(
     private WooAPI: ApiService,
     private handleErrorsService: HandleErrorsService,
@@ -123,17 +125,19 @@ export class FilterService {
     categoryId: number | null,
     filters: { [key: string]: string[] },
     page: number = 1,
-    perPage: number = 18
+    perPage: number = 18,
+    orderby:string='date',
+    order:'asc' | 'desc' = 'desc'
   ): Observable<Product[]> {
-    const cacheKey = `filtered_products_category_${categoryId || 'all'}_filters_${JSON.stringify(filters)}_page_${page}`;
+    const cacheKey = `filtered_products_category_${categoryId || 'all'}_filters_${JSON.stringify(filters)}_page_${page}_orderby_${orderby}_order_${order}`;
     return this.cachingService.cacheObservable(
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
-        params: this.buildFilterParams(categoryId, filters, page, perPage),
+        params: this.buildFilterParams(categoryId, filters, page, perPage,orderby,order),
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
-          // اطبعي الـ URL هنا
+
           const fullUrl = `${response.url}`; // الـ URL الكامل بتاع الـ request
           console.log('API Request URL:', fullUrl);
           return response.body.map((product: any) => ({
@@ -158,12 +162,16 @@ export class FilterService {
     categoryId: number | null,
     filters: { [key: string]: string[] },
     page: number,
-    perPage: number
+    perPage: number,
+    orderby:string,
+    order:'asc'| 'desc'
   ): HttpParams {
     let params = new HttpParams()
-      .set('per_page', perPage.toString())
-      .set('page', page.toString())
-      .set('_fields', 'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency');
+    .set('orderby',orderby)
+    .set('order',order)
+    .set('page', page.toString())
+    .set('per_page', perPage.toString())
+    .set('_fields', 'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes');
   
     if (categoryId) {
       params = params.set('category', categoryId.toString());
@@ -179,4 +187,56 @@ export class FilterService {
     return params;
   }
   
+  getAvailableAttributesAndTerms(
+    categoryId: number,
+    filters: { [key: string]: string[] }
+  ): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
+    const cacheKey = `available_attributes_terms_category_${categoryId}_filters_${JSON.stringify(filters)}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequestProducts<any>('products', {
+        params: this.buildFilterParams(categoryId, filters, 1, 100, 'date','desc'), // جيب أول 100 منتج بس كمثال
+        observe: 'response',
+      }).pipe(
+        map((response: HttpResponse<any>) => {
+          const products = response.body;
+          const attributesMap = new Map<string, { name: string; terms: Map<number, { id: number; name: string }> }>();
+
+          products.forEach((product: any) => {
+            product.attributes.forEach((attr: any) => {
+              const attrSlug = attr.slug || attr.name;
+              if (!attributesMap.has(attrSlug)) {
+                attributesMap.set(attrSlug, { name: attr.name, terms: new Map() });
+              }
+              if (attr.options && Array.isArray(attr.options)) {
+                attr.options.forEach((option: { id: number; name: string }) => {
+                  if (option.id && option.name) {
+                    const termId = option.id;
+                    if (!attributesMap.get(attrSlug)!.terms.has(termId)) {
+                      attributesMap.get(attrSlug)!.terms.set(termId, { id: termId, name: option.name });
+                    }
+                  }
+                });
+              }
+            });
+          });
+
+          return Object.fromEntries(
+            Array.from(attributesMap.entries()).map(([slug, data]) => [
+              slug,
+              { name: data.name, terms: Array.from(data.terms.values()) },
+            ])
+          );
+        }),
+        catchError((error) => {
+          console.error(`Error fetching available attributes/terms:`, error);
+          return of({});
+        }),
+        shareReplay(1)
+      ),
+      300000 // 5 دقايق TTL للكاش
+    );
+  }
+
+
 }

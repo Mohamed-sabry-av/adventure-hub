@@ -1,0 +1,41 @@
+<div class="product-card" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
+  <app-card-image-slider 
+    [product]="product" 
+    [currentSlide]="currentSlide" 
+    [colorOptions]="colorOptions" 
+    [getDotCount]="getDotCount.bind(this)" 
+    (goToSlide)="goToSlide($event)">
+  </app-card-image-slider>
+
+  <app-card-details 
+    [product]="product" 
+    [colorOptions]="colorOptions" 
+    [uniqueSizes]="uniqueSizes" 
+    [getBrandName]="getBrandName.bind(this)"
+        >
+  </app-card-details>
+
+  <app-color-swatches 
+    [colorOptions]="colorOptions" 
+    [selectedColor]="selectedColor" 
+    (selectColor)="selectColor($event.color, $event.image)">
+  </app-color-swatches>
+
+  <app-size-selector 
+    [isHovered]="isHovered" 
+    [colorOptions]="colorOptions" 
+    [uniqueSizes]="uniqueSizes" 
+    [visibleSizes]="visibleSizes" 
+    [selectedSize]="selectedSize" 
+    [sizeScrollIndex]="sizeScrollIndex" 
+    [maxScrollIndex]="maxScrollIndex" 
+    (scrollSizes)="scrollSizes($event)" 
+    (selectSize)="selectSize($event)">
+  </app-size-selector>
+
+  
+  <button class="add-to-cart text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2" (click)="onAddToCart(product)" *ngIf="colorOptions.length === 0 && uniqueSizes.length === 0">
+    Add to Cart
+  </button>
+
+</div>

@@ -12,10 +12,7 @@ declare var google: any;
   imports: [CommonModule],
   template: `
     <div class="google-signin-container">
-      <button class="google-btn" (click)="signInWithGoogle()">
-        <span class="google-icon"></span>
-        Continue with Google
-      </button>
+      <div id="googleSignInButton"></div>
       <p class="error" *ngIf="loginError">{{ loginError }}</p>
     </div>
   `,
@@ -32,12 +29,14 @@ export class GoogleAuthComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.loadGoogleScript().then(() => {
-        this.initializeGoogleSignIn();
-      }).catch(err => {
-        console.error('Failed to load Google script:', err);
-        this.loginError = 'Failed to load Google Sign-In';
-      });
+      this.loadGoogleScript()
+        .then(() => {
+          this.initializeGoogleSignIn();
+        })
+        .catch(err => {
+          console.error('Failed to load Google script:', err);
+          this.loginError = 'Failed to load Google Sign-In';
+        });
     }
   }
 
@@ -62,12 +61,20 @@ export class GoogleAuthComponent implements AfterViewInit {
       client_id: '229026488808-ibbjvje0scn4bguqpauhfeqqakf2g43r.apps.googleusercontent.com',
       callback: (response: any) => this.handleCredentialResponse(response),
     });
-    // مش هنستخدم renderButton لأننا بنعمل زر مخصص
-    google.accounts.id.prompt(); // لسه بنستخدم prompt عشان يظهر الـ One Tap إذا كان متاح
-  }
 
-  signInWithGoogle() {
-    google.accounts.id.prompt(); // لما نضغط على الزر، يفتح الـ prompt يدويًا
+    google.accounts.id.renderButton(
+      document.getElementById('googleSignInButton'),
+      {
+        theme: 'filled_black',
+        size: 'large',
+        shape: 'pill',
+        text: 'continue_with',
+        width: 300,
+        logo_alignment: 'left',
+      }
+    );
+
+    google.accounts.id.prompt(); // يظهر الـ One Tap لو متاح
   }
 
   handleCredentialResponse(response: any) {

@@ -1,0 +1,53 @@
+<div class="size-popup" *ngIf="isHovered && colorOptions.length > 0 && uniqueSizes.length > 0">
+  <div class="variant-details">
+    <p class="selected-color">Quick Add</p>
+    <div class="size-selector size-slider">
+      <button 
+        class="nav-btn prev-btn bg-[#333333] text-white border border-[#ddd] rounded-md w-[25px] h-[25px] flex items-center justify-center transition-all duration-200 disabled:opacity-50 hover:bg-[#f0f0f0] disabled:cursor-not-allowed" 
+        (click)="onScrollSizes(-1)" 
+        [disabled]="sizeScrollIndex === 0">
+        &lt;
+      </button>
+      <button *ngFor="let size of visibleSizes" 
+              class="size-btn-alot" 
+              [class.active]="selectedSize === size.size"
+              [class.out-of-stock]="!size.inStock"
+              (click)="onSelectSize(size.size)">
+        {{ size.size }}
+      </button>
+      <button 
+        class="nav-btn next-btn bg-[#333333] text-white border border-[#ddd] rounded-md w-[25px] h-[25px] flex items-center justify-center transition-all duration-200 disabled:opacity-50 hover:bg-[#f0f0f0] disabled:cursor-not-allowed" 
+        (click)="onScrollSizes(1)" 
+        [disabled]="sizeScrollIndex >= maxScrollIndex">
+        &gt;
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="color-swatches" *ngIf="isHovered && colorOptions.length === 0 && uniqueSizes.length > 1">
+  <div class="variant-details">
+    <p class="selected-color">Quick Add</p>
+    <div class="size-selector size-slider">
+      <button 
+        class="nav-btn prev-btn bg-[#333333] text-white border border-[#ddd] rounded-md w-[25px] h-[25px] flex items-center justify-center transition-all duration-200 disabled:opacity-50 hover:bg-[#f0f0f0] disabled:cursor-not-allowed" 
+        (click)="onScrollSizes(-1)" 
+        [disabled]="sizeScrollIndex === 0">
+        &lt;
+      </button>
+      <button *ngFor="let size of visibleSizes" 
+              class="size-btn-alot" 
+              [class.active]="selectedSize === size.size"
+              [class.out-of-stock]="!size.inStock"
+              (click)="onSelectSize(size.size)">
+        {{ size.size }}
+      </button>
+      <button 
+        class="nav-btn next-btn bg-[#333333] text-white border border-[#ddd] rounded-md w-[25px] h-[25px] flex items-center justify-center transition-all duration-200 disabled:opacity-50 hover:bg-[#f0f0f0] disabled:cursor-not-allowed" 
+        (click)="onScrollSizes(1)" 
+        [disabled]="sizeScrollIndex >= maxScrollIndex">
+        &gt;
+      </button>
+    </div>
+  </div>
+</div>

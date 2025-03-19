@@ -1,0 +1,12 @@
+.skeleton-item {
+    height: 300px;
+    background-color: #e5e7eb;
+    border-radius: 8px;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+  

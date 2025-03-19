@@ -1,0 +1,15 @@
+<div class="image-slider">
+  <div class="slider-container" #sliderContainer>
+    <div class="slide" *ngFor="let image of product?.images; let i = index" [ngClass]="{'active': i === currentSlide}">
+      <a routerLink="/product/{{ product.id }}"> <img [src]="image.src" loading="lazy" [alt]="product.name" />
+      </a>
+    </div>
+  </div>
+
+  <div class="slider-dots" *ngIf="colorOptions.length > 0">
+    <span *ngFor="let i of getDotCount(); let index = index" 
+          class="dot" 
+          [class.active]="index === currentSlide" 
+          (click)="onGoToSlide(index)"></span>
+  </div>
+</div>

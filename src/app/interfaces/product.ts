@@ -1,5 +1,6 @@
 export interface Product {
   id: number;
+  currency:string;
   name: string;
   price: string;
   brand?: string;
@@ -117,5 +118,9 @@ export interface Attribute {
   slug?: string; // Use slug instead of name
   name?: string | any;
   terms?: { id: string; name: string }[];
-  options?: string[];
+  options: (string | { name?: string; value?: string })[];}
+
+export interface ProductAttribute {
+  name: string;
+  options: (string | { name?: string; value?: string })[]; // options ممكن تكون نصوص أو كائنات
 }
