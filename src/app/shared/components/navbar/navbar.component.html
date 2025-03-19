@@ -7,23 +7,33 @@
       </a>
       <div class="mega-menu" *ngIf="getSubCategories(category.id).length > 0">
         <div class="menu-container">
-          <div class="menu-column" *ngFor="let sub of getSubCategories(category.id)">
+          <div
+            class="menu-column"
+            *ngFor="let sub of getSubCategories(category.id)"
+          >
             <h4 class="subcategory-title">
               <a [routerLink]="getCategoryRoute(sub)">{{ sub.name }}</a>
             </h4>
             <ul class="subcategory-list">
               <li *ngFor="let subSub of getSubCategories(sub.id)">
-                <a 
+                <a
                   [ngClass]="{
-                    'has-children': getSubCategories(subSub.id).length > 0, 
+                    'has-children': getSubCategories(subSub.id).length > 0,
                     'subsubsub-link': getSubCategories(subSub.id).length === 0
-                  }" 
-                  [routerLink]="getCategoryRoute(subSub)">
+                  }"
+                  [routerLink]="getCategoryRoute(subSub)"
+                >
                   {{ subSub.name }}
                 </a>
-                <ul class="subsubcategory-list" *ngIf="getSubCategories(subSub.id).length > 0">
+                <ul
+                  class="subsubcategory-list"
+                  *ngIf="getSubCategories(subSub.id).length > 0"
+                >
                   <li *ngFor="let subSubSub of getSubCategories(subSub.id)">
-                    <a class="subsubsub-link" [routerLink]="getCategoryRoute(subSubSub)">
+                    <a
+                      class="subsubsub-link"
+                      [routerLink]="getCategoryRoute(subSubSub)"
+                    >
                       {{ subSubSub.name }}
                     </a>
                   </li>

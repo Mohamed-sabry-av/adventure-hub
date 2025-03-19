@@ -36,13 +36,13 @@
     class="max-w-full rounded-none"
   >
     <ng-template #item let-item>
-      <img [src]="item.src" class="w-full bg-cover" />
+      <img [src]="item?.src" class="w-full bg-cover" />
     </ng-template>
     <ng-template #thumbnail let-item>
       <div class="mr-2 lg:mr-0">
         <img
           [src]="item?.src"
-          class="lg:w-[130px] lg:h-[130px] w-[110px] h-[110px] bg-cover"
+          class="lg:min-w-[130px] lg:h-[130px] w-[110px] h-[110px] bg-cover"
         />
       </div>
     </ng-template>

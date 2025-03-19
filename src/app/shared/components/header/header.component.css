@@ -1,57 +1,9 @@
-/* ===== الطبقة الأولى ===== */
-.top-bar {
-  background: #f8f9fa;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #ddd;
+.pi-bars {
+  @apply text-white hidden text-lg lg:text-2xl cursor-pointer;
 }
 
-.top-bar span {
-  margin: 0 10px;
-}
-
-/* ===== الطبقة الثانية ===== */
-.middle-bar {
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.search-bar {
-  border: none;
-  width: 100px;
-  border-bottom: 1px solid #ccc; /* خط خفيف */
-  border-radius: 0;
-  padding: 8px;
-  transition: border-color 0.3s ease;
-}
-
-.search-bar:focus {
-  border-color: #e74c3c; /* لون مميز عند الكتابة */
-  outline: none;
-}
-
-.logo{
-  width: 350px;
-   height: auto
-}
-
-
-
-@media (max-width: 768px) {
-  .logo{
-    width: 200px;
-    height: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto;
+@media (max-width: 960px) {
+  .pi-bars {
+    @apply block;
   }
-  .first-bar{
-    display: none !important;
-  }
-  .icons{
-    display:none !important;
-  }
-  .search-container{
-    display: none !important;
-  }
-
 }

@@ -1,40 +1,136 @@
 <div class="relative">
+  <!-- التايتل -->
+  <h1 class="mb-[6px] font-bold text-4xl text-[#4d4f3a] pr-16 mt-3 w-full">
+    {{ productInfo()?.name || "Product Name" }}
+  </h1>
+
+  <!-- السعر -->
+  <p class="mb-2 mt-8 text-2xl font-semibold">425.00 AED</p>
+
   <!-- New Or No -->
-  <div>
+  <!-- <div>
     <span
       class="bg-red-500 text-sm mb-1 text-white w-fit py-[3px] px-[9px] rounded-[4px]"
     >
       New!
     </span>
-  </div>
+  </div> -->
 
   <!-- البرودكت قبله وبعده -->
-  <div class="absolute left-[380px] top-3 bottom-[700px] hidden xl:block">
+  <!-- <div class="absolute left-[380px] top-3 bottom-[700px] hidden xl:block">
     <a [routerLink]="" class="cursor-pointer"
       ><i class="pi pi-arrow-circle-left text-gray-500 mr-1"></i
     ></a>
     <a [routerLink]="" class="cursor-pointer"
       ><i class="pi pi-arrow-circle-right text-gray-500 mr-1"></i
     ></a>
-  </div>
+  </div> -->
 
   <!-- البراند -->
-  <span class="mt-4 block cursor-pointer">
+  <!-- <span class="mt-4 block cursor-pointer">
     <span class="text-blue-400">{{
-      productInfo()?.attributes[0]?.options[0] || "brand"
+      productInfo()?.attributes[0]?.options[0].name || "brand"
     }}</span>
-  </span>
+  </span> -->
 
-  <!-- التايتل -->
-  <h1 class="mb-[6px] font-semibold text-3xl pr-16 mt-1">
-    {{ productInfo()?.name || "Product Name" }}
-  </h1>
+  <!-- SKU -->
+  <p class="my-4 text-sm font-semibold">
+    <span class="text-[#F58161]">{{ productSku.shortTitle }}</span> |
+    <span>SKU: {{ productSku.sku }}</span>
+  </p>
 
-  <!-- السعر -->
-  <p class="mb-2 text-lg">From: AED425</p>
+  <!-- اللوجيك -->
+  <form class="mt-3 mb-4">
+    <!-- الالوان -->
+    <ul class="flex items-center gap-2 mt-4 mb-7">
+      <li class="border transition-all duration-300 hover:border-gray-300">
+        <span>
+          <img [src]="images[0]" alt="" class="w-12 h-12 cursor-pointer" />
+        </span>
+      </li>
+      <li class="border transition-all duration-300 hover:border-gray-300">
+        <span>
+          <img [src]="images[0]" alt="" class="w-12 h-12 cursor-pointer" />
+        </span>
+      </li>
+    </ul>
+
+    <!-- المقاسات -->
+    <ul class="flex gap-x-2 mb-8">
+      <li
+        class="text-sm text-gray-500 bg-white border px-6 py-[4px] hover:bg-gray-300 hover:text-black cursor-pointer transition-colors duration-300"
+      >
+        <span> L</span>
+      </li>
+      <li
+        class="text-sm text-gray-500 bg-white border px-6 py-[4px] hover:bg-gray-300 hover:text-black cursor-pointer transition-colors duration-300"
+      >
+        <span> M</span>
+      </li>
+      <li
+        class="text-sm text-gray-500 bg-white border px-6 py-[4px] hover:bg-gray-300 hover:text-black cursor-pointer transition-colors duration-300"
+      >
+        <span> S</span>
+      </li>
+    </ul>
+
+    <!-- الدفع -->
+    <div class="flex gap-x-2">
+      <div class="flex">
+        <input
+          type="number"
+          [value]="quantity"
+          class="text-center text-gray-700 px-[6px] border rounded-md rounded-r-none w-14 h-14 outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
+        <div
+          class="flex flex-col border rounded-md rounded-l-none p-2 bg-white justify-between"
+        >
+          <i
+            class="pi pi-angle-up text-gray-700 cursor-pointer"
+            (click)="onQuantityUp()"
+          ></i>
+          <i
+            class="pi pi-angle-down text-gray-700 cursor-pointer"
+            (click)="onQuantityDown()"
+          ></i>
+        </div>
+      </div>
+      <button
+        class="bg-orange-400 hover:bg-orange-500 transition-colors duration-300 font-semibold text-white px-6 rounded-md w-full"
+      >
+        Add to cart
+      </button>
+    </div>
+
+    <!-- الاضافه الي المفضله -->
+    <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
+      <i class="pi pi-heart text-sm"></i>
+      <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
+    </div>
+
+    <!-- معلومات التوصيل -->
+    <div class="mt-6 flex flex-col gap-y-1">
+      <p class="text-sm">
+        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free
+        Shipping in UAE For orders above AED 100.
+      </p>
+      <p class="text-sm">
+        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> 7 days easy
+        returns.
+      </p>
+      <p class="text-sm">
+        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery
+        within 1-2 working days.
+      </p>
+      <p class="text-sm">
+        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide
+        shipping.
+      </p>
+    </div>
+  </form>
 
   <!-- tabby payment -->
-  <div class="p-4 border flex rounded-md">
+  <div class="p-4 border flex rounded-md mb-2">
     <span class="text-sm text-gray-700"
       >4 interest-free payment or as low as
       <span class="text-base font-semibold"
@@ -134,94 +230,4 @@
       </svg>
     </div>
   </div>
-
-  <!-- اللوجيك -->
-  <form class="mt-3 mb-4">
-    <!-- الالوان -->
-    <ul class="flex items-center gap-2 mt-4 mb-7">
-      <li class="border transition-all duration-300 hover:border-gray-300">
-        <span>
-          <img [src]="images[0]" alt="" class="w-12 h-12 cursor-pointer" />
-        </span>
-      </li>
-      <li class="border transition-all duration-300 hover:border-gray-300">
-        <span>
-          <img [src]="images[0]" alt="" class="w-12 h-12 cursor-pointer" />
-        </span>
-      </li>
-    </ul>
-
-    <!-- المقاسات -->
-    <ul class="flex gap-x-2 mb-8">
-      <li
-        class="text-sm text-gray-500 bg-white border px-6 py-[4px] hover:bg-gray-300 hover:text-black cursor-pointer transition-colors duration-300"
-      >
-        <span> L</span>
-      </li>
-      <li
-        class="text-sm text-gray-500 bg-white border px-6 py-[4px] hover:bg-gray-300 hover:text-black cursor-pointer transition-colors duration-300"
-      >
-        <span> M</span>
-      </li>
-      <li
-        class="text-sm text-gray-500 bg-white border px-6 py-[4px] hover:bg-gray-300 hover:text-black cursor-pointer transition-colors duration-300"
-      >
-        <span> S</span>
-      </li>
-    </ul>
-
-    <!-- الدفع -->
-    <div class="flex gap-x-2">
-      <div class="flex">
-        <input
-          type="number"
-          [value]="quantity"
-          class="text-center text-gray-700 px-[6px] border rounded-md rounded-r-none w-14 h-14 outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        />
-        <div
-          class="flex flex-col border rounded-md rounded-l-none p-2 bg-white justify-between"
-        >
-          <i
-            class="pi pi-angle-up text-gray-700 cursor-pointer"
-            (click)="onQuantityUp()"
-          ></i>
-          <i
-            class="pi pi-angle-down text-gray-700 cursor-pointer"
-            (click)="onQuantityDown()"
-          ></i>
-        </div>
-      </div>
-      <button
-        class="bg-[#3bb54a] hover:bg-green-700 transition-colors duration-300 font-semibold text-white px-6 rounded-md w-full"
-      >
-        Add to cart
-      </button>
-    </div>
-
-    <!-- الاضافه الي المفضله -->
-    <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
-      <i class="pi pi-heart text-sm"></i>
-      <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
-    </div>
-
-    <!-- معلومات التوصيل -->
-    <div class="mt-6 flex flex-col gap-y-1">
-      <p class="text-sm">
-        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free
-        Shipping in UAE For orders above AED 100.
-      </p>
-      <p class="text-sm">
-        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> 7 days easy
-        returns.
-      </p>
-      <p class="text-sm">
-        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery
-        within 1-2 working days.
-      </p>
-      <p class="text-sm">
-        <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide
-        shipping.
-      </p>
-    </div>
-  </form>
 </div>

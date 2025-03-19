@@ -28,7 +28,7 @@ export class ProductImagesComponent {
   ];
 
   ngOnInit() {
-    this.mediaQuery = window.matchMedia('(max-width: 1024px)');
+    this.mediaQuery = window.matchMedia('(max-width: 1172px)');
     this.isMobile = this.mediaQuery.matches;
     this.mediaQueryListener = (event: MediaQueryListEvent) => {
       this.isMobile = event.matches;

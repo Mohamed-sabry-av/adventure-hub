@@ -1,0 +1,18 @@
+.subLinks-child {
+  @apply px-8 lg:px-8 xl:px-16 py-8 w-full;
+}
+
+@media (min-width: 1500px) {
+  .subLinks-child {
+    padding-left: calc((100vw - 1500px) / 2);
+    padding-right: calc((100vw - 1500px) / 2);
+  }
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-gray-500 {
+  scrollbar-color: gray transparent;
+}

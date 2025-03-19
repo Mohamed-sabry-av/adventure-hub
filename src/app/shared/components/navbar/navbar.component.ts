@@ -23,7 +23,9 @@ export class NavbarComponent {
 
   private buildFullPath(category: Category, path: string[]): void {
     if (category.parent !== 0) {
-      const parentCategory = this.allCategories.find((c) => c.id === category.parent);
+      const parentCategory = this.allCategories.find(
+        (c) => c.id === category.parent
+      );
       if (parentCategory) {
         this.buildFullPath(parentCategory, path);
       }

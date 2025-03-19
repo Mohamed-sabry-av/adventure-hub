@@ -1,0 +1,19 @@
+::ng-deep .p-drawer {
+  @apply bg-white text-[#4d4f3a] sm:w-[540px] rounded-l-lg;
+}
+
+::ng-deep .p-drawer-header {
+  @apply py-6 px-8 border-b border-[#c3c4b5];
+}
+
+::ng-deep .p-drawer-title {
+  @apply text-xl;
+}
+
+::ng-deep .p-drawer-content {
+  @apply py-6 px-8 text-sm;
+}
+
+::ng-deep .p-select {
+  @apply p-1 bg-white border-4 border-gray-300;
+}

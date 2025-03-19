@@ -5,6 +5,7 @@ import { ProductInfoComponent } from '../../components/product-info/product-info
 import { RouterLink } from '@angular/router';
 import { ProductDescComponent } from '../../components/product-desc/product-desc.component';
 import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
+import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 
 @Component({
   selector: 'app-product-page',
@@ -14,6 +15,7 @@ import { ProductRelatedComponent } from '../../components/product-related/produc
     RouterLink,
     ProductDescComponent,
     ProductRelatedComponent,
+    AppContainerComponent,
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',

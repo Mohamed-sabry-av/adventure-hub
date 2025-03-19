@@ -27,10 +27,10 @@ export class SliderComponent {
         breakpoint: 768,
         settings: {
           arrows: false,
-          dots: true
-        }
-      }
-    ]
+          dots: true,
+        },
+      },
+    ],
   };
 
   ngOnInit() {
@@ -47,15 +47,10 @@ export class SliderComponent {
     this.currentImages = this.isMobile ? this.mobileImages : this.desktopImages;
   }
 
-  // desktop = [
-  //   'slider/1.png',
-  //   'slider/2.png',
-  //   'slider/2.png',
-  // ];
-  // phone =[
-  //   'slider/1responsive.png',
-  //   'slider/2responsive.png',
-  //   'slider/3responsive.png',
-  // ]
-  
+  desktop = ['slider/1.png', 'slider/2.png', 'slider/2.png'];
+  phone = [
+    'slider/1responsive.png',
+    'slider/2responsive.png',
+    'slider/3responsive.png',
+  ];
 }
