@@ -1,10 +1,9 @@
 import { Component, input } from '@angular/core';
 import { GalleriaModule } from 'primeng/galleria';
-import { Carousel } from 'primeng/carousel';
 import { ButtonModule } from 'primeng/button';
 @Component({
   selector: 'app-product-images',
-  imports: [GalleriaModule, ButtonModule, Carousel],
+  imports: [GalleriaModule, ButtonModule],
   templateUrl: './product-images.component.html',
   styleUrl: './product-images.component.css',
 })

@@ -5,6 +5,7 @@ import { CategoriesService } from '../../../../core/services/categories.service'
 import { ProductService } from '../../../../core/services/product.service';
 import { CacheService } from '../../../../core/services/cashing.service';
 import { Category } from '../../../../interfaces/category.model';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-breadcrumb-routes',
@@ -46,26 +47,27 @@ export class BreadcrumbRoutesComponent implements OnInit {
     private route: ActivatedRoute
   ) {}
 
-  ngOnInit() {
-    this.loadSubCategories();
+  async ngOnInit() {
+    await this.loadSubCategories();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  async ngOnChanges(changes: SimpleChanges) {
     if (changes['categoryId'] && !changes['categoryId'].firstChange && this.categoryId !== null) {
       this.subcategories = [];
       this.isDataFullyLoaded = false;
       this.loadedCounts = 0;
-      this.loadSubCategories();
+      await this.loadSubCategories();
     }
   }
 
-  private loadSubCategories(): void {
+  private async loadSubCategories(): Promise<void> {
     if (this.categoryId === null || this.categoryId === undefined) {
       this.isDataFullyLoaded = true;
       return;
     }
 
-    this.categoryService.getAllCategories().subscribe((allCategories) => {
+    try {
+      const allCategories = (await this.categoryService.getAllCategories().toPromise()) || [];
       const subCats = allCategories.filter((cat) => cat.parent === this.categoryId);
       this.subcategories = subCats.map((cat) => ({ category: cat, productCount: 0 }));
       this.totalSubcategories = subCats.length;
@@ -75,32 +77,41 @@ export class BreadcrumbRoutesComponent implements OnInit {
         return;
       }
 
-      subCats.forEach((subcat) => {
-        const cacheKey = `total_products_category_${subcat.id}`;
-        const cachedCount :any= this.cacheService.get(cacheKey);
+      await Promise.all(
+        subCats.map(async (subcat) => {
+          const cacheKey = `total_products_category_${subcat.id}`;
+          const cachedCount = this.cacheService.get(cacheKey);
 
-        if (cachedCount !== undefined) {
-          this.updateSubcategoryCount(subcat.id, cachedCount);
-          this.loadedCounts++;
-          this.checkLoadingComplete();
-        } else {
-          this.productService.getTotalProductsByCategoryId(subcat.id).subscribe({
-            next: (count) => {
+          if (cachedCount !== undefined) {
+            let count: number;
+            if (this.isObservable(cachedCount)) {
+              count = (await (cachedCount as Observable<number>).toPromise()) ?? 0;
+            } else {
+              count = cachedCount as number;
+            }
+            this.updateSubcategoryCount(subcat.id, count);
+            this.loadedCounts++;
+          } else {
+            try {
+              const count = (await this.productService.getTotalProductsByCategoryId(subcat.id).toPromise()) ?? 0;
               this.updateSubcategoryCount(subcat.id, count);
-              this.cacheService.set(cacheKey, count); // Cache the result
+              this.cacheService.set(cacheKey, count);
               this.loadedCounts++;
-              this.checkLoadingComplete();
-            },
-            error: (error) => {
+            } catch (error) {
               console.error(`Error fetching product count for category ${subcat.id}:`, error);
               this.updateSubcategoryCount(subcat.id, 0);
               this.loadedCounts++;
-              this.checkLoadingComplete();
-            },
-          });
-        }
-      });
-    });
+            }
+          }
+        })
+      );
+
+      this.checkLoadingComplete();
+    } catch (error) {
+      console.error('Error loading subcategories:', error);
+      this.subcategories = [];
+      this.isDataFullyLoaded = true;
+    }
   }
 
   private updateSubcategoryCount(categoryId: number, count: number): void {
@@ -125,10 +136,17 @@ export class BreadcrumbRoutesComponent implements OnInit {
     return ['/', ...newSegments];
   }
 
-  onSubcategoryClick(category: Category) {
+  async onSubcategoryClick(category: Category): Promise<void> {
     const newPath = this.getSubCategoryRoute(category);
-    this.router.navigate(newPath).then(() => {
+    try {
+      await this.router.navigate(newPath);
       console.log('Navigated to subcategory:', newPath);
-    });
+    } catch (error) {
+      console.error('Error navigating to subcategory:', error);
+    }
+  }
+
+  private isObservable(obj: any): obj is Observable<any> {
+    return obj && typeof obj.subscribe === 'function';
   }
 }

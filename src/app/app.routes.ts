@@ -1,52 +1,48 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './features/Home/home.component';
-import { ProductsComponent } from './features/products/pages/products.component';
-import { AuthComponent } from './features/auth/auth.component';
-import { ProductPageComponent } from './features/product/page/product-page/product-page.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
+    loadComponent: () => import('./features/Home/home.component').then(m => m.HomeComponent),
     pathMatch: 'full',
   },
   {
     path: 'myaccount',
-    component: AuthComponent,
+    loadComponent: () => import('./features/auth/auth.component').then(m => m.AuthComponent),
     pathMatch: 'full',
   },
   {
     path: 'product/:productId',
-    component: ProductPageComponent,
+    loadComponent: () => import('./features/product/page/product-page/product-page.component').then(m => m.ProductPageComponent),
     pathMatch: 'full',
   },
   {
     path: ':mainCategorySlug',
-    component: ProductsComponent,
+    loadComponent: () => import('./features/products/pages/products.component').then(m => m.ProductsComponent),
     pathMatch: 'full',
     data: { breadcrumb: 'Main Category' },
   },
   {
     path: ':mainCategorySlug/:subCategorySlug',
-    component: ProductsComponent,
+    loadComponent: () => import('./features/products/pages/products.component').then(m => m.ProductsComponent),
     pathMatch: 'full',
     data: { breadcrumb: 'Sub Category' },
   },
   {
     path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug',
-    component: ProductsComponent,
+    loadComponent: () => import('./features/products/pages/products.component').then(m => m.ProductsComponent),
     pathMatch: 'full',
     data: { breadcrumb: 'Sub-Sub Category' },
   },
   {
     path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug',
-    component: ProductsComponent,
+    loadComponent: () => import('./features/products/pages/products.component').then(m => m.ProductsComponent),
     pathMatch: 'full',
     data: { breadcrumb: 'Sub-Sub-Sub Category' },
   },
   {
     path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug/:subSubSubSubCategorySlug',
-    component: ProductsComponent,
+    loadComponent: () => import('./features/products/pages/products.component').then(m => m.ProductsComponent),
     pathMatch: 'full',
     data: { breadcrumb: 'Sub-Sub-Sub-Sub Category' },
   },

@@ -4,13 +4,12 @@ import { Component, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { Category } from '../../../interfaces/category.model';
-import { MobileNavbarComponent } from '../navbar/Mobile-navbar/mobile-navbar.component';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, MobileNavbarComponent,RouterLink],
+  imports: [CommonModule, NavbarComponent,RouterLink],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
 })

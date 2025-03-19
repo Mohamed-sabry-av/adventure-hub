@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
 import { CommonModule, isPlatformServer } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
@@ -6,6 +6,11 @@ import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-route
 import { TransferState, makeStateKey } from '@angular/core';
 import { CacheService } from '../../../../core/services/cashing.service';
 import { Observable } from 'rxjs';
+import { FilterAttributesPipe } from '../../../../shared/pipes/filter-attributes.pipe';
+
+interface AttributesResponse {
+  [key: string]: { name: string; terms: { id: number; name: string }[] };
+}
 
 interface Attribute {
   slug: string;
@@ -13,9 +18,8 @@ interface Attribute {
   terms: { id: number; name: string }[];
 }
 
-// تعريف نوع البيانات المخزنة في الكاش
 interface CachedAttributes {
-  attributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } };
+  attributes: AttributesResponse;
   totalPages: number;
 }
 
@@ -27,6 +31,7 @@ const ATTRIBUTES_KEY = (categoryId: number) => makeStateKey<Attribute[]>(`attrib
   imports: [CommonModule, FormsModule, BreadcrumbRoutesComponent],
   templateUrl: './filter-sidebar.component.html',
   styleUrls: ['./filter-sidebar.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush 
 })
 export class FilterSidebarComponent implements OnInit {
   @Input() categoryId: number | null = null;
@@ -42,28 +47,30 @@ export class FilterSidebarComponent implements OnInit {
     private filterService: FilterService,
     private transferState: TransferState,
     private cacheService: CacheService,
+    private cdr: ChangeDetectorRef, // لتحديث الـ UI يدويًا مع OnPush
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  ngOnInit() {
-    this.loadAttributes();
+  async ngOnInit() {
+    await this.loadAttributes();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  async ngOnChanges(changes: SimpleChanges) {
     if (changes['categoryId'] && !changes['categoryId'].firstChange && this.categoryId !== null) {
       this.selectedFilters = {};
       this.openSections = {};
       this.showAll = {};
       this.isLoadingAttributes = true;
       this.attributes = [];
-      this.loadAttributes();
+      await this.loadAttributes();
     }
   }
 
-  private loadAttributes() {
+  private async loadAttributes(): Promise<void> {
     if (this.categoryId === null || this.categoryId === undefined) {
       this.isLoadingAttributes = false;
       this.attributes = [];
+      this.cdr.markForCheck(); // تحديث الـ UI
       return;
     }
 
@@ -71,29 +78,30 @@ export class FilterSidebarComponent implements OnInit {
     const cachedValue = this.cacheService.get(`attributes_terms_category_${this.categoryId}_page_1`);
 
     if (cachedValue) {
-      // لو الكاش بيرجع Observable، لازم نعمل subscribe
-      if (this.isObservable(cachedValue)) {
-        cachedValue.subscribe((cachedData: CachedAttributes) => {
-          this.attributes = Object.entries(cachedData.attributes).map(([slug, data]) => ({
+      try {
+        if (this.isObservable(cachedValue)) {
+          const cachedData = await (cachedValue as Observable<CachedAttributes>).toPromise();
+          this.attributes = cachedData
+            ? Object.entries(cachedData.attributes).map(([slug, data]) => ({
+                slug,
+                name: data.name,
+                terms: data.terms,
+              }))
+            : [];
+        } else {
+          const cachedAttributes = cachedValue as CachedAttributes;
+          this.attributes = Object.entries(cachedAttributes.attributes).map(([slug, data]) => ({
             slug,
             name: data.name,
             terms: data.terms,
           }));
-          this.isLoadingAttributes = false;
-          this.initializeSections();
-        });
-        return;
-      } else {
-        // لو الكاش بيرجع البيانات النهائية مباشرة
-        const cachedAttributes = cachedValue as CachedAttributes;
-        this.attributes = Object.entries(cachedAttributes.attributes).map(([slug, data]) => ({
-          slug,
-          name: data.name,
-          terms: data.terms,
-        }));
+        }
         this.isLoadingAttributes = false;
         this.initializeSections();
+        this.cdr.markForCheck(); // تحديث الـ UI
         return;
+      } catch (error) {
+        console.error('Error processing cached attributes:', error);
       }
     }
 
@@ -102,37 +110,36 @@ export class FilterSidebarComponent implements OnInit {
       this.attributes = stateAttributes;
       this.isLoadingAttributes = false;
       this.initializeSections();
+      this.cdr.markForCheck(); // تحديث الـ UI
       return;
     }
 
     this.isLoadingAttributes = true;
-    this.filterService.getAllAttributesAndTermsByCategory(this.categoryId).subscribe({
-      next: (attributes) => {
-        this.attributes = Object.entries(attributes).map(([slug, data]) => ({
-          slug,
-          name: data.name,
-          terms: data.terms,
-        }));
-        if (isPlatformServer(this.platformId)) {
-          this.transferState.set(attributesKey, this.attributes);
-        }
-        // نحفظ البيانات في الكاش بنفس الشكل
-        this.cacheService.set(`attributes_terms_category_${this.categoryId}_page_1`, { attributes }, 300000);
-        this.initializeSections();
-      },
-      error: (error) => {
-        console.error('Error loading initial attributes:', error);
-        this.attributes = [];
-        this.isLoadingAttributes = false;
-      },
-      complete: () => {
-        this.isLoadingAttributes = false;
-      },
-    });
+    try {
+      const attributesData = await this.filterService.getAllAttributesAndTermsByCategory(this.categoryId).toPromise() as AttributesResponse | undefined;
+      this.attributes = attributesData
+        ? Object.entries(attributesData).map(([slug, data]) => ({
+            slug,
+            name: data.name,
+            terms: data.terms,
+          }))
+        : [];
+      if (isPlatformServer(this.platformId)) {
+        this.transferState.set(attributesKey, this.attributes);
+      }
+      this.cacheService.set(`attributes_terms_category_${this.categoryId}_page_1`, { attributes: attributesData }, 300000);
+      this.initializeSections();
+    } catch (error) {
+      console.error('Error loading initial attributes:', error);
+      this.attributes = [];
+    } finally {
+      this.isLoadingAttributes = false;
+      this.cdr.markForCheck(); // تحديث الـ UI
+    }
   }
 
   private initializeSections() {
-    this.attributes.forEach(attr => {
+    this.attributes.forEach((attr) => {
       this.openSections[attr.slug] = false;
       this.showAll[attr.slug] = false;
     });
@@ -140,9 +147,10 @@ export class FilterSidebarComponent implements OnInit {
 
   toggleSection(slug: string) {
     this.openSections[slug] = !this.openSections[slug];
+    this.cdr.markForCheck(); // تحديث الـ UI
   }
 
-  onFilterChange(attrSlug: string, termId: number) {
+  async onFilterChange(attrSlug: string, termId: number) {
     if (!this.selectedFilters[attrSlug]) {
       this.selectedFilters[attrSlug] = [];
     }
@@ -157,24 +165,25 @@ export class FilterSidebarComponent implements OnInit {
     }
 
     this.filtersChanges.emit({ ...this.selectedFilters });
-    this.updateAvailableAttributes(attrSlug);
+    await this.updateAvailableAttributes(attrSlug);
+    this.cdr.markForCheck(); // تحديث الـ UI
   }
 
-  private updateAvailableAttributes(selectedAttrSlug: string) {
-    if (this.categoryId) {
-      this.filterService.getAvailableAttributesAndTerms(this.categoryId, this.selectedFilters).subscribe({
-        next: (attributes) => {
-          const selectedAttr = this.attributes.find((attr) => attr.slug === selectedAttrSlug);
-          this.attributes = Object.entries(attributes).map(([slug, data]) => ({
+  private async updateAvailableAttributes(selectedAttrSlug: string): Promise<void> {
+    if (!this.categoryId) return;
+
+    try {
+      const attributesData = await this.filterService.getAvailableAttributesAndTerms(this.categoryId, this.selectedFilters).toPromise() as AttributesResponse | undefined;
+      const selectedAttr = this.attributes.find((attr) => attr.slug === selectedAttrSlug);
+      this.attributes = attributesData
+        ? Object.entries(attributesData).map(([slug, data]) => ({
             slug,
             name: data.name,
             terms: slug === selectedAttrSlug && selectedAttr ? selectedAttr.terms : data.terms,
-          }));
-        },
-        error: (error) => {
-          console.error('Error updating attributes:', error);
-        },
-      });
+          }))
+        : this.attributes;
+    } catch (error) {
+      console.error('Error updating attributes:', error);
     }
   }
 
@@ -182,7 +191,6 @@ export class FilterSidebarComponent implements OnInit {
     return this.selectedFilters[attrSlug]?.includes(termId.toString()) || false;
   }
 
-  // دالة مساعدة للتحقق إذا كان القيمة Observable ولا لأ
   private isObservable(obj: any): obj is Observable<any> {
     return obj && typeof obj.subscribe === 'function';
   }

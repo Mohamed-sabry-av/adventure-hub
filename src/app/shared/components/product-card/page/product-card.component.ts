@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
@@ -13,7 +12,6 @@ import { SizeSelectorComponent } from '../components/size-selector/size-selector
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
     CardImageSliderComponent,
     CardDetailsComponent,
     ColorSwatchesComponent,
@@ -55,7 +53,7 @@ export class ProductCardComponent implements OnInit {
           this.updateVisibleSizes();
         }
       },
-      error: (error) => {
+      error: (error:any) => {
         console.error('خطأ في جلب الـ variations:', error);
       },
     });
