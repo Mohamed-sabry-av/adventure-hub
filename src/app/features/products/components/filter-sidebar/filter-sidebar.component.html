@@ -17,7 +17,7 @@
           <button
             type="button"
             (click)="toggleSection(attr.slug)"
-            class="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500"
+            class="flex w-full items-center justify-between bg-white px-2 py-2 text-gray-400 hover:text-gray-500"
           >
             <span class="font-medium text-gray-900">{{ attr.name }}</span>
             <span class="ml-6 flex items-center">
@@ -30,12 +30,15 @@
             </span>
           </button>
         </h3>
-        <div *ngIf="openSections[attr.slug]" class="pt-6">
-          <div class="space-y-6">
+        <div
+          class="filter-section"
+          [ngClass]="{'open': openSections[attr.slug], 'closed': !openSections[attr.slug]}"
+        >
+          <!-- ScrollBar -->
+          <div class="max-h-60 overflow-y-auto space-y-4 custom-scrollbar">
             <div
-              *ngFor="let term of attr.terms; let i = index"
+              *ngFor="let term of attr.terms"
               class="flex gap-3"
-              [ngClass]="{'hidden': i >= 7 && !showAll[attr.slug]}"
             >
               <div class="flex h-5 shrink-0 items-center">
                 <div class="group grid size-4 grid-cols-1">
@@ -52,19 +55,12 @@
                 </div>
               </div>
               <label
-                class="min-w-0 flex-1 text-gray-500"
+                class="min-w-0 flex-1 text-gray-800 "
                 [for]="'attr-' + attr.slug + '-' + term.id"
               >
                 {{ term.name }}
               </label>
             </div>
-            <button
-              *ngIf="attr.terms.length > 7 && !showAll[attr.slug]"
-              (click)="showAll[attr.slug] = true; $event.preventDefault()"
-              class="mt-2 text-sm text-indigo-600 hover:text-indigo-800"
-            >
-              Load More
-            </button>
           </div>
         </div>
       </div>

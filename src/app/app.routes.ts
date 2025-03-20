@@ -47,4 +47,9 @@ export const routes: Routes = [
     pathMatch: 'full',
     data: { breadcrumb: 'Sub-Sub-Sub-Sub Category' },
   },
+  {
+    path: 'cart',
+    loadComponent:() => import('./features/cart/page/cart-page/cart-page.component').then(m=> m.CartPageComponent),
+    pathMatch: 'full',  
+  },
 ];

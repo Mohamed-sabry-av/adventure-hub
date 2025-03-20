@@ -22,11 +22,35 @@ export class NavbarMainCategoriesComponent {
   }
 
   @Input({ required: true }) categories: Category[] = [];
+  @Input({ required: true }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
 
   selectedCategoryId: number | null = null;
 
   selectedCategory(id: number | null) {
+    this.selectedCategoryId = id;
     this.select.emit(id);
+  }
+
+  getCategoryRoute(category: Category): string[] {
+    const pathSegments: string[] = [];
+    this.buildFullPath(category, pathSegments);
+    return pathSegments;
+  }
+
+  private buildFullPath(category: Category, path: string[]): void {
+    if (category.parent !== 0) {
+      const parentCategory = this.allCategories.find(
+        (c) => c.id === category.parent
+      );
+      if (parentCategory) {
+        this.buildFullPath(parentCategory, path);
+      }
+    }
+    path.push(category.slug);
+  }
+
+  getSubCategories(categoryId: number): Category[] {
+    return this.allCategories.filter((cat) => cat.parent === categoryId);
   }
 }

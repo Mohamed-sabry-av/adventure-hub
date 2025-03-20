@@ -3,10 +3,10 @@ import { AppContainerComponent } from '../app-container/app-container.component'
 import { Category } from '../../../interfaces/category.model';
 import { RouterLink } from '@angular/router';
 import { NavbarMainCategoriesComponent } from '../navbar-main-categories/navbar-main-categories.component';
-import { FilterSidebarComponent } from '../../../features/products/filter-sidebar/filter-sidebar.component';
 import { NavbarSubCategoriesComponent } from '../navbar-sub-categories/navbar-sub-categories.component';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
+import { FilterSidebarComponent } from '../../../features/products/components/filter-sidebar/filter-sidebar.component';
 
 @Component({
   selector: 'app-navbar-container',
