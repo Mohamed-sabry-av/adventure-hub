@@ -4,6 +4,7 @@ import { ProductsComponent } from './features/products/products.component';
 // import { ProductsPageComponent } from './features/products/products-page/products-page.component';
 import { ProductPageComponent } from './features/product/page/product-page/product-page.component';
 import { CartPageComponent } from './features/cart/page/cart-page/cart-page.component';
+import { CheckoutPageComponent } from './features/checkout/page/checkout-page/checkout-page.component';
 
 export const routes: Routes = [
   {
@@ -53,6 +54,11 @@ export const routes: Routes = [
   {
     path: 'cart',
     component: CartPageComponent,
+    pathMatch: 'full',
+  },
+  {
+    path: 'checkout',
+    component: CheckoutPageComponent,
     pathMatch: 'full',
   },
 ];
