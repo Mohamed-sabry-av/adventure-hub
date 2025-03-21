@@ -1,6 +1,6 @@
 <div class="product-details">
   <div class="brand" *ngIf="getBrandName()">
-    {{ getBrandName() }}
+    <a [routerLink]="['/brand', getBrandSlug()]">{{ getBrandName() }}</a>
   </div>
 
   <h3 class="product-name">{{ product.name }}</h3>

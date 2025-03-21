@@ -15,16 +15,23 @@
       </div>
 
       <div class="flex md:flex-row flex-col gap-x-10">
-        <div
-          class="w-full md:max-w-[55%] h-full mb-8 sm:mb-0 border-b md:border-r md:border-b-0"
-        >
+        <div class="w-full md:max-w-[55%] h-full mb-8 sm:mb-0 border-b md:border-r md:border-b-0">
           @if (productData?.images) {
-          <app-product-images [productImages]="productData.images" />
+          <app-product-images
+            [productImages]="productData.images"
+            [selectedColor]="selectedColor"
+            [variations]="productData.variations"
+          />
+          } @else {
+          <p>No images available</p> <!-- Log إضافي عشان نشوف لو الصور مش موجودة -->
           }
         </div>
         <div class="product-info">
           @if (productData !== undefined) {
-          <app-product-info [productInfo]="productData" />
+          <app-product-info
+            [productInfo]="productData"
+            (selectedColorChange)="onSelectedColorChange($event)"
+          />
           }
         </div>
       </div>

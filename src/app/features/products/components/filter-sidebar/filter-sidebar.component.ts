@@ -35,7 +35,7 @@ const ATTRIBUTES_KEY = (id: number, type: 'category' | 'brand') => makeStateKey<
 })
 export class FilterSidebarComponent implements OnInit {
   @Input() categoryId: number | null = null;
-  @Input() brandTermId: number | null = null; // إضافة دعم لـ brandTermId
+  @Input() brandTermId: number | null = null;
   @Output() filtersChanges = new EventEmitter<{ [key: string]: string[] }>();
 
   attributes: Attribute[] = [];
@@ -49,15 +49,17 @@ export class FilterSidebarComponent implements OnInit {
     private transferState: TransferState,
     private cacheService: CacheService,
     private cdr: ChangeDetectorRef,
-    private productsByBrandService : ProductsBrandService,
+    private productsByBrandService: ProductsBrandService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  async ngOnInit() {
-    await this.loadAttributes();
+  ngOnInit() {
+    console.log('ngOnInit called with categoryId:', this.categoryId, 'brandTermId:', this.brandTermId);
+    this.loadAttributes();
   }
 
-  async ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges) {
+    console.log('ngOnChanges called with changes:', changes);
     if (
       (changes['categoryId'] && !changes['categoryId'].firstChange) ||
       (changes['brandTermId'] && !changes['brandTermId'].firstChange)
@@ -67,19 +69,19 @@ export class FilterSidebarComponent implements OnInit {
       this.showAll = {};
       this.isLoadingAttributes = true;
       this.attributes = [];
-      await this.loadAttributes();
+      this.loadAttributes();
     }
   }
 
-  private async loadAttributes(): Promise<void> {
-    console.log('loadAttributes called with categoryId:', this.categoryId, 'brandTermId:', this.brandTermId); // تحقق من الاستدعاء
+  private loadAttributes(): void {
+    console.log('loadAttributes called with categoryId:', this.categoryId, 'brandTermId:', this.brandTermId);
     this.isLoadingAttributes = true;
 
-    // تحديد المعرف ونوعه (فئة أو علامة تجارية)
     const id = this.categoryId !== null && this.categoryId !== undefined ? this.categoryId : this.brandTermId;
     const type = this.categoryId !== null && this.categoryId !== undefined ? 'category' : 'brand';
 
     if (id === null || id === undefined) {
+      console.log('No valid ID provided, exiting loadAttributes');
       this.isLoadingAttributes = false;
       this.attributes = [];
       this.cdr.markForCheck();
@@ -91,35 +93,17 @@ export class FilterSidebarComponent implements OnInit {
     const cachedValue = this.cacheService.get(cacheKey);
 
     if (cachedValue) {
-      try {
-        if (this.isObservable(cachedValue)) {
-          const cachedData = await (cachedValue as Observable<CachedAttributes>).toPromise();
-          this.attributes = cachedData
-            ? Object.entries(cachedData.attributes).map(([slug, data]) => ({
-                slug,
-                name: data.name,
-                terms: data.terms,
-              }))
-            : [];
-        } else {
-          const cachedAttributes = cachedValue as CachedAttributes;
-          this.attributes = Object.entries(cachedAttributes.attributes).map(([slug, data]) => ({
-            slug,
-            name: data.name,
-            terms: data.terms,
-          }));
-        }
-        this.isLoadingAttributes = false;
-        this.initializeSections();
-        this.cdr.markForCheck();
-        return;
-      } catch (error) {
-        console.error('Error processing cached attributes:', error);
-      }
+      console.log('Using cached value:', cachedValue);
+      this.attributes = this.processAttributesData(cachedValue, type);
+      this.isLoadingAttributes = false;
+      this.initializeSections();
+      this.cdr.markForCheck();
+      return;
     }
 
     const stateAttributes = this.transferState.get(attributesKey, null as any);
     if (stateAttributes) {
+      console.log('Using transfer state attributes:', stateAttributes);
       this.attributes = stateAttributes;
       this.isLoadingAttributes = false;
       this.initializeSections();
@@ -127,33 +111,62 @@ export class FilterSidebarComponent implements OnInit {
       return;
     }
 
-    try {
-      let attributesData: AttributesResponse | undefined;
-      if (type === 'category') {
-        attributesData = await this.filterService.getAttributesAndTermsByCategory(id).toPromise() as AttributesResponse | undefined;
-      } else {
-        attributesData = await this.productsByBrandService.getAllAttributesAndTermsByBrand(id).toPromise() as AttributesResponse | undefined;
-      }
-
-      this.attributes = attributesData
-        ? Object.entries(attributesData).map(([slug, data]) => ({
-            slug,
-            name: data.name,
-            terms: data.terms,
-          }))
-        : [];
-      if (isPlatformServer(this.platformId)) {
-        this.transferState.set(attributesKey, this.attributes);
-      }
-      this.cacheService.set(cacheKey, { attributes: attributesData }, 300000);
-      this.initializeSections();
-    } catch (error) {
-      console.error(`Error loading ${type} attributes:`, error);
-      this.attributes = [];
-    } finally {
-      this.isLoadingAttributes = false;
-      this.cdr.markForCheck();
+    console.log(`Subscribing to ${type} service for ID ${id}`);
+    if (type === 'category') {
+      this.filterService.getAttributesAndTermsByCategory(id).subscribe({
+        next: (data) => {
+          console.log('Data from FilterService:', data);
+          this.attributes = this.processAttributesData(data, type);
+          this.cacheService.set(cacheKey, data, 300000);
+          if (isPlatformServer(this.platformId)) {
+            this.transferState.set(attributesKey, this.attributes);
+          }
+          this.isLoadingAttributes = false;
+          this.initializeSections();
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error from FilterService:', error);
+          this.attributes = [];
+          this.isLoadingAttributes = false;
+          this.cdr.markForCheck();
+        },
+        complete: () => console.log('FilterService observable completed'),
+      });
+    } else {
+      this.productsByBrandService.getAllAttributesAndTermsByBrand(id).subscribe({
+        next: (data) => {
+          console.log('Data from ProductsBrandService:', data);
+          this.attributes = this.processAttributesData(data, type);
+          this.cacheService.set(cacheKey, data, 300000);
+          if (isPlatformServer(this.platformId)) {
+            this.transferState.set(attributesKey, this.attributes);
+          }
+          this.isLoadingAttributes = false;
+          this.initializeSections();
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error from ProductsBrandService:', error);
+          this.attributes = [];
+          this.isLoadingAttributes = false;
+          this.cdr.markForCheck();
+        },
+        complete: () => console.log('ProductsBrandService observable completed'),
+      });
     }
+  }
+
+  private processAttributesData(data: any, type: 'category' | 'brand'): Attribute[] {
+    const attributes = type === 'category' ? data.attributes : data;
+    console.log('Processed attributes data:', attributes);
+    return attributes
+      ? Object.entries(attributes).map(([slug, attrData]: [string, any]) => ({
+          slug,
+          name: attrData.name,
+          terms: attrData.terms,
+        }))
+      : [];
   }
 
   private initializeSections() {
@@ -168,7 +181,7 @@ export class FilterSidebarComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  async onFilterChange(attrSlug: string, termId: number) {
+  onFilterChange(attrSlug: string, termId: number) {
     if (!this.selectedFilters[attrSlug]) {
       this.selectedFilters[attrSlug] = [];
     }
@@ -183,35 +196,35 @@ export class FilterSidebarComponent implements OnInit {
     }
 
     this.filtersChanges.emit({ ...this.selectedFilters });
-    await this.updateAvailableAttributes(attrSlug);
+    this.updateAvailableAttributes(attrSlug);
     this.cdr.markForCheck();
   }
 
-  private async updateAvailableAttributes(selectedAttrSlug: string): Promise<void> {
+  private updateAvailableAttributes(selectedAttrSlug: string): void {
     const id = this.categoryId !== null && this.categoryId !== undefined ? this.categoryId : this.brandTermId;
     const type = this.categoryId !== null && this.categoryId !== undefined ? 'category' : 'brand';
 
     if (!id) return;
 
-    try {
-      let attributesData: AttributesResponse | undefined;
-      if (type === 'category') {
-        attributesData = await this.filterService.getAvailableAttributesAndTerms(id, this.selectedFilters).toPromise() as AttributesResponse | undefined;
-      } else {
-        attributesData = await this.productsByBrandService.getAvailableAttributesAndTermsByBrand(id, this.selectedFilters).toPromise() as AttributesResponse | undefined;
-      }
+    const observable = type === 'category'
+      ? this.filterService.getAvailableAttributesAndTerms(id, this.selectedFilters)
+      : this.productsByBrandService.getAvailableAttributesAndTermsByBrand(id, this.selectedFilters);
 
-      const selectedAttr = this.attributes.find((attr) => attr.slug === selectedAttrSlug);
-      this.attributes = attributesData
-        ? Object.entries(attributesData).map(([slug, data]) => ({
-            slug,
-            name: data.name,
-            terms: slug === selectedAttrSlug && selectedAttr ? selectedAttr.terms : data.terms,
-          }))
-        : this.attributes;
-    } catch (error) {
-      console.error('Error updating attributes:', error);
-    }
+    observable.subscribe({
+      next: (attributesData) => {
+        console.log('Updated attributes data:', attributesData);
+        const selectedAttr = this.attributes.find((attr) => attr.slug === selectedAttrSlug);
+        this.attributes = attributesData
+          ? Object.entries(attributesData).map(([slug, data]: [string, any]) => ({
+              slug,
+              name: data.name,
+              terms: slug === selectedAttrSlug && selectedAttr ? selectedAttr.terms : data.terms,
+            }))
+          : this.attributes;
+        this.cdr.markForCheck();
+      },
+      error: (error) => console.error('Error updating attributes:', error),
+    });
   }
 
   isSelected(attrSlug: string, termId: number): boolean {

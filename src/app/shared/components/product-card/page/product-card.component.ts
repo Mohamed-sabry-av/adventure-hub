@@ -137,6 +137,15 @@ export class ProductCardComponent implements OnInit {
     return null;
   }
 
+  getBrandSlug(): string | null {
+    const brandAttr = this.product?.attributes?.find((attr) => attr.name === 'Brand'); // استخدم name بدل slug
+    if (brandAttr?.options?.length) {
+      const option = brandAttr.options[0];
+      return typeof option === 'string' ? null : option?.slug || null; // جيب الـ slug من الـ option
+    }
+    return null;
+  }
+
   goToSlide(index: number): void {
     if (this.product.images?.length > 0) {
       this.currentSlide = index;
