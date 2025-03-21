@@ -22,7 +22,7 @@ export class NavbarMainCategoriesComponent {
   }
 
   @Input({ required: true }) categories: Category[] = [];
-  @Input({ required: true }) allCategories: Category[] = [];
+  @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
 
   selectedCategoryId: number | null = null;

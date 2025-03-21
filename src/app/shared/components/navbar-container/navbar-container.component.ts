@@ -11,12 +11,8 @@ import { FilterSidebarComponent } from '../../../features/products/components/fi
 @Component({
   selector: 'app-navbar-container',
   imports: [
-    AppContainerComponent,
-    RouterLink,
     NavbarMainCategoriesComponent,
-    FilterSidebarComponent,
     NavbarSubCategoriesComponent,
-    AsyncPipe,
   ],
   templateUrl: './navbar-container.component.html',
   styleUrl: './navbar-container.component.css',

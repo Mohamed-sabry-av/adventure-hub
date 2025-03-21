@@ -74,7 +74,7 @@ export interface Product {
   author_info?: any[];
   comment_info?: string;
   meta_data?: MetaDaum[]
-
+  brandSlug?: string;
 }
 
 export interface Variation {
