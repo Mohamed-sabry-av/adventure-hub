@@ -1,4 +1,9 @@
 import { Routes } from '@angular/router';
+import { HomeComponent } from './features/Home/home.component';
+// import { ProductsPageComponent } from './features/products/products-page/products-page.component';
+import { ProductPageComponent } from './features/product/page/product-page/product-page.component';
+import { CartPageComponent } from './features/cart/page/cart-page/cart-page.component';
+import { CheckoutPageComponent } from './features/checkout/page/checkout-page/checkout-page.component';
 
 export const routes: Routes = [
   {
@@ -80,5 +85,10 @@ export const routes: Routes = [
       import('./features/cart/page/cart-page/cart-page.component').then(
         (m) => m.CartPageComponent
       ),
+  },
+  {
+    path: 'checkout',
+    component: CheckoutPageComponent,
+    pathMatch: 'full',
   },
 ];

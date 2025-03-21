@@ -1,6 +1,6 @@
 // src/app/components/header/header.component.ts
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { Category } from '../../../interfaces/category.model';

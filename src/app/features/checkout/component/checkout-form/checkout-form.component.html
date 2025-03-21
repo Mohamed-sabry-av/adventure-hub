@@ -1,0 +1,320 @@
+<form class="sm:p-10 my-2 sm:my-0 lg:border-r">
+  <div class="flex flex-col gap-y-8">
+    <!-- Contact -->
+    <section>
+      <div class="flex flex-col items-center">
+        <p class="text-gray-400 text-sm text-center">Express checkout</p>
+        <!-- الزرار -->
+        <div class="pt-4 w-full text-center">
+          <a
+            [routerLink]=""
+            class="bg-blue-400 block font-semibold w-full xl:w-[262px] lg:mx-auto py-3 text-center text-white rounded-lg cursor-pointer hover:bg-blue-500 transition-all duration-150 tracking-wider"
+            >Stripe</a
+          >
+          <div class="flex items-center gap-4 pt-4 pb-7">
+            <span class="flex-grow h-px bg-gray-400"></span>
+            <span class="text-gray-400 text-sm">OR</span>
+            <span class="flex-grow h-px bg-gray-400"></span>
+          </div>
+        </div>
+
+        <!-- اللابل بتاع الكونتاكت -->
+        <div class="w-full flex items-center justify-between">
+          <h2 class="font-semibold text-xl">Contact</h2>
+          <a [routerLink]="" class="text-red-400 underline text-sm">Log in</a>
+        </div>
+        <!-- الاينبوت بتاع الايميل -->
+        <div class="py-4 w-full">
+          <input
+            type="email"
+            class="bg-white border w-full py-[14px] px-3 rounded-lg"
+            placeholder="Email"
+          />
+        </div>
+        <div class="w-full flex gap-x-2 items-center">
+          <input type="checkbox" class="w-4 h-6" />
+          <span class="text-sm">Email me with news and offers</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Delivery -->
+    <section class="flex flex-col gap-y-4">
+      <h2 class="font-semibold text-xl">Delivery</h2>
+      <!-- Country Select -->
+      <div>
+        <p-select
+          [options]="[{ country: 'United Arab Emirates' }]"
+          optionLabel="country"
+          placeholder="Select a Country"
+          class="bg-white w-full py-[14px] px-3 rounded-lg"
+        />
+      </div>
+
+      <!-- First and Last Name -->
+      <div
+        class="flex sm:flex-row flex-col items-center gap-y-4 sm:gap-y-0 sm:gap-x-2"
+      >
+        <input
+          type="text"
+          class="bg-white border w-full py-[14px] px-3 rounded-lg"
+          placeholder="First name"
+        />
+        <input
+          type="text"
+          class="bg-white border w-full py-[14px] px-3 rounded-lg"
+          placeholder="Last name"
+        />
+      </div>
+
+      <!-- Address -->
+      <input
+        type="text"
+        class="bg-white border w-full py-[14px] px-3 rounded-lg"
+        placeholder="Address"
+      />
+
+      <!-- Apartment -->
+      <input
+        type="text"
+        class="bg-white border w-full py-[14px] px-3 rounded-lg"
+        placeholder="Apartment, suite, etc. (optional)"
+      />
+
+      <!-- City and State -->
+      <div class="flex items-center gap-x-2">
+        <input
+          type="text"
+          class="bg-white border w-full py-[14px] px-3 rounded-lg"
+          placeholder="City"
+        />
+        <input
+          type="text"
+          class="bg-white border w-full py-[14px] px-3 rounded-lg"
+          placeholder="Emirate"
+        />
+      </div>
+
+      <!-- Phone -->
+      <div class="w-full relative">
+        <input
+          type="number"
+          class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
+          placeholder="Phone"
+        />
+        <div class="absolute top-[50%] right-[3%] -translate-y-[48%]">
+          <div class="relative group">
+            <i class="pi pi-question-circle cursor-pointer text-gray-400"></i>
+            <span
+              class="absolute right-0 -top-[120%] hidden group-hover:block bg-gray-800 text-white text-sm py-1 px-2 rounded-md shadow-md whitespace-nowrap"
+            >
+              in case we need to contact you about your order
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full flex gap-x-2 items-center">
+        <input type="checkbox" class="w-4 h-6" />
+        <span class="text-sm">Save this information for next time </span>
+      </div>
+
+      <!-- Shipping Method -->
+      <div class="mt-2">
+        <h3 class="font-semibold text-base">Shipping method</h3>
+        <div class="bg-gray-200 p-4 text-center mt-2 rounded-lg">
+          <p class="text-sm text-gray-400">
+            Enter your shipping address to view available shipping methods.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Payment -->
+    <section>
+      <h2 class="font-semibold text-xl">Payment</h2>
+      <p class="text-sm text-gray-500 mt-1">
+        All transactions are secure and encrypted.
+      </p>
+
+      <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
+        <!-- Credit Card -->
+        <div>
+          <!-- Option 1 -->
+          <div
+            class="flex justify-between items-center bg-white rounded-t-lg p-4"
+            [class]="{
+              paymentOptionActive: paymentRadiosValue === 'creditCard',
+              'mb-3': paymentRadiosValue === 'creditCard'
+            }"
+          >
+            <div class="flex items-center gap-x-2">
+              <input
+                type="radio"
+                name="options"
+                id="credit-card"
+                value="creditCard"
+                (click)="onPayment($event)"
+                [checked]="paymentRadiosValue === 'creditCard'"
+              />
+              <label class="text-sm" for="credit-card">Credit card</label>
+            </div>
+            <div class="flex items-center gap-x-2">
+              <img
+                src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/visa.sxIq5Dot.svg"
+                alt=""
+              />
+              <img
+                src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/mastercard.1c4_lyMp.svg"
+                alt=""
+              />
+            </div>
+          </div>
+          @if (paymentRadiosValue === 'creditCard') {
+          <!-- Card Details -->
+          <div class="flex flex-col gap-y-3 px-4">
+            <!-- Card Number -->
+            <div class="w-full relative">
+              <input
+                type="number"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
+                placeholder="Card number"
+              />
+              <i
+                class="pi pi-lock absolute top-[50%] right-[3%] -translate-y-[48%]"
+              ></i>
+            </div>
+
+            <!-- Expreation Date , Code -->
+            <div
+              class="flex sm:flex-row flex-col items-center gap-y-4 sm:gap-y-0 sm:gap-x-2"
+            >
+              <input
+                type="number"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
+                placeholder="Expiration date (MM / YY)"
+              />
+              <input
+                type="number"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
+                placeholder="Security code"
+              />
+            </div>
+
+            <!-- Name on card -->
+            <input
+              type="text"
+              class="bg-white border w-full py-[14px] px-3 rounded-lg mb-3"
+              placeholder="Name on card"
+            />
+          </div>
+          }
+        </div>
+
+        <!-- Tabby -->
+        <div>
+          <!-- Option 2 -->
+          <div
+            class="flex justify-between items-center bg-white rounded-b-lg p-4"
+            [class]="{
+              paymentOptionActive: paymentRadiosValue === 'tabby',
+              'border-t': paymentRadiosValue !== 'tabby'
+            }"
+          >
+            <div class="flex items-center gap-x-2">
+              <input
+                type="radio"
+                name="options"
+                id="tabby"
+                value="tabby"
+                (click)="onPayment($event)"
+                [checked]="paymentRadiosValue === 'tabby'"
+              />
+              <label class="text-sm" for="tabby"
+                >Pay in 4 with Tabby. No interest. No fees</label
+              >
+            </div>
+            <img
+              src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/tabby.C7-15TZI.svg"
+              alt=""
+            />
+          </div>
+
+          @if (paymentRadiosValue === 'tabby') {
+          <!-- Tabby Details -->
+          <div class="px-3">
+            <div class="flex flex-col items-center gap-y-6 mt-8">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="-252.3 356.1 163 80.9"
+                class="w-[160px] h-20 text-gray-500"
+              >
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-miterlimit="10"
+                  stroke-width="2"
+                  d="M-108.9 404.1v30c0 1.1-.9 2-2 2H-231c-1.1 0-2-.9-2-2v-75c0-1.1.9-2 2-2h120.1c1.1 0 2 .9 2 2v37m-124.1-29h124.1"
+                ></path>
+                <circle
+                  cx="-227.8"
+                  cy="361.9"
+                  r="1.8"
+                  fill="currentColor"
+                ></circle>
+                <circle
+                  cx="-222.2"
+                  cy="361.9"
+                  r="1.8"
+                  fill="currentColor"
+                ></circle>
+                <circle
+                  cx="-216.6"
+                  cy="361.9"
+                  r="1.8"
+                  fill="currentColor"
+                ></circle>
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-miterlimit="10"
+                  stroke-width="2"
+                  d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"
+                ></path>
+              </svg>
+              <p class="text-sm w-[350px] text-center mb-3">
+                After clicking “Pay now”, you will be redirected to Pay in 4
+                with Tabby. No interest. No fees to complete your purchase
+                securely.
+              </p>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pay Button -->
+      <div class="mt-6 mb-12">
+        <a
+          [routerLink]=""
+          class="bg-orange-500 block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg cursor-pointer hover:bg-orange-700 transition-all duration-150 tracking-wider"
+          >Pay now</a
+        >
+      </div>
+      <hr />
+
+      <!-- Polices -->
+      <div class="flex gap-x-4 mt-4">
+        <a [routerLink]="" class="underline text-sm text-red-400"
+          >Refund policy</a
+        >
+        <a [routerLink]="" class="underline text-sm text-red-400"
+          >Privacy policy</a
+        >
+        <a [routerLink]="" class="underline text-sm text-red-400"
+          >Terms of service</a
+        >
+      </div>
+    </section>
+  </div>
+</form>

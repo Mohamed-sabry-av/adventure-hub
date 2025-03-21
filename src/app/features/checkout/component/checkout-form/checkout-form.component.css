@@ -1,0 +1,27 @@
+::ng-deep .p-select {
+  border: 1px solid rgb(230, 229, 229);
+}
+
+::ng-deep .p-select-option {
+  @apply bg-white text-black;
+}
+
+::placeholder {
+  @apply text-sm text-gray-400;
+}
+
+input[type="checkbox"] {
+  accent-color: #ff5722;
+  width: 20px;
+  height: 20px;
+}
+
+input[type="radio"] {
+  accent-color: #ff5722;
+  width: 15px;
+  height: 15px;
+}
+
+.paymentOptionActive {
+  @apply border border-[#ff5722] bg-[#f8e5e0ee];
+}
