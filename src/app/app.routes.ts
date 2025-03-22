@@ -1,8 +1,5 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './features/Home/home.component';
-import { ProductPageComponent } from './features/product/page/product-page/product-page.component';
-import { CartPageComponent } from './features/cart/page/cart-page/cart-page.component';
-import { CheckoutPageComponent } from './features/checkout/page/checkout-page/checkout-page.component';
+
 
 export const routes: Routes = [
   {
@@ -11,6 +8,20 @@ export const routes: Routes = [
       import('./features/Home/home.component').then((m) => m.HomeComponent),
     pathMatch: 'full',
   },
+  {
+    path: 'cart',
+    loadComponent: () =>
+      import('./features/cart/page/cart-page/cart-page.component').then(
+        (m) => m.CartPageComponent
+      ),
+  },
+  {
+    path: 'checkout',
+    loadComponent: () =>
+      import('./features/checkout/page/checkout-page/checkout-page.component').then(
+        (m) => m.CheckoutPageComponent
+      ),
+    },
   {
     path: 'myaccount',
     loadComponent: () =>
@@ -77,17 +88,5 @@ export const routes: Routes = [
       ),
     pathMatch: 'full',
     data: { breadcrumb: 'Sub-Sub-Sub-Sub Category' },
-  },
-  {
-    path: 'cart',
-    loadComponent: () =>
-      import('./features/cart/page/cart-page/cart-page.component').then(
-        (m) => m.CartPageComponent
-      ),
-  },
-  {
-    path: 'checkout',
-    component: CheckoutPageComponent,
-    pathMatch: 'full',
-  },
+  }
 ];

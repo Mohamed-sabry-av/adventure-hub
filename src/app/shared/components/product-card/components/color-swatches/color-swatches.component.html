@@ -1,9 +1,10 @@
-<div class="color-swatches" *ngIf="colorOptions.length > 0">
-  <div 
-    *ngFor="let option of colorOptions" 
-    class="swatch"
-    [class.selected]="selectedColor === option.color"
+<div *ngIf="colorOptions.length > 0" class="flex justify-center space-x-2 pb-2 mt-1">
+  <div
+    *ngFor="let option of colorOptions"
+    class="swatch w-8 h-8 rounded-full border-2 transition-all duration-300 overflow-hidden cursor-pointer"
+    [class.border-gray-800]="selectedColor === option.color"
+    [class.border-transparent]="selectedColor !== option.color"
     (click)="onSelectColor(option.color, option.image)">
-    <img [src]="option.image" [alt]="option.color" />
+    <div class="w-full h-full" [style.background-image]="'url(' + option.image + ')'" [style.background-size]="'cover'"></div>
   </div>
 </div>

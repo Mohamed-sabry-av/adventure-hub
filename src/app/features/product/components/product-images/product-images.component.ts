@@ -1,33 +1,33 @@
 import { Component, input, OnInit } from '@angular/core';
-import { GalleriaModule } from 'primeng/galleria';
-import { ButtonModule } from 'primeng/button';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-product-images',
-  imports: [GalleriaModule, ButtonModule],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './product-images.component.html',
   styleUrls: ['./product-images.component.css'],
 })
 export class ProductImagesComponent implements OnInit {
-  // Inputs من الـ parent component
-  productImages = input<any>();         // الصور الأساسية للمنتج
-  selectedColor = input<string | null>(null);  // اللون المختار
-  variations = input<any[]>([]);        // الـ variations بتاعة المنتج
+  // Inputs from parent component
+  productImages = input<any>();
+  selectedColor = input<string | null>(null);
+  variations = input<any[]>([]);
 
+  // State variables
   isMobile: boolean = false;
   mediaQuery!: MediaQueryList;
   mediaQueryListener!: (event: MediaQueryListEvent) => void;
+  selectedImageIndex: number = 0;
+  animationDirection: 'next' | 'prev' | null = null;
 
-  position: 'left' | 'right' | 'top' | 'bottom' = 'left';
-  showIndicatorsOnItem: boolean = true;
-
-  // الصور الافتراضية لو مفيش بيانات
+  // Default images if no data is provided
   defaultImages: string[] = [
-    'slider/1.webp',
-    'slider/2.webp',
-    'slider/3.webp',
-    'slider/4.webp',
-    'slider/5.webp',
+    'https://ext.same-assets.com/1752825376/481985518.jpeg',
+    'https://ext.same-assets.com/1752825376/2732260570.jpeg',
+    'https://ext.same-assets.com/1752825376/2764654690.jpeg',
+    'https://ext.same-assets.com/1752825376/2084582008.jpeg',
+    'https://ext.same-assets.com/1752825376/3391035264.jpeg',
   ];
 
   ngOnInit() {
@@ -39,28 +39,81 @@ export class ProductImagesComponent implements OnInit {
     this.mediaQuery.addEventListener('change', this.mediaQueryListener);
   }
 
-  // دالة لتحديد الصور اللي هتتعرض في الـ gallery
-  getGalleryImages(): { src: string }[] {
-    // لو مفيش لون مختار أو مفيش variations، نرجع الصور الأساسية
+  // Clean up event listeners when component is destroyed
+  ngOnDestroy() {
+    if (this.mediaQuery && this.mediaQueryListener) {
+      this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
+    }
+  }
+
+  // Function to get images for the gallery based on selected color
+  getGalleryImages(): { src: string; alt: string }[] {
+    // If no color selected or no variations, return default images
     if (!this.selectedColor() || !this.variations() || !this.variations().length) {
       const images = this.productImages() || this.defaultImages;
-      return Array.isArray(images) ? images.map((img: any) => ({ src: img.src || img })) : [];
+      return Array.isArray(images)
+        ? images.map((img: any) => ({
+            src: img.src || img,
+            alt: img.alt || 'صورة المنتج'
+          }))
+        : [];
     }
 
-    // ندور على الـ variation اللي بتطابق اللون المختار
+    // Find the variation matching the selected color
     const selectedVariation = this.variations().find((v: any) =>
       v.attributes?.some(
         (attr: any) => attr.name === 'Color' && attr.option === this.selectedColor()
       )
     );
 
-    // لو لقينا variation وفيه صورة، نرجعها
-    if (selectedVariation && selectedVariation.image?.src) {
-      return [{ src: selectedVariation.image.src }];
+    // If found and has an image, return it along with any additional images
+    if (selectedVariation) {
+      const mainImage = selectedVariation.image?.src
+        ? [{ src: selectedVariation.image.src, alt: 'صورة المنتج' }]
+        : [];
+      const additionalImages = selectedVariation.additional_images?.map((url: string) => ({
+        src: url,
+        alt: 'صورة المنتج'
+      })) || [];
+
+      return [...mainImage, ...additionalImages];
     }
 
-    // لو مفيش variation مطابقة، نرجع الصور الأساسية
+    // If no matching variation, return default images
     const images = this.productImages() || this.defaultImages;
-    return Array.isArray(images) ? images.map((img: any) => ({ src: img.src || img })) : [];
+    return Array.isArray(images)
+      ? images.map((img: any) => ({
+          src: img.src || img,
+          alt: img.alt || 'صورة المنتج'
+        }))
+      : [];
+  }
+
+  // Set the selected image index with animation direction
+  selectImage(index: number): void {
+    if (index === this.selectedImageIndex) return;
+
+    const oldIndex = this.selectedImageIndex;
+    this.animationDirection = index > oldIndex ? 'next' : 'prev';
+    this.selectedImageIndex = index;
+  }
+
+  // Navigate to the next image
+  nextImage(): void {
+    const images = this.getGalleryImages();
+    this.animationDirection = 'next';
+    this.selectedImageIndex = (this.selectedImageIndex + 1) % images.length;
+  }
+
+  // Navigate to the previous image
+  prevImage(): void {
+    const images = this.getGalleryImages();
+    this.animationDirection = 'prev';
+    this.selectedImageIndex = (this.selectedImageIndex - 1 + images.length) % images.length;
+  }
+
+  // Reset animation direction after animation completes
+  onAnimationDone(): void {
+    this.animationDirection = null;
   }
 }

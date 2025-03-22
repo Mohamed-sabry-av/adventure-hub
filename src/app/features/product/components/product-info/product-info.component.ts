@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
+  standalone: true
 })
 export class ProductInfoComponent {
   productInfo = input<any>();
@@ -115,12 +116,13 @@ export class ProductInfoComponent {
 
   selectColor(color: string): void {
     this.selectedColor = color;
-    this.selectedSize = null; // إعادة تعيين المقاس عند تغيير اللون
+    this.selectedSize = null;
+    this.selectedColorChange.emit(color);
   }
-  selectSize(size: string): void {
-  this.selectedSize = size;
-}
 
+  selectSize(size: string): void {
+    this.selectedSize = size;
+  }
 
   getSelectedPrice(): string {
     const variations = this.productInfo()?.variations || [];
@@ -149,6 +151,4 @@ export class ProductInfoComponent {
     );
     return firstVariationForColor?.price || this.productInfo()?.price || '425.00';
   }
-
-
 }

@@ -1,0 +1,32 @@
+.product-info {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .text-olive {
+    color: #3c3b2e;
+  }
+  
+  .bg-olive {
+    background-color: #3c3b2e;
+  }
+  
+  .bg-orange-500 {
+    background-color: #c85d3c;
+  }
+  
+  .hover\:bg-orange-600:hover {
+    background-color: #b24e33;
+  }
+  
+  .border-orange-500 {
+    border-color: #c85d3c;
+  }
+  
+  button:disabled {
+    cursor: not-allowed;
+  }
+  
+  .transition-colors {
+    transition: background-color 0.3s ease;
+  }
+  
