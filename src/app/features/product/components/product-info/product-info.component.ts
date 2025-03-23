@@ -1,6 +1,7 @@
-import { Component, EventEmitter, input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { CartService } from '../../../cart/service/cart.service';
 
 @Component({
   selector: 'app-product-info',
@@ -18,6 +19,8 @@ export class ProductInfoComponent {
   selectedSize: string | null = null;
 
   @Output() selectedColorChange = new EventEmitter<string | null>(); // Output جديد
+
+  constructor(private cartService:CartService){}
 
   ngOnInit() {
     if (this.productInfo()) {
@@ -150,5 +153,9 @@ export class ProductInfoComponent {
       )
     );
     return firstVariationForColor?.price || this.productInfo()?.price || '425.00';
+  }
+
+  onAddProductToCart() {
+    this.cartService.addProductToCart(this.productInfo());
   }
 }

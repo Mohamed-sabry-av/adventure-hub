@@ -24,7 +24,7 @@
 
   <div class="flex justify-between font-semibold">
     <p class="text-lg">Subtotal:</p>
-    <p>1,412.00 AED</p>
+    <p>{{ (loadedCart$ | async).cartTotalPrice.subTotal }} AED</p>
   </div>
 
   <div>

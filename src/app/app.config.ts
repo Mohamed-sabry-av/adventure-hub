@@ -64,4 +64,5 @@ export const appConfig: ApplicationConfig = {
     provideStore(reducers),
     provideEffects([CartEffect]),
   ],
+
 };

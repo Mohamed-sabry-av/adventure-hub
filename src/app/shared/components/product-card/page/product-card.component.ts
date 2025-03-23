@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, OnDestroy, ElementRef } from '@angular/core';
+import { Component, ElementRef, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
@@ -9,6 +9,7 @@ import { SizeSelectorComponent } from '../components/size-selector/size-selector
 import { AnimationBuilder, AnimationFactory, animate, style, transition, trigger } from '@angular/animations';
 import { Subscription, fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { CartService } from '../../../../features/cart/service/cart.service';
 
 @Component({
   selector: 'app-product-card',
@@ -295,5 +296,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         }
       ).onfinish = () => ripple.remove();
     }
+  }
+  private cartService = inject(CartService);
+
+  onAddProductToCart(product: any): void {
+    this.cartService.addProductToCart(product);
   }
 }

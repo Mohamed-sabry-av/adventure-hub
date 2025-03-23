@@ -1,4 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
+import { getCartFromLSAction } from '../actions/cart.action';
 // import { Product } from '../../Shared/models/product.model';
 // import {
 //   getCartFromLSAction,
@@ -11,7 +12,6 @@ import { createReducer, on } from '@ngrx/store';
 export interface State {
   localStorageCart: any;
   userCart: any;
-  // totalPrice: number;
   paymentData: any;
 }
 
@@ -28,10 +28,10 @@ const initialState: State = {
 };
 
 export const cartReducer = createReducer(
-  initialState
-  // on(getCartFromLSAction, (state, action) => {
-  //   return { ...state, localStorageCart: action.cart };
-  // }),
+  initialState,
+  on(getCartFromLSAction, (state, action) => {
+    return { ...state, localStorageCart: action.cart };
+  })
   // on(getUserCartAction, (state, action) => {
   //   return { ...state, userCart: action.userCart };
   // }),

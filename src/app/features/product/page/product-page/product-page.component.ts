@@ -17,6 +17,7 @@ import { map, switchMap } from 'rxjs';
     ProductDescComponent,
     ProductRelatedComponent,
     AppContainerComponent,
+
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
@@ -34,6 +35,7 @@ export class ProductPageComponent implements OnInit {
   onSelectedColorChange(color: string | null) {
     this.selectedColor = color;
   }
+
 
   ngOnInit() {
     const subscription = this.productService
@@ -56,7 +58,7 @@ export class ProductPageComponent implements OnInit {
         this.productData = response;
         console.log('Final Product Data:', this.productData);
       });
-
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
+  
 }

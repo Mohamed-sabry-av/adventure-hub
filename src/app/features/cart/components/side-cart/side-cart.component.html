@@ -1,5 +1,5 @@
 <p-drawer
-  header="Choose options"
+  header="Your Cart"
   [visible]="(sideCartVisible$ | async)!"
   position="right"
   (onHide)="hideSideCart()"
@@ -7,59 +7,108 @@
 >
   <div class="drawer-body h-[85%]">
     <div class="flex flex-col">
-      <div class="flex mb-8">
-        <img src="slider/3.webp" alt="" class="w-[144px] h-[144px]" />
-        <div class="flex flex-1 flex-col pl-8">
-          <!-- SKU -->
-          <p class="border-b border-[#c3c4b5] pb-4">
-            Matador | SKU: MATFPZ001CH
-          </p>
+      <div class="py-6 px-8 border-b border-[#c3c4b5]">
+        <button
+          class="bg-[#4d4f3a] hover:bg-[#34361f] transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full uppercase"
+        >
+          <i class="pi pi-lock mr-2 text-sm"></i>
+          <span class="text-sm"
+            >Checkout -
+            {{ (loadedCart$ | async).cartTotalPrice.subTotal }} AED</span
+          >
+        </button>
 
-          <!-- Price -->
-          <p class="pt-4 text-xl font-semibold">186.00 AED</p>
-
-          <!-- Vat -->
-          <p class="pt-4 text-sm">VAT included</p>
-
-          <!-- Details -->
-          <a [routerLink]="" class="pt-4 underline text-xs">View details</a>
-        </div>
+        <button
+          class="bg-green-500 mt-2 hover:bg-green-600 transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full text-sm"
+        >
+          Buy with tabby
+        </button>
       </div>
 
-      <p class="text-sm font-semibold mb-3">Color</p>
-      <p-select
-        [options]="colors"
-        optionLabel="name"
-        placeholder="Select a color"
-        class="w-full"
-      />
+      @for (item of (loadedCart$ | async).products; track $index) {
 
-      <p class="text-sm font-semibold mt-6 mb-3">Size</p>
-      <p-select
-        [options]="Sizes"
-        optionLabel="name"
-        placeholder="Select a size"
-        class="w-full"
-      />
-    </div>
-  </div>
-  <div class="drawer-footer">
-    <button
-      class="bg-orange-400 hover:bg-orange-500 transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full uppercase"
-    >
-      Add to cart
-    </button>
+      <div class="flex gap-x-6 border-b pb-4 mt-5">
+        <img [src]="item.firstImage" alt="" class="w-[112px] h-fit bg-cover" />
+        <div class="flex-1">
+          <div class="flex justify-between">
+            <div class="flex flex-col font-semibold gap-y-1 text-sm">
+              <p class="font-normal text-[#b2b48d]">
+                {{ item.name.split(" ")[0] }}
+              </p>
+              <p class="text-base">{{ item.name }}</p>
+              <p class="text-base">
+                {{ item.price }}
+                @if (item.sale_price !== '') {
+                <del class="ml-1 text-gray-400 font-light text-sm">{{
+                  item.regular_price
+                }}</del>
+                }
+              </p>
+              <p>
+                Color:
+                <span class="font-light">
+                  @for (color of item.attributes?.color?.options; track $index)
+                  {
+                  {{ color.name }}
+                  }</span
+                >
+              </p>
+              <p>
+                Size:
+                <span class="font-light">
+                  @for (size of item.attributes.size.options; track $index) {
+                  {{ size.name }}
+                  }
+                </span>
+              </p>
+              <div class="flex mt-4 items-center gap-x-4">
+                <div
+                  class="flex border-2 border-gray-400 rounded-lg w-fit items-center"
+                >
+                  <button
+                    type="button"
+                    class="w-10 h-8"
+                    (click)="onUpdateProductCount(item, 'decrease')"
+                    [disabled]="item.count <= 1"
+                  >
+                    <span class="text-base inline-block transform scale-x-[3]"
+                      >-</span
+                    >
+                  </button>
 
-    <button
-      class="bg-green-500 mt-4 hover:bg-green-600 transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full text-sm"
-    >
-      Buy with tabby
-    </button>
+                  <p class="text-center px-3 text-gray-700">{{ item.count }}</p>
 
-    <div class="text-center mt-3">
-      <a [routerLink]="" class="underline cursor-pointer"
-        >More payment options</a
-      >
+                  <button
+                    type="button"
+                    class="w-10 h-8"
+                    (click)="onUpdateProductCount(item, 'increase')"
+                  >
+                    <span
+                      class="text-base inline-block font-thin transform scale-150"
+                      >+</span
+                    >
+                  </button>
+                </div>
+                <i
+                  class="pi pi-trash text-red-600 text-lg cursor-pointer"
+                  (click)="onDeleteProduct(item)"
+                ></i>
+              </div>
+            </div>
+
+            <!-- Price -->
+            <div class="text-center">
+              <p class="text-base font-semibold">
+                {{ item.price }}
+              </p>
+              @if (item.sale_price !== '') {
+              <del class="text-sm text-gray-400">{{ item.regular_price }}</del>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      }
     </div>
   </div>
 </p-drawer>
