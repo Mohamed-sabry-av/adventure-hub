@@ -12,12 +12,13 @@
     <span
       class="block cursor-pointer border-b border-[#717261] py-3 mb-3 text-base font-semibold"
       [innerHTML]="category.name"
+      [routerLink]="getCategoryRoute(category)"
     ></span>
     <div
       class="max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800"
     >
       @for (childOfSubCategory of getSubCategories(category.id); track $index) {
-      <a>
+      <a [routerLink]="getCategoryRoute(childOfSubCategory)">
         <span
           [innerHTML]="childOfSubCategory.name"
           class="text-sm font-semibold cursor-pointer py-1 block hover:text-gray-400 transition-all duration-150 my-2"
@@ -26,7 +27,13 @@
         @if (getSubCategories(childOfSubCategory.id).length > 0) { @for
         (childOfChildOfSubCategory of getSubCategories(childOfSubCategory.id);
         track $index) {
-        <p class="text-xs py-[2px]">{{ childOfChildOfSubCategory.name }}</p>
+        <p class="text-xs py-[2px]">
+          <a
+          [routerLink]="getCategoryRoute(childOfChildOfSubCategory)"
+          >
+            {{ childOfChildOfSubCategory.name }}
+          </a>
+        </p>
         } }
       </a>
       }

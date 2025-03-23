@@ -19,6 +19,7 @@ import { ButtonModule } from 'primeng/button';
 import { AppContainerComponent } from '../app-container/app-container.component';
 import { NavbarContainerComponent } from '../navbar-container/navbar-container.component';
 import { NavbarService } from '../../services/navbar.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -31,6 +32,7 @@ import { NavbarService } from '../../services/navbar.service';
     ButtonModule,
     AppContainerComponent,
     NavbarContainerComponent,
+    RouterLink
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],

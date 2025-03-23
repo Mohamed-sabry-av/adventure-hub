@@ -2,7 +2,7 @@ import { DestroyRef, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 // import {
 //   combineLatest,
 //   concatMap,
@@ -42,6 +42,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CartService } from '../../features/cart/service/cart.service';
 import { Product } from '../../interfaces/product';
+import { map, of, switchMap, take } from 'rxjs';
+import {
+  addProductToLSCartAction,
+  deleteProductInCartLSAction,
+  fetchCartFromLSAction,
+  getCartFromLSAction,
+  updateCountOfProductInCartLSAction,
+} from '../actions/cart.action';
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -51,104 +59,121 @@ export class CartEffect {
   private cartService = inject(CartService);
   private destroyRef = inject(DestroyRef);
 
-  // // product-info هو البدايه هنا
-  // addProductToCartLS = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(addProductToLSCartAction),
-  //       map(() => {
-  //         const subscribtion = this.store
-  //           .select(selectedProductDataSelector)
-  //           .pipe(take(1))
-  //           .subscribe((selectedProduct) => {
-  //             let updatedCart = [];
-  //             let loadedProducts: any = localStorage.getItem('Cart');
-  //             loadedProducts = loadedProducts
-  //               ? JSON.parse(loadedProducts).products
-  //               : [];
+  addProductToCartLS = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(addProductToLSCartAction),
+        map(({ product }) => {
+          console.log(product);
+          let {
+            id,
+            name,
+            regular_price,
+            price,
+            sale_price,
+            attributes,
+            images,
+          } = product;
 
-  //             const isProductExist = loadedProducts.some(
-  //               (product: Product) => product.id === selectedProduct.id
-  //             );
+          const firstImage = images[0]?.src || '';
 
-  //             const { id, count, price, imageCover, title } = selectedProduct;
+          const brand = attributes.find(
+            (attribute: any) => attribute.name === 'Brand'
+          );
+          const size = attributes.find(
+            (attribute: any) => attribute.name === 'Size'
+          );
+          const color = attributes.find(
+            (attribute: any) => attribute.name === 'Color'
+          );
 
-  //             updatedCart = isProductExist
-  //               ? loadedProducts
-  //               : [
-  //                   ...loadedProducts,
-  //                   {
-  //                     id,
-  //                     count,
-  //                     price,
-  //                     imageCover,
-  //                     title,
-  //                   },
-  //                 ];
+          attributes = { brand, color, size };
 
-  //             const cart = this.cartService.calcCartPrice(updatedCart);
+          let selectedProduct = {
+            id,
+            name,
+            count: 1,
+            regular_price,
+            price,
+            sale_price,
+            attributes,
+            firstImage,
+          };
 
-  //             localStorage.setItem('Cart', JSON.stringify(cart));
-  //           });
-  //         this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
-  //       })
-  //     ),
-  //   { dispatch: false }
-  // );
+          let loadedProducts: any = localStorage.getItem('Cart');
+          loadedProducts = loadedProducts
+            ? JSON.parse(loadedProducts).products
+            : [];
 
-  // // cartPage البدايه من هنا
-  // loadCartLS = createEffect(() =>
-  //   this.actions$.pipe(
-  //     ofType(fetchCartFromLSAction),
-  //     switchMap(() => {
-  //       let loadedCart: any = localStorage.getItem('Cart');
-  //       loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-  //       return of(getCartFromLSAction({ cart: loadedCart }));
-  //     })
-  //   )
-  // );
+          const productIndex = loadedProducts.findIndex(
+            (p: Product) => p.id === selectedProduct.id
+          );
 
-  // // cart-products البدايه من هنا
-  // updateCountOfProductInCartLS = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(updateCountOfProductInCartLSAction),
-  //       map(({ count, selectedProduct }) => {
-  //         let loadedCart: any = localStorage.getItem('Cart');
-  //         loadedCart = loadedCart ? JSON.parse(loadedCart).products : [];
+          if (productIndex !== -1) {
+            loadedProducts[productIndex].count += 1;
+          } else {
+            loadedProducts.push(selectedProduct);
+          }
 
-  //         const updatedCart = loadedCart.map((product: Product) =>
-  //           product.id === selectedProduct.id
-  //             ? { ...product, count: count }
-  //             : product
-  //         );
-  //         const cart = this.cartService.calcCartPrice(updatedCart);
+          const cart = this.cartService.calcCartPrice(loadedProducts);
+          localStorage.setItem('Cart', JSON.stringify(cart));
 
-  //         localStorage.setItem('Cart', JSON.stringify(cart));
-  //       })
-  //     ),
-  //   { dispatch: false }
-  // );
+          this.store.dispatch(fetchCartFromLSAction()); // New
+        })
+      ),
+    { dispatch: false }
+  );
 
-  // // cart-products البدايه من هنا
-  // deleteProductInCartLS = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(deleteProductInCartLSAction),
-  //       map(({ selectedProduct }) => {
-  //         let loadedProducts: any = localStorage.getItem('Cart');
-  //         loadedProducts = loadedProducts
-  //           ? JSON.parse(loadedProducts).products
-  //           : [];
-  //         const updatedProducts = loadedProducts.filter((product: Product) => {
-  //           return product.id !== selectedProduct.id;
-  //         });
-  //         const cart = this.cartService.calcCartPrice(updatedProducts);
-  //         localStorage.setItem('Cart', JSON.stringify(cart));
-  //       })
-  //     ),
-  //   { dispatch: false }
-  // );
+  loadCartLS = createEffect(() =>
+    this.actions$.pipe(
+      ofType(fetchCartFromLSAction),
+      switchMap(() => {
+        let loadedCart: any = localStorage.getItem('Cart');
+        loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+        return of(getCartFromLSAction({ cart: loadedCart }));
+      })
+    )
+  );
+
+  updateCountOfProductInCartLS = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(updateCountOfProductInCartLSAction),
+        map(({ count, selectedProduct }) => {
+          let loadedCart: any = localStorage.getItem('Cart');
+          loadedCart = loadedCart ? JSON.parse(loadedCart).products : [];
+
+          const updatedCart = loadedCart.map((product: Product) =>
+            product.id === selectedProduct.id ? { ...product, count } : product
+          );
+
+          const cart = this.cartService.calcCartPrice(updatedCart);
+
+          localStorage.setItem('Cart', JSON.stringify(cart));
+          this.store.dispatch(fetchCartFromLSAction());
+        })
+      ),
+    { dispatch: false }
+  );
+  deleteProductInCartLS = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(deleteProductInCartLSAction),
+        map(({ selectedProduct }) => {
+          let loadedProducts: any = localStorage.getItem('Cart');
+          loadedProducts = loadedProducts
+            ? JSON.parse(loadedProducts).products
+            : [];
+          const updatedProducts = loadedProducts.filter((product: Product) => {
+            return product.id !== selectedProduct.id;
+          });
+          const cart = this.cartService.calcCartPrice(updatedProducts);
+          localStorage.setItem('Cart', JSON.stringify(cart));
+          this.store.dispatch(fetchCartFromLSAction()); // New
+        })
+      ),
+    { dispatch: false }
+  );
 
   // -------------------------------------------------------------------
 

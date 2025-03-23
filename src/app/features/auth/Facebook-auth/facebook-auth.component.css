@@ -1,0 +1,51 @@
+.social-signin-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 25px 0;
+  }
+  
+  .facebook-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* الشعار والنص في النص مع بعض */
+    gap: 10px; /* مسافة بين الشعار والنص */
+    background: #202124; /* لون أسود مليان زي Google 'filled_black' */
+    color: #ffffff; /* النص أبيض */
+    border: none;
+    border-radius: 50px; /* شكل دائري زي 'pill' */
+    padding: 5px ; 
+    font-size: 16px; /* حجم الخط كبير */
+    font-weight: 500;
+    width: 300px; 
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); /* ظل خفيف زي Google */
+    transition: all 0.3s ease;
+  }
+  
+  .facebook-btn:hover {
+    background: #333333; /* لون أغمق لما تمرر الماوس */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35); /* ظل أقوى */
+
+  }
+  
+  .facebook-btn:active {
+    transform: scale(0.98); /* تصغير خفيف لما تضغط */
+  }
+  
+  .facebook-icon {
+    display: inline-block;
+    width: 30px; /* حجم الشعار */
+    height: 30px;
+    background: url('https://www.facebook.com/favicon.ico') no-repeat center;
+    background-size: contain;
+    order: -1; /* الشعار على الشمال زي 'logo_alignment: left' */
+  }
+  
+  .error {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
+  }

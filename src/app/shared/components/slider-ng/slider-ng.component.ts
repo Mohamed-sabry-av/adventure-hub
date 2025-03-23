@@ -7,7 +7,7 @@ import {
   state,
   query,
 } from '@angular/animations';
-import { NgFor } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common';
 import { Component, ElementRef, inject, Input, Renderer2 } from '@angular/core';
 import { CarouselModule } from 'primeng/carousel';
 import { ButtonModule } from 'primeng/button';
@@ -15,7 +15,7 @@ import { CartService } from '../../../features/cart/service/cart.service';
 
 @Component({
   selector: 'app-slider-ng',
-  imports: [NgFor, CarouselModule],
+  imports: [CommonModule, CarouselModule],
   templateUrl: './slider-ng.component.html',
   styleUrl: './slider-ng.component.css',
   animations: [

@@ -8,11 +8,12 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe, CommonModule, NgIf } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-navbar-sub-categories',
-  imports: [AsyncPipe, NgIf],
+  imports: [CommonModule,RouterLink],
   templateUrl: './navbar-sub-categories.component.html',
   styleUrl: './navbar-sub-categories.component.css',
   animations: [
@@ -61,10 +62,22 @@ export class NavbarSubCategoriesComponent {
   }
 
   getSubCategories(categoryId: number | null) {
-    const filteredCategories = this.allCategoriesData.filter(
-      (cat) => cat.parent === categoryId
-    );
+    return this.allCategoriesData.filter((cat) => cat.parent === categoryId);
+  }
 
-    return filteredCategories;
+  getCategoryRoute(category:Category):string[]{
+    const pathSegments:string[] = [];
+    this.buildFullPath(category, pathSegments)
+    return pathSegments
+  }
+
+  private buildFullPath(category: Category, path: string[]): void {
+    if(category.parent !== 0){
+      const parentCategory = this.allCategoriesData.find(c=> c.id=== category.parent)
+      if(parentCategory){
+        this.buildFullPath(parentCategory, path)
+      }
+    }
+    path.push(category.slug)
   }
 }

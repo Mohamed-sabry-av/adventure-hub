@@ -1,0 +1,25 @@
+<div class="lg:col-span-3">
+    @if (isLoading && products.length === 0) {
+      <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
+      </div>
+    } @else {
+      @defer (on viewport) {
+        <section class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <app-product-card *ngFor="let product of products" [product]="product"></app-product-card>
+        </section>
+      } @placeholder {
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div class="skeleton-item" *ngFor="let item of [].constructor(8)"></div>
+        </div>
+      }
+    }
+    @if (isLoadingMore) {
+      <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div class="skeleton-item" *ngFor="let item of [].constructor(4)"></div>
+      </div>
+    }
+    @if (!isLoading && !isLoadingMore && products.length === 0) {
+      <!-- <div class="text-center text-gray-500">No products found</div> -->
+    }
+  </div>

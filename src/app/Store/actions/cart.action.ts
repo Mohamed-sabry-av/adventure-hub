@@ -15,7 +15,8 @@ export const getCartFromLSAction = createAction(
 );
 
 export const addProductToLSCartAction = createAction(
-  '[CartLS] Add Product To Cart LocalStorage'
+  '[CartLS] Add Product To Cart LocalStorage',
+  props<{ product: any }>()
 );
 
 export const updateCountOfProductInCartLSAction = createAction(

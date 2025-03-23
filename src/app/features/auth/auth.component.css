@@ -1,0 +1,43 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Main Container */
+.account-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.section.active {
+    @apply scale-100 opacity-100 bg-white;
+}
+
+.section.inactive {
+    @apply scale-95 opacity-50 bg-gray-200;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .account-wrapper {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .account-wrapper {
+        border-radius: 10px;
+    }
+
+   
+}

@@ -1,5 +1,6 @@
 export interface Product {
   id: number;
+  currency:string;
   name: string;
   price: string;
   brand?: string;
@@ -73,7 +74,7 @@ export interface Product {
   author_info?: any[];
   comment_info?: string;
   meta_data?: MetaDaum[]
-
+  brandSlug?: string;
 }
 
 export interface Variation {
@@ -117,5 +118,10 @@ export interface Attribute {
   slug?: string; // Use slug instead of name
   name?: string | any;
   terms?: { id: string; name: string }[];
-  options?: string[];
+  options: (string | { name?: string; value?: string,slug?:string })[];
+}
+
+export interface ProductAttribute {
+  name: string;
+  options: (string | { name?: string; value?: string })[]; // options ممكن تكون نصوص أو كائنات
 }

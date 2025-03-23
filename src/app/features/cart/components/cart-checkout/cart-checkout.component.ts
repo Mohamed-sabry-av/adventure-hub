@@ -5,12 +5,15 @@ import {
   transition,
   animate,
 } from '@angular/animations';
-import { Component } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
+import { CartService } from '../../service/cart.service';
 
 @Component({
   selector: 'app-cart-checkout',
-  imports: [RouterLink],
+  imports: [RouterLink, AsyncPipe],
   templateUrl: './cart-checkout.component.html',
   styleUrl: './cart-checkout.component.css',
   animations: [
@@ -37,6 +40,10 @@ import { RouterLink } from '@angular/router';
   ],
 })
 export class CartCheckoutComponent {
+  private cartService = inject(CartService);
+
+  loadedCart$: Observable<any> = this.cartService.savedCartOfLS$;
+
   isTextareaVisible = false;
 
   toggleTextarea() {

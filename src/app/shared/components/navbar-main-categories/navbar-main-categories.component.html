@@ -7,7 +7,9 @@
         [class.active]="category.id === selectedCategoryId"
         (mouseenter)="selectedCategory(category.id)"
       >
-        <a class="py-3 cursor-pointer">
+        <a class="py-3 cursor-pointer"
+        [routerLink]="getCategoryRoute(category)"
+        >
           {{ category.name }} <i class="pi pi-angle-down"></i>
         </a>
       </li>

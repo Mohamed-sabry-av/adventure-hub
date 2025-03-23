@@ -1,0 +1,191 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Login Section */
+.login-section {
+    padding: 60px;
+    border-right: 2px solid #f0f0f0;
+    position: relative;
+}
+
+/* Headings */
+h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 40px;
+    position: relative;
+    display: inline-block;
+}
+
+h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: #3498db;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 16px;
+    background: #fcfcfc;
+    transition: all 0.3s ease-in-out;
+}
+
+input:focus {
+    outline: none;
+    border-color: #3498db;
+    background: white;
+    box-shadow: 0 0 10px rgba(52,152,219,0.1);
+}
+
+input.invalid{
+    border-color:red ;
+}
+
+/* Social Buttons */
+.social-login {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.social-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease-in-out;
+}
+
+.facebook-btn {
+    background: #1877f2;
+    color: white;
+}
+
+.google-btn {
+    background: #db4437;
+    color: white;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease-in-out;
+}
+
+.submit-btn:disabled{
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.submit-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52,152,219,0.3);
+}
+
+.wrong{
+    color:red;
+    font-size: 0.9em;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Additional Links */
+.additional-links {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease-in-out;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* Checkbox */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+}
+
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-section {
+        border-right: none;
+        border-bottom: 2px solid #f0f0f0;
+        padding: 40px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-section {
+        padding: 30px;
+    }
+
+    .social-login {
+        flex-direction: column;
+    }
+}
