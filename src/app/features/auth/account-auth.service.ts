@@ -22,18 +22,70 @@ export class AccountAuthService {
   ) {
     const token = this.localStorageService.getItem<string>(this.TOKEN_KEY);
     this.isLoggedInSubject.next(!!token);
+    this.verifyTokenOnInit();
   }
+
+  verifyToken(): Observable<any> {
+    const token = this.getToken();
+    if (!token) {
+      this.isLoggedInSubject.next(false);
+      return new Observable((observer) => {
+        observer.error('No token found');
+        observer.complete();
+      });
+    }
+
+    return this.http
+      .post(`${this.Api_Url}/wp-json/jwt-auth/v1/token/validate`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .pipe(
+        tap((response: any) => {
+          if (response.code === 'jwt_auth_valid_token') {
+            this.isLoggedInSubject.next(true);
+          } else {
+            this.logout();
+          }
+        }),
+        catchError((error) => {
+          console.error('Token verification failed:', error);
+          this.logout();
+          throw error;
+        })
+      );
+  }
+
+  private verifyTokenOnInit(): void {
+    const token = this.getToken();
+    if (token) {
+      this.verifyToken().subscribe({
+        next: () => console.log('Token is valid'),
+        error: () => {
+          console.log('Token is invalid or expired');
+          this.isLoggedInSubject.next(false);
+        },
+      });
+    } else {
+      this.isLoggedInSubject.next(false);
+    }
+  }
+
 
   login(credentials: { email?: string; username?: string; password: string }): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${this.Api_Url}/wp-json/jwt-auth/v1/token`, credentials)
+      .post<LoginResponse>(`${this.Api_Url}/wp-json/jwt-auth/v1/token`, credentials, {
+        observe: 'response'
+      })
       .pipe(
         tap((response) => {
-          if (response.token) {
-            this.localStorageService.setItem(this.TOKEN_KEY, response.token);
+          console.log('Response Headers:', response.headers.keys().map(key => `${key}: ${response.headers.get(key)}`));
+          console.log('Response Body:', response.body);
+
+          if (response.body?.token) {
+            this.localStorageService.setItem(this.TOKEN_KEY, response.body.token);
             this.localStorageService.setItem(this.USER_KEY, {
-              username: response.user_username || credentials.username || credentials.email || '',
-              email: response.user_email || '',
+              username: response.body.user_username || credentials.username || credentials.email || '',
+              email: response.body.user_email || '',
             });
             this.isLoggedInSubject.next(true);
           }
@@ -45,12 +97,9 @@ export class AccountAuthService {
       );
   }
 
-
   signup(userData: { username: string; email: string; password: string }): Observable<any> {
     return this.WooApi.postRequest('customers', userData).pipe(
-      tap((response) => {
-        console.log('SignUp successfully');
-      }),
+      tap(() => console.log('SignUp successfully')),
       catchError((error) => {
         console.log('signUp failed', error);
         throw error;
@@ -75,4 +124,5 @@ export class AccountAuthService {
   isLoggedIn(): boolean {
     return this.isLoggedInSubject.value;
   }
-}
+
+ }
