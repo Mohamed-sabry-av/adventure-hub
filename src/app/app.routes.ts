@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-
+import { BlogSectionPageComponent } from './features/blog/page/blog-section-page/blog-section-page.component';
+import { blogSectionGuard } from './features/blog/guards/blog-section.guard';
 
 export const routes: Routes = [
   {
@@ -28,6 +29,25 @@ export const routes: Routes = [
       import('./features/auth/auth.component').then((m) => m.AuthComponent),
     pathMatch: 'full',
   },
+  {
+    path: 'blog',
+    loadComponent: () =>
+      import('./features/blog/page/blog-page/blog-page.component').then(
+        (m) => m.BlogPageComponent
+      ),
+    pathMatch: 'full',
+  },
+  {
+    path: ':articleName',
+    loadComponent: () =>
+      import(
+        './features/blog/page/blog-section-page/blog-section-page.component'
+      ).then((m) => m.BlogSectionPageComponent),
+    pathMatch: 'full',
+    canMatch: [blogSectionGuard],
+    data: {},
+  },
+
   {
     path: 'product/:productId',
     loadComponent: () =>

@@ -42,6 +42,15 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CartService } from '../../features/cart/service/cart.service';
 import { Product } from '../../interfaces/product';
+import { map, of, switchMap, take, tap } from 'rxjs';
+import {
+  addProductToLSCartAction,
+  deleteProductInCartLSAction,
+  fetchCartFromLSAction,
+  fetchUserCartAction,
+  getCartFromLSAction,
+  updateCountOfProductInCartLSAction,
+} from '../actions/cart.action';
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -51,104 +60,121 @@ export class CartEffect {
   private cartService = inject(CartService);
   private destroyRef = inject(DestroyRef);
 
-  // // product-info هو البدايه هنا
-  // addProductToCartLS = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(addProductToLSCartAction),
-  //       map(() => {
-  //         const subscribtion = this.store
-  //           .select(selectedProductDataSelector)
-  //           .pipe(take(1))
-  //           .subscribe((selectedProduct) => {
-  //             let updatedCart = [];
-  //             let loadedProducts: any = localStorage.getItem('Cart');
-  //             loadedProducts = loadedProducts
-  //               ? JSON.parse(loadedProducts).products
-  //               : [];
+  loadCartLS = createEffect(() =>
+    this.actions$.pipe(
+      ofType(fetchCartFromLSAction),
+      switchMap(() => {
+        let loadedCart: any = localStorage.getItem('Cart');
+        loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+        return of(getCartFromLSAction({ cart: loadedCart }));
+      })
+    )
+  );
 
-  //             const isProductExist = loadedProducts.some(
-  //               (product: Product) => product.id === selectedProduct.id
-  //             );
+  addProductToCartLS = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(addProductToLSCartAction),
+        map(({ product }) => {
+          console.log(product);
+          let {
+            id,
+            name,
+            regular_price,
+            price,
+            sale_price,
+            attributes,
+            images,
+          } = product;
 
-  //             const { id, count, price, imageCover, title } = selectedProduct;
+          const firstImage = images[0]?.src || '';
 
-  //             updatedCart = isProductExist
-  //               ? loadedProducts
-  //               : [
-  //                   ...loadedProducts,
-  //                   {
-  //                     id,
-  //                     count,
-  //                     price,
-  //                     imageCover,
-  //                     title,
-  //                   },
-  //                 ];
+          const brand = attributes.find(
+            (attribute: any) => attribute.name === 'Brand'
+          );
+          const size = attributes.find(
+            (attribute: any) => attribute.name === 'Size'
+          );
+          const color = attributes.find(
+            (attribute: any) => attribute.name === 'Color'
+          );
 
-  //             const cart = this.cartService.calcCartPrice(updatedCart);
+          attributes = { brand, color, size };
 
-  //             localStorage.setItem('Cart', JSON.stringify(cart));
-  //           });
-  //         this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
-  //       })
-  //     ),
-  //   { dispatch: false }
-  // );
+          let selectedProduct = {
+            id,
+            name,
+            count: 1,
+            regular_price,
+            price,
+            sale_price,
+            attributes,
+            firstImage,
+          };
 
-  // // cartPage البدايه من هنا
-  // loadCartLS = createEffect(() =>
-  //   this.actions$.pipe(
-  //     ofType(fetchCartFromLSAction),
-  //     switchMap(() => {
-  //       let loadedCart: any = localStorage.getItem('Cart');
-  //       loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-  //       return of(getCartFromLSAction({ cart: loadedCart }));
-  //     })
-  //   )
-  // );
+          let loadedProducts: any = localStorage.getItem('Cart');
+          loadedProducts = loadedProducts
+            ? JSON.parse(loadedProducts).products
+            : [];
 
-  // // cart-products البدايه من هنا
-  // updateCountOfProductInCartLS = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(updateCountOfProductInCartLSAction),
-  //       map(({ count, selectedProduct }) => {
-  //         let loadedCart: any = localStorage.getItem('Cart');
-  //         loadedCart = loadedCart ? JSON.parse(loadedCart).products : [];
+          const productIndex = loadedProducts.findIndex(
+            (p: Product) => p.id === selectedProduct.id
+          );
 
-  //         const updatedCart = loadedCart.map((product: Product) =>
-  //           product.id === selectedProduct.id
-  //             ? { ...product, count: count }
-  //             : product
-  //         );
-  //         const cart = this.cartService.calcCartPrice(updatedCart);
+          if (productIndex !== -1) {
+            loadedProducts[productIndex].count += 1;
+          } else {
+            loadedProducts.push(selectedProduct);
+          }
 
-  //         localStorage.setItem('Cart', JSON.stringify(cart));
-  //       })
-  //     ),
-  //   { dispatch: false }
-  // );
+          const cart = this.cartService.calcCartPrice(loadedProducts);
+          localStorage.setItem('Cart', JSON.stringify(cart));
 
-  // // cart-products البدايه من هنا
-  // deleteProductInCartLS = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(deleteProductInCartLSAction),
-  //       map(({ selectedProduct }) => {
-  //         let loadedProducts: any = localStorage.getItem('Cart');
-  //         loadedProducts = loadedProducts
-  //           ? JSON.parse(loadedProducts).products
-  //           : [];
-  //         const updatedProducts = loadedProducts.filter((product: Product) => {
-  //           return product.id !== selectedProduct.id;
-  //         });
-  //         const cart = this.cartService.calcCartPrice(updatedProducts);
-  //         localStorage.setItem('Cart', JSON.stringify(cart));
-  //       })
-  //     ),
-  //   { dispatch: false }
-  // );
+          this.store.dispatch(fetchCartFromLSAction()); // New
+        })
+      ),
+    { dispatch: false }
+  );
+
+  updateCountOfProductInCartLS = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(updateCountOfProductInCartLSAction),
+        map(({ count, selectedProduct }) => {
+          let loadedCart: any = localStorage.getItem('Cart');
+          loadedCart = loadedCart ? JSON.parse(loadedCart).products : [];
+
+          const updatedCart = loadedCart.map((product: Product) =>
+            product.id === selectedProduct.id ? { ...product, count } : product
+          );
+
+          const cart = this.cartService.calcCartPrice(updatedCart);
+
+          localStorage.setItem('Cart', JSON.stringify(cart));
+          this.store.dispatch(fetchCartFromLSAction());
+        })
+      ),
+    { dispatch: false }
+  );
+  deleteProductInCartLS = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(deleteProductInCartLSAction),
+        map(({ selectedProduct }) => {
+          let loadedProducts: any = localStorage.getItem('Cart');
+          loadedProducts = loadedProducts
+            ? JSON.parse(loadedProducts).products
+            : [];
+          const updatedProducts = loadedProducts.filter((product: Product) => {
+            return product.id !== selectedProduct.id;
+          });
+          const cart = this.cartService.calcCartPrice(updatedProducts);
+          localStorage.setItem('Cart', JSON.stringify(cart));
+          this.store.dispatch(fetchCartFromLSAction()); // New
+        })
+      ),
+    { dispatch: false }
+  );
 
   // -------------------------------------------------------------------
 
@@ -246,23 +272,31 @@ export class CartEffect {
   //   { dispatch: false }
   // );
 
-  // loadUserCart = createEffect(() =>
-  //   this.actions$.pipe(
-  //     ofType(fetchUserCartAction),
-  //     switchMap(() => {
-  //       return this.httpClient
-  //         .get('https://ecommerce.routemisr.com/api/v1/cart')
-  //         .pipe(
-  //           take(1),
-  //           map((response: any) => {
-  //             return getUserCartAction({
-  //               userCart: response,
-  //             });
-  //           })
-  //         );
-  //     })
-  //   )
-  // );
+  loadUserCart = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(fetchUserCartAction),
+        switchMap(() => {
+          const options = {
+            headers: new HttpHeaders({
+              Cookie:
+                'wordpress_logged_in_49c1619234a131a188f12fea295ed5ea=ameenelnaggar|1743244195|Yq5foLIFL0v3IjgHGfjGAcL4gZhwu4PaE2Djw9iXk0Q|b7729c053f46cf588b52e700086f44822ece1f6b3f19b6b75a5334ba5dd3e143;',
+            }),
+          };
+          return this.httpClient
+            .get(
+              'https://adventures-hub.com//wp-json/wc/store/v1/cart',
+              options
+            )
+            .pipe(
+              map((response: any) => {
+                console.log(response);
+              })
+            );
+        })
+      ),
+    { dispatch: false }
+  );
 
   // paymentUserCart = createEffect(() =>
   //   this.actions$.pipe(

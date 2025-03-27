@@ -24,16 +24,19 @@
 
   <div class="flex justify-between font-semibold">
     <p class="text-lg">Subtotal:</p>
-    <p>1,412.00 AED</p>
+    <p>{{ (loadedCart$ | async).cartTotalPrice.subTotal }} AED</p>
   </div>
 
   <div>
-    <button
+    <a routerLink="/checkout">
+
+      <button
       class="bg-[#4d4f3a] hover:bg-[#323516] transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full"
-    >
+      >
       <i class="pi pi-shopping-bag mr-2"></i>
       <span>Checkout</span>
     </button>
+  </a>
     <button
       class="bg-green-500 mt-2 hover:bg-green-600 transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full"
     >

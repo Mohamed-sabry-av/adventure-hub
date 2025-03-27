@@ -11,10 +11,6 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./card-details.component.css']
 })
 export class CardDetailsComponent {
-  ngOnInit() {
-    console.log('Product in CardDetailsComponent:', this.product);
-  }
-
   @Input() product!: Product;
   @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
   @Input() uniqueSizes: { size: string; inStock: boolean }[] = [];

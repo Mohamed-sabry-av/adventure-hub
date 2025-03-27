@@ -1,6 +1,7 @@
 import { Component, EventEmitter, input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { CartService } from '../../../cart/service/cart.service';
 
 @Component({
   selector: 'app-product-info',

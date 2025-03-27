@@ -44,6 +44,7 @@ export class ProductImagesComponent implements OnInit {
     if (this.mediaQuery && this.mediaQueryListener) {
       this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
     }
+
   }
 
   // Function to get images for the gallery based on selected color

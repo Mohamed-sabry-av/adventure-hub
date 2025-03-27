@@ -1,0 +1,51 @@
+@if ((blogData$ | async)?.length !==0) { @for (post of (blogData$ | async);
+track $index) {
+<article class="article-data">
+  <!-- Image -->
+  <div>
+    <a [routerLink]="['/', post.slug]" class="relative group block">
+      <img
+        [src]="post.yoast_head_json.og_image[0].url"
+        alt="section-img"
+        class="article-image"
+      />
+      <div
+        class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center transition duration-300"
+      >
+        <i
+          class="pi pi-arrow-right w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition duration-300 text-xl"
+        ></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="article-section">
+    <!-- Header -->
+    <header>
+      <!-- Title -->
+      <h2 class="font-semibold text-2xl mb-[6px]">
+        <a [routerLink]="post.slug" [innerHTML]="post.title.rendered"></a>
+      </h2>
+    </header>
+
+    <!-- Date -->
+    <span class="text-gray-400 text-xs uppercase mb-2">{{
+      post.date | date : "longDate"
+    }}</span>
+
+    <!-- Desc -->
+    <div class="text-xs leading-5" [innerHTML]="post.excerpt.rendered"></div>
+  </div>
+</article>
+
+}
+<div class="article-paginator">
+  <p-paginator
+    (onPageChange)="onPageChange($event)"
+    [first]="first"
+    [rows]="rows"
+    [totalRecords]="totalRecords"
+  />
+</div>
+
+}

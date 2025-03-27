@@ -1,0 +1,58 @@
+.article-data {
+  @apply flex items-center p-6 shadow-lg rounded-lg mb-7;
+}
+
+.article-image {
+  @apply w-[540px] transition duration-300;
+}
+
+.article-section {
+  @apply flex flex-col w-[460px] lg:px-6 xl:px-12;
+}
+
+@media (max-width: 1200px) {
+  .article-data {
+    @apply flex-col;
+  }
+
+  .article-image {
+    @apply w-full  object-cover;
+  }
+
+  .article-section {
+    @apply w-full mt-4;
+  }
+}
+
+::ng-deep .p-paginator {
+  @apply bg-gray-900 w-fit mx-auto mb-6;
+}
+
+::ng-deep .p-paginator-rpp-dropdown {
+  @apply bg-gray-600;
+}
+
+::ng-deep .p-iconwrapper {
+  @apply text-white;
+}
+
+::ng-deep .p-select-overlay {
+  @apply bg-white;
+}
+
+::ng-deep .p-select-option {
+  @apply hover:bg-gray-600;
+}
+
+::ng-deep .p-paginator-page-selected {
+  @apply bg-blue-500;
+}
+
+::ng-deep .p-ripple {
+  @apply font-bold -ml-2 sm:-ml-0;
+}
+
+::ng-deep .p-paginator-last,
+::ng-deep .p-paginator-first {
+  @apply hidden;
+}

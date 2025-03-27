@@ -15,7 +15,8 @@ export const getCartFromLSAction = createAction(
 );
 
 export const addProductToLSCartAction = createAction(
-  '[CartLS] Add Product To Cart LocalStorage'
+  '[CartLS] Add Product To Cart LocalStorage',
+  props<{ product: any }>()
 );
 
 export const updateCountOfProductInCartLSAction = createAction(
@@ -49,12 +50,12 @@ export const deleteProductInCartLSAction = createAction(
 //   props<{ product: Product }>()
 // );
 
-// export const fetchUserCartAction = createAction('[Cart] Fetch User Cart');
+export const fetchUserCartAction = createAction('[Cart] Fetch User Cart');
 
-// export const getUserCartAction = createAction(
-//   '[Cart] Get User Cart',
-//   props<{ userCart: any }>()
-// );
+export const getUserCartAction = createAction(
+  '[Cart] Get User Cart',
+  props<{ userCart: any }>()
+);
 
 // // --------------------------------------------
 

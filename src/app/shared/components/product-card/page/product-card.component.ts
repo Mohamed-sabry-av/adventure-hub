@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, OnDestroy, ElementRef } from '@angular/core';
+import { Component, ElementRef, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
@@ -67,12 +67,11 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private el: ElementRef,
-    private animationBuilder: AnimationBuilder,
-    private cartService:CartService
+    private animationBuilder: AnimationBuilder
   ) {}
 
   ngOnInit(): void {
-    // console.log('Product Data:', this.product);
+    console.log('Product Data:', this.product);
     this.fetchVariations();
     this.setupEventListeners();
   }
@@ -93,9 +92,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       });
   }
 
-  openCart() {
-    this.cartService.cartMode(true);
-  }
 
   private stopAutoSlide(): void {
     if (this.autoSlideInterval) {
@@ -299,5 +295,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         }
       ).onfinish = () => ripple.remove();
     }
+  }
+  private cartService = inject(CartService);
+
+  onAddProductToCart(product: any): void {
+    this.cartService.addProductToCart(product);
   }
 }

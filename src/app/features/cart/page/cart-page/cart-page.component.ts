@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { CartProductsComponent } from '../../components/cart-products/cart-products.component';
 import { CartCheckoutComponent } from '../../components/cart-checkout/cart-checkout.component';
+import { CartService } from '../../service/cart.service';
 
 @Component({
   selector: 'app-cart-page',
@@ -13,4 +14,11 @@ import { CartCheckoutComponent } from '../../components/cart-checkout/cart-check
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',
 })
-export class CartPageComponent {}
+export class CartPageComponent {
+  private cartService = inject(CartService);
+
+  ngOnInit() {
+    // this.cartService.fetchCartFromLS();
+    this.cartService.fetchUserCart();
+  }
+}

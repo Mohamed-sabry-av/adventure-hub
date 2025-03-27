@@ -1,0 +1,19 @@
+<app-app-container>
+  <!-- Slug -->
+  <div class="flex items-center gap-x-2 text-sm py-4">
+    <p>Home</p>
+    <span class="text-sm text-gray-400">/</span>
+    <p>
+      {{ post?.slug }}
+    </p>
+  </div>
+  <div class="flex xl:flex-row flex-col gap-12">
+    <div>
+      <app-blog-article [articleData]="post" />
+    </div>
+    <div class="flex-1">
+      <app-blog-related-info />
+    </div>
+  </div>
+  <app-service-highlights />
+</app-app-container>

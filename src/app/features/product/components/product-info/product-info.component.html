@@ -132,4 +132,80 @@
       <p class="text-sm text-gray-600">On orders over AED 500</p>
     </div>
   </div>
+
+  <!-- المقاسات -->
+  <div class="mt-4">
+    <div class="text-lg font-semibold text-[#4d4f3a] mb-2">
+      Available Sizes:
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      @for (size of getSizesForColor(selectedColor); track size.size) {
+      <div
+        class="px-3 py-1 text-sm text-gray-500 bg-white border-2 border-gray-200 rounded-md cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-black hover:border-[#4d4f3a]"
+        [class.opacity-50]="!size.inStock"
+        [class.cursor-not-allowed]="!size.inStock"
+        [class.bg-gray-50]="!size.inStock"
+        [class.border-[#4d4f3a]="selectedSize === size.size"
+        [class.shadow-md]="selectedSize === size.size"
+        (click)="selectSize(size.size)"
+      >
+        <span>{{ size.size }}</span>
+      </div>
+      }
+    </div>
+  </div>
+  <!-- الدفع -->
+  <div class="flex gap-x-2">
+    <div class="flex">
+      <input
+        type="number"
+        [value]="quantity"
+        class="text-center text-gray-700 px-[6px] border rounded-md rounded-r-none w-14 h-14 outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
+      <div
+        class="flex flex-col border rounded-md rounded-l-none p-2 bg-white justify-between"
+      >
+        <i
+          class="pi pi-angle-up text-gray-700 cursor-pointer"
+          (click)="onQuantityUp()"
+        ></i>
+        <i
+          class="pi pi-angle-down text-gray-700 cursor-pointer"
+          (click)="onQuantityDown()"
+        ></i>
+      </div>
+    </div>
+    <button
+      class="bg-orange-400 hover:bg-orange-500 transition-colors duration-300 font-semibold text-white px-6 rounded-md w-full"
+      (click)="onAddProductToCart()"
+    >
+      Add to cart
+    </button>
+  </div>
+
+  <!-- الاضافه الي المفضله -->
+  <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
+    <i class="pi pi-heart text-sm"></i>
+    <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
+  </div>
+
+  <!-- معلومات التوصيل -->
+  <div class="mt-6 flex flex-col gap-y-1">
+    <p class="text-sm">
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping
+      in UAE For orders above AED 100.
+    </p>
+    <p class="text-sm">
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> 7 days easy
+      returns.
+    </p>
+    <p class="text-sm">
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery
+      within 1-2 working days.
+    </p>
+    <p class="text-sm">
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide
+      shipping.
+    </p>
+  </div>
 </div>

@@ -1,0 +1,15 @@
+::ng-deep ol {
+  @apply list-decimal  ml-5 my-5;
+}
+
+::ng-deep li {
+  @apply mt-2;
+}
+
+::ng-deep h2 {
+  @apply font-bold text-2xl my-4;
+}
+
+::ng-deep p {
+  @apply my-3;
+}
