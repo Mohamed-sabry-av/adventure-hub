@@ -6,7 +6,8 @@ export interface User {
 
 
 export interface LoginResponse {
-  token: string;
-  user_email: string;
-  user_username: string;
+  token?: string;
+  user_email?: string;
+  user_username?: string;
+  headers?: any;
 }

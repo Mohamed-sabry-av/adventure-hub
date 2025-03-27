@@ -21,14 +21,14 @@
     (mouseleave)="resetZoom()"
     #zoomContainer
   >
-    <button class="prev" (click)="slickCarousel.slickPrev()">❮</button>
+    <!-- <button class="prev" (click)="slickCarousel.slickPrev()">❮</button>
     <button class="next" (click)="slickCarousel.slickNext()">❯</button>
     <ngx-slick-carousel
       #slickCarousel
       class="carousel"
       [config]="slideConfig"
       (afterChange)="afterChange($event)"
-    >
+    > -->
       <div
         ngxSlickItem
         *ngFor="let image of images; trackBy: trackByFn"
@@ -40,7 +40,7 @@
           class="main-img"
         />
       </div>
-    </ngx-slick-carousel>
+    <!-- </ngx-slick-carousel> -->
   </div>
 </div>
 

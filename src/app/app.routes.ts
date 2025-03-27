@@ -45,6 +45,15 @@ export const routes: Routes = [
       pathMatch: 'full',
   },
   {
+    path: 'sale',
+    loadComponent: () =>
+      import(
+        './features/products/pages/products-by-sale/products-by-sale.component'
+      ).then((m) => m.ProductsBySaleComponent),
+      pathMatch: 'full',
+      data: { breadcrumb: 'sale' },
+  },
+  {
     path: ':mainCategorySlug',
     loadComponent: () =>
       import('./features/products/pages/Products/products.component').then(

@@ -21,7 +21,7 @@ export class FilterService {
    */
 // في FilterService
 getAttributesAndTermsByCategory(
-  categoryId: number,
+  categoryId: any,
   page: number = 1,
   perPage: number = 100
 ): Observable<{ attributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } }; totalPages: number }> {
@@ -167,37 +167,45 @@ getAttributesAndTermsByCategory(
    * Build HTTP params for filtering products
    */
   private buildFilterParams(
-    categoryId: number | null,
-    filters: { [key: string]: string[] },
-    page: number,
-    perPage: number,
-    orderby: string,
-    order: 'asc' | 'desc'
-  ): HttpParams {
-    let params = new HttpParams()
-      .set('orderby', orderby)
-      .set('order', order)
-      .set('page', page.toString())
-      .set('per_page', perPage.toString())
-      .set('_fields', 'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes');
+  categoryId: number | null,
+  filters: { [key: string]: string[] },
+  page: number,
+  perPage: number,
+  orderby: string,
+  order: 'asc' | 'desc'
+): HttpParams {
+  let params = new HttpParams()
+    .set('orderby', orderby)
+    .set('order', order)
+    .set('page', page.toString())
+    .set('per_page', perPage.toString())
+    .set('_fields', 'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes');
 
-    if (categoryId) {
-      params = params.set('category', categoryId.toString());
-    }
-
-    if (Object.keys(filters).length > 0) {
-      params = params.set('attributes', JSON.stringify(filters));
-    }
-
-    console.log('Generated Params:', params.toString());
-    return params;
+  if (categoryId) {
+    params = params.set('category', categoryId.toString());
   }
+
+  // إضافة فلتر on_sale لو موجود
+  if (filters['on_sale'] && filters['on_sale'].includes('true')) {
+    params = params.set('on_sale', 'true');
+  }
+
+  // فلاتر السمات الأخرى
+  const attributeFilters = { ...filters };
+  delete attributeFilters['on_sale']; // حذف on_sale من السمات عشان ميتعاملش معاه كسمة
+  if (Object.keys(attributeFilters).length > 0) {
+    params = params.set('attributes', JSON.stringify(attributeFilters));
+  }
+
+  console.log('Generated Params:', params.toString());
+  return params;
+}
 
   /**
    * Fetch available attributes and terms based on current filters
    */
   getAvailableAttributesAndTerms(
-    categoryId: number,
+    categoryId: any,
     filters: { [key: string]: string[] }
   ): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
     const cacheKey = `available_attributes_terms_category_${categoryId}_filters_${JSON.stringify(filters)}`;

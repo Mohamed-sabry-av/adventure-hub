@@ -3,8 +3,8 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AccountAuthService } from '../account-auth.service';
-import { GoogleAuthComponent } from '../google-auth/google-auth.component';
 import { FacebookAuthComponent } from '../Facebook-auth/facebook-auth.component';
+import { GoogleAuthComponent } from '../google-auth/google-auth.component';
 
 @Component({
   selector: 'app-login',

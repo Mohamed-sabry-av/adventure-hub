@@ -135,7 +135,7 @@ export class ProductsBrandService {
 
 
 
-  getAllAttributesAndTermsByBrand(brandTermId: number): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
+  getAllAttributesAndTermsByBrand(brandTermId: any): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
     const cacheKey = `attributes_terms_brand_${brandTermId}_page_1`;
     return this.cacheService.cacheObservable(
       cacheKey,
@@ -159,7 +159,7 @@ export class ProductsBrandService {
     );
   }
 
-  getAvailableAttributesAndTermsByBrand(brandTermId: number, filters: { [key: string]: string[] }): Observable<any> {
+  getAvailableAttributesAndTermsByBrand(brandTermId: any, filters: { [key: string]: string[] }): Observable<any> {
     let params = new HttpParams()
       .set('attribute', 'pa_brand')
       .set('attribute_term', brandTermId.toString());

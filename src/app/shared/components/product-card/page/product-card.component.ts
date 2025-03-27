@@ -70,7 +70,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('Product Data:', this.product);
+    // console.log('Product Data:', this.product);
     this.fetchVariations();
     this.setupEventListeners();
   }
