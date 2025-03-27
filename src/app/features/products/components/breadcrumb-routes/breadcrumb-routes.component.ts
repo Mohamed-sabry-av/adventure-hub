@@ -13,7 +13,7 @@ import { Observable } from 'rxjs';
   imports: [CommonModule, RouterLink],
   template: `
     <ul class="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
-    @defer (on viewport) {
+    @defer () {
         <li *ngFor="let subCat of subcategories">
           <a
             [routerLink]="getSubCategoryRoute(subCat.category)"

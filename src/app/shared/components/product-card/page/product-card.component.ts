@@ -9,6 +9,7 @@ import { SizeSelectorComponent } from '../components/size-selector/size-selector
 import { AnimationBuilder, AnimationFactory, animate, style, transition, trigger } from '@angular/animations';
 import { Subscription, fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { CartService } from '../../../../features/cart/service/cart.service';
 
 @Component({
   selector: 'app-product-card',
@@ -66,7 +67,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private el: ElementRef,
-    private animationBuilder: AnimationBuilder
+    private animationBuilder: AnimationBuilder,
+    private cartService:CartService
   ) {}
 
   ngOnInit(): void {
@@ -91,7 +93,9 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       });
   }
 
-
+  openCart() {
+    this.cartService.cartMode(true);
+  }
 
   private stopAutoSlide(): void {
     if (this.autoSlideInterval) {

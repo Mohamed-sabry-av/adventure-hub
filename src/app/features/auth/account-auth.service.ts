@@ -72,7 +72,7 @@ export class AccountAuthService {
   login(credentials: { email?: string; username?: string; password: string }): Observable<HttpResponse<LoginResponse>> {
     return this.http
       .post<LoginResponse>(`${this.Api_Url}/wp-json/jwt-auth/v1/token`, credentials, {
-        withCredentials: true,
+        withCredentials: true, // **تفعيل إرسال الكوكيز**
         observe: 'response'
       })
       .pipe(
@@ -93,6 +93,7 @@ export class AccountAuthService {
         })
       );
   }
+  
 
   getCart(): Observable<HttpResponse<any>> {
     return this.http.get(`${this.Api_Url}/wp-json/wc/store/v1/cart`, {

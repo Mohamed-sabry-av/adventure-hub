@@ -20,19 +20,19 @@ import { AppContainerComponent } from '../app-container/app-container.component'
 import { NavbarContainerComponent } from '../navbar-container/navbar-container.component';
 import { NavbarService } from '../../services/navbar.service';
 import { RouterLink } from '@angular/router';
+import { SearchBarComponent } from '../search-bar/search-bar.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     CommonModule,
-    NavbarComponent,
-    MobileNavbarComponent,
     Carousel,
     ButtonModule,
     AppContainerComponent,
     NavbarContainerComponent,
-    RouterLink
+    RouterLink,
+    SearchBarComponent
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],

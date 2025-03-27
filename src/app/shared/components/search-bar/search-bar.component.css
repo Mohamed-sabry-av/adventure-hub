@@ -1,0 +1,91 @@
+:host {
+    display: block;
+  }
+  
+  /* ستايل الـ input */
+  .search-input {
+    background-color: #F5F5DC;
+    width: 100%;
+    padding: 0.5rem 0.5rem 0.5rem 3.5rem; /* padding للنص مع مساحة للأيقونة */
+    border-radius: 0.75rem;
+    outline: none;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  
+  .search-input:focus {
+    border-color: white;
+  }
+  
+  .search-input::placeholder {
+    color: #4B5563;
+    font-size: 0.875rem;
+  }
+  
+  /* ستايل أيقونة السيرش */
+  .search-icon {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 1.125rem;
+  }
+  
+  /* ستايل الـ dropdown بتاع النتائج */
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    z-index: 10;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  /* ستايل كل منتج في النتائج */
+  .product-item {
+    padding: 0.5rem;
+    border-bottom: 1px solid #E5E7EB;
+    cursor: pointer;
+  }
+  
+  .product-item:hover {
+    background-color: #F3F4F6;
+  }
+  
+  /* ستايل الصورة */
+  .product-image {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+    margin-right: 0.5rem;
+    border-radius: 0.25rem;
+  }
+  
+  /* ستايل اسم المنتج */
+  .product-name {
+    color: #1F2937;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  
+  /* ستايل السعر */
+  .product-price {
+    color: #4B5563;
+    font-size: 0.85rem;
+  }
+  
+  /* ستايل الليبل بتاع العرض */
+  .offer-badge {
+    background-color: #EF4444;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    display: inline-block;
+    margin-top: 0.25rem;
+  }
