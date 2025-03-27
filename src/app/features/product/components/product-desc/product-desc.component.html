@@ -1,63 +1,54 @@
-<p-tabs value="0">
-  <p-tablist>
-    <p-tab value="0">Description</p-tab>
-    <p-tab value="1">Information</p-tab>
-    <p-tab value="2">Reviews</p-tab>
-  </p-tablist>
-  <p-tabpanels>
-    <p-tabpanel value="0">
-      <div class="content">
-        <h2 class="text-3xl font-semibold text-black my-3">
-          {{ productAdditionlInfo()?.name }}
-        </h2>
-        <p [innerHTML]="productAdditionlInfo().description"></p>
-      </div>
-    </p-tabpanel>
-    <p-tabpanel value="1">
-      <div class="content">
-        <h2 class="text-2xl font-semibold text-black my-3">
-          Additional information
-        </h2>
+<div class="product-desc mb-10">
+  <div class="border border-gray-200 rounded-md overflow-hidden">
+    <!-- Tab Buttons -->
+    <div class="flex border-b">
+      <button
+        (click)="setActiveTab('description')"
+        [class.bg-gray-100]="activeTab === 'description'"
+        [class.font-medium]="activeTab === 'description'"
+        class="py-3 px-6 hover:bg-gray-50 focus:outline-none transition-colors"
+      >
+        Description
+      </button>
+      <button
+        (click)="setActiveTab('specifications')"
+        [class.bg-gray-100]="activeTab === 'specifications'"
+        [class.font-medium]="activeTab === 'specifications'"
+        class="py-3 px-6 hover:bg-gray-50 focus:outline-none transition-colors"
+      >
+        Specifications
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6">
+      <!-- Description Tab -->
+      @if (activeTab === 'description') {
         <div>
-          <ul class="flex flex-col">
-            <li class="flex justify-between items-center py-3">
-              <span class="font-semibold text-black">{{
-                productAdditionlInfo()?.attributes[0]?.name
-              }}</span>
-              <span class="underline">{{
-                productAdditionlInfo()?.attributes[0]?.options[0]
-              }}</span>
-            </li>
-            <hr />
-            <li class="flex justify-between items-center py-3">
-              <span class="font-semibold text-black">{{
-                productAdditionlInfo()?.attributes[1]?.name
-              }}</span>
-              <span class="underline">{{
-                productAdditionlInfo()?.attributes[1]?.options[0]
-              }}</span>
-            </li>
-            <hr />
-            <li class="flex justify-between items-center py-3">
-              <span class="font-semibold text-black">{{
-                productAdditionlInfo()?.attributes[2]?.name
-              }}</span>
-              <span class="underline">{{
-                productAdditionlInfo()?.attributes[2]?.options[0]
-              }}</span>
-            </li>
-          </ul>
+          <p class="text-gray-700 mb-4">
+            Cook more wherever you go with this 22" flat top grill. It is perfect for small to medium groups who want restaurant-quality meals and flavor. Featuring 361 square inches of cooking space, stylish hood for protection, and a stainless steel front panel for easy cleaning and maintenance.
+          </p>
+          <p class="text-gray-700">
+            Dimensions: {{ productAdditionlInfo()?.dimensions }}
+          </p>
         </div>
-      </div>
-    </p-tabpanel>
-    <p-tabpanel value="2">
-      <div class="content">
-        <h2 class="text-3xl font-semibold text-black my-3">Reviews</h2>
-        <p class="text-lg">
-          There are no reviews yet. Only logged in customers who have purchased
-          this product may leave a review.
-        </p>
-      </div>
-    </p-tabpanel>
-  </p-tabpanels>
-</p-tabs>
+      }
+
+      <!-- Specifications Tab -->
+      @if (activeTab === 'specifications') {
+        <div class="specifications">
+          <table class="w-full">
+            <tbody>
+              @for (spec of productAdditionlInfo()?.specifications; track spec.name) {
+                <tr class="border-b">
+                  <td class="py-3 font-medium">{{ spec.name }}</td>
+                  <td class="py-3 text-gray-700">{{ spec.value }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>

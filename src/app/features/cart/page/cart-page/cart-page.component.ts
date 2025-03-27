@@ -18,6 +18,7 @@ export class CartPageComponent {
   private cartService = inject(CartService);
 
   ngOnInit() {
-    this.cartService.fetchCartFromLS();
+    // this.cartService.fetchCartFromLS();
+    this.cartService.fetchUserCart();
   }
 }

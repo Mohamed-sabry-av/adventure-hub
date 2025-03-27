@@ -5,13 +5,16 @@ import {
   addProductToLSCartAction,
   deleteProductInCartLSAction,
   fetchCartFromLSAction,
+  fetchUserCartAction,
   updateCountOfProductInCartLSAction,
 } from '../../../Store/actions/cart.action';
 import { savedCartOfLSSelector } from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
+import { AccountAuthService } from '../../auth/account-auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
+  private accountAuthService = inject(AccountAuthService);
   private store = inject(Store);
   cartIsVisible$ = new BehaviorSubject<boolean>(false);
 
@@ -23,6 +26,17 @@ export class CartService {
     this.store.dispatch(fetchCartFromLSAction());
   }
   savedCartOfLS$: Observable<any> = this.store.select(savedCartOfLSSelector);
+
+  fetchUserCart() {
+    this.store.dispatch(fetchUserCartAction());
+    // this.accountAuthService.isLoggedIn$.subscribe((response: boolean) => {
+    //   if (response) {
+    //   } else {
+    //     this.store.dispatch(fetchCartFromLSAction());
+    //   }
+    // });
+  }
+  // savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
 
   addProductToCart(selectedProduct: Product) {
     this.store.dispatch(addProductToLSCartAction({ product: selectedProduct }));

@@ -1,3 +1,18 @@
-.product-info {
-  @apply w-full md:max-w-[45%] h-full;
+.breadcrumb {
+  font-size: 0.875rem;
+}
+
+.breadcrumb a {
+  color: #718096;
+  transition: color 0.2s;
+}
+
+.breadcrumb a:hover {
+  color: #4A5568;
+}
+
+@media (max-width: 768px) {
+  .breadcrumb {
+    padding: 1rem 0;
+  }
 }

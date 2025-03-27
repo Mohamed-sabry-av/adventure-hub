@@ -1,0 +1,33 @@
+.related-products {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .bg-orange {
+    background-color: #c85d3c;
+  }
+  
+  .text-orange {
+    color: #c85d3c;
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .transition-transform {
+    transition: transform 0.2s;
+  }
+  
+  .hover\:shadow-md:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+  }
+  
+  input[type="checkbox"]:checked {
+    background-color: #c85d3c;
+    border-color: #c85d3c;
+  }
+  

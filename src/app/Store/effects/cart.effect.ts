@@ -2,7 +2,7 @@ import { DestroyRef, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 // import {
 //   combineLatest,
 //   concatMap,
@@ -42,11 +42,12 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CartService } from '../../features/cart/service/cart.service';
 import { Product } from '../../interfaces/product';
-import { map, of, switchMap, take } from 'rxjs';
+import { map, of, switchMap, take, tap } from 'rxjs';
 import {
   addProductToLSCartAction,
   deleteProductInCartLSAction,
   fetchCartFromLSAction,
+  fetchUserCartAction,
   getCartFromLSAction,
   updateCountOfProductInCartLSAction,
 } from '../actions/cart.action';
@@ -58,6 +59,17 @@ export class CartEffect {
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
   private destroyRef = inject(DestroyRef);
+
+  loadCartLS = createEffect(() =>
+    this.actions$.pipe(
+      ofType(fetchCartFromLSAction),
+      switchMap(() => {
+        let loadedCart: any = localStorage.getItem('Cart');
+        loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+        return of(getCartFromLSAction({ cart: loadedCart }));
+      })
+    )
+  );
 
   addProductToCartLS = createEffect(
     () =>
@@ -122,17 +134,6 @@ export class CartEffect {
         })
       ),
     { dispatch: false }
-  );
-
-  loadCartLS = createEffect(() =>
-    this.actions$.pipe(
-      ofType(fetchCartFromLSAction),
-      switchMap(() => {
-        let loadedCart: any = localStorage.getItem('Cart');
-        loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-        return of(getCartFromLSAction({ cart: loadedCart }));
-      })
-    )
   );
 
   updateCountOfProductInCartLS = createEffect(
@@ -271,23 +272,31 @@ export class CartEffect {
   //   { dispatch: false }
   // );
 
-  // loadUserCart = createEffect(() =>
-  //   this.actions$.pipe(
-  //     ofType(fetchUserCartAction),
-  //     switchMap(() => {
-  //       return this.httpClient
-  //         .get('https://ecommerce.routemisr.com/api/v1/cart')
-  //         .pipe(
-  //           take(1),
-  //           map((response: any) => {
-  //             return getUserCartAction({
-  //               userCart: response,
-  //             });
-  //           })
-  //         );
-  //     })
-  //   )
-  // );
+  loadUserCart = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(fetchUserCartAction),
+        switchMap(() => {
+          const options = {
+            headers: new HttpHeaders({
+              Cookie:
+                'wordpress_logged_in_49c1619234a131a188f12fea295ed5ea=ameenelnaggar|1743244195|Yq5foLIFL0v3IjgHGfjGAcL4gZhwu4PaE2Djw9iXk0Q|b7729c053f46cf588b52e700086f44822ece1f6b3f19b6b75a5334ba5dd3e143;',
+            }),
+          };
+          return this.httpClient
+            .get(
+              'https://adventures-hub.com//wp-json/wc/store/v1/cart',
+              options
+            )
+            .pipe(
+              map((response: any) => {
+                console.log(response);
+              })
+            );
+        })
+      ),
+    { dispatch: false }
+  );
 
   // paymentUserCart = createEffect(() =>
   //   this.actions$.pipe(

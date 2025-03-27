@@ -22,6 +22,7 @@ import { map, switchMap } from 'rxjs';
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
   host: { ngSkipHydration: '' },
+  standalone: true
 })
 export class ProductPageComponent implements OnInit {
   private productService = inject(ProductService);
@@ -29,11 +30,13 @@ export class ProductPageComponent implements OnInit {
   productId = input.required();
 
   productData: any;
-selectedColor: string | null = null;
+  selectedColor: string | null = null;
 
   onSelectedColorChange(color: string | null) {
     this.selectedColor = color;
   }
+
+
   ngOnInit() {
     const subscription = this.productService
       .getProductById(Number(this.productId()))
@@ -55,7 +58,6 @@ selectedColor: string | null = null;
         this.productData = response;
         console.log('Final Product Data:', this.productData);
       });
-  
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
   

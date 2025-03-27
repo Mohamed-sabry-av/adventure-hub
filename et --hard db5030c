@@ -1,0 +1,30 @@
+[33m13e5018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: checkout: moving from ameenelnaggar to master
+[33mbd98ecb[m[33m ([m[1;31morigin/ameenelnaggar[m[33m, [m[1;32mameenelnaggar[m[33m)[m HEAD@{1}: checkout: moving from master to ameenelnaggar
+[33m13e5018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{2}: reset: moving to HEAD
+[33m13e5018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{3}: checkout: moving from ameenelnaggar to master
+[33mbd98ecb[m[33m ([m[1;31morigin/ameenelnaggar[m[33m, [m[1;32mameenelnaggar[m[33m)[m HEAD@{4}: checkout: moving from master to ameenelnaggar
+[33m13e5018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{5}: checkout: moving from db5030c3cabb037f3b4b4fe7bec7e72502225776 to master
+[33mdb5030c[m HEAD@{6}: commit: after merging Checout
+[33m2b8274a[m HEAD@{7}: commit (merge): Merge branch 'ameenelnaggar' of https://github.com/Mohamed-sabry-av/adventure-hub into HEAD
+[33m354dfbe[m HEAD@{8}: commit: feat: add getBrandSlug method and update product card to link brand names
+[33m13e5018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{9}: checkout: moving from 810202215eea79b9c6769880e11470fbc3efc661 to 13e5018a37624b0e742fe9dc739d5e5b829a8b2d
+[33m8102022[m HEAD@{10}: checkout: moving from master to 810202215eea79b9c6769880e11470fbc3efc661
+[33m13e5018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{11}: checkout: moving from master to master
+[33m13e5018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{12}: commit: feat: add brandSlug to product interface and update related components
+[33m8102022[m HEAD@{13}: commit: feat: add cart route and enhance navbar with dynamic category links
+[33m922c1f7[m HEAD@{14}: commit (merge): Merge branch 'ameenelnaggar' of https://github.com/Mohamed-sabry-av/adventure-hub
+[33mf4f1965[m HEAD@{15}: commit: AoT and Service Workers
+[33m23584f7[m HEAD@{16}: commit: Service Workers and AoT
+[33m56df6dc[m HEAD@{17}: commit: feat: implement Google and Facebook authentication components, update styles and configurations
+[33md949343[m HEAD@{18}: commit (merge): Merge branch 'ameenelnaggar' of https://github.com/Mohamed-sabry-av/adventure-hub
+[33mb4226da[m HEAD@{19}: commit: feat: add user authentication module with login and signup components
+[33mab3c6e8[m HEAD@{20}: checkout: moving from master to master
+[33mab3c6e8[m HEAD@{21}: commit: Last Update
+[33m363c968[m HEAD@{22}: commit: refactor: enhance product page layout and styling, improve responsiveness
+[33m6f6ea99[m HEAD@{23}: commit: product page and responsive navbar
+[33m86af0af[m HEAD@{24}: commit: added pagination to products
+[33m59df0e3[m HEAD@{25}: commit: fix categoris and local storage
+[33mf8d8442[m HEAD@{26}: commit: using defer and hydration to get categories and products
+[33m4c9b035[m HEAD@{27}: commit: basics with categories and products service
+[33m677ac4d[m HEAD@{28}: commit: Footer & header
+[33md416aa9[m HEAD@{29}: commit (initial): initial commit

@@ -1,5 +1,5 @@
 // src/app/components/header/header.component.ts
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { NavbarComponent } from '../navbar/navbar.component';
@@ -20,6 +20,8 @@ import { AppContainerComponent } from '../app-container/app-container.component'
 import { NavbarContainerComponent } from '../navbar-container/navbar-container.component';
 import { NavbarService } from '../../services/navbar.service';
 import { RouterLink } from '@angular/router';
+import { AccountAuthService } from '../../../features/auth/account-auth.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -32,18 +34,17 @@ import { RouterLink } from '@angular/router';
     ButtonModule,
     AppContainerComponent,
     NavbarContainerComponent,
-    RouterLink
+    RouterLink,
+    AsyncPipe,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
 })
 export class HeaderComponent implements OnInit {
   private navbarService = inject(NavbarService);
+  private accountAuthService = inject(AccountAuthService);
 
-  announcements: string[] = [
-    '<strong>Free Delivery</strong> for orders over AED 500',
-    'Buy Now & Pay Later with <strong>Tabby</strong>',
-  ];
+  isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
 
   onSiwtchSideNav(visible: boolean) {
     this.navbarService.siwtchSideNav(visible);

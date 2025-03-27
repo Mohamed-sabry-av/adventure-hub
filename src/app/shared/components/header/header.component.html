@@ -1,21 +1,5 @@
 <header>
   <!-- معلومات فرعية -->
-  <div>
-    <p-carousel
-      [value]="announcements"
-      [numVisible]="1"
-      [numScroll]="1"
-      [circular]="true"
-      [showNavigators]="false"
-    >
-      <ng-template let-announcement #item>
-        <div class="py-[6px] text-center px-4 text-white">
-          <p class="text-sm" [innerHTML]="announcement"></p>
-        </div>
-      </ng-template>
-    </p-carousel>
-  </div>
-  <hr class="-mt-2 md:hidden block" />
 
   <!-- معلومات اساسيه -->
   <app-app-container>
@@ -24,7 +8,9 @@
       <div class="grid grid-cols-1 md:grid-cols-12 items-center">
         <!-- Logo -->
         <div class="col-span-6 md:col-span-2 min-w-[150px]">
-          <img src="header/White logo-01.png" alt="" />
+          <a routerLink="/home">
+            <img src="header/White logo-01.png" />
+          </a>
         </div>
 
         <!-- Search -->
@@ -33,7 +19,7 @@
         >
           <input
             type="text"
-            class="bg-[#5F614E] w-full py-2 pl-14 pr-[95px] col-span-9 rounded-xl outline-none border border-transparent focus:border-white transition-all duration-200 placeholder-gray-200 placeholder:text-sm"
+            class="bg-[#F5F5DC] w-full py-2 pl-14 pr-[95px] col-span-9 rounded-xl outline-none border border-transparent focus:border-white transition-all duration-200 placeholder-gray-600 placeholder:text-sm"
             placeholder="Search Gear.."
           />
           <i class="pi pi-search text-white left-6 text-lg absolute"></i>
@@ -43,12 +29,17 @@
         <div
           class="flex items-center justify-end gap-6 col-span-6 md:col-span-1 order-2 md:order-3"
         >
-          <a routerLink="/myaccount"><i
-            class="pi pi-user text-white text-lg lg:text-2xl cursor-pointer"
-          ></i></a>
-          <i
-            class="pi pi-shopping-bag text-white text-lg lg:text-2xl cursor-pointer"
-          ></i>
+          <a routerLink="/myaccount"
+            ><i
+              class="pi pi-user text-white text-lg lg:text-2xl cursor-pointer"
+            ></i
+          ></a>
+
+          <a routerLink="/cart">
+            <i
+              class="pi pi-shopping-bag text-white text-lg lg:text-2xl cursor-pointer"
+            ></i>
+          </a>
           <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
         </div>
       </div>

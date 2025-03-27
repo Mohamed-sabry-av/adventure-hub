@@ -1,0 +1,9 @@
+<div>
+    <form (ngSubmit)="pay(1000)">
+      <div id="card-element">
+        <!-- هنا هيظهر حقل إدخال بيانات الكارد من Stripe -->
+      </div>
+      <button type="submit" [disabled]="!card">ادفع 10 دولار</button>
+    </form>
+    <div *ngIf="error" style="color: red; margin-top: 10px;">{{ error }}</div>
+  </div>

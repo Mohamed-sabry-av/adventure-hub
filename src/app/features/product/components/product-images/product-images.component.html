@@ -1,23 +1,74 @@
-<div>
-  <p-galleria
-    [value]="getGalleryImages()"
-    [showItemNavigators]="true"
-    [circular]="true"
-    [numVisible]="3"
-    [thumbnailsPosition]="isMobile ? 'bottom' : 'left'"
-    verticalThumbnailViewPortHeight="450px"
-    class="max-w-full rounded-none"
-  >
-    <ng-template #item let-item>
-      <img [src]="item.src" class="w-full bg-cover" />
-    </ng-template>
-    <ng-template #thumbnail let-item>
-      <div class="mr-2 lg:mr-0">
-        <img
-          [src]="item.src"
-          class="lg:min-w-[130px] lg:h-[130px] w-[110px] h-[110px] bg-cover"
-        />
+<div class="product-images-container">
+  <div class="flex flex-col md:flex-row gap-4">
+    <!-- Thumbnail Images (on the left) -->
+    @if (getGalleryImages().length > 1) {
+      <div class="thumbnails-container hidden md:flex flex-col gap-2 order-2 md:order-1 md:w-1/5">
+        @for (image of getGalleryImages(); track $index) {
+          <div
+            (click)="selectImage($index)"
+            [class.border-orange]="selectedImageIndex === $index"
+            class="cursor-pointer border hover:border-orange rounded-md overflow-hidden transition-all thumbnail-container"
+            [attr.aria-selected]="selectedImageIndex === $index"
+          >
+            <img [src]="image.src" [alt]="image.alt" class="thumbnail-image">
+          </div>
+        }
       </div>
-    </ng-template>
-  </p-galleria>
+    }
+
+    <!-- Main Image (on the right) -->
+    <div class="main-image-container relative order-1 md:order-2 md:w-4/5">
+      @if (getGalleryImages().length > 0) {
+        <div
+          [class.slide-animation-next]="animationDirection === 'next'"
+          [class.slide-animation-prev]="animationDirection === 'prev'"
+          (animationend)="onAnimationDone()"
+          class="main-image-wrapper"
+        >
+          <img
+            [src]="getGalleryImages()[selectedImageIndex].src"
+            [alt]="getGalleryImages()[selectedImageIndex].alt"
+            class="w-full h-auto rounded-md main-image"
+          >
+        </div>
+
+        <!-- Navigation arrows -->
+        <button
+          (click)="prevImage()"
+          class="absolute left-2 rtl:left-auto rtl:right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
+          aria-label="Previous image"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+
+        <button
+          (click)="nextImage()"
+          class="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
+          aria-label="Next image"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Mobile Thumbnails (horizontal) -->
+  @if (getGalleryImages().length > 1) {
+    <div class="thumbnails-container horizontal md:hidden flex gap-2 mt-4">
+      @for (image of getGalleryImages(); track $index) {
+        <div
+          (click)="selectImage($index)"
+          [class.border-orange]="selectedImageIndex === $index"
+          class="cursor-pointer border hover:border-orange rounded-md overflow-hidden transition-all thumbnail-container"
+          [attr.aria-selected]="selectedImageIndex === $index"
+        >
+          <img [src]="image.src" [alt]="image.alt" class="thumbnail-image">
+        </div>
+      }
+    </div>
+  }
 </div>

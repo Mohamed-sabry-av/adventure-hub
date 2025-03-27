@@ -1,4 +1,8 @@
-import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideZoneChangeDetection,
+  isDevMode,
+} from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -17,6 +21,7 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
 import { CartEffect } from './Store/effects/cart.effect';
 import { reducers } from './Store/store';
+import { provideNgxStripe } from 'ngx-stripe';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +30,9 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withIncrementalHydration()),
     provideHttpClient(withFetch()),
     provideAnimations(),
+    provideNgxStripe(
+      'pk_test_51R5cjQ04DfoEqXm6jd9PtsMnRHkDqd5JK3fuSjypNjMeCeMMOd8dSTlfZUX10nfspUxHHmhb30sArt3O2KOZNlp600ZFKp20Zn'
+    ),
 
     providePrimeNG({
       theme: {
@@ -36,21 +44,24 @@ export const appConfig: ApplicationConfig = {
           },
         },
       },
-    }),provideServiceWorker('ngsw-worker.js', {
+    }),
+    provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(), // يشتغل في الـ production بس
-      registrationStrategy: 'registerWhenStable:30000'
-    }), provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
-            registrationStrategy: 'registerWhenStable:30000'
-          }), provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
-            registrationStrategy: 'registerWhenStable:30000'
-          }), provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
-            registrationStrategy: 'registerWhenStable:30000'
-          }),
-          provideStore(reducers),
-          provideEffects([CartEffect]),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideStore(reducers),
+    provideEffects([CartEffect]),
   ],
-
 };

@@ -1,0 +1,62 @@
+@if (articleData) {
+<div class="w-full xl:w-[1000px]">
+  <!-- Image and Header -->
+  <div class="mb-2">
+    <img
+      [src]="articleData.yoast_head_json.og_image[0].url"
+      alt="Blog-Photo"
+      class="mb-7"
+    />
+    <h1
+      class="text-4xl font-semibold mb-2"
+      [innerHTML]="articleData.title.rendered"
+    ></h1>
+    <p
+      class="text-sm uppercase text-gray-400"
+      [innerHTML]="articleData.date | date : 'longDate'"
+    ></p>
+  </div>
+
+  <!-- Details -->
+  <div class="py-4" [innerHTML]="articleData.content.rendered"></div>
+
+  <!-- Previous article -->
+  <!-- <div class="bg-gray-100 mb-8 p-6">
+    <p class="mb-1 uppercase text-xs text-gray-400">previous article</p>
+    <a [routerLink]="" class="text-sm"
+      >Tips To Help You Find The Best Flashlights</a
+    >
+  </div> -->
+
+  <!-- Contact -->
+  <div class="mt-4 pt-8 mb-12">
+    <div class="mb-4">
+      <p class="font-semibold text-2xl">Leave a Reply</p>
+    </div>
+    <div class="mb-4">
+      <p class="">
+        Logged in as ameenelnaggar.
+        <a [routerLink]="" class="text-blue-400 underline">Edit your profile</a
+        >.
+        <a [routerLink]="" class="text-blue-400 underline">Log out?</a>
+        Required fields are marked
+        <span class="text-red-400 text-lg">*</span>
+      </p>
+    </div>
+
+    <div class="mb-5">
+      <p class="text-base font-semibold">
+        Comment <span class="text-red-400 text-lg">*</span>
+      </p>
+      <textarea class="w-full border border-gray-300 h-36 p-3"></textarea>
+    </div>
+
+    <button
+      class="bg-[#3bb54a] font-semibold text-base text-white py-3 px-5 rounded-md"
+    >
+      Post Comment
+    </button>
+  </div>
+</div>
+
+}

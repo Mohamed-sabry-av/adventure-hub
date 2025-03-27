@@ -1,0 +1,73 @@
+<app-app-container>
+  <!-- Slug -->
+  <div class="flex gap-x-2 text-sm py-4">
+    <p>Home</p>
+    <span class="text-sm text-gray-400">/</span>
+    <p>My account</p>
+  </div>
+
+  <!-- title and bars -->
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="text-4xl font-semibold">My account</h1>
+    </div>
+    <i class="pi pi-bars text-xl lg:hidden"></i>
+  </div>
+
+  <!-- content -->
+  <div class="grid grid-cols-12">
+    <div class="col-span-2 hidden lg:block">
+      <!-- الواجهه الرئيسيه -->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>Dashboard</p>
+        <i class="pi text-gray-400 pi-user"></i>
+      </div>
+      <!-- الاوردرات -->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>Orders</p>
+        <i class="pi text-gray-400 pi-clipboard"></i>
+      </div>
+
+      <!-- التنزيلات -->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>Downloads</p>
+        <i class="pi text-gray-400 pi-download"></i>
+      </div>
+
+      <!-- العناوين -->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>Addresses</p>
+        <i class="pi text-gray-400 pi-home"></i>
+      </div>
+
+      <!-- وسائل الدفع -->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>Payment methods</p>
+        <i class="pi text-gray-400 pi-credit-card"></i>
+      </div>
+
+      <!-- تفاصيل الاكونت-->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>Account details</p>
+        <i class="pi text-gray-400 pi-user"></i>
+      </div>
+
+      <!-- التفضيلات -->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>My wishlist</p>
+        <i class="pi text-gray-400 pi-heart"></i>
+      </div>
+
+      <!-- تسجيل الخروج -->
+      <div class="flex justify-between items-center py-4 border-b">
+        <p>Log out</p>
+        <i class="pi text-gray-400 pi-sign-out"></i>
+      </div>
+    </div>
+    <div class="lg:col-start-4 lg:col-span-9 col-span-12">
+      <p>HHHH</p>
+    </div>
+  </div>
+
+  <app-service-highlights />
+</app-app-container>

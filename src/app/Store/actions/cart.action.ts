@@ -50,12 +50,12 @@ export const deleteProductInCartLSAction = createAction(
 //   props<{ product: Product }>()
 // );
 
-// export const fetchUserCartAction = createAction('[Cart] Fetch User Cart');
+export const fetchUserCartAction = createAction('[Cart] Fetch User Cart');
 
-// export const getUserCartAction = createAction(
-//   '[Cart] Get User Cart',
-//   props<{ userCart: any }>()
-// );
+export const getUserCartAction = createAction(
+  '[Cart] Get User Cart',
+  props<{ userCart: any }>()
+);
 
 // // --------------------------------------------
 

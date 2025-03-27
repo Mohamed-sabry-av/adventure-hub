@@ -1,44 +1,50 @@
 <app-app-container>
-  <div>
-    <div>
-      <!-- Product Slug -->
-      <div class="lg:h-[52px] h-10 flex items-center w-full text-black">
-        <nav class="truncate overflow-hidden">
-          <a [routerLink]="" class="text-xs">Home</a>
-          <span class="opacity-40 font-normal text-xs p-2"> / </span>
-          <a [routerLink]="" class="text-xs">Hiking Hub</a>
-          <span class="opacity-40 font-normal text-xs p-2"> / </span>
-          <a [routerLink]="" class="text-xs">Hiking Bags</a>
-          <span class="opacity-40 font-normal text-xs p-2"> / </span>
-          <a [routerLink]="" class="text-xs">Hiking..</a>
-        </nav>
-      </div>
-
-      <div class="flex md:flex-row flex-col gap-x-10">
-        <div class="w-full md:max-w-[55%] h-full mb-8 sm:mb-0 border-b md:border-r md:border-b-0">
-          @if (productData?.images) {
+    <!-- Breadcrumb -->
+    <div class="breadcrumb text-sm py-4">
+      <a [routerLink]="['/']" class="text-gray-500 hover:text-gray-700">الرئيسية</a> &gt;
+      <a [routerLink]="['/deals']" class="text-gray-500 hover:text-gray-700">العروض</a> &gt;
+      <span class="text-gray-700">{{ productData?.name }}</span>
+    </div>
+  
+    <!-- Product Section -->
+    <div class="flex flex-col md:flex-row gap-8 mb-8">
+      <!-- Product Images - Left side -->
+      <div class="md:w-1/2 lg:w-3/5">
+        @if (productData) {
           <app-product-images
             [productImages]="productData.images"
             [selectedColor]="selectedColor"
             [variations]="productData.variations"
           />
-          } @else {
-          <p>No images available</p> <!-- Log إضافي عشان نشوف لو الصور مش موجودة -->
-          }
-        </div>
-        <div class="product-info">
-          @if (productData !== undefined) {
-          <app-product-info
-            [productInfo]="productData"
-            (selectedColorChange)="onSelectedColorChange($event)"
-          />
+        }
+      </div>
+  
+      <!-- Product Info - Right side - Sticky on scroll -->
+      <div class="md:w-1/2 lg:w-2/5">
+        <div class="sticky-info">
+          @if (productData) {
+            <app-product-info
+              [productInfo]="productData"
+              (selectedColorChange)="onSelectedColorChange($event)"
+            />
+  
+            <!-- Buy Now Button -->
+            <!-- <button class="w-full bg-green-600 text-white py-3 font-medium rounded-md mb-3 hover:bg-green-700 transition-colors">
+              Buy Now   
+         </button> -->
           }
         </div>
       </div>
     </div>
-    @if (productData !== undefined) {
-    <app-product-desc [productAdditionlInfo]="productData" />
+  
+    <!-- Product Description and Specifications -->
+    @if (productData) {
+      <app-product-desc [productAdditionlInfo]="productData.additional_info" />
     }
-    <app-product-related />
-  </div>
+  
+    <!-- Related Products -->
+    @if (productData?.related_products) {
+      <app-product-related />
+    }
+  
 </app-app-container>

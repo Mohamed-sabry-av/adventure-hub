@@ -1,28 +1,38 @@
-<div class="product-details">
-  <div class="brand" *ngIf="getBrandName()">
-    <a [routerLink]="['/brand', getBrandSlug()]">{{ getBrandName() }}</a>
+<div class="p-3">
+  <!-- Categories/Brand -->
+  <div class="text-xs text-gray-500 uppercase mb-1 category">
+    <span *ngIf="product.categories && product.categories.length">{{ product.categories[0].name }}</span>
+    <span *ngIf="product.categories && product.categories.length && getBrandName()">, </span>
+    <a *ngIf="getBrandName()" [routerLink]="['/brand', getBrandSlug()]" class="hover:underline">{{ getBrandName() }}</a>
   </div>
 
-  <h3 class="product-name">{{ product.name }}</h3>
+  <!-- Product Name -->
+  <h3 class="text-sm font-medium text-gray-800 mb-1 hover:text-blue-600 transition-colors product-name">
+    <a [routerLink]="['/product', product.slug]">{{ product.name }}</a>
+  </h3>
 
-  <div class="price">
-    @if(product.on_sale && (product.sale_price)){
-      <span class="sale-price">
-        {{ product.sale_price }} {{ product.currency || "AED" }}
+  <!-- Rating Stars -->
+  <div class="flex items-center mb-2">
+    <div class="flex text-yellow-400">
+      <span *ngFor="let _ of [1,2,3,4,5]; let i = index" class="star" [style.--star-index]="i">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
       </span>
-    } @else {
-      <span class="current-price">
-        {{ product.sale_price || product.regular_price || product.price || 'Un Avilable' }} {{ product.currency || "AED" }}
-      </span>
-    }
-    @if(product.on_sale && (product.sale_price || product.price)){
-      <span class="old-price">
-        {{ product.regular_price || product.price }}
-      </span>
-    }
+    </div>
+    <span class="text-xs text-gray-500 ml-1">({{ product.rating_count || 10 }})</span>
   </div>
 
-  <button class="quick-add-btn" *ngIf="colorOptions.length === 0 && uniqueSizes.length === 0">
-    Add to Cart
-  </button>
+  <!-- Price -->
+  <div class="flex items-center price">
+    <span *ngIf="product.on_sale && product.sale_price" class="text-sm font-medium text-red-600 sale-price">
+      {{ product.sale_price }} {{ product.currency || "AED" }}
+    </span>
+    <span *ngIf="!product.on_sale || !product.sale_price" class="text-sm font-medium text-gray-900 current-price">
+      {{ product.regular_price || product.price || 'Unavailable' }} {{ product.currency || "AED" }}
+    </span>
+    <span *ngIf="product.on_sale && product.regular_price" class="text-xs text-gray-500 line-through ml-2 old-price">
+      {{ product.regular_price }}
+    </span>
+  </div>
 </div>
