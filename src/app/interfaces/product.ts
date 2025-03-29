@@ -42,6 +42,7 @@ export interface Product {
   stock_quantity?: number;
   backorders?: string;
   backorders_allowed?: boolean;
+  
   backordered?: boolean;
   low_stock_amount?: any;
   sold_individually?: boolean;
@@ -58,8 +59,7 @@ export interface Product {
   parent_id?: number;
   purchase_note?: string;
   tags?: any[];
-  default_attributes?: [];
-  variations: Variation[];
+  default_attributes?: { name: string; option: string }[];  variations: Variation[];
   grouped_products?: any[];
   menu_order?: number;
   price_html?: string;
@@ -88,6 +88,19 @@ export interface Variation {
   stock_status?: string;
   meta_data?: MetaDaum[]
 
+}
+
+export interface CardState {
+  variations: Variation[];
+  colorOptions: { color: string; image: string; inStock: boolean }[];
+  uniqueSizes: { size: string; inStock: boolean }[];
+  selectedColor: string | null;
+  selectedSize: string | null;
+  currentSlide: number;
+  isHovered: boolean;
+  visibleSizes: { size: string; inStock: boolean }[];
+  sizeScrollIndex: number;
+  maxScrollIndex: number;
 }
 
 export interface MetaDaum {

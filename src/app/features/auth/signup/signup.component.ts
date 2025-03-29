@@ -54,7 +54,7 @@ export class SignupComponent {
 
     const userData = {
       ...this.signupForm.value,
-      recaptchaToken: this.recaptchaToken, // إضافة التوكن لبيانات المستخدم
+      recaptchaToken: this.recaptchaToken,
     };
     this.accountService.signup(userData).subscribe({
       next: (response) => {

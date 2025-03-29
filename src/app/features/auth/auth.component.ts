@@ -4,10 +4,11 @@ import { AccountAuthService } from './account-auth.service';
 import { ActivatedRoute } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
+import { AccountDetailsComponent } from './account-details/account-details.component';
 
 @Component({
   selector: 'app-auth',
-  imports: [LoginComponent, SignupComponent],
+  imports: [LoginComponent, SignupComponent, AccountDetailsComponent],
   standalone: true,
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',

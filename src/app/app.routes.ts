@@ -3,6 +3,7 @@ import { BlogSectionPageComponent } from './features/blog/page/blog-section-page
 import { blogSectionGuard } from './features/blog/guards/blog-section.guard';
 
 export const routes: Routes = [
+  // المسارات الثابتة
   {
     path: '',
     loadComponent: () =>
@@ -15,6 +16,7 @@ export const routes: Routes = [
       import('./features/cart/page/cart-page/cart-page.component').then(
         (m) => m.CartPageComponent
       ),
+    pathMatch: 'full',
   },
   {
     path: 'checkout',
@@ -22,12 +24,22 @@ export const routes: Routes = [
       import('./features/checkout/page/checkout-page/checkout-page.component').then(
         (m) => m.CheckoutPageComponent
       ),
-    },
+    pathMatch: 'full',
+  },
   {
     path: 'myaccount',
     loadComponent: () =>
       import('./features/auth/auth.component').then((m) => m.AuthComponent),
     pathMatch: 'full',
+  },
+  {
+    path: 'sale',
+    loadComponent: () =>
+      import(
+        './features/products/pages/products-by-sale/products-by-sale.component'
+      ).then((m) => m.ProductsBySaleComponent),
+    pathMatch: 'full',
+    data: { breadcrumb: 'sale' },
   },
   {
     path: 'blog',
@@ -37,6 +49,28 @@ export const routes: Routes = [
       ),
     pathMatch: 'full',
   },
+
+  // Nested Route للـ Pages
+  {
+    path: 'pages',
+    children: [
+      {
+        path: 'terms', // الـ URL هيبقى /pages/terms
+        loadComponent: () =>
+          import('./features/terms,about,contactUs/page/terms/terms.component').then(
+            (m) => m.TermsComponent
+          ),
+      },
+      {
+        path: 'about-us',
+        loadComponent: () =>
+          import('./features/terms,about,contactUs/page/AboutUs/about-us.component').then((m) => m.AboutUsComponent),
+      },
+      
+    ],
+  },
+
+  // المسارات الديناميكية
   {
     path: ':articleName',
     loadComponent: () =>
@@ -47,7 +81,6 @@ export const routes: Routes = [
     canMatch: [blogSectionGuard],
     data: {},
   },
-
   {
     path: 'product/:productId',
     loadComponent: () =>
@@ -62,43 +95,16 @@ export const routes: Routes = [
       import(
         './features/products/pages/products-by-brand/products-by-brand.component'
       ).then((m) => m.ProductsByBrandComponent),
-      pathMatch: 'full',
+    pathMatch: 'full',
   },
   {
-    path: 'sale',
-    loadComponent: () =>
-      import(
-        './features/products/pages/products-by-sale/products-by-sale.component'
-      ).then((m) => m.ProductsBySaleComponent),
-      pathMatch: 'full',
-      data: { breadcrumb: 'sale' },
-  },
-  {
-    path: ':mainCategorySlug',
+    path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug/:subSubSubSubCategorySlug',
     loadComponent: () =>
       import('./features/products/pages/Products/products.component').then(
         (m) => m.ProductsComponent
       ),
     pathMatch: 'full',
-    data: { breadcrumb: 'Main Category' },
-  },
-  {
-    path: ':mainCategorySlug/:subCategorySlug',
-    loadComponent: () =>
-      import('./features/products/pages/Products/products.component').then(
-        (m) => m.ProductsComponent
-      ),
-    pathMatch: 'full',
-    data: { breadcrumb: 'Sub Category' },
-  },
-  {
-    path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug',
-    loadComponent: () =>
-      import('./features/products/pages/Products/products.component').then(
-        (m) => m.ProductsComponent
-      ),
-    pathMatch: 'full',
-    data: { breadcrumb: 'Sub-Sub Category' },
+    data: { breadcrumb: 'Sub-Sub-Sub-Sub Category' },
   },
   {
     path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug',
@@ -110,12 +116,37 @@ export const routes: Routes = [
     data: { breadcrumb: 'Sub-Sub-Sub Category' },
   },
   {
-    path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug/:subSubSubSubCategorySlug',
+    path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug',
     loadComponent: () =>
       import('./features/products/pages/Products/products.component').then(
         (m) => m.ProductsComponent
       ),
     pathMatch: 'full',
-    data: { breadcrumb: 'Sub-Sub-Sub-Sub Category' },
-  }
+    data: { breadcrumb: 'Sub-Sub Category' },
+  },
+  {
+    path: ':mainCategorySlug/:subCategorySlug',
+    loadComponent: () =>
+      import('./features/products/pages/Products/products.component').then(
+        (m) => m.ProductsComponent
+      ),
+    pathMatch: 'full',
+    data: { breadcrumb: 'Sub Category' },
+  },
+  {
+    path: ':mainCategorySlug',
+    loadComponent: () =>
+      import('./features/products/pages/Products/products.component').then(
+        (m) => m.ProductsComponent
+      ),
+    pathMatch: 'full',
+    data: { breadcrumb: 'Main Category' },
+  },
+
+  // Wildcard Route
+  {
+    path: '**',
+    redirectTo: '',
+    pathMatch: 'full',
+  },
 ];

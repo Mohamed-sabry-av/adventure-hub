@@ -11,7 +11,7 @@ import { LoginResponse, User } from '../../interfaces/user.model';
 export class AccountAuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
-  private readonly Api_Url = 'http://46.202.88.235';
+  private readonly Api_Url = 'https://adventures-hub.com';
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
 

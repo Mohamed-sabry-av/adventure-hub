@@ -21,6 +21,8 @@ import { NavbarContainerComponent } from '../navbar-container/navbar-container.c
 import { NavbarService } from '../../services/navbar.service';
 import { RouterLink } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
+import { AccountAuthService } from '../../../features/auth/account-auth.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -47,10 +49,14 @@ export class HeaderComponent implements OnInit {
     this.navbarService.siwtchSideNav(visible);
   }
 
-  // -------------------------------------------------------------
+  announcements: string[] = [
+    '<strong>Free Delivery</strong> for orders over AED 500',
+    'Buy Now & Pay Later with <strong>Tabby</strong>',
+  ];
 
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
+  // -------------------------------------------------------------
 
   constructor(private categoriesService: CategoriesService) {}
 

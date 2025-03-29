@@ -21,14 +21,15 @@
     (selectColor)="selectColor($event.color, $event.image)">
   </app-color-swatches>
 
-  <!-- Add to Cart button for products without options -->
-  <div class="p-3 pt-0" *ngIf="colorOptions.length === 0 && uniqueSizes.length === 0">
-    <button class="add-to-cart-btn w-full text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br font-medium rounded-sm text-sm px-5 py-2.5 text-center transition-all duration-300 opacity-0 group-hover:opacity-100"
-            (click)="onAddToCart(product)">
-      Add to cart
+
+  <div class="p-3 pt-0" *ngIf="shouldShowAddToCartButton()">
+    <button class="add-to-cart-btn w-full text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br font-medium rounded-sm text-sm px-5 py-2.5 text-center transition-all duration-300"
+            [disabled]="isAddToCartDisabled()"
+            (click)="onAddToCartWithOptions()">
+      Add to Cart
     </button>
   </div>
-
+  
   <app-size-selector
     [isHovered]="isHovered"
     [colorOptions]="colorOptions"
@@ -39,8 +40,13 @@
     [maxScrollIndex]="maxScrollIndex"
     (scrollSizes)="scrollSizes($event)"
     (selectSize)="selectSize($event)">
-    (click)="onAddProductToCart(product)"
-
   </app-size-selector>
 
+  <!-- <div class="p-3 pt-0">
+    <button class="add-to-cart-btn w-full text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br font-medium rounded-sm text-sm px-5 py-2.5 text-center transition-all duration-300"
+            [disabled]="isAddToCartDisabled()"
+            (click)="onAddToCartWithOptions()">
+      Add to Cart
+    </button>
+  </div> -->
 </div>

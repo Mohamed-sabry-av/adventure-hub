@@ -67,7 +67,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private el: ElementRef,
-    private animationBuilder: AnimationBuilder
+    private animationBuilder: AnimationBuilder,
+    private cartService : CartService
   ) {}
 
   ngOnInit(): void {
@@ -104,18 +105,54 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       next: (variations: Variation[]) => {
         this.variations = variations || [];
         this.colorOptions = this.getColorOptions();
-        if (this.colorOptions.length > 0) {
-          this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
-        } else {
-          this.uniqueSizes = this.getSizesForColor('');
-          this.updateVisibleSizes();
-        }
+        this.setDefaultVariation(); // نحدد الـ default بعد جلب الـ variations
+        this.updateVisibleSizes();
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);
       },
     });
   }
+
+
+  private setDefaultVariation(): void {
+    if (this.product.default_attributes && this.product.default_attributes.length > 0) {
+      const defaultColorAttr = this.product.default_attributes.find(
+        (attr: any) => attr.name === 'Color'
+      );
+      const defaultSizeAttr = this.product.default_attributes.find(
+        (attr: any) => attr.name === 'Size'
+      );
+
+      // اختيار اللون الافتراضي
+      if (defaultColorAttr && defaultColorAttr.option) {
+        const defaultColor = defaultColorAttr.option;
+        const matchingColorOption = this.colorOptions.find(
+          (option) => option.color === defaultColor
+        );
+        if (matchingColorOption) {
+          this.selectColor(matchingColorOption.color, matchingColorOption.image);
+        }
+      }
+
+      // اختيار المقاس الافتراضي بعد تحديد اللون
+      if (defaultSizeAttr && defaultSizeAttr.option) {
+        this.uniqueSizes = this.getSizesForColor(this.selectedColor || '');
+        const defaultSize = defaultSizeAttr.option;
+        if (this.uniqueSizes.some((size) => size.size === defaultSize)) {
+          this.selectSize(defaultSize);
+        }
+      }
+    } else {
+      // لو مافيش default_attributes، نختار أول لون أو نعرض المقاسات بدون لون
+      if (this.colorOptions.length > 0) {
+        this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+      } else {
+        this.uniqueSizes = this.getSizesForColor('');
+      }
+    }
+  }
+
 
   private getColorOptions(): { color: string; image: string; inStock: boolean }[] {
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
@@ -263,6 +300,58 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.visibleSizes = this.uniqueSizes.slice(start, start + sizesPerPage);
   }
 
+  isAddToCartDisabled():boolean{
+    if(this.colorOptions.length > 0 && ! this.selectedSize){
+      return true
+    }
+    return false
+  }
+
+
+  onAddToCartWithOptions(): void {
+    if (this.isAddToCartDisabled()) {
+      console.log('Cannot add to cart: Missing required options');
+      return;
+    }
+
+    let productToAdd: any;
+    if (this.colorOptions.length > 0 || this.uniqueSizes.length > 0) {
+      const selectedVariation = this.variations.find((v) => {
+        const colorAttr = v.attributes.find((attr :any) => attr.name === 'Color');
+        const sizeAttr = v.attributes.find((attr :any) => attr.name === 'Size');
+
+        // لو مافيش ألوان، نتجاهل شرط اللون
+        const colorMatch =
+          this.colorOptions.length > 0
+            ? colorAttr && colorAttr.option === this.selectedColor
+            : !colorAttr; // لو مافيش ألوان، نتأكد إن مافيش color attribute
+
+        const sizeMatch =
+          this.uniqueSizes.length > 0
+            ? sizeAttr && sizeAttr.option === this.selectedSize
+            : !sizeAttr; // لو مافيش مقاسات، نتأكد إن مافيش size attribute
+
+        return colorMatch && sizeMatch;
+      });
+
+      if (selectedVariation) {
+        productToAdd = { ...this.product, ...selectedVariation };
+        console.log('Selected Variation to Add:', productToAdd);
+      } else {
+        console.error('No matching variation found for:', {
+          color: this.selectedColor,
+          size: this.selectedSize,
+        });
+        return;
+      }
+    } else {
+      productToAdd = this.product;
+    }
+
+    this.cartService.addProductToCart(productToAdd);
+  }
+  
+
   onAddToCart(product: any): void {
     console.log('Product added to cart:', product);
 
@@ -296,7 +385,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       ).onfinish = () => ripple.remove();
     }
   }
-  private cartService = inject(CartService);
+
+  shouldShowAddToCartButton(): boolean {
+    return this.colorOptions.length === 0;
+  }
 
   onAddProductToCart(product: any): void {
     this.cartService.addProductToCart(product);

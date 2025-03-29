@@ -1,35 +1,60 @@
 <div class="products-grid-container">
-  <!-- Loading Skeleton -->
-  <div *ngIf="isLoading" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-    <div class="product-skeleton animate-pulse" *ngFor="let i of [1,2,3,4,5,6,8,9,10,11,12]">
-      <div class="relative pb-[100%] bg-gray-200 rounded-lg mb-3"></div>
-      <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-      <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+  <!-- Skeleton Loading State -->
+  @if (isLoading) {
+    <div 
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+      @fadeIn
+    >
+      <div 
+        *ngFor="let i of skeletonArray; trackBy: trackByIndex" 
+        class="product-skeleton animate-pulse"
+      >
+        <div class="relative aspect-square bg-gray-200 rounded-lg mb-3 overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 to-transparent skeleton-wave"></div>
+        </div>
+        <div class="space-y-2">
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/4 mt-2"></div>
+        </div>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Products Grid -->
-  <div *ngIf="!isLoading && products.length > 0"
-       class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-    <app-product-card
-      *ngFor="let product of products"
-      [product]="product"
-      class="product-card"
-      [@fadeIn]
-    ></app-product-card>
-  </div>
+  @if (!isLoading && products.length > 0) {
+    <div 
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+      @staggerFadeIn
+    >
+      <app-product-card
+        *ngFor="let product of products; trackBy: trackByProductId"
+        [product]="product"
+        class="product-card"
+      ></app-product-card>
+    </div>
+  }
 
   <!-- Empty State -->
-  <div *ngIf="!isLoading && products.length === 0" class="flex flex-col items-center justify-center py-16">
-    <svg class="size-16 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.25m0 0a2.25 2.25 0 002.25 2.25m0 0v1.5m-4.5-1.5h.008M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-    <h3 class="mt-4 text-lg font-medium text-gray-900">No products found</h3>
-    <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria</p>
-  </div>
+  @if (!isLoading && products.length === 0) {
+    <div class="flex flex-col items-center justify-center py-16 text-center" @fadeIn>
+      <svg class="size-16 text-gray-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.25m0 0a2.25 2.25 0 002.25 2.25m0 0v1.5m-4.5-1.5h.008M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="mt-2 text-lg font-medium text-gray-900">No products found</h3>
+      <p class="mt-1 text-sm text-gray-500 max-w-md">
+        We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
+      </p>
+    </div>
+  }
 
   <!-- Load More Indicator -->
-  <div *ngIf="isLoadingMore" class="flex justify-center items-center py-8 mt-4">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3b3b32]"></div>
-  </div>
+  @if (isLoadingMore) {
+    <div class="flex justify-center items-center py-8 mt-4" @fadeIn>
+      <div class="relative">
+        <div class="size-8 border-2 border-gray-300 border-t-indigo-600 rounded-full animate-spin"></div>
+        <span class="sr-only">Loading more products...</span>
+      </div>
+    </div>
+  }
 </div>

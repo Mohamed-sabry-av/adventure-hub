@@ -1,0 +1,56 @@
+.drawer-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: transparent;
+  }
+  
+  .filter-drawer {
+    width: 85vw;
+    max-width: 400px;
+    border-radius: 0;
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  
+  
+  ::ng-deep .mat-drawer-backdrop {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(2px);
+  }
+  
+  /* Button Hover Effects */
+  button {
+    transition: all 0.2s ease;
+  }
+  
+  button:hover {
+    transform: translateY(-1px);
+  }
+  
+  button:active {
+    transform: translateY(0px);
+  }
+  
+  /* Scrollbar for drawer content */
+  ::ng-deep .mat-drawer-inner-container {
+    overflow-x: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+  }
+  
+  ::ng-deep .mat-drawer-inner-container::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  ::ng-deep .mat-drawer-inner-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::ng-deep .mat-drawer-inner-container::-webkit-scrollbar-thumb {
+    background-color: #e5e7eb;
+    border-radius: 20px;
+  }
