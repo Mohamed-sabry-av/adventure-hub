@@ -128,10 +128,9 @@ export class ProductInfoComponent {
   getSelectedPrice(): string {
     const variations = this.productInfo()?.variations || [];
     if (!Array.isArray(variations) || !variations.length || !this.selectedColor) {
-      return this.productInfo()?.price || '425.00'; // السعر الافتراضي لو مفيش لون مختار
+      return this.productInfo()?.price ; // السعر الافتراضي لو مفيش لون مختار
     }
 
-    // لو فيه مقاس مختار، جيب السعر بتاع الـ variation اللي بتطابق اللون والمقاس
     if (this.selectedSize) {
       const selectedVariation = variations.find((v: any) =>
         v.attributes?.some(
@@ -141,7 +140,7 @@ export class ProductInfoComponent {
           (attr: any) => attr?.name === 'Size' && attr?.option === this.selectedSize
         )
       );
-      return selectedVariation?.price || this.productInfo()?.price || '425.00';
+      return selectedVariation?.price || this.productInfo()?.price;
     }
 
     // لو مفيش مقاس مختار، جيب سعر أول variation للون المختار
@@ -150,6 +149,6 @@ export class ProductInfoComponent {
         (attr: any) => attr?.name === 'Color' && attr?.option === this.selectedColor
       )
     );
-    return firstVariationForColor?.price || this.productInfo()?.price || '425.00';
+    return firstVariationForColor?.price || this.productInfo()?.price ;
   }
 }

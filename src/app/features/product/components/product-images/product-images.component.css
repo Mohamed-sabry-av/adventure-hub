@@ -129,3 +129,10 @@
     max-height: 400px;
   }
 }
+
+@media (min-width: 768px) {
+  .thumbnails-container.horizontal {
+    display: none !important;
+  }
+}
+

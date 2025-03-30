@@ -25,7 +25,7 @@ export class SaleProductsService {
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
-          .set('on_sale', 'true') // جلب المنتجات التي عليها عروض فقط
+          .set('on_sale', 'true')
           .set(
             '_fields',
             'id,name,price,regular_price,sale_price,images,categories,description,attributes'

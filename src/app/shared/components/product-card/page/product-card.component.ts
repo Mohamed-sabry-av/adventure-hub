@@ -393,4 +393,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   onAddProductToCart(product: any): void {
     this.cartService.addProductToCart(product);
   }
+
+  
 }

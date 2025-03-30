@@ -1,92 +1,20 @@
 <div class="product-info">
-  <h1 class="text-3xl font-medium text-olive mb-4">{{ productInfo()?.name }}</h1>
+  <h1 class="text-5xl font-medium text-olive mb-4">{{ productInfo()?.name }}</h1>
 
   <div class="flex items-baseline mb-4">
     <span class="text-2xl font-bold">{{ productInfo()?.price }} AED</span>
     <span class="text-gray-500 line-through ml-2">{{ productInfo()?.regular_price }}</span>
   </div>
 
-  <div class="text-sm text-gray-500 mb-4">
+  <!-- <div class="text-sm text-gray-500 mb-4">
     VAT included
-  </div>
+  </div> -->
 
   <div class="mb-6">
-    <span class="text-sm">{{ brandName }}</span> | <span class="text-sm">SKU: {{ productSku.sku }}</span>
+    <span class="text-sm brandName">{{ brandName }}</span>   
+    <!-- <span class="text-sm">SKU: {{ productSku.sku }}</span> -->
+
   </div>
-
-
-  <!-- Add to Cart Button -->
-  <button class="w-full bg-orange-500 text-white py-3 font-medium rounded-md mb-3 hover:bg-orange-600 transition-colors">
-    ADD TO CART
-  </button>
-
-  <!-- Apple Pay Button -->
-  <button class="w-full bg-black text-white py-3 font-medium rounded-md mb-3 flex items-center justify-center">
-    Buy with
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.445 12.688c-.009-1.034.511-1.82 1.534-2.358-.57-.858-1.465-1.333-2.615-1.442-1.1-.106-2.24.65-2.665.65-.45 0-1.485-.615-2.315-.615-1.782.028-3.491 1.473-3.491 4.17 0 .833.153 1.692.46 2.576.409 1.136 1.884 3.922 3.428 3.87 1.047-.022 1.536-.695 2.681-.695 1.109 0 1.544.695 2.667.695 1.555-.025 2.855-2.485 3.241-3.631-2.06-.908-2.268-2.158-2.268-3.22zm-2.163-5.821c.885-1.138.792-2.169.767-2.524-1.122.06-2.043.796-2.574 1.666-.515.784-.702 1.581-.649 2.491 1.217.017 2.049-.603 2.456-1.633z"/>
-    </svg>
-  </button>
-
-  <div class="text-center text-sm mb-6">
-    <button class="text-gray-600 underline">More payment options</button>
-  </div>
-
-  <!-- Tabby Payment -->
-  <div class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
-    <div>
-      <p class="text-sm">4 interest-free payments or as low as <strong>AED {{ ((productInfo()?.price) / 10.45).toFixed(2) }}/month</strong></p>
-      <p class="text-sm text-gray-500">More options</p>
-    </div>
-    <img src="https://ext.same-assets.com/1752825376/3628814952.png" alt="Tabby" class="h-8">
-  </div>
-
-
-  <!-- Color selector if available -->
-  @if (getColorOptions().length > 0) {
-    <div class="mb-6">
-      <h3 class="font-medium mb-2">Color</h3>
-      <div class="flex gap-2">
-        @for (colorOption of getColorOptions(); track colorOption.color) {
-          <button
-            [class.border-orange-500]="selectedColor === colorOption.color"
-            [class.border-2]="selectedColor === colorOption.color"
-            [class.opacity-50]="!colorOption.inStock"
-            class="w-12 h-12 rounded border overflow-hidden flex-shrink-0"
-            [title]="colorOption.color"
-            (click)="selectColor(colorOption.color)"
-            [disabled]="!colorOption.inStock"
-          >
-            <img [src]="colorOption.image" [alt]="colorOption.color" class="w-full h-full object-cover">
-            @if (!colorOption.inStock) {
-              <span class="text-xs absolute top-0 left-0 w-full bg-black bg-opacity-70 text-white p-1">Out of stock</span>
-            }
-          </button>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- Size selector if available -->
-  @if (selectedColor && getSizesForColor(selectedColor).length > 0) {
-    <div class="mb-6">
-      <h3 class="font-medium mb-2">Size</h3>
-      <div class="flex flex-wrap gap-2">
-        @for (sizeOption of getSizesForColor(selectedColor); track sizeOption.size) {
-          <button
-            [class.bg-olive]="selectedSize === sizeOption.size"
-            [class.text-white]="selectedSize === sizeOption.size"
-            [class.opacity-50]="!sizeOption.inStock"
-            class="px-4 py-2 border rounded hover:bg-gray-100"
-            (click)="selectSize(sizeOption.size)"
-            [disabled]="!sizeOption.inStock"
-          >
-            {{ sizeOption.size }}
-          </button>
-        }
-      </div>
-    </div>
-  }
 
   <!-- Quantity selector -->
   <div class="mb-6">
@@ -111,10 +39,93 @@
       </button>
     </div>
   </div>
+    <!-- Color selector if available -->
+    @if (getColorOptions().length > 0) {
+      <div class="mb-6">
+        <!-- <h3 class="font-medium mb-2">Color</h3> -->
+        <div class="flex gap-2">
+          @for (colorOption of getColorOptions(); track colorOption.color) {
+            <button
+              [class.border-orange-500]="selectedColor === colorOption.color"
+              [class.border-2]="selectedColor === colorOption.color"
+              [class.opacity-50]="!colorOption.inStock"
+              class="w-12 h-12 rounded border overflow-hidden flex-shrink-0"
+              [title]="colorOption.color"
+              (click)="selectColor(colorOption.color)"
+              [disabled]="!colorOption.inStock"
+            >
+              <img [src]="colorOption.image" [alt]="colorOption.color" class="w-full h-full object-cover">
+              @if (!colorOption.inStock) {
+                <span class="text-xs absolute top-0 left-0 w-full bg-black bg-opacity-70 text-white p-1">Out of stock</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+  
+    <!-- Size selector if available -->
+    @if (selectedColor && getSizesForColor(selectedColor).length > 0) {
+    <!-- المقاسات -->
+    <div class="mt-4">
+      <!-- <div class="text-lg font-semibold text-[#4d4f3a] mb-2">
+        Available Sizes:
+      </div> -->
+      <div class="flex gap-2 flex-wrap">
+        @for (size of getSizesForColor(selectedColor); track size.size) {
+        <div
+          class="px-4 py-2 text-sm text-gray-500 bg-white border-2 border-gray-200 rounded-md cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-black hover:border-[#4d4f3a]"
+          [class.opacity-50]="!size.inStock"
+          [class.cursor-not-allowed]="!size.inStock"
+          [class.bg-gray-50]="!size.inStock"
+          [class.border-[#4d4f3a]="selectedSize === size.size"
+          [class.shadow-md]="selectedSize === size.size"
+          (click)="selectSize(size.size)"
+        >
+          <span>{{ size.size }}</span>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+  <!-- Add to Cart Button -->
+  <button class="w-full bg-orange-500 text-white py-3 font-medium rounded-md mb-3 hover:bg-orange-600 transition-colors">
+    ADD TO CART
+  </button>
+
+  <!-- Apple Pay Button -->
+  <button class="w-full bg-black text-white py-3 font-medium rounded-md mb-3 flex items-center justify-center">
+    Buy with
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.445 12.688c-.009-1.034.511-1.82 1.534-2.358-.57-.858-1.465-1.333-2.615-1.442-1.1-.106-2.24.65-2.665.65-.45 0-1.485-.615-2.315-.615-1.782.028-3.491 1.473-3.491 4.17 0 .833.153 1.692.46 2.576.409 1.136 1.884 3.922 3.428 3.87 1.047-.022 1.536-.695 2.681-.695 1.109 0 1.544.695 2.667.695 1.555-.025 2.855-2.485 3.241-3.631-2.06-.908-2.268-2.158-2.268-3.22zm-2.163-5.821c.885-1.138.792-2.169.767-2.524-1.122.06-2.043.796-2.574 1.666-.515.784-.702 1.581-.649 2.491 1.217.017 2.049-.603 2.456-1.633z"/>
+    </svg>
+  </button>
+  <!-- الاضافه الي المفضله -->
+  <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
+    <i class="pi pi-heart text-sm"></i>
+    <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
+  </div>
+  <!-- <div class="text-center text-sm mb-6">
+    <button class="text-gray-600 underline">More payment options</button>
+  </div> -->
+
+  <!-- Tabby Payment -->
+  <div class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
+    <div>
+      <p class="text-sm">4 interest-free payments or as low as <strong>AED {{ ((productInfo()?.price) / 10.45).toFixed(2) }}/month</strong></p>
+      <p class="text-sm text-gray-500">More options</p>
+    </div>
+    <img src="https://ext.same-assets.com/1752825376/3628814952.png" alt="Tabby" class="h-8">
+  </div>
 
 
 
-  <!-- Delivery Info -->
+
+
+
+
+  <!-- Delivery Info
   <div class="border border-gray-200 rounded-md mb-6">
     <button class="flex items-center justify-between w-full p-4">
       <div class="flex items-center">
@@ -131,30 +142,10 @@
       <p class="font-medium">Free Delivery Available</p>
       <p class="text-sm text-gray-600">On orders over AED 500</p>
     </div>
-  </div>
+  </div> -->
 
-  <!-- المقاسات -->
-  <div class="mt-4">
-    <div class="text-lg font-semibold text-[#4d4f3a] mb-2">
-      Available Sizes:
-    </div>
-    <div class="flex gap-2 flex-wrap">
-      @for (size of getSizesForColor(selectedColor); track size.size) {
-      <div
-        class="px-3 py-1 text-sm text-gray-500 bg-white border-2 border-gray-200 rounded-md cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-black hover:border-[#4d4f3a]"
-        [class.opacity-50]="!size.inStock"
-        [class.cursor-not-allowed]="!size.inStock"
-        [class.bg-gray-50]="!size.inStock"
-        [class.border-[#4d4f3a]="selectedSize === size.size"
-        [class.shadow-md]="selectedSize === size.size"
-        (click)="selectSize(size.size)"
-      >
-        <span>{{ size.size }}</span>
-      </div>
-      }
-    </div>
-  </div>
-  <!-- الدفع -->
+
+  <!-- الدفع
   <div class="flex gap-x-2">
     <div class="flex">
       <input
@@ -181,12 +172,7 @@
       Add to cart
     </button>
   </div>
-
-  <!-- الاضافه الي المفضله -->
-  <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
-    <i class="pi pi-heart text-sm"></i>
-    <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
-  </div>
+ -->
 
   <!-- معلومات التوصيل -->
   <div class="mt-6 flex flex-col gap-y-1">

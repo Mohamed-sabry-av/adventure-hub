@@ -1,50 +1,44 @@
 <app-app-container>
-    <!-- Breadcrumb -->
-    <div class="breadcrumb text-sm py-4">
-      <a [routerLink]="['/']" class="text-gray-500 hover:text-gray-700">الرئيسية</a> &gt;
-      <a [routerLink]="['/deals']" class="text-gray-500 hover:text-gray-700">العروض</a> &gt;
-      <span class="text-gray-700">{{ productData?.name }}</span>
+  <!-- Breadcrumb -->
+  <app-breadcrumb></app-breadcrumb>
+
+  <!-- Product Section -->
+  <div class="flex flex-col md:flex-row gap-8 mb-8">
+    <!-- Product Images - Left side -->
+    <div class="md:w-1/2 lg:w-3/5">
+      @if (productData) {
+        <app-product-images
+          [productImages]="productData.images"
+          [selectedColor]="selectedColor"
+          [variations]="productData.variations"
+        />
+      }
+        <!-- Product Description and Specifications -->
+  <div class="full-width-description">
+    @if (productData) {
+      <app-product-desc
+        [productAdditionlInfo]="{ description: productData.description, specifications: productData.specifications }"
+      />
+    }
+  </div>
     </div>
-  
-    <!-- Product Section -->
-    <div class="flex flex-col md:flex-row gap-8 mb-8">
-      <!-- Product Images - Left side -->
-      <div class="md:w-1/2 lg:w-3/5">
+
+    <!-- Product Info - Right side - Sticky on scroll -->
+    <div class="md:w-1/2 lg:w-2/5 sticky-wrapper">
+      <div class="sticky-info">
         @if (productData) {
-          <app-product-images
-            [productImages]="productData.images"
-            [selectedColor]="selectedColor"
-            [variations]="productData.variations"
+          <app-product-info
+            [productInfo]="productData"
+            (selectedColorChange)="onSelectedColorChange($event)"
           />
         }
       </div>
-  
-      <!-- Product Info - Right side - Sticky on scroll -->
-      <div class="md:w-1/2 lg:w-2/5">
-        <div class="sticky-info">
-          @if (productData) {
-            <app-product-info
-              [productInfo]="productData"
-              (selectedColorChange)="onSelectedColorChange($event)"
-            />
-  
-            <!-- Buy Now Button -->
-            <button class="w-full bg-green-600 text-white py-3 font-medium rounded-md mb-3 hover:bg-green-700 transition-colors">
-              اشتر الآن
-            </button>
-          }
-        </div>
-      </div>
     </div>
+  </div>
   
-    <!-- Product Description and Specifications -->
-    @if (productData) {
-      <app-product-desc [productAdditionlInfo]="productData.additional_info" />
-    }
   
-    <!-- Related Products -->
-    @if (productData?.related_products) {
-      <app-product-related />
-    }
-  
+  <app-product-related [relatedIds]="productData.related_ids" />  
+  <!-- Related Products -->
+  @if (productData?.related_products) {
+  }
 </app-app-container>

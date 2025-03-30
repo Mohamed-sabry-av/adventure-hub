@@ -1,9 +1,9 @@
 <div class="product-images-container">
-  <div class="flex flex-col md:flex-row gap-4">
-    <!-- Thumbnail Images (on the left) -->
+  <div class="flex flex-col md:flex-row gap-1.5">
+    <!-- Thumbnail Images (on the left) - Desktop Only -->
     @if (getGalleryImages().length > 1) {
       <div class="thumbnails-container hidden md:flex flex-col gap-2 order-2 md:order-1 md:w-1/5">
-        @for (image of getGalleryImages(); track $index) {
+                @for (image of getGalleryImages(); track $index) {
           <div
             (click)="selectImage($index)"
             [class.border-orange]="selectedImageIndex === $index"
@@ -56,9 +56,9 @@
     </div>
   </div>
 
-  <!-- Mobile Thumbnails (horizontal) -->
+  <!-- Mobile Thumbnails (horizontal) - Mobile Only -->
   @if (getGalleryImages().length > 1) {
-    <div class="thumbnails-container horizontal md:hidden flex gap-2 mt-4">
+    <div class="thumbnails-container horizontal flex sm:flex md:hidden gap-2 mt-4">
       @for (image of getGalleryImages(); track $index) {
         <div
           (click)="selectImage($index)"

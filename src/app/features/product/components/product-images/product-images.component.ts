@@ -55,7 +55,7 @@ export class ProductImagesComponent implements OnInit {
       return Array.isArray(images)
         ? images.map((img: any) => ({
             src: img.src || img,
-            alt: img.alt || 'صورة المنتج'
+            alt: img.alt || ''
           }))
         : [];
     }

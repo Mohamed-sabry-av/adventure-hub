@@ -15,4 +15,15 @@
   .breadcrumb {
     padding: 1rem 0;
   }
+  .sticky-info {
+    position: static; /* Disable sticky on mobile */
+  }
+}
+
+.sticky-info {
+  position: sticky;
+  top: 20px;
+  z-index: 10;
+  /* max-height: calc(100vh - 10px);  */
+  overflow-y: auto; 
 }

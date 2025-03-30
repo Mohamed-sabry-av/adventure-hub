@@ -245,5 +245,36 @@ export class ProductService {
     );
   }
 
-  // ============================================Attributes===============================================
+  getProductsByIds(ids: number[]): Observable<Product[]> {
+    if (!ids || ids.length === 0) {
+      return of([]);
+    }
+  
+    const cacheKey = `products_by_ids_${ids.join('_')}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequestProducts<any>('products', {
+        params: new HttpParams()
+          .set('include', ids.join(','))
+          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes')
+          .set('stock_status', 'instock'),
+        observe: 'response',
+      }).pipe(
+        map((response: HttpResponse<any>) => {
+          const products = response.body.map((product: any) => ({
+            ...product,
+            images: product.images.slice(0, 3) || [],
+          }));
+          console.log('Products fetched by IDs:', products);
+          return products;
+        }),
+        catchError((error) => {
+          console.error('Error fetching products by IDs:', error);
+          return of([]);
+        }),
+        shareReplay(1)
+      ),
+      300000
+    );
+  }
 }
