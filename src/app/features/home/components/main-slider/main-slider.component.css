@@ -1,0 +1,36 @@
+::ng-deep .p-carousel {
+  @apply relative;
+}
+
+::ng-deep .p-carousel-content {
+  @apply relative;
+}
+
+::ng-deep .p-carousel-prev-button,
+::ng-deep .p-carousel-next-button {
+  @apply text-white  absolute top-1/2 transform -translate-y-1/2;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+::ng-deep .p-carousel-prev-button {
+  @apply left-2;
+}
+
+::ng-deep .p-carousel-next-button {
+  @apply right-2;
+}
+
+::ng-deep .p-carousel-prev-button svg,
+::ng-deep .p-carousel-next-button svg {
+  @apply w-10 h-10;
+}
+
+.carousel-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}

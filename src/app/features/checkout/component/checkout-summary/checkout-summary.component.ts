@@ -12,10 +12,10 @@ import { AsyncPipe } from '@angular/common';
 export class CheckoutSummaryComponent {
   private cartService = inject(CartService);
 
-  loadedCart$: Observable<any> = this.cartService.savedCartOfLS$;
+  loadedCart$: Observable<any> = this.cartService.savedUserCart$;
 
   ngOnInit() {
-    this.cartService.fetchCartFromLS();
+    // this.cartService.fetchCartFromLS();
     this.loadedCart$.subscribe((res) => console.log(res));
   }
 }

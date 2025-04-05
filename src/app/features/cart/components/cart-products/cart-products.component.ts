@@ -15,16 +15,26 @@ export class CartProductsComponent {
   private cartService = inject(CartService);
   productCount = viewChild<ElementRef<HTMLParagraphElement>>('productCount');
 
-  loadedCart$: Observable<any> = this.cartService.savedCartOfLS$;
+  loadedCart$: Observable<any> = this.cartService.savedUserCart$;
 
-  onUpdateProductCount(selectedProduct: any, action: 'increase' | 'decrease') {
-    let newCount =
+  ngOnInit() {
+    this.cartService.savedUserCart$.subscribe((res) => console.log(res));
+  }
+
+  onUpdateProductQuantity(
+    selectedProduct: any,
+    action: 'increase' | 'decrease'
+  ) {
+    let newQuantity =
       action === 'increase'
-        ? selectedProduct.count + 1
-        : selectedProduct.count - 1;
-    if (newCount < 1) return;
+        ? selectedProduct.quantity + 1
+        : selectedProduct.quantity - 1;
+    if (newQuantity < 1) return;
 
-    this.cartService.updateCountOfProductInCart(newCount, selectedProduct);
+    this.cartService.updateQuantityOfProductInCart(
+      newQuantity,
+      selectedProduct
+    );
   }
 
   onDeleteProduct(selectedProduct: Product) {

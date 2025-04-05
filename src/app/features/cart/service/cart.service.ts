@@ -7,8 +7,12 @@ import {
   fetchCartFromLSAction,
   fetchUserCartAction,
   updateCountOfProductInCartLSAction,
+  updateProductOfUserCartAction,
 } from '../../../Store/actions/cart.action';
-import { savedCartOfLSSelector } from '../../../Store/selectors/cart.selector';
+import {
+  savedCartOfLSSelector,
+  savedUserCartSelector,
+} from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
 
@@ -17,26 +21,86 @@ export class CartService {
   private accountAuthService = inject(AccountAuthService);
   private store = inject(Store);
   cartIsVisible$ = new BehaviorSubject<boolean>(false);
+  savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
 
   cartMode(isVisible: boolean) {
     this.cartIsVisible$.next(isVisible);
   }
 
-  fetchCartFromLS() {
-    this.store.dispatch(fetchCartFromLSAction());
+  calcCartPrice(products: any) {
+    const subTotal = [...products].reduce((acc, ele) => {
+      return acc + +ele.quantity! * ele.prices.price;
+    }, 0);
+
+    return {
+      items: [...products],
+      payment_methods: ['stripe', 'tabby_installments'],
+      totals: {
+        subTotal,
+        currency_code: 'AED',
+        total_fees: subTotal < 100 ? 20 : 0,
+        total_price: subTotal < 100 ? subTotal + 20 : subTotal,
+      },
+    };
   }
-  savedCartOfLS$: Observable<any> = this.store.select(savedCartOfLSSelector);
 
   fetchUserCart() {
-    this.store.dispatch(fetchUserCartAction());
-    // this.accountAuthService.isLoggedIn$.subscribe((response: boolean) => {
-    //   if (response) {
-    //   } else {
-    //     this.store.dispatch(fetchCartFromLSAction());
-    //   }
-    // });
+    this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
   }
+  // اللوجيك الصح
+
+  // fetchUserCart() {
+  //   this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+  //     if (isLoggedIn) {
+  //       this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
+  //     } else {
+  //       this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
+  //     }
+  //   });
+  // }
   // savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
+
+  updateQuantityOfProductInCart(
+    selectedProductQuantity: number,
+    selectedProduct: Product
+  ) {
+    this.store.dispatch(
+      updateProductOfUserCartAction({
+        product: selectedProduct,
+        productQuantity: selectedProductQuantity,
+        isLoggedIn: true,
+      })
+    );
+  }
+
+  // اللوجيك الصح
+  // updateQuantityOfProductInCart(
+  //   selectedProductQuantity: number,
+  //   selectedProduct: Product
+  // ) {
+  //   this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+  //     if (isLoggedIn) {
+  //       this.store.dispatch(
+  //         updateProductOfUserCartAction({
+  //           product: selectedProduct,
+  //           productQuantity: selectedProductQuantity,
+  //           isLoggedIn: true,
+  //         })
+  //       );
+  //     } else {
+  //       this.store.dispatch(
+  //         updateProductOfUserCartAction({
+  //           product: selectedProduct,
+  //           productQuantity: selectedProductQuantity,
+  //           isLoggedIn: false,
+  //         })
+  //       );
+  //     }
+  //   });
+  // }
+
+  x = 0;
+  // -----------------------------------------------------------------------------------------
 
   addProductToCart(selectedProduct: Product) {
     this.store.dispatch(addProductToLSCartAction({ product: selectedProduct }));
@@ -72,51 +136,5 @@ export class CartService {
     //     this.store.dispatch(fetchCartFromLSAction());
     //   }
     // });
-  }
-
-  updateCountOfProductInCart(
-    selectedProductCount: number,
-    selectedProduct: Product
-  ) {
-    this.store.dispatch(
-      updateCountOfProductInCartLSAction({
-        count: selectedProductCount,
-        selectedProduct: selectedProduct,
-      })
-    );
-
-    // this.checkAuth().subscribe((token) => {
-    //   if (token) {
-    //     this.store.dispatch(
-    //       updateProductOfUserCartAction({
-    //         product: selectedProduct,
-    //         productCount: selectedProductCount,
-    //       })
-    //     );
-    //   } else {
-    //     this.store.dispatch(
-    //       updateCountOfProductInCartLSAction({
-    //         count: selectedProductCount,
-    //         selectedProduct: selectedProduct,
-    //       })
-    //     );
-    //     this.fetchCartFromLS();
-    //   }
-    // });
-  }
-
-  calcCartPrice(products: any) {
-    const subTotal = [...products].reduce((acc, ele) => {
-      return acc + +ele.count! * ele.price;
-    }, 0);
-
-    return {
-      products: [...products],
-      cartTotalPrice: {
-        subTotal,
-        shippingFee: subTotal ? 10 : 0,
-        totalPrice: subTotal ? subTotal + 10 : 0,
-      },
-    };
   }
 }

@@ -2,7 +2,7 @@ import { DestroyRef, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 // import {
 //   combineLatest,
 //   concatMap,
@@ -42,14 +42,16 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CartService } from '../../features/cart/service/cart.service';
 import { Product } from '../../interfaces/product';
-import { map, of, switchMap, take, tap } from 'rxjs';
+import { catchError, map, of, switchMap, take, tap } from 'rxjs';
 import {
   addProductToLSCartAction,
   deleteProductInCartLSAction,
   fetchCartFromLSAction,
   fetchUserCartAction,
   getCartFromLSAction,
+  getUserCartAction,
   updateCountOfProductInCartLSAction,
+  updateProductOfUserCartAction,
 } from '../actions/cart.action';
 
 export class CartEffect {
@@ -60,92 +62,18 @@ export class CartEffect {
   private cartService = inject(CartService);
   private destroyRef = inject(DestroyRef);
 
-  loadCartLS = createEffect(() =>
-    this.actions$.pipe(
-      ofType(fetchCartFromLSAction),
-      switchMap(() => {
-        let loadedCart: any = localStorage.getItem('Cart');
-        loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-        return of(getCartFromLSAction({ cart: loadedCart }));
-      })
-    )
-  );
-
-  addProductToCartLS = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(addProductToLSCartAction),
-        map(({ product }) => {
-          console.log(product);
-          let {
-            id,
-            name,
-            regular_price,
-            price,
-            sale_price,
-            attributes,
-            images,
-          } = product;
-
-          const firstImage = images[0]?.src || '';
-
-          const brand = attributes.find(
-            (attribute: any) => attribute.name === 'Brand'
-          );
-          const size = attributes.find(
-            (attribute: any) => attribute.name === 'Size'
-          );
-          const color = attributes.find(
-            (attribute: any) => attribute.name === 'Color'
-          );
-
-          attributes = { brand, color, size };
-
-          let selectedProduct = {
-            id,
-            name,
-            count: 1,
-            regular_price,
-            price,
-            sale_price,
-            attributes,
-            firstImage,
-          };
-
-          let loadedProducts: any = localStorage.getItem('Cart');
-          loadedProducts = loadedProducts
-            ? JSON.parse(loadedProducts).products
-            : [];
-
-          const productIndex = loadedProducts.findIndex(
-            (p: Product) => p.id === selectedProduct.id
-          );
-
-          if (productIndex !== -1) {
-            loadedProducts[productIndex].count += 1;
-          } else {
-            loadedProducts.push(selectedProduct);
-          }
-
-          const cart = this.cartService.calcCartPrice(loadedProducts);
-          localStorage.setItem('Cart', JSON.stringify(cart));
-
-          this.store.dispatch(fetchCartFromLSAction()); // New
-        })
-      ),
-    { dispatch: false }
-  );
-
   updateCountOfProductInCartLS = createEffect(
     () =>
       this.actions$.pipe(
         ofType(updateCountOfProductInCartLSAction),
-        map(({ count, selectedProduct }) => {
+        map(({ quantity, selectedProduct }) => {
           let loadedCart: any = localStorage.getItem('Cart');
           loadedCart = loadedCart ? JSON.parse(loadedCart).products : [];
 
           const updatedCart = loadedCart.map((product: Product) =>
-            product.id === selectedProduct.id ? { ...product, count } : product
+            product.id === selectedProduct.id
+              ? { ...product, quantity }
+              : product
           );
 
           const cart = this.cartService.calcCartPrice(updatedCart);
@@ -156,6 +84,7 @@ export class CartEffect {
       ),
     { dispatch: false }
   );
+
   deleteProductInCartLS = createEffect(
     () =>
       this.actions$.pipe(
@@ -240,20 +169,69 @@ export class CartEffect {
   //   { dispatch: false }
   // );
 
-  // updateProductCountOfUserCart = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(updateProductOfUserCartAction),
-  //       switchMap(({ product, productCount }) =>
-  //         this.httpClient.put(
-  //           `https://ecommerce.routemisr.com/api/v1/cart/${product.id}`,
-  //           { count: productCount }
-  //         )
-  //       ),
-  //       tap(() => console.log('UPDATED'))
-  //     ),
-  //   { dispatch: false }
-  // );
+  updateProductQuantityOfUserCart = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(updateProductOfUserCartAction),
+        switchMap(
+          ({
+            product: selectedProduct,
+            productQuantity: quantity,
+            isLoggedIn,
+          }) => {
+            if (isLoggedIn) {
+              const headers = new HttpHeaders({
+                Cookie:
+                  'wordpress_logged_in_49c1619234a131a188f12fea295ed5ea=ameenelnaggar|1743244195|Yq5foLIFL0v3IjgHGfjGAcL4gZhwu4PaE2Djw9iXk0Q|b7729c053f46cf588b52e700086f44822ece1f6b3f19b6b75a5334ba5dd3e143;',
+                'X-WC-Store-API-Nonce': '51ce0d3a8a',
+                'Content-Type': 'application/json',
+              });
+
+              const body = {
+                key: selectedProduct.key,
+                quantity: quantity,
+              };
+
+              return this.httpClient
+                .post(
+                  'https://adventures-hub.com/wp-json/wc/store/v1/cart/update-item',
+                  body,
+                  { headers }
+                )
+                .pipe(
+                  map((response: any) => {
+                    console.log('Update Success:', response);
+                    return fetchUserCartAction({ isLoggedIn: true }); // رجع Action بدل Dispatch مباشرة
+                  }),
+                  catchError((error) => {
+                    console.error('Update Error:', error);
+                    return of();
+                  })
+                );
+            }
+
+            if (!isLoggedIn) {
+              let loadedCart: any = localStorage.getItem('Cart');
+              loadedCart = loadedCart ? JSON.parse(loadedCart).items : [];
+
+              const updatedCart = loadedCart.map((product: Product) =>
+                product.id === selectedProduct.id
+                  ? { ...product, quantity }
+                  : product
+              );
+
+              const cart = this.cartService.calcCartPrice(updatedCart);
+              console.log(cart);
+
+              localStorage.setItem('Cart', JSON.stringify(cart));
+              this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
+            }
+            return '';
+          }
+        )
+      ),
+    { dispatch: false }
+  );
 
   // deleteProductOfUserCart = createEffect(
   //   () =>
@@ -272,17 +250,22 @@ export class CartEffect {
   //   { dispatch: false }
   // );
 
-  loadUserCart = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(fetchUserCartAction),
-        switchMap(() => {
+  loadUserCart = createEffect(() =>
+    this.actions$.pipe(
+      ofType(fetchUserCartAction),
+      switchMap(({ isLoggedIn }) => {
+        if (isLoggedIn) {
           const options = {
             headers: new HttpHeaders({
               Cookie:
                 'wordpress_logged_in_49c1619234a131a188f12fea295ed5ea=ameenelnaggar|1743244195|Yq5foLIFL0v3IjgHGfjGAcL4gZhwu4PaE2Djw9iXk0Q|b7729c053f46cf588b52e700086f44822ece1f6b3f19b6b75a5334ba5dd3e143;',
             }),
+            params: new HttpParams().set(
+              '_fields',
+              'items,totals,payment_methods'
+            ),
           };
+
           return this.httpClient
             .get(
               'https://adventures-hub.com//wp-json/wc/store/v1/cart',
@@ -290,12 +273,37 @@ export class CartEffect {
             )
             .pipe(
               map((response: any) => {
-                console.log(response);
+                const itemsObj = response.items.map((item: any) => {
+                  return {
+                    key: item.key,
+                    id: item.id,
+                    images: item.images[0].src,
+                    name: item.name,
+                    permalink: item.permalink,
+                    type: item.type,
+                    variation: item.variation,
+                    prices: item.prices,
+                    quantity: item.quantity,
+                    quantity_limits: item.quantity_limits,
+                  };
+                });
+
+                const cartData = {
+                  items: itemsObj,
+                  payment_methods: response.payment_methods,
+                  totals: response.totals,
+                };
+
+                return getUserCartAction({ userCart: cartData });
               })
             );
-        })
-      ),
-    { dispatch: false }
+        } else {
+          let loadedCart: any = localStorage.getItem('Cart');
+          loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+          return of(getUserCartAction({ userCart: loadedCart }));
+        }
+      })
+    )
   );
 
   // paymentUserCart = createEffect(() =>

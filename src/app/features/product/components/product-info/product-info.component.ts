@@ -8,7 +8,7 @@ import { CartService } from '../../../cart/service/cart.service';
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
-  standalone: true
+  standalone: true,
 })
 export class ProductInfoComponent {
   productInfo = input<any>();
@@ -20,7 +20,7 @@ export class ProductInfoComponent {
 
   @Output() selectedColorChange = new EventEmitter<string | null>(); // Output جديد
 
-  constructor(private cartService:CartService){}
+  constructor(private cartService: CartService) {}
 
   ngOnInit() {
     if (this.productInfo()) {
@@ -46,7 +46,8 @@ export class ProductInfoComponent {
   }
 
   get productSku() {
-    const shortTitle = this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
+    const shortTitle =
+      this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
     const sku = this.productInfo()?.sku || '';
     return { shortTitle, sku };
   }
@@ -67,13 +68,16 @@ export class ProductInfoComponent {
 
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
     variations.forEach((v: any) => {
-      const colorAttr = v.attributes?.find((attr: any) => attr?.name === 'Color');
+      const colorAttr = v.attributes?.find(
+        (attr: any) => attr?.name === 'Color'
+      );
       if (colorAttr && v.image?.src) {
         if (!colorMap.has(colorAttr.option)) {
           const isInStock = variations.some(
             (variation: any) =>
               variation.attributes?.some(
-                (attr: any) => attr?.name === 'Color' && attr?.option === colorAttr.option
+                (attr: any) =>
+                  attr?.name === 'Color' && attr?.option === colorAttr.option
               ) && variation.stock_status === 'instock'
           );
           colorMap.set(colorAttr.option, {
@@ -104,7 +108,9 @@ export class ProductInfoComponent {
         )
       )
       .map((v: any) => {
-        const sizeAttr = v.attributes?.find((attr: any) => attr?.name === 'Size');
+        const sizeAttr = v.attributes?.find(
+          (attr: any) => attr?.name === 'Size'
+        );
         return {
           size: sizeAttr?.option || '',
           inStock: v.stock_status === 'instock',
@@ -112,9 +118,7 @@ export class ProductInfoComponent {
       })
       .filter((item) => item.size);
 
-    return Array.from(
-      new Map(sizes.map((item) => [item.size, item])).values()
-    );
+    return Array.from(new Map(sizes.map((item) => [item.size, item])).values());
   }
 
   selectColor(color: string): void {
@@ -129,19 +133,26 @@ export class ProductInfoComponent {
 
   getSelectedPrice(): string {
     const variations = this.productInfo()?.variations || [];
-    if (!Array.isArray(variations) || !variations.length || !this.selectedColor) {
+    if (
+      !Array.isArray(variations) ||
+      !variations.length ||
+      !this.selectedColor
+    ) {
       return this.productInfo()?.price || '425.00'; // السعر الافتراضي لو مفيش لون مختار
     }
 
     // لو فيه مقاس مختار، جيب السعر بتاع الـ variation اللي بتطابق اللون والمقاس
     if (this.selectedSize) {
-      const selectedVariation = variations.find((v: any) =>
-        v.attributes?.some(
-          (attr: any) => attr?.name === 'Color' && attr?.option === this.selectedColor
-        ) &&
-        v.attributes?.some(
-          (attr: any) => attr?.name === 'Size' && attr?.option === this.selectedSize
-        )
+      const selectedVariation = variations.find(
+        (v: any) =>
+          v.attributes?.some(
+            (attr: any) =>
+              attr?.name === 'Color' && attr?.option === this.selectedColor
+          ) &&
+          v.attributes?.some(
+            (attr: any) =>
+              attr?.name === 'Size' && attr?.option === this.selectedSize
+          )
       );
       return selectedVariation?.price || this.productInfo()?.price || '425.00';
     }
@@ -149,10 +160,13 @@ export class ProductInfoComponent {
     // لو مفيش مقاس مختار، جيب سعر أول variation للون المختار
     const firstVariationForColor = variations.find((v: any) =>
       v.attributes?.some(
-        (attr: any) => attr?.name === 'Color' && attr?.option === this.selectedColor
+        (attr: any) =>
+          attr?.name === 'Color' && attr?.option === this.selectedColor
       )
     );
-    return firstVariationForColor?.price || this.productInfo()?.price || '425.00';
+    return (
+      firstVariationForColor?.price || this.productInfo()?.price || '425.00'
+    );
   }
 
   onAddProductToCart() {

@@ -27,11 +27,11 @@ export class SideCartComponent {
 
   productCount = viewChild<ElementRef<HTMLParagraphElement>>('productCount');
 
-  loadedCart$: Observable<any> = this.cartService.savedCartOfLS$;
+  loadedCart$: Observable<any> = this.cartService.savedUserCart$;
   sideCartVisible$: Observable<boolean> = this.cartService.cartIsVisible$;
 
   ngOnInit() {
-    this.cartService.fetchCartFromLS();
+    // this.cartService.fetchCartFromLS();
   }
 
   hideSideCart() {
@@ -45,7 +45,7 @@ export class SideCartComponent {
         : selectedProduct.count - 1;
     if (newCount < 1) return;
 
-    this.cartService.updateCountOfProductInCart(newCount, selectedProduct);
+    // this.cartService.updateCountOfProductInCart(newCount, selectedProduct);
   }
 
   onDeleteProduct(selectedProduct: Product) {

@@ -1,0 +1,57 @@
+<!-- <p-carousel
+  [value]="products.images"
+  [numVisible]="3"
+  [numScroll]="3"
+  [circular]="false"
+>
+  <ng-template pTemplate="item" let-link>
+    <div class="max-w-[264px] p-[14px] flex items-center justify-center">
+      <img
+        [src]="link"
+        alt="product-image"
+        class="max-w-[235px] object-cover"
+      />
+    </div>
+  </ng-template>
+</p-carousel> -->
+
+<p-carousel
+  [value]="products$ | async"
+  [numVisible]="
+    isDesktop || isTablet || isMobile ? (isTablet || isDesktop ? 4 : 3) : 5
+  "
+  [numScroll]="2"
+  [showNavigators]="isTablet || isMobile ? false : true"
+>
+  <ng-template let-product #item>
+    <app-product-card [product]="product" />
+    <!-- <div class="flex flex-col items-center justify-center p-4">
+      <a
+        [routerLink]="product.permalink"
+        class="block border-b border-black pb-5"
+      >
+        <div
+          class="aspect-[1/1] w-full max-w-[220px] mx-auto overflow-hidden bg-white rounded-md flex items-center justify-center"
+        >
+          <img
+            [src]="product.images[0].src"
+            class="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
+          />
+        </div>
+      </a>
+
+      <div class="mt-2">
+        <p class="text-sm">{{ product.name }}</p>
+        <p class="text-orange-500 font-semibold">
+          AED {{ product.price }}
+
+          @if (product.regular_price) {
+          <del class="text-sm text-gray-400 font-normal">{{
+            product.regular_price
+          }}</del>
+          }
+        </p>
+      </div>
+    </div> -->
+  </ng-template>
+</p-carousel>

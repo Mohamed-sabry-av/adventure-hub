@@ -1,0 +1,20 @@
+<article>
+  <app-main-slider />
+  <app-related-categories />
+
+  <section>
+    <app-recommended-products [recommendedProducts$]="featuredProducts$" />
+  </section>
+
+  <section>
+    <app-new-products [arrivalProducts$]="newArrivalsProducts$" />
+  </section>
+
+  <section>
+    <app-sale-products [saleProducts$]="saleProducts$" />
+  </section>
+
+  <section>
+    <app-about />
+  </section>
+</article>

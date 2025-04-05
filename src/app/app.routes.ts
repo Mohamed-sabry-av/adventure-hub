@@ -1,12 +1,24 @@
 import { Routes } from '@angular/router';
 import { BlogSectionPageComponent } from './features/blog/page/blog-section-page/blog-section-page.component';
 import { blogSectionGuard } from './features/blog/guards/blog-section.guard';
+import { HomePageComponent } from './features/home/page/home-page/home-page.component';
 
 export const routes: Routes = [
   {
+    path: ':mainCategorySlug',
+    loadComponent: () =>
+      import('./features/products/pages/Products/products.component').then(
+        (m) => m.ProductsComponent
+      ),
+    pathMatch: 'full',
+    data: { breadcrumb: 'Main Category' },
+  },
+  {
     path: '',
     loadComponent: () =>
-      import('./features/Home/home.component').then((m) => m.HomeComponent),
+      import('./features/home/page/home-page/home-page.component').then(
+        (m) => m.HomePageComponent
+      ),
     pathMatch: 'full',
   },
   {
@@ -63,15 +75,6 @@ export const routes: Routes = [
         './features/products/pages/products-by-brand/products-by-brand.component'
       ).then((m) => m.ProductsByBrandComponent),
     pathMatch: 'full',
-  },
-  {
-    path: ':mainCategorySlug',
-    loadComponent: () =>
-      import('./features/products/pages/Products/products.component').then(
-        (m) => m.ProductsComponent
-      ),
-    pathMatch: 'full',
-    data: { breadcrumb: 'Main Category' },
   },
   {
     path: ':mainCategorySlug/:subCategorySlug',

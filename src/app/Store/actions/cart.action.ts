@@ -21,7 +21,7 @@ export const addProductToLSCartAction = createAction(
 
 export const updateCountOfProductInCartLSAction = createAction(
   '[CartLS] Update Count Of Product In Cart LocalStorage',
-  props<{ count: number; selectedProduct: any }>()
+  props<{ quantity: number; selectedProduct: any }>()
 );
 
 export const deleteProductInCartLSAction = createAction(
@@ -40,17 +40,20 @@ export const deleteProductInCartLSAction = createAction(
 //   props<{ product: Product }>()
 // );
 
-// export const updateProductOfUserCartAction = createAction(
-//   '[Cart] Update Product Count To User Cart',
-//   props<{ product: Product; productCount: number }>()
-// );
+export const updateProductOfUserCartAction = createAction(
+  '[Cart] Update Product Quantity To User Cart',
+  props<{ product: any; productQuantity: number; isLoggedIn: boolean }>()
+);
 
 // export const deleteProductOfUserCartAction = createAction(
 //   '[Cart] delete Product Of User Cart',
 //   props<{ product: Product }>()
 // );
 
-export const fetchUserCartAction = createAction('[Cart] Fetch User Cart');
+export const fetchUserCartAction = createAction(
+  '[Cart] Fetch User Cart',
+  props<{ isLoggedIn: boolean }>()
+);
 
 export const getUserCartAction = createAction(
   '[Cart] Get User Cart',

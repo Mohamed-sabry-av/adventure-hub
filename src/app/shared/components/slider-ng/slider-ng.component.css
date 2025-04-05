@@ -1,7 +1,0 @@
-::ng-deep .p-carousel-prev-button {
-  @apply bg-[#4d4f3a] text-white rounded-full;
-}
-
-::ng-deep .p-carousel-next-button {
-  @apply bg-[#4d4f3a] text-white rounded-full;
-}

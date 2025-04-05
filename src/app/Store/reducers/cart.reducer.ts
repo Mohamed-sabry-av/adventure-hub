@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { getCartFromLSAction } from '../actions/cart.action';
+import { getCartFromLSAction, getUserCartAction } from '../actions/cart.action';
 // import { Product } from '../../Shared/models/product.model';
 // import {
 //   getCartFromLSAction,
@@ -31,10 +31,10 @@ export const cartReducer = createReducer(
   initialState,
   on(getCartFromLSAction, (state, action) => {
     return { ...state, localStorageCart: action.cart };
+  }),
+  on(getUserCartAction, (state, action) => {
+    return { ...state, userCart: action.userCart };
   })
-  // on(getUserCartAction, (state, action) => {
-  //   return { ...state, userCart: action.userCart };
-  // }),
   // on(getPaymentDataAction, (state, action) => {
   //   return { ...state, paymentData: action.paymentData };
   // })
