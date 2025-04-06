@@ -66,10 +66,10 @@
                   type="button"
                   class="w-10 h-8"
                   (click)="onUpdateProductQuantity(item, 'increase')"
-                  [disabled]="item.quantity === item.quantity_limits.maximum"
+                  [disabled]="item.quantity === item.quantity_limits?.maximum"
                   [class]="{
                     'text-gray-400':
-                      item.quantity === item.quantity_limits.maximum
+                      item.quantity === item.quantity_limits?.maximum
                   }"
                 >
                   <span

@@ -113,7 +113,6 @@ export class CartEffect {
       this.actions$.pipe(
         ofType(addProductToUserCartAction),
         switchMap(({ product, isLoggedIn }) => {
-          console.log('HEELL');
           if (isLoggedIn) {
             let authToken: any = localStorage.getItem('auth_token');
             authToken = authToken ? JSON.parse(authToken) : '';
@@ -126,6 +125,8 @@ export class CartEffect {
               product_id: product.id,
               quantity: 1,
             };
+
+            console.log('fdsjfio');
 
             return this.httpClient
               .post(
@@ -156,36 +157,24 @@ export class CartEffect {
               images,
             } = product;
 
-            const firstImage = images[0]?.src || '';
-
-            const brand = attributes.find(
-              (attribute: any) => attribute.name === 'Brand'
-            );
-            const size = attributes.find(
-              (attribute: any) => attribute.name === 'Size'
-            );
-            const color = attributes.find(
-              (attribute: any) => attribute.name === 'Color'
-            );
-
-            attributes = { brand, color, size };
+            images = images[0].src;
 
             let selectedProduct = {
               id,
               name,
-              count: 1,
-              regular_price,
-              price,
-              sale_price,
+              quantity: 1,
+              prices: {
+                regular_price,
+                price,
+                sale_price,
+              },
               attributes,
-              firstImage,
+              images,
             };
-
-            console.log(selectedProduct);
 
             let loadedProducts: any = localStorage.getItem('Cart');
             loadedProducts = loadedProducts
-              ? JSON.parse(loadedProducts).products
+              ? JSON.parse(loadedProducts).items
               : [];
 
             const productIndex = loadedProducts.findIndex(
@@ -193,12 +182,13 @@ export class CartEffect {
             );
 
             if (productIndex !== -1) {
-              loadedProducts[productIndex].count += 1;
+              loadedProducts[productIndex].quantity += 1;
             } else {
               loadedProducts.push(selectedProduct);
             }
 
             const cart = this.cartService.calcCartPrice(loadedProducts);
+            console.log(cart);
             localStorage.setItem('Cart', JSON.stringify(cart));
 
             this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
@@ -272,7 +262,6 @@ export class CartEffect {
               // )
               .pipe(
                 map((response: any) => {
-                  console.log(response);
                   const itemsObj = response.items.map((item: any) => {
                     return {
                       key: item.key,
