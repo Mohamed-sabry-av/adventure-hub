@@ -26,8 +26,8 @@
     <p class="text-lg">Total:</p>
     <p>
       {{
-        (loadedCart$ | async).totals.total_price
-          | currency : (loadedCart$ | async).totals.currency_code
+        (loadedCart$ | async)?.totals?.total_price
+          | currency : (loadedCart$ | async)?.totals?.currency_code
       }}
     </p>
   </div>

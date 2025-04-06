@@ -6,11 +6,11 @@
   <div
     class="p-2"
     [class]="{
-      'h-[800px]': (loadedCart$ | async).items.length > 4,
-      'overflow-auto': (loadedCart$ | async).items.length > 4
+      'h-[800px]': (loadedCart$ | async)?.items?.length > 4,
+      'overflow-auto': (loadedCart$ | async)?.items?.length > 4
     }"
   >
-    @for (item of (loadedCart$ | async).items; track $index) {
+    @for (item of (loadedCart$ | async)?.items; track $index) {
 
     <div class="flex gap-x-6 border-b pb-4 mt-5">
       <img [src]="item.images" alt="" class="w-[112px] h-fit bg-cover" />
@@ -23,8 +23,7 @@
             <p class="text-base">{{ item.name }}</p>
             <p class="text-base">
               {{ item.prices.price }}
-              @if (item.prices.sale_price !== '' && item.prices.sale_price !==
-              item.prices.regular_price) {
+              @if (item.prices.regular_price !== item.prices.price) {
               <del class="ml-1 text-gray-400 font-light text-sm">{{
                 item.prices.regular_price
               }}</del>
@@ -91,8 +90,7 @@
             <p class="text-base font-semibold">
               {{ item.prices.price }}
             </p>
-            @if (item.prices.sale_price !== '' && item.prices.sale_price !==
-            item.prices.regular_price) {
+            @if (item.prices.regular_price !== item.prices.price) {
             <del class="text-sm text-gray-400">{{
               item.prices.regular_price
             }}</del>

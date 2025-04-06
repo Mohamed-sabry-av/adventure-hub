@@ -40,11 +40,6 @@ export const deleteProductInCartLSAction = createAction(
 //   props<{ product: Product }>()
 // );
 
-export const updateProductOfUserCartAction = createAction(
-  '[Cart] Update Product Quantity To User Cart',
-  props<{ product: any; productQuantity: number; isLoggedIn: boolean }>()
-);
-
 // export const deleteProductOfUserCartAction = createAction(
 //   '[Cart] delete Product Of User Cart',
 //   props<{ product: Product }>()
@@ -58,6 +53,21 @@ export const fetchUserCartAction = createAction(
 export const getUserCartAction = createAction(
   '[Cart] Get User Cart',
   props<{ userCart: any }>()
+);
+
+export const addProductToUserCartAction = createAction(
+  '[Cart] Add Product To User Cart',
+  props<{ product: any; isLoggedIn: boolean }>()
+);
+
+export const updateProductOfUserCartAction = createAction(
+  '[Cart] Update Product Quantity To User Cart',
+  props<{ product: any; productQuantity: number; isLoggedIn: boolean }>()
+);
+
+export const deleteProductOfUserCarAction = createAction(
+  '[Cart] Delete Product From User Cart ',
+  props<{ product: any; isLoggedIn: boolean }>()
 );
 
 // // --------------------------------------------

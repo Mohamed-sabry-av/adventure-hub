@@ -1,10 +1,15 @@
-<div class="product-card relative overflow-hidden bg-white rounded-md shadow-sm transition-all duration-300 hover:shadow-md group" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
+<div
+  class="product-card relative overflow-hidden bg-white rounded-md shadow-sm transition-all duration-300 hover:shadow-md group"
+  (mouseenter)="onHover(true)"
+  (mouseleave)="onHover(false)"
+>
   <app-card-image-slider
     [product]="product"
     [currentSlide]="currentSlide"
     [colorOptions]="colorOptions"
     [getDotCount]="getDotCount.bind(this)"
-    (goToSlide)="goToSlide($event)">
+    (goToSlide)="goToSlide($event)"
+  >
   </app-card-image-slider>
 
   <app-card-details
@@ -12,19 +17,26 @@
     [colorOptions]="colorOptions"
     [uniqueSizes]="uniqueSizes"
     [getBrandName]="getBrandName.bind(this)"
-    [getBrandSlug]="getBrandSlug.bind(this)">
+    [getBrandSlug]="getBrandSlug.bind(this)"
+  >
   </app-card-details>
 
   <app-color-swatches
     [colorOptions]="colorOptions"
     [selectedColor]="selectedColor"
-    (selectColor)="selectColor($event.color, $event.image)">
+    (selectColor)="selectColor($event.color, $event.image)"
+  >
   </app-color-swatches>
 
   <!-- Add to Cart button for products without options -->
-  <div class="p-3 pt-0" *ngIf="colorOptions.length === 0 && uniqueSizes.length === 0">
-    <button class="add-to-cart-btn w-full text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br font-medium rounded-sm text-sm px-5 py-2.5 text-center transition-all duration-300 opacity-0 group-hover:opacity-100"
-            (click)="onAddToCart(product)">
+  <div
+    class="p-3 pt-0"
+    *ngIf="colorOptions.length === 0 && uniqueSizes.length === 0"
+  >
+    <button
+      class="add-to-cart-btn w-full text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br font-medium rounded-sm text-sm px-5 py-2.5 text-center transition-all duration-300 opacity-0 group-hover:opacity-100"
+      (click)="onAddProductToCart(product)"
+    >
       Add to cart
     </button>
   </div>
@@ -38,9 +50,8 @@
     [sizeScrollIndex]="sizeScrollIndex"
     [maxScrollIndex]="maxScrollIndex"
     (scrollSizes)="scrollSizes($event)"
-    (selectSize)="selectSize($event)">
+    (selectSize)="selectSize($event)"
+  >
     (click)="onAddProductToCart(product)"
-
   </app-size-selector>
-
 </div>

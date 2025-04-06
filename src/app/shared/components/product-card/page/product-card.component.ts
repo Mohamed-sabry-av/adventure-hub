@@ -1,12 +1,26 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
 import { SizeSelectorComponent } from '../components/size-selector/size-selector.component';
-import { AnimationBuilder, AnimationFactory, animate, style, transition, trigger } from '@angular/animations';
+import {
+  AnimationBuilder,
+  AnimationFactory,
+  animate,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { Subscription, fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { CartService } from '../../../../features/cart/service/cart.service';
@@ -29,20 +43,24 @@ import { CartService } from '../../../../features/cart/service/cart.service';
         style({ opacity: 0 }),
         animate('300ms ease-in', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
+      transition(':leave', [animate('300ms ease-out', style({ opacity: 0 }))]),
     ]),
     trigger('slideUpDown', [
       transition(':enter', [
         style({ transform: 'translateY(100%)', opacity: 0 }),
-        animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 })),
+        animate(
+          '300ms ease-out',
+          style({ transform: 'translateY(0)', opacity: 1 })
+        ),
       ]),
       transition(':leave', [
-        animate('300ms ease-in', style({ transform: 'translateY(100%)', opacity: 0 }))
-      ])
-    ])
-  ]
+        animate(
+          '300ms ease-in',
+          style({ transform: 'translateY(100%)', opacity: 0 })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
@@ -92,8 +110,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       });
   }
 
-
-
   private stopAutoSlide(): void {
     if (this.autoSlideInterval) {
       clearInterval(this.autoSlideInterval);
@@ -106,7 +122,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.variations = variations || [];
         this.colorOptions = this.getColorOptions();
         if (this.colorOptions.length > 0) {
-          this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+          this.selectColor(
+            this.colorOptions[0].color,
+            this.colorOptions[0].image
+          );
         } else {
           this.uniqueSizes = this.getSizesForColor('');
           this.updateVisibleSizes();
@@ -118,7 +137,11 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getColorOptions(): { color: string; image: string; inStock: boolean }[] {
+  private getColorOptions(): {
+    color: string;
+    image: string;
+    inStock: boolean;
+  }[] {
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
     this.variations.forEach((v) => {
       const colorAttr = v.attributes.find((attr: any) => attr.name === 'Color');
@@ -137,10 +160,16 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     return options.length > 1 ? options : [];
   }
 
-  private getSizesForColor(color: string): { size: string; inStock: boolean }[] {
+  private getSizesForColor(
+    color: string
+  ): { size: string; inStock: boolean }[] {
     const sizesMap = new Map<string, boolean>();
     const filteredVariations = color
-      ? this.variations.filter((v) => v.attributes.some((attr: any) => attr.name === 'Color' && attr.option === color))
+      ? this.variations.filter((v) =>
+          v.attributes.some(
+            (attr: any) => attr.name === 'Color' && attr.option === color
+          )
+        )
       : this.variations;
 
     filteredVariations.forEach((v) => {
@@ -153,7 +182,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       }
     });
 
-    const sizesArray = Array.from(sizesMap, ([size, inStock]) => ({ size, inStock }));
+    const sizesArray = Array.from(sizesMap, ([size, inStock]) => ({
+      size,
+      inStock,
+    }));
     return sizesArray.sort((a, b) => {
       // Available sizes first
       if (a.inStock && !b.inStock) return -1;
@@ -176,7 +208,11 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
     const selectedColorImages = this.variations
-      .filter((v) => v.attributes.some((attr: any) => attr.name === 'Color' && attr.option === color))
+      .filter((v) =>
+        v.attributes.some(
+          (attr: any) => attr.name === 'Color' && attr.option === color
+        )
+      )
       .map((v) => ({ src: v.image?.src || image }));
 
     if (selectedColorImages.length > 0) {
@@ -193,7 +229,9 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       animate('300ms ease-in', style({ opacity: 1 })),
     ]);
 
-    const player = fadeAnimation.create(this.el.nativeElement.querySelector('.slide img'));
+    const player = fadeAnimation.create(
+      this.el.nativeElement.querySelector('.slide img')
+    );
     player.play();
   }
 
@@ -214,8 +252,9 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       animate('150ms ease-out', style({ transform: 'scale(1)' })),
     ]);
 
-    const button = Array.from(this.el.nativeElement.querySelectorAll('.size-btn'))
-      .find((el: any) => el.textContent.trim() === size);
+    const button = Array.from(
+      this.el.nativeElement.querySelectorAll('.size-btn')
+    ).find((el: any) => el.textContent.trim() === size);
 
     if (button) {
       const player = pulseAnimation.create(button);
@@ -224,16 +263,22 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   getBrandName(): string | null {
-    const brandAttr = this.product?.attributes?.find((attr) => attr.name === 'Brand');
+    const brandAttr = this.product?.attributes?.find(
+      (attr) => attr.name === 'Brand'
+    );
     if (brandAttr?.options?.length) {
       const option = brandAttr.options[0];
-      return typeof option === 'string' ? option : option?.name || option.value || null;
+      return typeof option === 'string'
+        ? option
+        : option?.name || option.value || null;
     }
     return null;
   }
 
   getBrandSlug(): string | null {
-    const brandAttr = this.product?.attributes?.find((attr) => attr.name === 'Brand');
+    const brandAttr = this.product?.attributes?.find(
+      (attr) => attr.name === 'Brand'
+    );
     if (brandAttr?.options?.length) {
       const option = brandAttr.options[0];
       return typeof option === 'string' ? null : option?.slug || null;
@@ -248,18 +293,26 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   getDotCount(): number[] {
-    return this.product?.images?.length ? Array.from({ length: this.product.images.length }, (_, i) => i) : [];
+    return this.product?.images?.length
+      ? Array.from({ length: this.product.images.length }, (_, i) => i)
+      : [];
   }
 
   scrollSizes(direction: number): void {
     const sizesPerPage = 5;
-    this.sizeScrollIndex = Math.max(0, Math.min(this.sizeScrollIndex + direction, this.maxScrollIndex));
+    this.sizeScrollIndex = Math.max(
+      0,
+      Math.min(this.sizeScrollIndex + direction, this.maxScrollIndex)
+    );
     this.updateVisibleSizes();
   }
 
   private updateVisibleSizes(): void {
     const sizesPerPage = 5;
-    this.maxScrollIndex = Math.max(0, Math.ceil(this.uniqueSizes.length / sizesPerPage) - 1);
+    this.maxScrollIndex = Math.max(
+      0,
+      Math.ceil(this.uniqueSizes.length / sizesPerPage) - 1
+    );
     const start = this.sizeScrollIndex * sizesPerPage;
     this.visibleSizes = this.uniqueSizes.slice(start, start + sizesPerPage);
   }
@@ -288,18 +341,20 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       ripple.animate(
         [
           { transform: 'scale(0)', opacity: 1 },
-          { transform: 'scale(40)', opacity: 0 }
+          { transform: 'scale(40)', opacity: 0 },
         ],
         {
           duration: 600,
-          easing: 'ease-out'
+          easing: 'ease-out',
         }
       ).onfinish = () => ripple.remove();
     }
   }
+
   private cartService = inject(CartService);
 
   onAddProductToCart(product: any): void {
+    // console.log(product);
     this.cartService.addProductToCart(product);
   }
 }
