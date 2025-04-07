@@ -1,13 +1,13 @@
 <div class="product-images-container">
-  <div class="flex flex-col md:flex-row gap-1.5">
+  <div class="flex flex-col md:flex-row gap-4">
     <!-- Thumbnail Images (on the left) - Desktop Only -->
     @if (getGalleryImages().length > 1) {
       <div class="thumbnails-container hidden md:flex flex-col gap-2 order-2 md:order-1 md:w-1/5">
-                @for (image of getGalleryImages(); track $index) {
+        @for (image of getGalleryImages(); track $index) {
           <div
             (click)="selectImage($index)"
-            [class.border-orange]="selectedImageIndex === $index"
-            class="cursor-pointer border hover:border-orange rounded-md overflow-hidden transition-all thumbnail-container"
+            [class.border-[#ea5e3b]]="selectedImageIndex === $index"
+            class="cursor-pointer border-2 hover:border-[#ea5e3b] rounded-md overflow-hidden transition-all thumbnail-container"
             [attr.aria-selected]="selectedImageIndex === $index"
           >
             <img [src]="image.src" [alt]="image.alt" class="thumbnail-image">
@@ -32,38 +32,40 @@
           >
         </div>
 
-        <!-- Navigation arrows -->
-        <button
-          (click)="prevImage()"
-          class="absolute left-2 rtl:left-auto rtl:right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
-          aria-label="Previous image"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-          </svg>
-        </button>
+        <!-- Navigation arrows - Only show if there are multiple images -->
+        @if (getGalleryImages().length > 1) {
+          <button
+            (click)="prevImage()"
+            class="absolute left-2 rtl:left-auto rtl:right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
+            aria-label="Previous image"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
 
-        <button
-          (click)="nextImage()"
-          class="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
-          aria-label="Next image"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
+          <button
+            (click)="nextImage()"
+            class="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
+            aria-label="Next image"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        }
       }
     </div>
   </div>
 
   <!-- Mobile Thumbnails (horizontal) - Mobile Only -->
   @if (getGalleryImages().length > 1) {
-    <div class="thumbnails-container horizontal flex sm:flex md:hidden gap-2 mt-4">
+    <div class="thumbnails-container horizontal flex md:hidden gap-2 mt-4">
       @for (image of getGalleryImages(); track $index) {
         <div
           (click)="selectImage($index)"
-          [class.border-orange]="selectedImageIndex === $index"
-          class="cursor-pointer border hover:border-orange rounded-md overflow-hidden transition-all thumbnail-container"
+          [class.border-[#ea5e3b]]="selectedImageIndex === $index"
+          class="cursor-pointer border-2 hover:border-[#ea5e3b] rounded-md overflow-hidden transition-all thumbnail-container"
           [attr.aria-selected]="selectedImageIndex === $index"
         >
           <img [src]="image.src" [alt]="image.alt" class="thumbnail-image">

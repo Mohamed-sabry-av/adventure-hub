@@ -1,19 +1,8 @@
 // src/app/components/header/header.component.ts
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
-import { NavbarComponent } from '../navbar/navbar.component';
 import { Category } from '../../../interfaces/category.model';
-import { MobileNavbarComponent } from '../navbar/Mobile-navbar/mobile-navbar.component';
-import {
-  animate,
-  query,
-  stagger,
-  state,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
 import { Carousel } from 'primeng/carousel';
 import { ButtonModule } from 'primeng/button';
 import { AppContainerComponent } from '../app-container/app-container.component';

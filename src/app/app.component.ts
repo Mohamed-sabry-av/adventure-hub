@@ -1,12 +1,21 @@
 import { Component, DestroyRef, inject } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { SideCartComponent } from './features/cart/components/side-cart/side-cart.component';
 import { NgIf } from '@angular/common';
+import { filter } from 'rxjs/operators'; 
+
+declare global {
+  interface Window {
+    dataLayer: any[];
+    klaviyo: any;
+  }
+}
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [
     RouterOutlet,
     HeaderComponent,
@@ -15,17 +24,42 @@ import { NgIf } from '@angular/common';
     NgIf,
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  private router = inject(Router);
-  private destroyRef = inject(DestroyRef);
   isCheckoutPage = false;
+  private destroyRef = inject(DestroyRef); 
+
+  constructor(private router: Router) {}
 
   ngOnInit() {
-    const subscribtion = this.router.events.subscribe(() => {
-      this.isCheckoutPage = this.router.url.includes('/checkout');
+    const navEndEvents = this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd)
+    );
+
+    const subscription = navEndEvents.subscribe((event: NavigationEnd) => {
+      this.isCheckoutPage = event.urlAfterRedirects.includes('/checkout');
+
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'pageView',
+        pagePath: event.urlAfterRedirects,
+        pageTitle: document.title,
+      });
+
+      if(window.klaviyo){
+        try{
+          window.klaviyo.push(['track', 'Active on Site', {
+            pagePath:event.urlAfterRedirects,
+            pageTitle: document.title,
+          }])
+        }catch(error){
+          console.log('Klaviyo error', error);
+        }
+      }
+
     });
-    this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
+
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

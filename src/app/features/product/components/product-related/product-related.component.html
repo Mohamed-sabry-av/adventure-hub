@@ -1,14 +1,22 @@
 <section class="related-products mb-10">
   <h2 class="text-2xl font-medium mb-6">You May Also Like</h2>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-    @for (product of relatedProducts; track product.id) {
+  <p-carousel 
+    [value]="relatedProducts" 
+    [numVisible]="5" 
+    [numScroll]="1" 
+    [responsiveOptions]="responsiveOptions"
+    circular
+    [autoplayInterval]="3000"
+  >
+    <ng-template pTemplate="item" let-product>
       <app-product-card [product]="product"></app-product-card>
-    }
-    @empty {
-      <p class="col-span-full text-center text-gray-500">No related products available.</p>
-    }
-  </div>
+    </ng-template>
+  </p-carousel>
+
+  <p *ngIf="relatedProducts.length === 0" class="text-center text-gray-500 mt-4">
+    No related products available.
+  </p>
 
   <!-- Frequently Bought Together Section (unchanged for now) -->
   <!-- <div class="mt-12 border-t border-gray-200 pt-10">

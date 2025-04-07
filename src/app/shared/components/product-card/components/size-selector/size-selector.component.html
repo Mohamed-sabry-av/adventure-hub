@@ -1,36 +1,30 @@
-<div class="size-selector absolute w-full top-full left-0 bg-white shadow-md rounded-b-lg z-20"
-     *ngIf="(colorOptions.length > 0 || uniqueSizes.length > 0) && uniqueSizes.length > 0 && isHovered">
-  <div class="p-3">
-    <p class="text-xs font-medium text-gray-800 mb-2 quick-add-title">Quick add</p>
-    <div class="size-buttons flex justify-between items-center">
-      <button
-        class="size-nav-btn text-gray-800 border border-gray-300 rounded-md w-6 h-6 flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        (click)="onScrollSizes(-1)"
-        [disabled]="sizeScrollIndex === 0">
-        &lt;
-      </button>
-
-      <div class="flex-1 flex justify-center space-x-1">
-        <button *ngFor="let size of visibleSizes"
-                class="size-btn w-8 h-8 text-xs border transition-all duration-200 flex items-center justify-center"
-                [class.bg-gray-800]="selectedSize === size.size"
-                [class.text-white]="selectedSize === size.size"
-                [class.border-gray-800]="selectedSize === size.size"
-                [class.border-gray-300]="selectedSize !== size.size"
-                [class.disabled]="!size.inStock"
-                [class.cursor-not-allowed]="!size.inStock"
-                [class.hover:bg-gray-100]="size.inStock && selectedSize !== size.size"
-                (click)="size.inStock && onSelectSize(size.size)">
-          {{ size.size }}
-        </button>
-      </div>
-
-      <button
-        class="size-nav-btn text-gray-800 border border-gray-300 rounded-md w-6 h-6 flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        (click)="onScrollSizes(1)"
-        [disabled]="sizeScrollIndex >= maxScrollIndex">
-        &gt;
+<div *ngIf="isHovered" class="size-selector" @slideUpDown>
+  <div class="size-navigation">
+    <button *ngIf="uniqueSizes.length > 5"
+            class="size-nav-btn"
+            [disabled]="sizeScrollIndex === 0"
+            (click)="onScrollSizes(-1); $event.stopPropagation()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+        <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+      </svg>
+    </button>
+    <div class="size-buttons">
+      <button *ngFor="let size of visibleSizes"
+              class="size-btn"
+              [class.selected]="selectedSize === size.size"
+              [class.out-of-stock]="!size.inStock"
+              [attr.title]="size.size + (size.inStock ? '' : ' (Out of Stock)')"
+              (click)="size.inStock && onSelectSize(size.size); $event.stopPropagation()">
+        {{ size.size }}
       </button>
     </div>
+    <button *ngIf="uniqueSizes.length > 5"
+            class="size-nav-btn"
+            [disabled]="sizeScrollIndex >= maxSizeScrollIndex"
+            (click)="onScrollSizes(1); $event.stopPropagation()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+      </svg>
+    </button>
   </div>
 </div>

@@ -1,15 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
+import { animate, style, transition, trigger } from '@angular/animations';
+import { Subscription, fromEvent } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { CartService } from '../../../../features/cart/service/cart.service';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
 import { SizeSelectorComponent } from '../components/size-selector/size-selector.component';
-import { AnimationBuilder, AnimationFactory, animate, style, transition, trigger } from '@angular/animations';
-import { Subscription, fromEvent } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
-import { CartService } from '../../../../features/cart/service/cart.service';
+import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
 
 @Component({
   selector: 'app-product-card',
@@ -20,6 +21,7 @@ import { CartService } from '../../../../features/cart/service/cart.service';
     CardDetailsComponent,
     ColorSwatchesComponent,
     SizeSelectorComponent,
+    MobileQuickAddComponent
   ],
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.css'],
@@ -47,56 +49,80 @@ import { CartService } from '../../../../features/cart/service/cart.service';
 export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
 
+  variationsLoaded = false;
   variations: Variation[] = [];
   colorOptions: { color: string; image: string; inStock: boolean }[] = [];
   uniqueSizes: { size: string; inStock: boolean }[] = [];
   selectedColor: string | null = null;
+  selectedSize: string | null = null;
   currentSlide: number = 0;
   isHovered: boolean = false;
-  selectedSize: string | null = null;
+  isMobile: boolean = false;
+  colorScrollIndex: number = 0;
+  visibleColors: { color: string; image: string; inStock: boolean }[] = [];
+  maxColorScrollIndex: number = 0;
+  colorsPerPage: number = 5;
   sizeScrollIndex: number = 0;
   visibleSizes: { size: string; inStock: boolean }[] = [];
-  maxScrollIndex: number = 0;
+  maxSizeScrollIndex: number = 0;
+  sizesPerPage: number = 5;
+  mobileQuickAddExpanded: boolean = false;
 
-  // Auto image slider related properties
-  private autoSlideInterval: any;
   private resizeSubscription?: Subscription;
-  private mouseEnterSubscription?: Subscription;
-  private mouseLeaveSubscription?: Subscription;
+  private clickOutsideSubscription?: Subscription;
 
   constructor(
     private productService: ProductService,
-    private el: ElementRef,
-    private animationBuilder: AnimationBuilder,
-    private cartService : CartService
+    private cartService: CartService
   ) {}
 
   ngOnInit(): void {
-    console.log('Product Data:', this.product);
+    if (!this.product) return;
     this.fetchVariations();
-    this.setupEventListeners();
+    this.checkIfMobile();
+    this.setupResizeListener();
+    this.setupClickOutsideListener();
   }
 
   ngOnDestroy(): void {
-    this.stopAutoSlide();
     this.resizeSubscription?.unsubscribe();
-    this.mouseEnterSubscription?.unsubscribe();
-    this.mouseLeaveSubscription?.unsubscribe();
+    this.clickOutsideSubscription?.unsubscribe();
   }
 
-  private setupEventListeners(): void {
-    // Window resize listener to update visible sizes
+  private setupResizeListener(): void {
     this.resizeSubscription = fromEvent(window, 'resize')
       .pipe(debounceTime(200))
       .subscribe(() => {
+        this.checkIfMobile();
+        this.updateVisibleColors();
         this.updateVisibleSizes();
       });
   }
 
+  private setupClickOutsideListener(): void {
+    // Close the mobile quick add dropdown when clicking outside
+    this.clickOutsideSubscription = fromEvent(document, 'click')
+      .subscribe((event: Event) => {
+        if (this.mobileQuickAddExpanded) {
+          // Check if the click target is inside the quick add component
+          const target = event.target as HTMLElement;
+          const quickAddEl = document.querySelector('.mobile-quick-add-section');
+          const sizeOverlayEl = document.querySelector('.mobile-size-selector-overlay');
 
-  private stopAutoSlide(): void {
-    if (this.autoSlideInterval) {
-      clearInterval(this.autoSlideInterval);
+          if (quickAddEl && sizeOverlayEl) {
+            if (!quickAddEl.contains(target) && !sizeOverlayEl.contains(target)) {
+              this.mobileQuickAddExpanded = false;
+            }
+          }
+        }
+      });
+  }
+
+  private checkIfMobile(): void {
+    this.isMobile = window.innerWidth < 768;
+    // Reset mobile expand state when switching between mobile and desktop
+    if (!this.isMobile) {
+      this.mobileQuickAddExpanded = false;
     }
   }
 
@@ -105,59 +131,24 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       next: (variations: Variation[]) => {
         this.variations = variations || [];
         this.colorOptions = this.getColorOptions();
-        this.setDefaultVariation(); // نحدد الـ default بعد جلب الـ variations
+        this.uniqueSizes = this.getSizesForColor('');
+        this.setDefaultVariation();
+        this.updateVisibleColors();
         this.updateVisibleSizes();
+        this.variationsLoaded = true;
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);
-      },
+        this.variationsLoaded = true;
+      }
     });
   }
 
-
-  private setDefaultVariation(): void {
-    if (this.product.default_attributes && this.product.default_attributes.length > 0) {
-      const defaultColorAttr = this.product.default_attributes.find(
-        (attr: any) => attr.name === 'Color'
-      );
-      const defaultSizeAttr = this.product.default_attributes.find(
-        (attr: any) => attr.name === 'Size'
-      );
-
-      // اختيار اللون الافتراضي
-      if (defaultColorAttr && defaultColorAttr.option) {
-        const defaultColor = defaultColorAttr.option;
-        const matchingColorOption = this.colorOptions.find(
-          (option) => option.color === defaultColor
-        );
-        if (matchingColorOption) {
-          this.selectColor(matchingColorOption.color, matchingColorOption.image);
-        }
-      }
-
-      // اختيار المقاس الافتراضي بعد تحديد اللون
-      if (defaultSizeAttr && defaultSizeAttr.option) {
-        this.uniqueSizes = this.getSizesForColor(this.selectedColor || '');
-        const defaultSize = defaultSizeAttr.option;
-        if (this.uniqueSizes.some((size) => size.size === defaultSize)) {
-          this.selectSize(defaultSize);
-        }
-      }
-    } else {
-      // لو مافيش default_attributes، نختار أول لون أو نعرض المقاسات بدون لون
-      if (this.colorOptions.length > 0) {
-        this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
-      } else {
-        this.uniqueSizes = this.getSizesForColor('');
-      }
-    }
-  }
-
-
   private getColorOptions(): { color: string; image: string; inStock: boolean }[] {
+    if (!this.variations) return [];
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
     this.variations.forEach((v) => {
-      const colorAttr = v.attributes.find((attr: any) => attr.name === 'Color');
+      const colorAttr = v.attributes?.find((attr: any) => attr.name === 'Color');
       if (colorAttr && v.image?.src) {
         const inStock = v.stock_status === 'instock';
         if (!colorMap.has(colorAttr.option) || inStock) {
@@ -168,19 +159,20 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     const options = Array.from(colorMap, ([color, data]) => ({
       color,
       image: data.image,
-      inStock: data.inStock,
+      inStock: data.inStock
     }));
-    return options.length > 1 ? options : [];
+    return options.length > 0 ? options : [];
   }
 
   private getSizesForColor(color: string): { size: string; inStock: boolean }[] {
+    if (!this.variations) return [];
     const sizesMap = new Map<string, boolean>();
     const filteredVariations = color
-      ? this.variations.filter((v) => v.attributes.some((attr: any) => attr.name === 'Color' && attr.option === color))
+      ? this.variations.filter((v) => v.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === color))
       : this.variations;
 
     filteredVariations.forEach((v) => {
-      const sizeAttr = v.attributes.find((attr: any) => attr.name === 'Size');
+      const sizeAttr = v.attributes?.find((attr: any) => attr.name === 'Size');
       if (sizeAttr) {
         const inStock = v.stock_status === 'instock';
         if (!sizesMap.has(sizeAttr.option) || inStock) {
@@ -189,210 +181,163 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       }
     });
 
-    const sizesArray = Array.from(sizesMap, ([size, inStock]) => ({ size, inStock }));
-    return sizesArray.sort((a, b) => {
-      // Available sizes first
+    return Array.from(sizesMap, ([size, inStock]) => ({ size, inStock })).sort((a, b) => {
       if (a.inStock && !b.inStock) return -1;
       if (!a.inStock && b.inStock) return 1;
-
-      // Try to parse as numbers for numerical sorting
       const aNum = Number(a.size);
       const bNum = Number(b.size);
-
-      // If both are valid numbers, sort numerically
-      if (!isNaN(aNum) && !isNaN(bNum)) {
-        return aNum - bNum;
-      }
-
-      // Otherwise, sort alphabetically
-      return a.size.localeCompare(b.size);
+      return !isNaN(aNum) && !isNaN(bNum) ? aNum - bNum : a.size.localeCompare(b.size);
     });
+  }
+
+  private setDefaultVariation(): void {
+    if (!this.product.default_attributes?.length) {
+      if (this.colorOptions.length) {
+        this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+      }
+      return;
+    }
+
+    const defaultColor = this.product.default_attributes.find((attr: any) => attr.name === 'Color')?.option;
+    const defaultSize = this.product.default_attributes.find((attr: any) => attr.name === 'Size')?.option;
+    if (defaultColor) {
+      const matchingColor = this.colorOptions.find((opt) => opt.color === defaultColor);
+      if (matchingColor) this.selectColor(matchingColor.color, matchingColor.image);
+    }
+    if (defaultSize && this.uniqueSizes.some((size) => size.size === defaultSize)) {
+      this.selectSize(defaultSize);
+    }
   }
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
-    const selectedColorImages = this.variations
-      .filter((v) => v.attributes.some((attr: any) => attr.name === 'Color' && attr.option === color))
-      .map((v) => ({ src: v.image?.src || image }));
-
-    if (selectedColorImages.length > 0) {
-      this.product.images = selectedColorImages;
-      this.currentSlide = 0;
-    }
+    this.product.images = this.variations
+      ?.filter((v) => v.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === color))
+      .map((v) => ({ src: v.image?.src || image })) || [];
+    this.currentSlide = 0;
     this.uniqueSizes = this.getSizesForColor(color);
     this.selectedSize = null;
     this.updateVisibleSizes();
-
-    // Apply a fade animation when changing color
-    const fadeAnimation: AnimationFactory = this.animationBuilder.build([
-      style({ opacity: 0.7 }),
-      animate('300ms ease-in', style({ opacity: 1 })),
-    ]);
-
-    const player = fadeAnimation.create(this.el.nativeElement.querySelector('.slide img'));
-    player.play();
-  }
-
-  onHover(hovered: boolean): void {
-    this.isHovered = hovered;
-    if (this.colorOptions.length === 0 && this.product.images?.length > 1) {
-      this.currentSlide = hovered ? 1 : 0;
-    }
+  
+    //    بيفتح Quick Add تلقائيًا
+    // if (this.isMobile && this.hasColors() && this.hasSizes() && !this.mobileQuickAddExpanded) {
+    //   this.mobileQuickAddExpanded = true;
+    // }
   }
 
   selectSize(size: string): void {
     this.selectedSize = size;
 
-    // Apply a pulse animation when selecting a size
-    const pulseAnimation: AnimationFactory = this.animationBuilder.build([
-      style({ transform: 'scale(1)' }),
-      animate('150ms ease-in', style({ transform: 'scale(1.1)' })),
-      animate('150ms ease-out', style({ transform: 'scale(1)' })),
-    ]);
-
-    const button = Array.from(this.el.nativeElement.querySelectorAll('.size-btn'))
-      .find((el: any) => el.textContent.trim() === size);
-
-    if (button) {
-      const player = pulseAnimation.create(button);
-      player.play();
+    // If on desktop with both color and size, auto-add to cart when both are selected
+    if (!this.isMobile && this.hasColors() && this.hasSizes() && this.selectedColor && size) {
+      this.onAddToCartWithOptions();
     }
+  }
+
+  onSelectSize(size: string): void {
+    this.selectSize(size);
+  }
+
+  onHover(hovered: boolean): void {
+    this.isHovered = hovered;
+    // For products with images but no color variations, cycle through images on hover
+    if (this.colorOptions.length === 0 && this.product.images?.length > 1) {
+      this.currentSlide = hovered ? 1 : 0;
+    }
+  }
+
+  toggleMobileQuickAdd(): void {
+    this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
+    if (!this.mobileQuickAddExpanded) this.selectedSize = null;
+  }
+
+  goToSlide(index: number): void {
+    if (this.product.images?.length) this.currentSlide = index;
+  }
+
+  getDotCount(): number[] {
+    return this.product.images?.length ? Array.from({ length: this.product.images.length }, (_, i) => i) : [];
+  }
+
+  scrollColors(direction: number): void {
+    this.colorScrollIndex = Math.max(0, Math.min(this.colorScrollIndex + direction, this.maxColorScrollIndex));
+    this.updateVisibleColors();
+  }
+
+  scrollSizes(direction: number): void {
+    this.sizeScrollIndex = Math.max(0, Math.min(this.sizeScrollIndex + direction, this.maxSizeScrollIndex));
+    this.updateVisibleSizes();
+  }
+
+  private updateVisibleColors(): void {
+    this.maxColorScrollIndex = Math.max(0, Math.ceil(this.colorOptions.length / this.colorsPerPage) - 1);
+    const start = this.colorScrollIndex * this.colorsPerPage;
+    this.visibleColors = this.colorOptions.slice(start, start + this.colorsPerPage);
+  }
+
+  private updateVisibleSizes(): void {
+    this.maxSizeScrollIndex = Math.max(0, Math.ceil(this.uniqueSizes.length / this.sizesPerPage) - 1);
+    const start = this.sizeScrollIndex * this.sizesPerPage;
+    this.visibleSizes = this.uniqueSizes.slice(start, start + this.sizesPerPage);
+  }
+
+  onAddToCartWithOptions(): void {
+    if (this.isAddToCartDisabled()) return;
+
+    if(this.variations.length>0){
+      const selectedVariation = this.variations.find((variation)=>{
+        const colorAttr = variation.attributes?.find((attr:any)=> attr.name ==='Color')
+        const sizeAttr = variation.attributes?.find((attr:any)=> attr.name ==='Size')
+        const matchColor =!this.hasColors() || (colorAttr && colorAttr.option === this.selectedColor)
+        const matchSize =!this.hasSizes() || (sizeAttr && sizeAttr.option === this.selectedSize)
+        return matchColor && matchSize
+        
+      })
+
+      // if(selectedVariation){
+      //   this.cartService.addProductToCart(this.product, selectedVariation.id);
+      // }else{
+        
+      // }
+    }
+
+    // console.log('Adding to cart:', {
+    //   product: this.product,
+    //   color: this.selectedColor,
+    //   size: this.selectedSize
+    // });
+
+    this.cartService.addProductToCart(this.product);
+
+    // Reset selection after adding to cart
+    if (this.isMobile) {
+      this.mobileQuickAddExpanded = false;
+    }
+  }
+
+  isAddToCartDisabled(): boolean {
+    const needsSize = this.hasSizes() && !this.selectedSize;
+    const needsColor = this.hasColors() && !this.selectedColor;
+    return needsSize || needsColor;
+  }
+
+  hasColors(): boolean {
+    return this.colorOptions.length > 0;
+  }
+
+  hasSizes(): boolean {
+    return this.uniqueSizes.length > 0;
   }
 
   getBrandName(): string | null {
     const brandAttr = this.product?.attributes?.find((attr) => attr.name === 'Brand');
-    if (brandAttr?.options?.length) {
-      const option = brandAttr.options[0];
-      return typeof option === 'string' ? option : option?.name || option.value || null;
-    }
-    return null;
+    const option = brandAttr?.options?.[0];
+    return option ? (typeof option === 'string' ? option : option.name || option.value || null) : null;
   }
 
   getBrandSlug(): string | null {
     const brandAttr = this.product?.attributes?.find((attr) => attr.name === 'Brand');
-    if (brandAttr?.options?.length) {
-      const option = brandAttr.options[0];
-      return typeof option === 'string' ? null : option?.slug || null;
-    }
-    return null;
+    const option = brandAttr?.options?.[0];
+    return option && typeof option !== 'string' ? option.slug || null : null;
   }
-
-  goToSlide(index: number): void {
-    if (this.product.images?.length > 0) {
-      this.currentSlide = index;
-    }
-  }
-
-  getDotCount(): number[] {
-    return this.product?.images?.length ? Array.from({ length: this.product.images.length }, (_, i) => i) : [];
-  }
-
-  scrollSizes(direction: number): void {
-    const sizesPerPage = 5;
-    this.sizeScrollIndex = Math.max(0, Math.min(this.sizeScrollIndex + direction, this.maxScrollIndex));
-    this.updateVisibleSizes();
-  }
-
-  private updateVisibleSizes(): void {
-    const sizesPerPage = 5;
-    this.maxScrollIndex = Math.max(0, Math.ceil(this.uniqueSizes.length / sizesPerPage) - 1);
-    const start = this.sizeScrollIndex * sizesPerPage;
-    this.visibleSizes = this.uniqueSizes.slice(start, start + sizesPerPage);
-  }
-
-  isAddToCartDisabled():boolean{
-    if(this.colorOptions.length > 0 && ! this.selectedSize){
-      return true
-    }
-    return false
-  }
-
-
-  onAddToCartWithOptions(): void {
-    if (this.isAddToCartDisabled()) {
-      console.log('Cannot add to cart: Missing required options');
-      return;
-    }
-
-    let productToAdd: any;
-    if (this.colorOptions.length > 0 || this.uniqueSizes.length > 0) {
-      const selectedVariation = this.variations.find((v) => {
-        const colorAttr = v.attributes.find((attr :any) => attr.name === 'Color');
-        const sizeAttr = v.attributes.find((attr :any) => attr.name === 'Size');
-
-        // لو مافيش ألوان، نتجاهل شرط اللون
-        const colorMatch =
-          this.colorOptions.length > 0
-            ? colorAttr && colorAttr.option === this.selectedColor
-            : !colorAttr; // لو مافيش ألوان، نتأكد إن مافيش color attribute
-
-        const sizeMatch =
-          this.uniqueSizes.length > 0
-            ? sizeAttr && sizeAttr.option === this.selectedSize
-            : !sizeAttr; // لو مافيش مقاسات، نتأكد إن مافيش size attribute
-
-        return colorMatch && sizeMatch;
-      });
-
-      if (selectedVariation) {
-        productToAdd = { ...this.product, ...selectedVariation };
-        console.log('Selected Variation to Add:', productToAdd);
-      } else {
-        console.error('No matching variation found for:', {
-          color: this.selectedColor,
-          size: this.selectedSize,
-        });
-        return;
-      }
-    } else {
-      productToAdd = this.product;
-    }
-
-    this.cartService.addProductToCart(productToAdd);
-  }
-  
-
-  onAddToCart(product: any): void {
-    console.log('Product added to cart:', product);
-
-    // Create a ripple effect animation
-    const button = this.el.nativeElement.querySelector('.add-to-cart-btn');
-    if (button) {
-      const rect = button.getBoundingClientRect();
-      const ripple = document.createElement('span');
-      ripple.className = 'ripple';
-      ripple.style.position = 'absolute';
-      ripple.style.width = '5px';
-      ripple.style.height = '5px';
-      ripple.style.background = 'rgba(255, 255, 255, 0.7)';
-      ripple.style.borderRadius = '50%';
-      ripple.style.transform = 'scale(0)';
-      ripple.style.left = '50%';
-      ripple.style.top = '50%';
-
-      button.appendChild(ripple);
-
-      // Animation
-      ripple.animate(
-        [
-          { transform: 'scale(0)', opacity: 1 },
-          { transform: 'scale(40)', opacity: 0 }
-        ],
-        {
-          duration: 600,
-          easing: 'ease-out'
-        }
-      ).onfinish = () => ripple.remove();
-    }
-  }
-
-  shouldShowAddToCartButton(): boolean {
-    return this.colorOptions.length === 0;
-  }
-
-  onAddProductToCart(product: any): void {
-    this.cartService.addProductToCart(product);
-  }
-
-  
 }

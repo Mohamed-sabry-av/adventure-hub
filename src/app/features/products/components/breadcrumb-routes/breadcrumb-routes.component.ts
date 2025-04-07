@@ -130,7 +130,7 @@ export class BreadcrumbRoutesComponent implements OnInit {
   getSubCategoryRoute(category: Category): string[] {
     const currentUrl = this.route.snapshot.url.map((segment) => segment.path).join('/');
     const currentSegments = currentUrl.split('/').filter((segment) => segment && segment !== 'products');
-    const newSegments = [...currentSegments, category.slug].filter(
+    const newSegments = ['category',...currentSegments, category.slug].filter(
       (item, index, self) => index === self.lastIndexOf(item)
     );
     return ['/', ...newSegments];

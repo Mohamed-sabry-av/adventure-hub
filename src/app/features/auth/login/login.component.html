@@ -1,50 +1,73 @@
-<section class="login-section">
-    <h1>Welcome Back</h1>
-    <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
-        <div class="form-group">
-            <label for="username">Username or Email</label>
-            <input type="text" formControlName="username"
-                [class.invalid]="loginForm.get('username')?.touched && loginForm.get('username')?.invalid" required/>
-            @if(loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')){
-            <span class="wrong">
-                Username or Email is required
-            </span>
-            }
+<div class="login-content">
+    <h2 class="form-title">Welcome Back, Explorer!</h2>
+    <p class="form-subtitle">Sign in to continue your outdoor adventures</p>
+  
+    <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="auth-form">
+      <div class="form-group">
+        <label for="username">
+          <i class="icon-user"></i>
+          Username or Email
+        </label>
+        <div class="input-container">
+          <input
+            type="text"
+            id="username"
+            formControlName="username"
+            [class.invalid]="loginForm.get('username')?.touched && loginForm.get('username')?.invalid"
+            required
+          />
         </div>
-
-
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input 
+        @if(loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')){
+          <div class="error-message">
+            <i class="icon-error"></i> Username or Email is required
+          </div>
+        }
+      </div>
+  
+      <div class="form-group">
+        <label for="password">
+          <i class="icon-lock"></i>
+          Password
+        </label>
+        <div class="input-container">
+          <input
             type="password"
             id="password"
             formControlName="password"
             [class.invalid]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
             required
-            />
-            @if(loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')){
-                <span class="wrong">
-                    Password is required.
-                </span>
-                }
+          />
         </div>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="remember">
-            <label for="remember">Remember me</label>
+        @if(loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')){
+          <div class="error-message">
+            <i class="icon-error"></i> Password is required
+          </div>
+        }
+      </div>
+  
+      <div class="form-options">
+        <div class="remember-me">
+          <input type="checkbox" id="remember" class="custom-checkbox">
+          <label for="remember">Remember me</label>
         </div>
-
-        <button type="submit" class="submit-btn" [disabled]="loginForm.invalid">Sign In</button>
-        <p class="error" *ngIf="loginError">{{ loginError }}</p>
-
-    </form>
-
-    <div class="additional-links">
-        <a href="#" class="link">Forgot Password?</a>
-    </div>
-
-    <div class="social-login">
+        <a href="#" class="forgot-password">Forgot Password?</a>
+      </div>
+  
+      <button type="submit" class="submit-btn" [disabled]="loginForm.invalid">
+        <span>Sign In</span>
+        <i class="icon-arrow-right"></i>
+      </button>
+  
+      <div class="auth-divider">
+        <span>or continue with</span>
+      </div>
+  
+      <div class="social-login">
         <app-google-auth></app-google-auth>
         <app-facebook-auth></app-facebook-auth>
-    </div>
-</section>
+      </div>
+  
+      <p class="error" *ngIf="loginError">{{ loginError }}</p>
+    </form>
+  </div>
+  

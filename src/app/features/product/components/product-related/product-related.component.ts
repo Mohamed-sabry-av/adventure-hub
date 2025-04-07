@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
+import { CarouselModule } from 'primeng/carousel'; // ✅ استيراد PrimeNG Carousel
 
 @Component({
   selector: 'app-product-related',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductCardComponent],
+  imports: [CommonModule, RouterLink, ProductCardComponent, CarouselModule], // ✅ إضافة الـ Carousel
   templateUrl: './product-related.component.html',
   styleUrls: ['./product-related.component.css'],
 })
@@ -17,6 +18,24 @@ export class ProductRelatedComponent implements OnInit {
   @Input() relatedIds: number[] = [];
 
   relatedProducts: any[] = [];
+
+  responsiveOptions = [
+    {
+      breakpoint: '1024px', // شاشات كبيرة
+      numVisible: 4,
+      numScroll: 1
+    },
+    {
+      breakpoint: '768px', // التابلت
+      numVisible: 3,
+      numScroll: 1
+    },
+    {
+      breakpoint: '560px', // الموبايل
+      numVisible: 2,
+      numScroll: 1
+    }
+  ];
 
   ngOnInit() {
     this.getRelatedProducts();

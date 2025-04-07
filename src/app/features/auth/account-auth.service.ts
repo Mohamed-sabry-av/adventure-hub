@@ -72,6 +72,7 @@ export class AccountAuthService {
   login(credentials: { email?: string; username?: string; password: string }): Observable<HttpResponse<LoginResponse>> {
     return this.http
       .post<LoginResponse>(`${this.Api_Url}/wp-json/jwt-auth/v1/token`, credentials, {
+        withCredentials:true,
         observe: 'response'
       })
       .pipe(

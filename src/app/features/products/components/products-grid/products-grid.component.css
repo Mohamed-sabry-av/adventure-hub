@@ -6,10 +6,21 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   will-change: transform;
 }
+.product-card {
+  @apply relative rounded-lg shadow transition-all duration-300 bg-white h-full flex flex-col;
+  position: relative;
+  overflow: visible; 
+  z-index: 1;
+}
 
 .product-card:hover {
-  transform: translateY(-5px);
+  @apply shadow-lg;
+  z-index: 2000 !important; /* رفع الـ z-index عند الهوفر */
 }
+
+/* .product-card:hover {
+  transform: translateY(-5px);
+} */
 
 /* Skeleton loading animations */
 .product-skeleton {

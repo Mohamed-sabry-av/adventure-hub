@@ -266,7 +266,7 @@ export class FilterSidebarComponent implements OnInit {
 
         this.cdr.markForCheck();
       },
-      error: (error) => console.error('Error updating attributes:', error),
+      error: (error) => console.error('Error updating attributess:', error),
     });
   }
 

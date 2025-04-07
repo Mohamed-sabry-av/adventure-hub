@@ -57,7 +57,7 @@ export class BreadcrumbComponent implements OnInit {
 
     return this.categoriesService.getAllCategories().pipe(
       map((allCategories) => {
-        let pathSegments: string[] = [];
+        let pathSegments: string[] = ['category'];
         let currentParentId = 0;
 
         for (const slug of slugs) {

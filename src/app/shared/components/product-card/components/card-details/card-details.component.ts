@@ -16,4 +16,50 @@ export class CardDetailsComponent {
   @Input() uniqueSizes: { size: string; inStock: boolean }[] = [];
   @Input() getBrandName!: () => string | null;
   @Input() getBrandSlug!: () => string | null;
+  @Input() selectedVariation: any;
+
+
+
+  get displayPrice(): string {
+    const variation = this.selectedVariation;
+    const currency = this.product.currency || 'AED';
+  
+    if (variation?.sale_price && variation?.sale_price !== variation?.regular_price) {
+      return `${variation.sale_price} ${currency}`;
+    }
+  
+    if (variation?.regular_price) {
+      return `${variation.regular_price} ${currency}`;
+    }
+  
+    if (variation?.price) {
+      return `${variation.price} ${currency}`;
+    }
+  
+    // fallback to product price
+    return `${this.product.sale_price || this.product.regular_price || this.product.price || 'Unavailable'} ${currency}`;
+  }
+  
+  get oldPrice(): string | null {
+    const variation = this.selectedVariation;
+  
+    if (
+      variation?.sale_price &&
+      variation?.regular_price &&
+      variation?.sale_price !== variation?.regular_price
+    ) {
+      return `${variation.regular_price} ${this.product.currency || 'AED'}`;
+    }
+  
+    if (
+      this.product.sale_price &&
+      this.product.regular_price &&
+      this.product.sale_price !== this.product.regular_price
+    ) {
+      return `${this.product.regular_price} ${this.product.currency || 'AED'}`;
+    }
+  
+    return null;
+  }
+  
 }

@@ -16,10 +16,10 @@
   >
   <ng-container *ngIf="filterDrawerOpen">
     <app-filter-drawer
-      [categoryId]="currentCategoryId"
-      [isOpen]="filterDrawerOpen"
-      (closed)="closeFilterDrawer()"
-    ></app-filter-drawer>
+    [categoryId]="currentCategoryId"
+    [isOpen]="filterDrawerOpen"
+    (closed)="closeFilterDrawer()"
+  ></app-filter-drawer>
   </ng-container>
   
   </div>
@@ -31,7 +31,6 @@
         <app-sort-menu (sortChange)="onSortChange($event)"></app-sort-menu>
         <button
           type="button"
-          (click)="openFilterDrawer()"
           class="p-1 sm:p-2 ml-2 sm:ml-4 text-gray-400 hover:text-gray-500 lg:hidden"
         >
           <span class="sr-only">Filters</span>

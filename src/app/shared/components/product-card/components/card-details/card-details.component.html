@@ -23,16 +23,18 @@
     <span class="text-xs text-gray-500 ml-1">({{ product.rating_count || 10 }})</span>
   </div> -->
 
-  <!-- Price -->
-  <div class="flex items-center price">
-    <!-- السعر الحالي -->
-    <span class="text-sm font-medium" [ngClass]="{'text-red-600': product.sale_price && product.sale_price !== product.regular_price, 'text-gray-900': !product.sale_price || product.sale_price === product.regular_price}">
-      {{ product.sale_price || product.regular_price || product.price || 'Unavailable' }} {{ product.currency || "AED" }}
-    </span>
-  
-    <!-- السعر القديم (لو فيه خصم) -->
-    <span *ngIf="product.sale_price && product.regular_price && product.sale_price !== product.regular_price" class="text-xs text-gray-500 line-through ml-2 old-price">
-      {{ product.regular_price }} {{ product.currency || "AED" }}
-    </span>
-  </div>
+<!-- Price -->
+<div class="flex items-center price">
+  <span class="text-sm " [ngClass]="{
+    'text-red-600': oldPrice,
+    'text-gray-900': !oldPrice
+  }">
+    {{ displayPrice }}
+  </span>
+
+  <span *ngIf="oldPrice" class="text-xs text-gray-500 line-through ml-2 old-price">
+    {{ oldPrice }}
+  </span>
+</div>
+
 </div>

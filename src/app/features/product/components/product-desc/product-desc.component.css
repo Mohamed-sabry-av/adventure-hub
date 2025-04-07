@@ -1,24 +1,151 @@
-::ng-deep .p-tabs .p-component {
-  @apply bg-white  border-b font-thin text-gray-600;
+/* Product Description Component Styles */
+.product-desc {
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
 }
 
-::ng-deep .p-tab {
-  @apply p-0 sm:py-4 sm:px-[18px];
+/* Tab navigation */
+.tab-navigation {
+  display: flex;
+  border-bottom: 1px solid #e5e5e5;
 }
 
-::ng-deep .p-tablist-tab-list {
-  @apply flex gap-x-6;
+.tab-button {
+  padding: 1rem 1.5rem;
+  font-weight: 400;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  color: #333;
 }
 
-::ng-deep .p-tablist-tab-list,
-::ng-deep .content {
-  @apply bg-white max-w-[1250px] lg:px-10 px-4 mx-auto;
+.tab-button:hover {
+  background-color: #f5f5f5;
 }
 
-::ng-deep .p-tablist-active-bar {
-  @apply h-[2px] bg-black w-[2px];
+.tab-button.active {
+  font-weight: 500;
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #3d3d30;
 }
 
-::ng-deep .p-tab.p-tab-active {
-  @apply text-black font-semibold !important;
+/* Tab content */
+.tab-content {
+  padding: 1.5rem;
+}
+
+/* Description section */
+.description-content {
+  line-height: 1.6;
+  color: #333;
+}
+
+.description-content h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #3d3d30;
+}
+
+.description-content h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
+  color: #3d3d30;
+}
+
+.description-content p {
+  margin-bottom: 1rem;
+}
+
+.description-content ul, .description-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.description-content li {
+  margin-bottom: 0.5rem;
+}
+
+/* Image with text layout */
+.image-text {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  align-items: center;
+}
+
+.image-text .image {
+  flex: 0 0 40%;
+}
+
+.image-text .text {
+  flex: 1;
+}
+
+.image-text.image-right {
+  flex-direction: row-reverse;
+}
+
+.image-text h5 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #3d3d30;
+}
+
+/* Specifications table */
+.specifications table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.specifications tr {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.specifications tr:last-child {
+  border-bottom: none;
+}
+
+.specifications td {
+  padding: 0.75rem 0;
+}
+
+.specifications td:first-child {
+  font-weight: 500;
+  width: 40%;
+  color: #3d3d30;
+}
+
+.specifications td:last-child {
+  color: #555;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .tab-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .tab-content {
+    padding: 1rem;
+  }
+
+  .image-text {
+    flex-direction: column !important;
+  }
+
+  .image-text .image {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .specifications td:first-child {
+    width: 50%;
+  }
 }

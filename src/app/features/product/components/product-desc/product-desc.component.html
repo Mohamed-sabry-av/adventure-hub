@@ -1,27 +1,25 @@
 <div class="product-desc mb-10">
   <div class="border border-gray-200 rounded-md overflow-hidden">
     <!-- Tab Buttons -->
-    <div class="flex border-b">
+    <div class="tab-navigation">
       <button
         (click)="setActiveTab('description')"
-        [class.bg-gray-100]="activeTab === 'description'"
-        [class.font-medium]="activeTab === 'description'"
-        class="py-3 px-6 hover:bg-gray-50 focus:outline-none transition-colors"
+        [class.active]="activeTab === 'description'"
+        class="tab-button"
       >
         Description
       </button>
       <button
         (click)="setActiveTab('specifications')"
-        [class.bg-gray-100]="activeTab === 'specifications'"
-        [class.font-medium]="activeTab === 'specifications'"
-        class="py-3 px-6 hover:bg-gray-50 focus:outline-none transition-colors"
+        [class.active]="activeTab === 'specifications'"
+        class="tab-button"
       >
         Specifications
       </button>
     </div>
 
     <!-- Tab Content -->
-    <div class="p-6">
+    <div class="tab-content">
       <!-- Description Tab -->
       @if (activeTab === 'description') {
         <div class="description-content">
@@ -32,7 +30,7 @@
             @if (section.image) {
               <div class="image-text" [class.image-right]="section.align === 'right'">
                 <div class="image">
-                  <img [src]="section.image" alt="" class="max-w-full h-auto" />
+                  <img [src]="section.image" alt="" class="max-w-full h-auto rounded-md" />
                 </div>
                 <div class="text">
                   <h5>{{ section.title }}</h5>
@@ -50,9 +48,9 @@
           <table class="w-full">
             <tbody>
               @for (spec of productAdditionlInfo()?.specifications; track spec.name) {
-                <tr class="border-b">
-                  <td class="py-3 font-medium">{{ spec.name }}</td>
-                  <td class="py-3 text-gray-700">{{ spec.value }}</td>
+                <tr>
+                  <td>{{ spec.name }}</td>
+                  <td>{{ spec.value }}</td>
                 </tr>
               }
             </tbody>

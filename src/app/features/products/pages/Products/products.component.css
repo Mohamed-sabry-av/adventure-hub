@@ -45,31 +45,29 @@
   min-height: calc(100vh - 200px); /* Adjust based on your header/footer height */
 }
 
-/* Sticky filter sidebar - Desktop */
+/* Sticky filter sidebar */
 .sidebar-sticky {
   position: sticky;
   top: 1rem;
   max-height: calc(100vh - 2rem);
-  /* حذف overflow-y: auto من هنا عشان الـ scroll يتركز في الفلاتر نفسها */
+  overflow-y: auto;
 }
 
-/* Hide scrollbar but allow scrolling for filter content only */
-.filter-content {
-  overflow-y: auto;
+/* Hide scrollbar but allow scrolling */
+.sidebar-sticky {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-  max-height: calc(100vh - 150px); /* Adjust based on header/footer height */
 }
 
-.filter-content::-webkit-scrollbar {
+.sidebar-sticky::-webkit-scrollbar {
   width: 4px;
 }
 
-.filter-content::-webkit-scrollbar-track {
+.sidebar-sticky::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.filter-content::-webkit-scrollbar-thumb {
+.sidebar-sticky::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }

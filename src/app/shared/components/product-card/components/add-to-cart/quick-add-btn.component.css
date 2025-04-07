@@ -1,0 +1,389 @@
+/* Common button styles */
+button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Desktop Add to Cart Button */
+.desktop-add-to-cart-container {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.desktop-add-to-cart-container {
+  position: relative;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+:host-context(.product-card:hover) .desktop-add-to-cart-container {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Only show Add to Cart on hover in desktop */
+:host-context(.product-card:hover) .desktop-add-to-cart-container {
+  opacity: 1;
+  visibility: visible;
+}
+
+.desktop-add-to-cart-btn {
+  width: 100%;
+  /* max-width: 240px; */
+  color: white;
+  background: linear-gradient(to right, #22c55e, #16a34a);
+  font-weight: 600;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.desktop-add-to-cart-btn:hover:not(:disabled) {
+  background: linear-gradient(to right, #16a34a, #15803d);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.4);
+}
+
+.desktop-add-to-cart-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+}
+
+/* Desktop Size Selector */
+.desktop-size-selector {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.98);
+  border-radius: 0 0 4px 4px;
+  padding: 12px;
+  z-index: 20;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.desktop-size-scroll-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.desktop-size-btn {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-size: 13px;
+  min-width: 30px;
+  transition: all 0.2s ease;
+}
+
+.desktop-size-btn:hover:not(:disabled) {
+  border-color: #16a34a;
+  background-color: #f0fdf4;
+}
+
+.desktop-size-btn.selected {
+  background-color: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+  font-weight: 600;
+}
+
+.desktop-size-btn.out-of-stock {
+  position: relative;
+  overflow: hidden;
+}
+
+.desktop-size-btn.out-of-stock::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #ccc;
+  transform: rotate(-45deg);
+}
+
+/* Hover Size Selector for products with both colors and sizes */
+.hover-size-selector {
+  position: absolute;
+  bottom: -1px; /* Position it at the very bottom, extending below the card */
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.98);
+  border-radius: 0 0 8px 8px;
+  padding: 15px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-top: 1px solid #f0f0f0;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+}
+
+.hover-size-scroll-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hover-size-btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e0e0e0;
+  background: white;
+  color: #333;
+  font-size: 0.7rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hover-size-btn:hover:not(:disabled) {
+  border-color: #16a34a;
+  background-color: #f0fdf4;
+}
+
+.hover-size-btn.selected {
+  background-color: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+}
+
+.hover-size-btn.out-of-stock {
+  position: relative;
+  overflow: hidden;
+  opacity: 0.5;
+}
+
+.hover-size-btn.out-of-stock::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #9ca3af;
+  transform: rotate(-45deg);
+}
+
+/* Mobile Quick Add Button */
+.mobile-quick-add-section {
+  position: relative;
+  margin-top: 1px;
+  margin-bottom: 2px;
+  padding: 0 12px;
+  z-index: 20;
+  background: white;
+}
+
+.quick-add-button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quick-add-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #f9fafb;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.quick-add-button.expanded {
+  color: #000;
+  font-weight: 600;
+  border-color: #9ca3af;
+  background-color: #f3f4f6;
+}
+
+.icon-plus, .icon-minus {
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+}
+
+/* Mobile Size Selector Overlay */
+.mobile-size-selector-overlay {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 200000 !important;
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+  padding: 16px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid #f0f0f0;
+}
+
+.mobile-size-heading {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #1f2937;
+  text-align: center;
+}
+
+.mobile-size-scroll-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.mobile-size-scroll-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.mobile-size-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.mobile-size-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.mobile-size-btn {
+  flex: 0 0 auto;
+  min-width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.mobile-size-btn.selected {
+  background-color: #16a34a;
+  border-color: #16a34a;
+  color: white;
+  font-weight: 600;
+}
+
+.mobile-size-btn.out-of-stock {
+  opacity: 0.5;
+  position: relative;
+}
+
+.mobile-size-btn.out-of-stock::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #9ca3af;
+  transform: rotate(45deg);
+}
+
+.mobile-add-to-cart-btn {
+  width: 100%;
+  margin-top: 12px;
+  position: relative;
+  overflow: hidden;
+  color: white;
+  background: linear-gradient(to right, #22c55e, #16a34a);
+  font-weight: 600;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 12px 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-add-to-cart-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(22, 163, 74, 0.2);
+}
+
+.mobile-add-to-cart-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile Direct Add to Cart Button */
+.mobile-add-to-cart-section {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.mobile-direct-add-btn {
+  background: linear-gradient(to right, #22c55e, #16a34a);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 0.80rem;
+  font-weight: 600;
+  width: 100%;
+  /* max-width: 200px; */
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-direct-add-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(22, 163, 74, 0.2);
+}
+
+
