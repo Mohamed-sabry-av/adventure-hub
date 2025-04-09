@@ -3,7 +3,7 @@
   <div class="text-xs text-gray-500 uppercase mb-1 category">
     <span *ngIf="product.categories && product.categories.length">{{ product.categories[0].name }}</span>
     <span *ngIf="product.categories && product.categories.length && getBrandName()">, </span>
-    <a *ngIf="getBrandName()" [routerLink]="['/brand', getBrandSlug()]" class="hover:underline">{{ getBrandName() }}</a>
+    <a *ngIf="getBrandName()" [routerLink]="['/product/brand', getBrandSlug()]" class="hover:underline">{{ getBrandName() }}</a>
   </div>
 
   <!-- Product Name -->

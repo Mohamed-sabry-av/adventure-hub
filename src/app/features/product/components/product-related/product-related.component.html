@@ -1,69 +1,33 @@
-<section class="related-products mb-10">
-  <h2 class="text-2xl font-medium mb-6">You May Also Like</h2>
+<div class="related-products">
+  <!-- Related Products Section -->
+  <div class="related-section" *ngIf="relatedProducts.length > 0">
+    <h2 class="section-title">You May Also Like</h2>
 
-  <p-carousel 
-    [value]="relatedProducts" 
-    [numVisible]="5" 
-    [numScroll]="1" 
-    [responsiveOptions]="responsiveOptions"
-    circular
-    [autoplayInterval]="3000"
-  >
-    <ng-template pTemplate="item" let-product>
-      <app-product-card [product]="product"></app-product-card>
-    </ng-template>
-  </p-carousel>
+    <!-- PrimeNG Carousel for related products -->
+    <p-carousel
+      [value]="relatedProducts"
+      [numVisible]="4"
+      [numScroll]="1"
+      [circular]="true"
+      [responsiveOptions]="responsiveOptions"
+      [showIndicators]="false">
+      <ng-template pTemplate="item" let-product>
+        <div class="carousel-item-container">
+          <app-product-card [product]="product"></app-product-card>
+        </div>
+      </ng-template>
+    </p-carousel>
 
-  <p *ngIf="relatedProducts.length === 0" class="text-center text-gray-500 mt-4">
-    No related products available.
-  </p>
-
-  <!-- Frequently Bought Together Section (unchanged for now) -->
-  <!-- <div class="mt-12 border-t border-gray-200 pt-10">
-    <h2 class="text-2xl font-medium mb-6">Frequently Bought Together</h2>
-
-    <div class="flex flex-col md:flex-row items-center mb-6">
-      <div class="md:w-1/4 mb-4 md:mb-0">
-        <img src="https://ext.same-assets.com/1752825376/481985518.jpeg" alt="Griddle" class="h-40 mx-auto">
-      </div>
-      <div class="md:w-1/12 text-center mb-4 md:mb-0">
-        <span class="text-2xl text-gray-400">+</span>
-      </div>
-      <div class="md:w-1/4 mb-4 md:mb-0">
-        <img src="https://ext.same-assets.com/4123685135/59884714.jpeg" alt="Carry Bag" class="h-40 mx-auto">
-      </div>
-      <div class="md:w-1/12 text-center mb-4 md:mb-0">
-        <span class="text-2xl text-gray-400">+</span>
-      </div>
-      <div class="md:w-1/4 mb-4 md:mb-0">
-        <img src="https://ext.same-assets.com/4123685135/706663805.jpeg" alt="Hamburger Kit" class="h-40 mx-auto">
-      </div>
-      <div class="md:w-1/4 text-right">
-        <p class="text-gray-500 mb-1">Total Price: <span class="line-through">1,545.00</span></p>
-        <p class="font-bold text-lg mb-4">1,617.00</p>
-        <button class="bg-orange text-white px-4 py-2 rounded-md text-sm">ADD SELECTED TO CART</button>
+    <!-- Fallback if carousel is not available -->
+    <div class="product-grid" *ngIf="!relatedProducts">
+      <div *ngFor="let product of relatedProducts" class="product-card-wrapper">
+        <app-product-card [product]="product"></app-product-card>
       </div>
     </div>
+  </div>
 
-    <div class="space-y-2">
-      <div class="flex items-center">
-        <input type="checkbox" checked class="mr-2 text-orange">
-        <span class="flex-1">22 Inch Table Top Griddle With Hood</span>
-        <span class="font-bold">1,011.00</span>
-        <span class="text-gray-500 line-through ml-2">1,189.00</span>
-      </div>
-      <div class="flex items-center">
-        <input type="checkbox" checked class="mr-2 text-orange">
-        <span class="flex-1">17 or 22 Inch Griddle with Hood Carry Bag</span>
-        <span class="font-bold">227.00</span>
-        <span class="text-gray-500 line-through ml-2">267.00</span>
-      </div>
-      <div class="flex items-center">
-        <input type="checkbox" checked class="mr-2 text-orange">
-        <span class="flex-1">Hamburger Kit 3 pc (GE)</span>
-        <span class="font-bold">307.00</span>
-        <span class="text-gray-500 line-through ml-2">361.00</span>
-      </div>
-    </div>
-  </div> -->
-</section>
+  <!-- Empty state -->
+  <div class="no-related-products" *ngIf="relatedIds.length > 0 && relatedProducts.length === 0">
+    <p>Loading related products...</p>
+  </div>
+</div>

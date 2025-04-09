@@ -1,62 +1,61 @@
-<div class="product-desc mb-10">
-  <div class="border border-gray-200 rounded-md overflow-hidden">
-    <!-- Tab Buttons -->
-    <div class="tab-navigation">
-      <button
-        (click)="setActiveTab('description')"
-        [class.active]="activeTab === 'description'"
-        class="tab-button"
-      >
-        Description
-      </button>
-      <button
-        (click)="setActiveTab('specifications')"
-        [class.active]="activeTab === 'specifications'"
-        class="tab-button"
-      >
-        Specifications
-      </button>
+<div class="product-description" *ngIf="productAdditionlInfo()">
+  <!-- Tab Navigation -->
+  <div class="description-tabs">
+    <div class="tab-item"
+         [class.active]="activeTab === 'description'"
+         (click)="setActiveTab('description')">
+      Description
     </div>
-
-    <!-- Tab Content -->
-    <div class="tab-content">
-      <!-- Description Tab -->
-      @if (activeTab === 'description') {
-        <div class="description-content">
-          @for (section of descriptionSections; track section.title) {
-            @if (section.text && !section.image) {
-              <div [innerHTML]="section.text"></div>
-            }
-            @if (section.image) {
-              <div class="image-text" [class.image-right]="section.align === 'right'">
-                <div class="image">
-                  <img [src]="section.image" alt="" class="max-w-full h-auto rounded-md" />
-                </div>
-                <div class="text">
-                  <h5>{{ section.title }}</h5>
-                  <div [innerHTML]="section.text"></div>
-                </div>
-              </div>
-            }
-          }
-        </div>
-      }
-
-      <!-- Specifications Tab -->
-      @if (activeTab === 'specifications') {
-        <div class="specifications">
-          <table class="w-full">
-            <tbody>
-              @for (spec of productAdditionlInfo()?.specifications; track spec.name) {
-                <tr>
-                  <td>{{ spec.name }}</td>
-                  <td>{{ spec.value }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
+    <div class="tab-item"
+         [class.active]="activeTab === 'specifications'"
+         (click)="setActiveTab('specifications')">
+      Specifications
     </div>
   </div>
+
+  <!-- Description Tab Content -->
+  <div class="tab-content" *ngIf="activeTab === 'description'">
+    <!-- Initial text -->
+    <div class="description-section" *ngIf="descriptionSections.length && descriptionSections[0].text">
+      <div class="text-content" [innerHTML]="descriptionSections[0].text"></div>
+    </div>
+
+    <!-- Image-Text Sections -->
+    <div *ngFor="let section of descriptionSections.slice(1)" class="image-text-section" [class.left-align]="section.align === 'left'" [class.right-align]="section.align === 'right'">
+      <div class="section-image" *ngIf="section.image">
+        <img [src]="section.image" [alt]="section.title || 'Product feature'" loading="lazy">
+      </div>
+      <div class="section-content">
+        <h3 *ngIf="section.title" class="section-title">{{ section.title }}</h3>
+        <div class="section-text" *ngIf="section.text" [innerHTML]="section.text"></div>
+      </div>
+    </div>
+
+    <!-- If no structured content is available, show raw description -->
+    <div *ngIf="!descriptionSections.length" class="raw-description" [innerHTML]="productAdditionlInfo().description"></div>
+  </div>
+
+  <!-- Specifications Tab Content -->
+  <div class="tab-content" *ngIf="activeTab === 'specifications'">
+    <div class="specifications-content" *ngIf="productAdditionlInfo().additional_information">
+      <table class="specs-table">
+        <tbody>
+          <tr *ngFor="let item of productAdditionlInfo().additional_information | keyvalue">
+            <th>{{ item.key }}</th>
+            <td>{{ item.value }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- If no specifications available -->
+    <div *ngIf="!productAdditionlInfo().additional_information" class="no-specs">
+      <p>No specification information available for this product.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Loading state -->
+<div class="loading-description" *ngIf="!productAdditionlInfo()">
+  <p>Loading product description...</p>
 </div>

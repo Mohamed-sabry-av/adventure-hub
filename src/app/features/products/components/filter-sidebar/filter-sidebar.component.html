@@ -18,6 +18,11 @@
       </button> 
     </div>
     
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="text-center py-4 text-red-600 text-sm">
+      {{ errorMessage }}
+    </div>
+
     @if (isLoadingAttributes) {
       <div class="space-y-6 px-2">
         <div class="skeleton-filter" *ngFor="let item of [1,2,3,4]">
@@ -29,30 +34,33 @@
         </div>
       </div>
     } @else {
-      <div *ngFor="let attr of attributes" class="filter-group mb-3 border border-gray-100 rounded-lg shadow-sm">
+      <div 
+        *ngFor="let attr of attributes; trackBy: trackByAttr" 
+        class="filter-group mb-3 border border-gray-100 rounded-lg shadow-sm"
+      >
         <!-- Filter Header -->
         <button
           type="button"
           (click)="toggleSection(attr.slug)"
           class="flex w-full items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-lg transition-colors"
-          [class.bg-gray-50]="openSections[attr.slug]"
+          [class.bg-gray-50]="sectionStates[attr.slug]?.isOpen"
         >
           <span class="font-medium text-sm">{{ attr.name }}</span>
           <span class="ml-6 flex items-center text-gray-400">
-            <svg *ngIf="!openSections[attr.slug]" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg *ngIf="!sectionStates[attr.slug]?.isOpen" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <svg *ngIf="openSections[attr.slug]" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg *ngIf="sectionStates[attr.slug]?.isOpen" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
             </svg>
           </span>
         </button>
         
         <!-- Filter Options Container with Scrollbar -->
-        <div [@expandCollapse]="animationState[attr.slug]" class="filter-options-container">
+        <div [@expandCollapse]="sectionStates[attr.slug]?.animationState" class="filter-options-container">
           <div class="px-4 py-3 max-h-60 overflow-y-auto custom-scrollbar space-y-2">
             <div
-              *ngFor="let term of attr.terms" 
+              *ngFor="let term of getVisibleTerms(attr); trackBy: trackByTerm" 
               class="filter-option flex items-center gap-2 py-1 transition-all hover:translate-x-1"
             >
               <div class="relative flex items-center">
@@ -73,12 +81,22 @@
                 {{ term.name }}
               </label>
             </div>
+
+            <!-- Show More/Less Button -->
+            <div *ngIf="hasMoreTerms(attr)" class="text-center mt-2">
+              <button
+                (click)="toggleShowAll(attr.slug, $event)"
+                class="text-sm text-indigo-600 hover:text-indigo-800 focus:outline-none"
+              >
+                {{ getShowMoreText(attr) }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
       
       <!-- Empty State -->
-      <div *ngIf="attributes.length === 0" class="text-center py-6 text-gray-500">
+      <div *ngIf="attributes.length === 0 && !errorMessage" class="text-center py-6 text-gray-500">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.586a1 1 0 01-.293.707l-2 2a1 1 0 01-1.414 0l-4-4a1 1 0 01-.293-.707V7.293a1 1 0 00-.293-.707L3.293 4.293A1 1 0 013 3.586V4z" />
         </svg>

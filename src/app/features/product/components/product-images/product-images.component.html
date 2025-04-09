@@ -1,76 +1,47 @@
-<div class="product-images-container">
-  <div class="flex flex-col md:flex-row gap-4">
-    <!-- Thumbnail Images (on the left) - Desktop Only -->
-    @if (getGalleryImages().length > 1) {
-      <div class="thumbnails-container hidden md:flex flex-col gap-2 order-2 md:order-1 md:w-1/5">
-        @for (image of getGalleryImages(); track $index) {
-          <div
-            (click)="selectImage($index)"
-            [class.border-[#ea5e3b]]="selectedImageIndex === $index"
-            class="cursor-pointer border-2 hover:border-[#ea5e3b] rounded-md overflow-hidden transition-all thumbnail-container"
-            [attr.aria-selected]="selectedImageIndex === $index"
-          >
-            <img [src]="image.src" [alt]="image.alt" class="thumbnail-image">
-          </div>
-        }
-      </div>
-    }
+<div class="product-gallery" [class.mobile]="isMobile">
+  <!-- Main image container -->
+  <div class="main-image-container">
+    <button class="nav-button prev-button" (click)="prevImage()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
 
-    <!-- Main Image (on the right) -->
-    <div class="main-image-container relative order-1 md:order-2 md:w-4/5">
-      @if (getGalleryImages().length > 0) {
-        <div
-          [class.slide-animation-next]="animationDirection === 'next'"
-          [class.slide-animation-prev]="animationDirection === 'prev'"
+    <div class="main-image">
+      <ng-container *ngIf="getGalleryImages().length > 0">
+        <img
+          [src]="getGalleryImages()[selectedImageIndex].src"
+          [alt]="getGalleryImages()[selectedImageIndex].alt"
           (animationend)="onAnimationDone()"
-          class="main-image-wrapper"
+          [class.slide-in-next]="animationDirection === 'next'"
+          [class.slide-in-prev]="animationDirection === 'prev'"
         >
-          <img
-            [src]="getGalleryImages()[selectedImageIndex].src"
-            [alt]="getGalleryImages()[selectedImageIndex].alt"
-            class="w-full h-auto rounded-md main-image"
-          >
-        </div>
+      </ng-container>
+    </div>
 
-        <!-- Navigation arrows - Only show if there are multiple images -->
-        @if (getGalleryImages().length > 1) {
-          <button
-            (click)="prevImage()"
-            class="absolute left-2 rtl:left-auto rtl:right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
-            aria-label="Previous image"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-          </button>
+    <button class="nav-button next-button" (click)="nextImage()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
 
-          <button
-            (click)="nextImage()"
-            class="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white bg-opacity-70 flex items-center justify-center hover:bg-opacity-100 focus:outline-none transition-all"
-            aria-label="Next image"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
-        }
-      }
+    <!-- Image counter for mobile -->
+    <div class="image-counter" *ngIf="getGalleryImages().length > 1">
+      {{ selectedImageIndex + 1 }} / {{ getGalleryImages().length }}
     </div>
   </div>
 
-  <!-- Mobile Thumbnails (horizontal) - Mobile Only -->
-  @if (getGalleryImages().length > 1) {
-    <div class="thumbnails-container horizontal flex md:hidden gap-2 mt-4">
-      @for (image of getGalleryImages(); track $index) {
-        <div
-          (click)="selectImage($index)"
-          [class.border-[#ea5e3b]]="selectedImageIndex === $index"
-          class="cursor-pointer border-2 hover:border-[#ea5e3b] rounded-md overflow-hidden transition-all thumbnail-container"
-          [attr.aria-selected]="selectedImageIndex === $index"
-        >
-          <img [src]="image.src" [alt]="image.alt" class="thumbnail-image">
-        </div>
-      }
+  <!-- Thumbnails - vertical on desktop (left side), horizontal on mobile (bottom) -->
+  <div class="thumbnails-container" *ngIf="getGalleryImages().length > 1">
+    <div class="thumbnails-wrapper">
+      <div
+        *ngFor="let image of getGalleryImages(); let i = index"
+        class="thumbnail"
+        [class.active]="i === selectedImageIndex"
+        (click)="selectImage(i)"
+      >
+        <img [src]="image.src" [alt]="'Thumbnail ' + (i + 1)">
+      </div>
     </div>
-  }
+  </div>
 </div>

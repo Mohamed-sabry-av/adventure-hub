@@ -4,13 +4,30 @@ import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
 import { ProductsBrandService } from '../../services/products-brand.service';
-import { Observable, finalize } from 'rxjs';
+import { Observable, finalize, debounceTime, BehaviorSubject } from 'rxjs';
 import { trigger, transition, style, animate, state } from '@angular/animations';
+
+interface Term {
+  id: number;
+  name: string;
+}
 
 interface Attribute {
   slug: string;
   name: string;
-  terms: { id: number; name: string }[];
+  terms: Term[];
+}
+
+interface AttributeData {
+  name: string;
+  terms: Term[];
+}
+
+interface SectionState {
+  isOpen: boolean;
+  showAll: boolean;
+  visibleTermsCount: number;
+  animationState: 'expanded' | 'collapsed';
 }
 
 @Component({
@@ -22,20 +39,9 @@ interface Attribute {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('expandCollapse', [
-      state('collapsed', style({
-        height: '0',
-        overflow: 'hidden',
-        opacity: 0,
-        margin: '0',
-        padding: '0'
-      })),
-      state('expanded', style({
-        height: '*',
-        opacity: 1
-      })),
-      transition('collapsed <=> expanded', [
-        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')
-      ])
+      state('collapsed', style({ height: '0', overflow: 'hidden', opacity: 0, margin: '0', padding: '0' })),
+      state('expanded', style({ height: '*', opacity: 1 })),
+      transition('collapsed <=> expanded', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
     ]),
     trigger('fadeSlideIn', [
       transition(':enter', [
@@ -62,14 +68,12 @@ export class FilterSidebarComponent implements OnInit {
   @Output() filtersChanges = new EventEmitter<{ [key: string]: string[] }>();
 
   attributes: Attribute[] = [];
-  openSections: { [key: string]: boolean } = {};
-  showAll: { [key: string]: boolean } = {};
+  sectionStates: { [slug: string]: SectionState } = {};
   isLoadingAttributes = true;
-  visibleTermsCount: { [key: string]: number } = {};
-  animationState: { [key: string]: string } = {};
-  isUpdatingFilters = false;
-
+  errorMessage: string | null = null;
   private readonly DEFAULT_VISIBLE_TERMS = 5;
+
+  private filtersSubject = new BehaviorSubject<{ [key: string]: string[] }>({});
 
   constructor(
     private filterService: FilterService,
@@ -78,8 +82,8 @@ export class FilterSidebarComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.initializeConfig();
     this.loadAttributes();
+    this.filtersSubject.subscribe(filters => this.filtersChanges.emit({ ...filters }));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -96,71 +100,61 @@ export class FilterSidebarComponent implements OnInit {
     }
   }
 
-  private initializeConfig(): void {
-    this.visibleTermsCount = {};
-    this.animationState = {};
-  }
-
   private resetState(): void {
     this.selectedFilters = {};
-    this.openSections = {};
-    this.showAll = {};
-    this.visibleTermsCount = {};
+    this.sectionStates = {};
     this.isLoadingAttributes = true;
     this.attributes = [];
+    this.errorMessage = null;
+    this.updateUI();
   }
 
   private updateFilterState(): void {
-    if (this.isUpdatingFilters) {
-      this.isUpdatingFilters = false;
-      return;
-    }
-
     if (Object.keys(this.selectedFilters).length > 0) {
-      for (const slug of Object.keys(this.selectedFilters)) {
-        this.openSections[slug] = true;
-        this.animationState[slug] = 'expanded';
-      }
+      Object.keys(this.selectedFilters).forEach(slug => {
+        this.sectionStates[slug] = {
+          ...this.sectionStates[slug],
+          isOpen: true,
+          animationState: 'expanded'
+        };
+      });
     }
-
-    this.cdr.markForCheck();
+    this.updateUI();
   }
 
   private loadAttributes(): void {
     this.isLoadingAttributes = true;
-    this.cdr.markForCheck();
+    this.errorMessage = null;
+    this.updateUI();
 
-    const id = this.categoryId !== null && this.categoryId !== undefined ? this.categoryId : this.brandTermId;
-    const type = this.categoryId !== null && this.categoryId !== undefined ? 'category' : 'brand';
+    const id = this.categoryId ?? this.brandTermId;
+    const type = this.categoryId !== null ? 'category' : 'brand';
 
     if (id === null || id === undefined) {
       this.handleEmptyAttributes();
       return;
     }
 
-    let observable: Observable<any>;
-    if (type === 'category') {
-      observable = this.filterService.getAllAttributesAndTermsByCategory(id);
-    } else {
-      observable = this.productsByBrandService.getAllAttributesAndTermsByBrand(id); // افتراض أن الدالة موجودة
-    }
+    const observable: Observable<Record<string, AttributeData>> = type === 'category'
+      ? this.filterService.getAllAttributesAndTermsByCategory(id)
+      : this.productsByBrandService.getAllAttributesAndTermsByBrand(id);
 
     observable.pipe(
       finalize(() => {
         this.isLoadingAttributes = false;
-        this.cdr.markForCheck();
+        this.updateUI();
       })
     ).subscribe({
       next: (data) => {
         this.attributes = this.processAttributesData(data, type);
         this.initializeSections();
-        this.cdr.markForCheck();
+        this.updateUI();
       },
       error: (error) => {
         console.error(`Error fetching attributes for ${type}:`, error);
         this.attributes = [];
-        this.isLoadingAttributes = false;
-        this.cdr.markForCheck();
+        this.errorMessage = 'Failed to load filters. Please try again later.';
+        this.updateUI();
       }
     });
   }
@@ -168,14 +162,14 @@ export class FilterSidebarComponent implements OnInit {
   private handleEmptyAttributes(): void {
     this.attributes = [];
     this.isLoadingAttributes = false;
-    this.cdr.markForCheck();
+    this.errorMessage = 'No category or brand selected.';
+    this.updateUI();
   }
 
-  private processAttributesData(data: any, type: 'category' | 'brand'): Attribute[] {
-    const attributes = type === 'category' ? data : data; // لو الـ brand بيرجع نفس الهيكلة
-    return attributes
-      ? Object.entries(attributes)
-          .map(([slug, attrData]: [string, any]) => ({
+  private processAttributesData(data: Record<string, AttributeData>, type: 'category' | 'brand'): Attribute[] {
+    return data
+      ? Object.entries(data)
+          .map(([slug, attrData]) => ({
             slug,
             name: attrData.name,
             terms: attrData.terms,
@@ -184,67 +178,61 @@ export class FilterSidebarComponent implements OnInit {
       : [];
   }
 
-  private initializeSections() {
-    this.attributes.forEach((attr) => {
-      if (this.openSections[attr.slug] === undefined) {
-        this.openSections[attr.slug] = !!this.selectedFilters[attr.slug]?.length;
-        this.animationState[attr.slug] = this.openSections[attr.slug] ? 'expanded' : 'collapsed';
-      }
-
-      if (this.showAll[attr.slug] === undefined) {
-        this.showAll[attr.slug] = false;
-      }
-
-      if (this.visibleTermsCount[attr.slug] === undefined) {
-        this.visibleTermsCount[attr.slug] = this.DEFAULT_VISIBLE_TERMS;
-      }
+  private initializeSections(): void {
+    this.attributes.forEach(attr => {
+      this.sectionStates[attr.slug] = {
+        isOpen: !!this.selectedFilters[attr.slug]?.length,
+        showAll: false,
+        visibleTermsCount: this.DEFAULT_VISIBLE_TERMS,
+        animationState: this.selectedFilters[attr.slug]?.length ? 'expanded' : 'collapsed'
+      };
     });
-
-    this.cdr.markForCheck();
   }
 
   toggleSection(slug: string): void {
-    this.openSections[slug] = !this.openSections[slug];
-    this.animationState[slug] = this.openSections[slug] ? 'expanded' : 'collapsed';
-    this.cdr.markForCheck();
+    const state = this.sectionStates[slug];
+    state.isOpen = !state.isOpen;
+    state.animationState = state.isOpen ? 'expanded' : 'collapsed';
+    this.updateUI();
   }
 
   toggleShowAll(slug: string, event: Event): void {
     event.stopPropagation();
-    this.showAll[slug] = !this.showAll[slug];
-    this.visibleTermsCount[slug] = this.showAll[slug]
-      ? this.getAttributeBySlug(slug)?.terms.length || this.DEFAULT_VISIBLE_TERMS
+    const state = this.sectionStates[slug];
+    state.showAll = !state.showAll;
+    state.visibleTermsCount = state.showAll
+      ? this.getAttributeBySlug(slug)?.terms.length ?? this.DEFAULT_VISIBLE_TERMS
       : this.DEFAULT_VISIBLE_TERMS;
-    this.cdr.markForCheck();
+    this.updateUI();
   }
 
   onFilterChange(attrSlug: string, termId: number): void {
-    this.isUpdatingFilters = true;
-
-    if (!this.selectedFilters[attrSlug]) {
-      this.selectedFilters[attrSlug] = [];
-    }
-
     const termIdStr = termId.toString();
+    const currentFilters = { ...this.selectedFilters };
 
-    if (this.selectedFilters[attrSlug].includes(termIdStr)) {
-      this.selectedFilters[attrSlug] = this.selectedFilters[attrSlug].filter((id) => id !== termIdStr);
+    if (!currentFilters[attrSlug]) {
+      currentFilters[attrSlug] = [];
+    }
+
+    if (currentFilters[attrSlug].includes(termIdStr)) {
+      currentFilters[attrSlug] = currentFilters[attrSlug].filter(id => id !== termIdStr);
     } else {
-      this.selectedFilters[attrSlug].push(termIdStr);
+      currentFilters[attrSlug].push(termIdStr);
     }
 
-    if (this.selectedFilters[attrSlug].length === 0) {
-      delete this.selectedFilters[attrSlug];
+    if (currentFilters[attrSlug].length === 0) {
+      delete currentFilters[attrSlug];
     }
 
-    this.filtersChanges.emit({ ...this.selectedFilters });
-    this.updateAvailableAttributes(attrSlug);
-    this.cdr.markForCheck();
+    this.selectedFilters = currentFilters;
+    this.filtersSubject.next(currentFilters);
+    this.updateAvailableAttributes(); // استدعاء بدون selectedAttrSlug
+    this.updateUI();
   }
 
-  private updateAvailableAttributes(selectedAttrSlug: string): void {
-    const id = this.categoryId !== null && this.categoryId !== undefined ? this.categoryId : this.brandTermId;
-    const type = this.categoryId !== null && this.categoryId !== undefined ? 'category' : 'brand';
+  private updateAvailableAttributes(): void {
+    const id = this.categoryId ?? this.brandTermId;
+    const type = this.categoryId !== null ? 'category' : 'brand';
 
     if (!id) return;
 
@@ -252,44 +240,56 @@ export class FilterSidebarComponent implements OnInit {
       ? this.filterService.getAvailableAttributesAndTerms(id, this.selectedFilters)
       : this.productsByBrandService.getAvailableAttributesAndTermsByBrand(id, this.selectedFilters);
 
-    observable.subscribe({
-      next: (attributesData) => {
-        const selectedAttr = this.attributes.find((attr) => attr.slug === selectedAttrSlug);
-
-        this.attributes = attributesData
-          ? Object.entries(attributesData).map(([slug, data]: [string, any]) => ({
-              slug,
-              name: data.name,
-              terms: slug === selectedAttrSlug && selectedAttr ? selectedAttr.terms : data.terms,
-            }))
-          : this.attributes;
-
-        this.cdr.markForCheck();
+    observable.pipe(debounceTime(300)).subscribe({
+      next: (attributesData: Record<string, AttributeData>) => {
+        this.attributes = this.processAttributesData(attributesData, type); 
+        this.adjustSectionsAfterUpdate();
+        this.updateUI();
       },
-      error: (error) => console.error('Error updating attributess:', error),
+      error: (error) => {
+        console.error('Error updating attributes:', error);
+        this.errorMessage = 'Failed to update available filters.';
+        this.updateUI();
+      }
     });
   }
 
-  isSelected(attrSlug: string, termId: number): boolean {
-    return this.selectedFilters[attrSlug]?.includes(termId.toString()) || false;
+  private adjustSectionsAfterUpdate(): void {
+    const newSectionStates: { [slug: string]: SectionState } = {};
+    this.attributes.forEach(attr => {
+      const existingState = this.sectionStates[attr.slug] || {
+        isOpen: false,
+        showAll: false,
+        visibleTermsCount: this.DEFAULT_VISIBLE_TERMS,
+        animationState: 'collapsed'
+      };
+      newSectionStates[attr.slug] = {
+        ...existingState,
+        isOpen: existingState.isOpen || !!this.selectedFilters[attr.slug]?.length,
+        animationState: (existingState.isOpen || !!this.selectedFilters[attr.slug]?.length) ? 'expanded' : 'collapsed'
+      };
+    });
+    this.sectionStates = newSectionStates;
   }
 
-  getVisibleTerms(attribute: Attribute): { id: number; name: string }[] {
-    const max = this.showAll[attribute.slug]
-      ? attribute.terms.length
-      : (this.visibleTermsCount[attribute.slug] || this.DEFAULT_VISIBLE_TERMS);
+  isSelected(attrSlug: string, termId: number): boolean {
+    return this.selectedFilters[attrSlug]?.includes(termId.toString()) ?? false;
+  }
 
+  getVisibleTerms(attribute: Attribute): Term[] {
+    const state = this.sectionStates[attribute.slug];
+    const max = state?.showAll ? attribute.terms.length : (state?.visibleTermsCount ?? this.DEFAULT_VISIBLE_TERMS);
     return attribute.terms.slice(0, max);
   }
 
   hasMoreTerms(attribute: Attribute): boolean {
-    return attribute.terms.length > (this.visibleTermsCount[attribute.slug] || this.DEFAULT_VISIBLE_TERMS);
+    const state = this.sectionStates[attribute.slug];
+    return attribute.terms.length > (state?.visibleTermsCount ?? this.DEFAULT_VISIBLE_TERMS);
   }
 
   getShowMoreText(attribute: Attribute): string {
-    return this.showAll[attribute.slug]
-      ? `Show Less`
-      : `Show All (${attribute.terms.length})`;
+    const state = this.sectionStates[attribute.slug];
+    return state?.showAll ? 'Show Less' : `Show All (${attribute.terms.length})`;
   }
 
   getAttributeBySlug(slug: string): Attribute | undefined {
@@ -298,11 +298,23 @@ export class FilterSidebarComponent implements OnInit {
 
   resetFilters(): void {
     this.selectedFilters = {};
-    this.filtersChanges.emit({});
+    this.filtersSubject.next({});
     this.loadAttributes();
-    this.cdr.markForCheck();
   }
+
   get hasSelectedFilters(): boolean {
     return Object.keys(this.selectedFilters).length > 0;
+  }
+
+  trackByAttr(index: number, attr: Attribute): string {
+    return attr.slug;
+  }
+
+  trackByTerm(index: number, term: Term): number {
+    return term.id;
+  }
+
+  private updateUI(): void {
+    this.cdr.markForCheck();
   }
 }

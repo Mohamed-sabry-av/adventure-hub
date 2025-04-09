@@ -1,72 +1,95 @@
-/* Related Products Component Styles */
 .related-products {
+  margin-top: 40px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Carousel container */
+.carousel-item-container {
+  padding: 50px;
+  height: 100%;
+}
+
+/* Product grid fallback if carousel isn't available */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.product-card-wrapper {
   width: 100%;
-  font-family: 'Poppins', sans-serif;
-  padding: 2rem 0;
 }
 
-.related-products h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #3d3d30;
-  margin-bottom: 1.5rem;
-}
-
-/* Product card styling */
-:host ::ng-deep .p-carousel {
-  padding: 0.5rem 0;
-}
-
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev,
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next {
-  color: #3d3d30;
-  border: 1px solid #e0e0e0;
-  border-radius: 50%;
-  background: white;
-  margin: 0 0.5rem;
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev:hover,
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next:hover {
-  background: #f5f5f5;
-  color: #ea5e3b;
-}
-
-:host ::ng-deep .p-carousel .p-carousel-indicators {
-  margin-top: 1rem;
-}
-
-:host ::ng-deep .p-carousel .p-carousel-indicators .p-carousel-indicator button {
-  background-color: #e0e0e0;
-  width: 0.75rem;
-  height: 0.75rem;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-:host ::ng-deep .p-carousel .p-carousel-indicators .p-carousel-indicator.p-highlight button {
-  background-color: #ea5e3b;
-  transform: scale(1.2);
-}
-
-/* Empty state styling */
-.empty-message {
+/* Empty state */
+.no-related-products {
+  padding: 30px;
   text-align: center;
   color: #777;
-  padding: 2rem 0;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  margin-bottom: 40px;
+}
+
+/* Custom carousel navigation styles */
+:host ::ng-deep .p-carousel .p-carousel-indicators {
+  display: none;
+}
+
+:host ::ng-deep .p-carousel-prev,
+:host ::ng-deep .p-carousel-next {
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  margin: 0 4px;
+  transition: all 0.2s;
+}
+
+:host ::ng-deep .p-carousel-prev:hover,
+:host ::ng-deep .p-carousel-next:hover {
+  background-color: rgba(231, 96, 58, 0.1);
+  color: #e7603a;
+}
+
+:host ::ng-deep .p-carousel-prev:focus,
+:host ::ng-deep .p-carousel-next:focus {
+  box-shadow: none;
+  outline: 0;
 }
 
 /* Responsive styles */
+@media (max-width: 1024px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-  .related-products h2 {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
   }
 
-  :host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev,
-  :host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next {
-    width: 2rem;
-    height: 2rem;
+  .section-title {
+    font-size: 20px;
+  }
+
+  .carousel-item-container {
+    padding: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 10px;
   }
 }

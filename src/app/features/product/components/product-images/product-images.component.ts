@@ -1,4 +1,4 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './product-images.component.html',
   styleUrls: ['./product-images.component.css'],
 })
-export class ProductImagesComponent implements OnInit {
+export class ProductImagesComponent implements OnInit, OnDestroy {
   // Inputs from parent component
   productImages = input<any>();
   selectedColor = input<string | null>(null);
@@ -44,7 +44,6 @@ export class ProductImagesComponent implements OnInit {
     if (this.mediaQuery && this.mediaQueryListener) {
       this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
     }
-
   }
 
   // Function to get images for the gallery based on selected color

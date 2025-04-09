@@ -28,9 +28,9 @@ export class ProductDescComponent implements OnInit {
     const sections = Array.from(doc.querySelectorAll('.image-text-wrapper'));
 
     this.descriptionSections = [
-      // النص الأولي قبل الصور
+      // Initial text before images
       { text: doc.querySelector('p')?.innerHTML || '' },
-      // تفكيك الصور والنصوص
+      // Process images and texts
       ...sections.map((section) => {
         const img = section.querySelector('img')?.getAttribute('data-src') || '';
         const title = section.querySelector('h5')?.innerText || '';

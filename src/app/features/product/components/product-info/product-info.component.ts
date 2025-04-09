@@ -2,10 +2,11 @@ import { Component, EventEmitter, input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CartService } from '../../../cart/service/cart.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-product-info',
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
   standalone: true
@@ -18,7 +19,7 @@ export class ProductInfoComponent {
   selectedColor: string | null = null;
   selectedSize: string | null = null;
 
-  @Output() selectedColorChange = new EventEmitter<string | null>(); // Output جديد
+  @Output() selectedColorChange = new EventEmitter<string | null>();
 
   ngOnInit() {
     if (this.productInfo()) {
@@ -27,6 +28,7 @@ export class ProductInfoComponent {
       console.log('Color Options:', this.getColorOptions());
       if (this.getColorOptions().length > 0) {
         this.selectedColor = this.getColorOptions()[0].color;
+        this.selectedColorChange.emit(this.selectedColor);
       }
     }
   }
@@ -128,7 +130,7 @@ export class ProductInfoComponent {
   getSelectedPrice(): string {
     const variations = this.productInfo()?.variations || [];
     if (!Array.isArray(variations) || !variations.length || !this.selectedColor) {
-      return this.productInfo()?.price ; // السعر الافتراضي لو مفيش لون مختار
+      return this.productInfo()?.price;
     }
 
     if (this.selectedSize) {
@@ -143,12 +145,31 @@ export class ProductInfoComponent {
       return selectedVariation?.price || this.productInfo()?.price;
     }
 
-    // لو مفيش مقاس مختار، جيب سعر أول variation للون المختار
+    // If no size selected, get price of first variation with selected color
     const firstVariationForColor = variations.find((v: any) =>
       v.attributes?.some(
         (attr: any) => attr?.name === 'Color' && attr?.option === this.selectedColor
       )
     );
-    return firstVariationForColor?.price || this.productInfo()?.price ;
+    return firstVariationForColor?.price || this.productInfo()?.price;
   }
+
+  addToCart(): void {
+    // Implementation would go here in a real app
+    console.log('Product added to cart');
+  }
+
+  buyNow(): void {
+    // Implementation would go here in a real app
+    console.log('Buy now with pay clicked');
+  }
+
+  showMoreOptions(): void {
+    // Implementation would go here in a real app
+    console.log('Show more payment options clicked');
+  }
+  parseFloatValue(value: any): number {
+    return parseFloat(value);
+  }
+  
 }
