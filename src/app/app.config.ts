@@ -22,6 +22,7 @@ import { provideStore } from '@ngrx/store';
 import { CartEffect } from './Store/effects/cart.effect';
 import { reducers } from './Store/store';
 import { provideNgxStripe } from 'ngx-stripe';
+import { CheckoutEffect } from './Store/effects/checkout.effect';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -62,6 +63,6 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideStore(reducers),
-    provideEffects([CartEffect]),
+    provideEffects([CartEffect, CheckoutEffect]),
   ],
 };

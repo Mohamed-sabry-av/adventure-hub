@@ -6,6 +6,17 @@
   @apply bg-white text-black;
 }
 
+::ng-deep .p-select-list-container {
+  @apply bg-white;
+}
+
+::ng-deep .p-select-label {
+  @apply text-black;
+}
+::ng-deep .p-select-option {
+  @apply border-b;
+}
+
 ::placeholder {
   @apply text-sm text-gray-400;
 }

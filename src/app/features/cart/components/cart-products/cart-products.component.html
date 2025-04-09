@@ -6,14 +6,14 @@
   <div
     class="p-2"
     [class]="{
-      'h-[800px]': (loadedCart$ | async).products.length > 4,
-      'overflow-auto': (loadedCart$ | async).products.length > 4
+      'h-[800px]': (loadedCart$ | async)?.items?.length > 4,
+      'overflow-auto': (loadedCart$ | async)?.items?.length > 4
     }"
   >
-    @for (item of (loadedCart$ | async).products; track $index) {
+    @for (item of (loadedCart$ | async)?.items; track $index) {
 
     <div class="flex gap-x-6 border-b pb-4 mt-5">
-      <img [src]="item.firstImage" alt="" class="w-[112px] h-fit bg-cover" />
+      <img [src]="item.images" alt="" class="w-[112px] h-fit bg-cover" />
       <div class="flex-1">
         <div class="flex justify-between">
           <div class="flex flex-col font-semibold gap-y-1 text-sm">
@@ -22,29 +22,22 @@
             </p>
             <p class="text-base">{{ item.name }}</p>
             <p class="text-base">
-              {{ item.price }}
-              @if (item.sale_price !== '') {
+              {{ item.prices.price }}
+              @if (item.prices.regular_price !== item.prices.price) {
               <del class="ml-1 text-gray-400 font-light text-sm">{{
-                item.regular_price
+                item.prices.regular_price
               }}</del>
               }
             </p>
+            @if (item.type ==='variation') { @for (variation of item.variation;
+            track $index) {
             <p>
-              Color:
+              {{ variation.attribute }} :
               <span class="font-light">
-                @for (color of item.attributes?.color?.options; track $index) {
-                {{ color.name }}
-                }</span
-              >
-            </p>
-            <p>
-              Size:
-              <span class="font-light">
-                @for (size of item.attributes.size.options; track $index) {
-                {{ size.name }}
-                }
+                {{ variation.value }}
               </span>
             </p>
+            } }
             <div class="flex mt-4 items-center gap-x-4">
               <div
                 class="flex border-2 border-gray-400 rounded-lg w-fit items-center"
@@ -52,20 +45,32 @@
                 <button
                   type="button"
                   class="w-10 h-8"
-                  (click)="onUpdateProductCount(item, 'decrease')"
-                  [disabled]="item.count <= 1"
+                  (click)="onUpdateProductQuantity(item, 'decrease')"
+                  [disabled]="item.quantity === 1"
+                  [class]="{
+                    'text-gray-400': item.quantity === 1
+                  }"
                 >
                   <span class="text-base inline-block transform scale-x-[3]"
                     >-</span
                   >
                 </button>
 
-                <p class="text-center px-3 text-gray-700">{{ item.count }}</p>
+                <input
+                  type="number"
+                  [value]="item.quantity"
+                  class="text-center text-gray-700 rounded-r-none w-6 h-fit outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
 
                 <button
                   type="button"
                   class="w-10 h-8"
-                  (click)="onUpdateProductCount(item, 'increase')"
+                  (click)="onUpdateProductQuantity(item, 'increase')"
+                  [disabled]="item.quantity === item.quantity_limits?.maximum"
+                  [class]="{
+                    'text-gray-400':
+                      item.quantity === item.quantity_limits?.maximum
+                  }"
                 >
                   <span
                     class="text-base inline-block font-thin transform scale-150"
@@ -83,10 +88,12 @@
           <!-- Price -->
           <div class="text-center">
             <p class="text-base font-semibold">
-              {{ item.price }}
+              {{ item.prices.price }}
             </p>
-            @if (item.sale_price !== '') {
-            <del class="text-sm text-gray-400">{{ item.regular_price }}</del>
+            @if (item.prices.regular_price !== item.prices.price) {
+            <del class="text-sm text-gray-400">{{
+              item.prices.regular_price
+            }}</del>
             }
           </div>
         </div>

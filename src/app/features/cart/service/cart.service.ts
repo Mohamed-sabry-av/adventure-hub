@@ -3,12 +3,18 @@ import { Store } from '@ngrx/store';
 import { BehaviorSubject, Observable } from 'rxjs';
 import {
   addProductToLSCartAction,
+  addProductToUserCartAction,
   deleteProductInCartLSAction,
+  deleteProductOfUserCarAction,
   fetchCartFromLSAction,
   fetchUserCartAction,
   updateCountOfProductInCartLSAction,
+  updateProductOfUserCartAction,
 } from '../../../Store/actions/cart.action';
-import { savedCartOfLSSelector } from '../../../Store/selectors/cart.selector';
+import {
+  savedCartOfLSSelector,
+  savedUserCartSelector,
+} from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
 
@@ -22,101 +28,121 @@ export class CartService {
     this.cartIsVisible$.next(isVisible);
   }
 
-  fetchCartFromLS() {
-    this.store.dispatch(fetchCartFromLSAction());
-  }
-  savedCartOfLS$: Observable<any> = this.store.select(savedCartOfLSSelector);
-
-  fetchUserCart() {
-    this.store.dispatch(fetchUserCartAction());
-    // this.accountAuthService.isLoggedIn$.subscribe((response: boolean) => {
-    //   if (response) {
-    //   } else {
-    //     this.store.dispatch(fetchCartFromLSAction());
-    //   }
-    // });
-  }
-  // savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
-
-  addProductToCart(selectedProduct: Product) {
-    this.store.dispatch(addProductToLSCartAction({ product: selectedProduct }));
-
-    // this.checkAuth().subscribe((token) => {
-    //   if (token) {
-    //     this.store.dispatch(
-    //       addProductToUserCartAction({ product: selectedProduct })
-    //     );
-    //   } else {
-    //     this.savedCartOfLS$.pipe(take(1)).subscribe((response: any) => {
-    //       this.store.dispatch(addProductToLSCartAction());
-    //       this.fetchCartFromLS();
-    //     });
-    //   }
-    // });
-  }
-
-  deleteProductFromCart(selectedProduct: Product) {
-    console.log(selectedProduct);
-    this.store.dispatch(
-      deleteProductInCartLSAction({ selectedProduct: selectedProduct })
-    );
-    // this.checkAuth().subscribe((token) => {
-    //   if (token) {
-    //     this.store.dispatch(
-    //       deleteProductOfUserCartAction({ product: selectedProduct })
-    //     );
-    //   } else {
-    //     this.store.dispatch(
-    //       deleteProductInCartLSAction({ selectedProduct: selectedProduct })
-    //     );
-    //     this.store.dispatch(fetchCartFromLSAction());
-    //   }
-    // });
-  }
-
-  updateCountOfProductInCart(
-    selectedProductCount: number,
-    selectedProduct: Product
-  ) {
-    this.store.dispatch(
-      updateCountOfProductInCartLSAction({
-        count: selectedProductCount,
-        selectedProduct: selectedProduct,
-      })
-    );
-
-    // this.checkAuth().subscribe((token) => {
-    //   if (token) {
-    //     this.store.dispatch(
-    //       updateProductOfUserCartAction({
-    //         product: selectedProduct,
-    //         productCount: selectedProductCount,
-    //       })
-    //     );
-    //   } else {
-    //     this.store.dispatch(
-    //       updateCountOfProductInCartLSAction({
-    //         count: selectedProductCount,
-    //         selectedProduct: selectedProduct,
-    //       })
-    //     );
-    //     this.fetchCartFromLS();
-    //   }
-    // });
-  }
-
   calcCartPrice(products: any) {
     const subTotal = [...products].reduce((acc, ele) => {
-      return acc + +ele.count! * ele.price;
+      return acc + +ele.quantity! * ele.prices.price;
     }, 0);
 
     return {
-      products: [...products],
-      cartTotalPrice: {
+      items: [...products],
+      payment_methods: ['stripe', 'tabby_installments'],
+      totals: {
         subTotal,
-        shippingFee: subTotal ? 10 : 0,
-        totalPrice: subTotal ? subTotal + 10 : 0,
+        currency_code: 'AED',
+        total_fees: subTotal && subTotal < 100 ? 20 : 0,
+        total_items: subTotal && subTotal < 100 ? subTotal + 20 : subTotal,
       },
     };
+  }
+
+  // fetchUserCart() {
+  //   this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
+  // }
+  // savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
+
+  // اللوجيك الصح
+
+  fetchUserCart() {
+    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+      if (isLoggedIn) {
+        this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
+      } else {
+        this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
+      }
+    });
+  }
+  savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
+
+  // updateQuantityOfProductInCart(
+  //   selectedProductQuantity: number,
+  //   selectedProduct: Product
+  // ) {
+  //   this.store.dispatch(
+  //     updateProductOfUserCartAction({
+  //       product: selectedProduct,
+  //       productQuantity: selectedProductQuantity,
+  //       isLoggedIn: true,
+  //     })
+  //   );
+  // }
+
+  // اللوجيك الصح
+
+  updateQuantityOfProductInCart(
+    selectedProductQuantity: number,
+    selectedProduct: Product
+  ) {
+    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+      if (isLoggedIn) {
+        this.store.dispatch(
+          updateProductOfUserCartAction({
+            product: selectedProduct,
+            productQuantity: selectedProductQuantity,
+            isLoggedIn: true,
+          })
+        );
+      } else {
+        this.store.dispatch(
+          updateProductOfUserCartAction({
+            product: selectedProduct,
+            productQuantity: selectedProductQuantity,
+            isLoggedIn: false,
+          })
+        );
+      }
+    });
+  }
+
+  x = 0;
+  // -----------------------------------------------------------------------------------------
+
+  addProductToCart(selectedProduct: Product) {
+    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+      if (isLoggedIn) {
+        this.store.dispatch(
+          addProductToUserCartAction({
+            product: selectedProduct,
+            isLoggedIn: true,
+          })
+        );
+      } else {
+        this.store.dispatch(
+          addProductToUserCartAction({
+            product: selectedProduct,
+            isLoggedIn: false,
+          })
+        );
+      }
+    });
+  }
+
+  deleteProductFromCart(selectedProduct: Product) {
+    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+      if (isLoggedIn) {
+        this.store.dispatch(
+          deleteProductOfUserCarAction({
+            product: selectedProduct,
+            isLoggedIn: true,
+          })
+        );
+      } else {
+        this.store.dispatch(
+          deleteProductOfUserCarAction({
+            product: selectedProduct,
+            isLoggedIn: false,
+          })
+        );
+      }
+    });
   }
 }

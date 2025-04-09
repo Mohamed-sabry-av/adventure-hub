@@ -1,20 +1,20 @@
 <div class="sm:p-10 w-full">
-  <!-- Products -->
+  <!-- items -->
   <div
     class="border p-4 rounded-lg"
     [class]="{
-    'h-[440px]': (loadedCart$ | async).products.length>6,
-    'overflow-auto': (loadedCart$ | async).products.length>6,
+    'h-[440px]': (loadedCart$ | async)?.items?.length>6,
+    'overflow-auto': (loadedCart$ | async)?.items?.length>6,
   }"
   >
     <div class="flex flex-col gap-y-4">
       <!-- Product Data -->
-      @for (product of (loadedCart$ | async).products; track $index) {
+      @for (product of (loadedCart$ | async)?.items; track $index) {
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-x-2">
           <div class="relative">
             <img
-              [src]="product.firstImage"
+              [src]="product.images"
               alt="product-image"
               class="w-[64px] h-[64px] border rounded-lg"
             />
@@ -22,7 +22,7 @@
               <span
                 class="bg-gray-400 text-white rounded-full flex items-center justify-center w-5 h-5 text-xs font-medium p-1"
               >
-                {{ product.count }}
+                {{ product.quantity }}
               </span>
             </div>
           </div>
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Price -->
-        <p class="text-sm">AED {{ product.price }}</p>
+        <p class="text-sm">AED {{ product.prices.price }}</p>
       </div>
       }
     </div>
@@ -50,14 +50,24 @@
     </button>
   </div>
 
+  <!-- Shipping Method -->
+  <div class="mt-2">
+    <h3 class="font-semibold text-base">Shipping method</h3>
+    <div class="bg-gray-200 p-4 text-center mt-2 rounded-lg">
+      <p class="text-sm text-gray-400">
+        Enter your shipping address to view available shipping methods.
+      </p>
+    </div>
+  </div>
+
   <!-- Total -->
   <div class="flex flex-col gap-y-4 text-sm mt-6">
     <div class="flex justify-between">
       <p>
         Subtotal ·
-        <span>{{ (loadedCart$ | async).products.length }} items</span>
+        <span>{{ (loadedCart$ | async)?.items?.length }} items</span>
       </p>
-      <p>AED {{ (loadedCart$ | async).cartTotalPrice.subTotal }}</p>
+      <p>AED {{ (loadedCart$ | async)?.totals?.total_items }}</p>
     </div>
 
     <div class="flex justify-between">
@@ -68,7 +78,7 @@
     <div class="flex justify-between text-xl font-semibold">
       <p>Total</p>
       <p class="uppercase">
-        AED {{ (loadedCart$ | async).cartTotalPrice.subTotal }}
+        AED {{ (loadedCart$ | async)?.totals?.total_items }}
       </p>
     </div>
 

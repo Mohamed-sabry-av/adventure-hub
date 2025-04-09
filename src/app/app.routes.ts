@@ -11,7 +11,17 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./features/Home/home.component').then((m) => m.HomeComponent),
+      import('./features/home/page/home-page/home-page.component').then(
+        (m) => m.HomePageComponent
+      ),
+    pathMatch: 'full',
+  },
+  {
+    path: 'order-received',
+    loadComponent: () =>
+      import('./features/order/page/order-page/order-page.component').then(
+        (m) => m.OrderPageComponent
+      ),
     pathMatch: 'full',
   },
   {

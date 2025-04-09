@@ -5,7 +5,7 @@ import {
   transition,
   animate,
 } from '@angular/animations';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -13,7 +13,7 @@ import { CartService } from '../../service/cart.service';
 
 @Component({
   selector: 'app-cart-checkout',
-  imports: [RouterLink, AsyncPipe],
+  imports: [RouterLink, AsyncPipe, CurrencyPipe],
   templateUrl: './cart-checkout.component.html',
   styleUrl: './cart-checkout.component.css',
   animations: [
@@ -42,7 +42,7 @@ import { CartService } from '../../service/cart.service';
 export class CartCheckoutComponent {
   private cartService = inject(CartService);
 
-  loadedCart$: Observable<any> = this.cartService.savedCartOfLS$;
+  loadedCart$: Observable<any> = this.cartService.savedUserCart$;
 
   isTextareaVisible = false;
 

@@ -23,25 +23,25 @@
   <p>Tax included, shipping and discounts calculated at checkout.</p>
 
   <div class="flex justify-between font-semibold">
-    <p class="text-lg">Subtotal:</p>
-    <p>{{ (loadedCart$ | async).cartTotalPrice.subTotal }} AED</p>
+    <p class="text-lg">Total:</p>
+    <p>
+      {{
+        (loadedCart$ | async)?.totals?.total_price
+          | currency : (loadedCart$ | async)?.totals?.currency_code
+      }}
+    </p>
   </div>
 
   <div>
     <a routerLink="/checkout">
-
       <button
-      class="bg-[#4d4f3a] hover:bg-[#323516] transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full"
+        class="bg-[#4d4f3a] hover:bg-[#323516] transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full"
       >
-      <i class="pi pi-shopping-bag mr-2"></i>
-      <span>Checkout</span>
-    </button>
-  </a>
-    <button
-      class="bg-green-500 mt-2 hover:bg-green-600 transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full"
-    >
-      Buy with tabby
-    </button>
+        <i class="pi pi-shopping-bag mr-2"></i>
+        <span>Checkout</span>
+      </button>
+    </a>
+
     <a
       [routerLink]=""
       class="cursor-pointer block mt-4 text-center text-orange-600 text-sm underline"

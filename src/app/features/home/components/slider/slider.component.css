@@ -1,0 +1,16 @@
+::ng-deep .p-carousel-content {
+  @apply overflow-hidden;
+}
+
+::ng-deep .p-carousel-prev-button,
+::ng-deep .p-carousel-next-button {
+  @apply text-black;
+}
+
+::ng-deep .p-carousel-prev-button {
+  @apply lg:-left-2 2xl:left-0;
+}
+
+::ng-deep .p-carousel-next-button {
+  @apply lg:-right-2 2xl:right-0;
+}

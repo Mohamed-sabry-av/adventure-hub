@@ -4,14 +4,16 @@
     [product]="product"
     [currentSlide]="currentSlide"
     [getDotCount]="getDotCount.bind(this)"
-    (goToSlide)="goToSlide($event)">
+    (goToSlide)="goToSlide($event)"
+  >
   </app-card-image-slider>
 
   <!-- تفاصيل المنتج (العنوان، السعر، إلخ) -->
   <app-card-details
     [product]="product"
     [getBrandName]="getBrandName.bind(this)"
-    [getBrandSlug]="getBrandSlug.bind(this)">
+    [getBrandSlug]="getBrandSlug.bind(this)"
+  >
   </app-card-details>
 
   <!-- الألوان (لو موجودة) -->

@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
-  standalone: true
+  standalone: true,
 })
 export class ProductInfoComponent {
   productInfo = input<any>();
@@ -46,7 +46,8 @@ export class ProductInfoComponent {
   }
 
   get productSku() {
-    const shortTitle = this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
+    const shortTitle =
+      this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
     const sku = this.productInfo()?.sku || '';
     return { shortTitle, sku };
   }
@@ -67,13 +68,16 @@ export class ProductInfoComponent {
 
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
     variations.forEach((v: any) => {
-      const colorAttr = v.attributes?.find((attr: any) => attr?.name === 'Color');
+      const colorAttr = v.attributes?.find(
+        (attr: any) => attr?.name === 'Color'
+      );
       if (colorAttr && v.image?.src) {
         if (!colorMap.has(colorAttr.option)) {
           const isInStock = variations.some(
             (variation: any) =>
               variation.attributes?.some(
-                (attr: any) => attr?.name === 'Color' && attr?.option === colorAttr.option
+                (attr: any) =>
+                  attr?.name === 'Color' && attr?.option === colorAttr.option
               ) && variation.stock_status === 'instock'
           );
           colorMap.set(colorAttr.option, {
@@ -104,7 +108,9 @@ export class ProductInfoComponent {
         )
       )
       .map((v: any) => {
-        const sizeAttr = v.attributes?.find((attr: any) => attr?.name === 'Size');
+        const sizeAttr = v.attributes?.find(
+          (attr: any) => attr?.name === 'Size'
+        );
         return {
           size: sizeAttr?.option || '',
           inStock: v.stock_status === 'instock',
@@ -112,9 +118,7 @@ export class ProductInfoComponent {
       })
       .filter((item) => item.size);
 
-    return Array.from(
-      new Map(sizes.map((item) => [item.size, item])).values()
-    );
+    return Array.from(new Map(sizes.map((item) => [item.size, item])).values());
   }
 
   selectColor(color: string): void {
@@ -134,13 +138,16 @@ export class ProductInfoComponent {
     }
 
     if (this.selectedSize) {
-      const selectedVariation = variations.find((v: any) =>
-        v.attributes?.some(
-          (attr: any) => attr?.name === 'Color' && attr?.option === this.selectedColor
-        ) &&
-        v.attributes?.some(
-          (attr: any) => attr?.name === 'Size' && attr?.option === this.selectedSize
-        )
+      const selectedVariation = variations.find(
+        (v: any) =>
+          v.attributes?.some(
+            (attr: any) =>
+              attr?.name === 'Color' && attr?.option === this.selectedColor
+          ) &&
+          v.attributes?.some(
+            (attr: any) =>
+              attr?.name === 'Size' && attr?.option === this.selectedSize
+          )
       );
       return selectedVariation?.price || this.productInfo()?.price;
     }
@@ -148,7 +155,8 @@ export class ProductInfoComponent {
     // If no size selected, get price of first variation with selected color
     const firstVariationForColor = variations.find((v: any) =>
       v.attributes?.some(
-        (attr: any) => attr?.name === 'Color' && attr?.option === this.selectedColor
+        (attr: any) =>
+          attr?.name === 'Color' && attr?.option === this.selectedColor
       )
     );
     return firstVariationForColor?.price || this.productInfo()?.price;

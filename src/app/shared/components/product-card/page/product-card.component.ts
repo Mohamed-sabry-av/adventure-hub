@@ -31,20 +31,24 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
         style({ opacity: 0 }),
         animate('300ms ease-in', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
+      transition(':leave', [animate('300ms ease-out', style({ opacity: 0 }))]),
     ]),
     trigger('slideUpDown', [
       transition(':enter', [
         style({ transform: 'translateY(100%)', opacity: 0 }),
-        animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 })),
+        animate(
+          '300ms ease-out',
+          style({ transform: 'translateY(0)', opacity: 1 })
+        ),
       ]),
       transition(':leave', [
-        animate('300ms ease-in', style({ transform: 'translateY(100%)', opacity: 0 }))
-      ])
-    ])
-  ]
+        animate(
+          '300ms ease-in',
+          style({ transform: 'translateY(100%)', opacity: 0 })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
