@@ -1,0 +1,14 @@
+tr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+address {
+  font-style: normal;
+  color: #222;
+}
+
+h2 {
+  margin-bottom: 16px;
+}

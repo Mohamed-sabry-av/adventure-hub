@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CartService } from '../../../cart/service/cart.service';
 import { AsyncPipe } from '@angular/common';
@@ -15,7 +15,6 @@ export class CheckoutSummaryComponent {
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
 
   ngOnInit() {
-    // this.cartService.fetchCartFromLS();
-    this.loadedCart$.subscribe((res) => console.log(res));
+    this.cartService.fetchUserCart();
   }
 }

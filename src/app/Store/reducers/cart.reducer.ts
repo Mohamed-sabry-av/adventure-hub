@@ -29,9 +29,6 @@ const initialState: State = {
 
 export const cartReducer = createReducer(
   initialState,
-  on(getCartFromLSAction, (state, action) => {
-    return { ...state, localStorageCart: action.cart };
-  }),
   on(getUserCartAction, (state, action) => {
     return { ...state, userCart: action.userCart };
   })

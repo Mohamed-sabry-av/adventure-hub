@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { BlogSectionPageComponent } from './features/blog/page/blog-section-page/blog-section-page.component';
 import { blogSectionGuard } from './features/blog/guards/blog-section.guard';
 import { HomePageComponent } from './features/home/page/home-page/home-page.component';
+import { OrderPageComponent } from './features/order/page/order-page/order-page.component';
 
 export const routes: Routes = [
   {
@@ -9,6 +10,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/home/page/home-page/home-page.component').then(
         (m) => m.HomePageComponent
+      ),
+    pathMatch: 'full',
+  },
+  {
+    path: 'order-received',
+    loadComponent: () =>
+      import('./features/order/page/order-page/order-page.component').then(
+        (m) => m.OrderPageComponent
       ),
     pathMatch: 'full',
   },

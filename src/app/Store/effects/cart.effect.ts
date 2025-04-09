@@ -126,8 +126,6 @@ export class CartEffect {
               quantity: 1,
             };
 
-            console.log('fdsjfio');
-
             return this.httpClient
               .post(
                 'https://adventures-hub.com/wp-json/custom/v1/cart/add',
@@ -240,7 +238,6 @@ export class CartEffect {
       ofType(fetchUserCartAction),
       switchMap(({ isLoggedIn }) => {
         if (isLoggedIn) {
-          console.log('LOGED');
           let authToken: any = localStorage.getItem('auth_token');
           authToken = authToken ? JSON.parse(authToken) : '';
           const options = {
@@ -253,44 +250,39 @@ export class CartEffect {
             ),
           };
 
-          return (
-            this.httpClient
-              .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
-              // .get(
-              //   'https://adventures-hub.com//wp-json/wc/store/v1/cart',
-              //   options
-              // )
-              .pipe(
-                map((response: any) => {
-                  const itemsObj = response.items.map((item: any) => {
-                    return {
-                      key: item.key,
-                      id: item.id,
-                      images: item.images[0].src,
-                      name: item.name,
-                      permalink: item.permalink,
-                      type: item.type,
-                      variation: item.variation,
-                      prices: item.prices,
-                      quantity: item.quantity,
-                      quantity_limits: item.quantity_limits,
-                    };
-                  });
+          return this.httpClient
+            .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
 
-                  const cartData = {
-                    items: itemsObj,
-                    payment_methods: response.payment_methods,
-                    totals: response.totals,
+            .pipe(
+              map((response: any) => {
+                const itemsObj = response.items.map((item: any) => {
+                  return {
+                    key: item.key,
+                    id: item.id,
+                    images: item.images[0].src,
+                    name: item.name,
+                    permalink: item.permalink,
+                    type: item.type,
+                    variation: item.variation,
+                    prices: item.prices,
+                    quantity: item.quantity,
+                    quantity_limits: item.quantity_limits,
                   };
+                });
 
-                  return getUserCartAction({ userCart: cartData });
-                }),
-                catchError((error: any) => {
-                  console.log('ERRRRRRRR', error);
-                  return of();
-                })
-              )
-          );
+                const cartData = {
+                  items: itemsObj,
+                  payment_methods: response.payment_methods,
+                  totals: response.totals,
+                };
+
+                return getUserCartAction({ userCart: cartData });
+              }),
+              catchError((error: any) => {
+                console.log('ERRRRRRRR', error);
+                return of();
+              })
+            );
         } else {
           let loadedCart: any = localStorage.getItem('Cart');
           loadedCart = loadedCart ? JSON.parse(loadedCart) : [];

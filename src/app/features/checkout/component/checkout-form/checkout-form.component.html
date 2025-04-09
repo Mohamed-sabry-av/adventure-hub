@@ -1,10 +1,15 @@
-<form class="sm:p-10 my-2 sm:my-0 lg:border-r">
+<form
+  class="sm:p-10 my-2 sm:my-0 lg:border-r"
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+>
   <div class="flex flex-col gap-y-8">
     <!-- Contact -->
     <section>
       <div class="flex flex-col items-center">
         <p class="text-gray-400 text-sm text-center">Express checkout</p>
-        <!-- الزرار -->
+
+        <!-- Stripe -->
         <div class="pt-4 w-full text-center">
           <a
             [routerLink]=""
@@ -18,19 +23,32 @@
           </div>
         </div>
 
-        <!-- اللابل بتاع الكونتاكت -->
+        <!-- Contact with Email -->
         <div class="w-full flex items-center justify-between">
-          <h2 class="font-semibold text-xl">Contact</h2>
+          <h2 class="font-semibold text-xl">
+            Contact <span class="text-red-500 text-base">*</span>
+          </h2>
           <a [routerLink]="" class="text-red-400 underline text-sm">Log in</a>
         </div>
+
         <!-- الاينبوت بتاع الايميل -->
         <div class="py-4 w-full">
           <input
             type="email"
             class="bg-white border w-full py-[14px] px-3 rounded-lg"
             placeholder="Email"
+            formControlName="email"
+            [class]="{
+              'border-red-500': emailIsInvalid,
+            }"
           />
         </div>
+        @if (emailIsInvalid) {
+        <p class="text-sm text-red-500 w-full -mt-2 mb-4">
+          Please enter a valid email address.
+        </p>
+        }
+
         <div class="w-full flex gap-x-2 items-center">
           <input type="checkbox" class="w-4 h-6" />
           <span class="text-sm">Email me with news and offers</span>
@@ -38,61 +56,150 @@
       </div>
     </section>
 
-    <!-- Delivery -->
+    <!-- Biling -->
     <section class="flex flex-col gap-y-4">
-      <h2 class="font-semibold text-xl">Delivery</h2>
+      <h2 class="font-semibold text-xl">
+        Billing details
+        <span class="text-red-500 text-base">*</span>
+      </h2>
       <!-- Country Select -->
       <div>
         <p-select
-          [options]="[{ country: 'United Arab Emirates' }]"
+          [options]="avaliableCountries()"
           optionLabel="country"
+          optionValue="country"
           placeholder="Select a Country"
           class="bg-white w-full py-[14px] px-3 rounded-lg"
+          formControlName="countrySelect"
         />
       </div>
 
       <!-- First and Last Name -->
       <div
-        class="flex sm:flex-row flex-col items-center gap-y-4 sm:gap-y-0 sm:gap-x-2"
+        class="flex sm:flex-row flex-col items-start gap-y-4 sm:gap-y-0 sm:gap-x-2"
       >
-        <input
-          type="text"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg"
-          placeholder="First name"
-        />
-        <input
-          type="text"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg"
-          placeholder="Last name"
-        />
+        <div
+          class="w-full relative"
+          [class]="{
+            'mb-5': firstNameIsInvalid || lastNameIsInvalid
+          }"
+        >
+          <input
+            type="text"
+            class="bg-white border w-full py-[14px] px-3 rounded-lg"
+            placeholder="First name"
+            formControlName="firstName"
+            [class]="{
+              'border-red-500': firstNameIsInvalid,
+            }"
+          />
+
+          @if (firstNameIsInvalid) {
+          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+            Enter a first name
+          </p>
+          }
+        </div>
+
+        <div class="w-full relative">
+          <input
+            type="text"
+            class="bg-white border w-full py-[14px] px-3 rounded-lg"
+            placeholder="Last name"
+            formControlName="lastName"
+            [class]="{
+              'border-red-500': lastNameIsInvalid,
+            }"
+          />
+
+          @if (lastNameIsInvalid) {
+          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+            Enter a last name
+          </p>
+          }
+        </div>
       </div>
 
       <!-- Address -->
-      <input
-        type="text"
-        class="bg-white border w-full py-[14px] px-3 rounded-lg"
-        placeholder="Address"
-      />
+      <div>
+        <input
+          type="text"
+          class="bg-white border w-full py-[14px] px-3 rounded-lg"
+          placeholder="Address"
+          formControlName="address"
+          [class]="{
+    'border-red-500': addressIsInvalid,
+  }"
+        />
+        @if (addressIsInvalid) {
+        <p class="text-sm text-red-500 w-full mt-1">Enter an address</p>
+        }
+      </div>
 
       <!-- Apartment -->
       <input
         type="text"
         class="bg-white border w-full py-[14px] px-3 rounded-lg"
         placeholder="Apartment, suite, etc. (optional)"
+        formControlName="apartment"
       />
 
       <!-- City and State -->
-      <div class="flex items-center gap-x-2">
+      <div
+        class="flex items-center gap-x-2"
+        [class]="{
+          'mb-5': stateIsInvalid || cityIsInvalid
+        }"
+      >
+        <div class="w-full relative">
+          <input
+            type="text"
+            class="bg-white border w-full py-[14px] px-3 rounded-lg"
+            placeholder="City"
+            formControlName="city"
+            [class]="{
+              'border-red-500': cityIsInvalid,
+            }"
+          />
+          @if (cityIsInvalid) {
+          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+            Enter a city
+          </p>
+          }
+        </div>
+        <div class="w-full relative">
+          <input
+            type="text"
+            class="bg-white border w-full py-[14px] px-3 rounded-lg"
+            placeholder="State"
+            formControlName="state"
+            [class]="{
+              'border-red-500': stateIsInvalid,
+            }"
+          />
+
+          @if (stateIsInvalid) {
+          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+            Enter a state
+          </p>
+          }
+        </div>
+      </div>
+
+      <!-- Postcode -->
+      <div>
         <input
-          type="text"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg"
-          placeholder="City"
+          type="number"
+          class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
+          placeholder="Postcode / Zip"
+          formControlName="postCode"
+          [class]="{
+          'border-red-500': postCodeIsInvalid,
+        }"
         />
-        <input
-          type="text"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg"
-          placeholder="Emirate"
-        />
+        @if (postCodeIsInvalid) {
+        <p class="text-sm text-red-500 w-full mt-[6px]">Enter a Postcode</p>
+        }
       </div>
 
       <!-- Phone -->
@@ -101,7 +208,15 @@
           type="number"
           class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
           placeholder="Phone"
+          formControlName="phone"
+          [class]="{
+            'border-red-500': phoneIsInvalid,
+          }"
         />
+
+        @if (phoneIsInvalid) {
+        <p class="text-sm text-red-500 mt-2">Enter a valid phone</p>
+        }
         <div class="absolute top-[50%] right-[3%] -translate-y-[48%]">
           <div class="relative group">
             <i class="pi pi-question-circle cursor-pointer text-gray-400"></i>
@@ -117,16 +232,6 @@
       <div class="w-full flex gap-x-2 items-center">
         <input type="checkbox" class="w-4 h-6" />
         <span class="text-sm">Save this information for next time </span>
-      </div>
-
-      <!-- Shipping Method -->
-      <div class="mt-2">
-        <h3 class="font-semibold text-base">Shipping method</h3>
-        <div class="bg-gray-200 p-4 text-center mt-2 rounded-lg">
-          <p class="text-sm text-gray-400">
-            Enter your shipping address to view available shipping methods.
-          </p>
-        </div>
       </div>
     </section>
 
@@ -295,11 +400,18 @@
 
       <!-- Pay Button -->
       <div class="mt-6 mb-12">
-        <a
+        <button
           [routerLink]=""
           class="bg-orange-500 block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg cursor-pointer hover:bg-orange-700 transition-all duration-150 tracking-wider"
-          >Pay now</a
+          [disabled]="form.invalid"
+          [class]="{
+                'bg-gray-500': form.invalid,
+                'hover:bg-gray-500': form.invalid,
+                'cursor-default': form.invalid,
+              }"
         >
+          Pay now
+        </button>
       </div>
       <hr />
 

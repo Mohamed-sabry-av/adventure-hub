@@ -40,7 +40,7 @@ export class CartService {
         subTotal,
         currency_code: 'AED',
         total_fees: subTotal && subTotal < 100 ? 20 : 0,
-        total_price: subTotal && subTotal < 100 ? subTotal + 20 : subTotal,
+        total_items: subTotal && subTotal < 100 ? subTotal + 20 : subTotal,
       },
     };
   }
