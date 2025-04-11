@@ -1,5 +1,10 @@
 <app-app-container>
-  <!-- Breadcrumb -->
+  @if(schemaData){
+    <ng-container>
+      <script type="application/ld+json" [innerHTML]="schemaData"></script>
+    </ng-container>
+  }
+    
   <app-breadcrumb></app-breadcrumb>
 
   <!-- Product Section -->

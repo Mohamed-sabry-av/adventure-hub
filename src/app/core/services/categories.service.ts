@@ -83,7 +83,7 @@ export class CategoriesService {
   private fetchAllCategories(page: number = 1, accumulatedCategories: Category[] = []): Observable<Category[]> {
     return this.WooAPI.getRequest<Category[]>('products/categories', {
       params: new HttpParams()
-        .set('_fields', 'id,name,slug,parent,display')
+        .set('_fields', 'id,name,slug,parent,display,,yoast_head,yoast_head_json')
         .set('per_page', '100')
         .set('page', page.toString()),
     }).pipe(

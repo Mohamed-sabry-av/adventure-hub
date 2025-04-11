@@ -1,3 +1,10 @@
+<ng-container>
+  @if(schemaData){
+    <ng-container>
+      <script type="application/ld+json" [innerHTML]="schemaData"></script>
+    </ng-container>
+  }
+
 <app-breadcrumb (categoryIdChange)="onCategoryIdChange($event)"></app-breadcrumb>
 <div class="bg-white">
   <div

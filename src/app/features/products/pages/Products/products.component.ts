@@ -9,6 +9,7 @@ import { BreadcrumbComponent } from '../../components/breadcrumb/breadcrumb.comp
 import { FilterDrawerComponent } from '../../components/filter-drawer/filter-drawer.component';
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
+import { SeoService } from '../../../../core/services/seo.service';
 
 @Component({
   selector: 'app-products',
@@ -37,6 +38,7 @@ export class ProductsComponent implements OnInit {
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
+  schemaData: any;
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
@@ -46,7 +48,8 @@ export class ProductsComponent implements OnInit {
     private categoriesService: CategoriesService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    private filterService: FilterService
+    private filterService: FilterService,
+    private seoService:SeoService
   ) {}
 
   async ngOnInit() {
@@ -56,24 +59,31 @@ export class ProductsComponent implements OnInit {
         .map((segment) => segment.path)
         .filter((path) => path !== 'category');
       const deepestSlug = slugs[slugs.length - 1];
-  
+
       if (deepestSlug) {
         this.currentCategory = await this.categoriesService.getCategoryBySlug(deepestSlug).toPromise();
-        this.currentCategoryId = this.currentCategory?.id ?? null; // احصل على ID من الفئة
+        this.currentCategoryId = this.currentCategory?.id ?? null;
+        this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
+          title: this.currentCategory?.name,
+          description: this.currentCategory?.description,
+        });
       } else {
         this.currentCategory = null;
         this.currentCategoryId = null;
+        this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
       }
-  
+
       await this.loadProducts(true);
       await this.loadTotalProducts();
     } catch (error) {
       console.error('Error in ngOnInit:', error);
+      this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
     } finally {
       this.isLoading = false;
       this.cdr.markForCheck();
     }
   }
+
 
 
   ngAfterViewInit() {
@@ -169,19 +179,24 @@ export class ProductsComponent implements OnInit {
   }
 
   async onCategoryIdChange(categoryId: number | null) {
-  this.currentCategoryId = categoryId;
-  this.currentPage = 1;
-  this.products = [];
+    this.currentCategoryId = categoryId;
+    this.currentPage = 1;
+    this.products = [];
 
-  if (categoryId) {
-    this.currentCategory = await this.categoriesService.getCategoryById(categoryId).toPromise();
-  } else {
-    this.currentCategory = null;
+    if (categoryId) {
+      this.currentCategory = await this.categoriesService.getCategoryById(categoryId).toPromise();
+      this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
+        title: this.currentCategory?.name,
+        description: this.currentCategory?.description,
+      });
+    } else {
+      this.currentCategory = null;
+      this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
+    }
+
+    await this.loadProducts(true);
+    await this.loadTotalProducts();
   }
-
-  await this.loadProducts(true);
-  await this.loadTotalProducts();
-}
 
   async onSortChange(sortValue: string) {
     switch (sortValue) {

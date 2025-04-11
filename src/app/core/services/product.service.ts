@@ -29,7 +29,10 @@ export class ProductService {
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
-          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits')
+          .set(
+            '_fields',
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json'
+          )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
           .set('stock_status', 'instock'),
@@ -107,7 +110,10 @@ export class ProductService {
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('category', categoryId.toString())
-          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits')
+          .set(
+            '_fields',
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json'
+          )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
           .set('stock_status', 'instock'),
@@ -249,14 +255,17 @@ export class ProductService {
     if (!ids || ids.length === 0) {
       return of([]);
     }
-  
+
     const cacheKey = `products_by_ids_${ids.join('_')}`;
     return this.cachingService.cacheObservable(
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('include', ids.join(','))
-          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits')
+          .set(
+            '_fields',
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits'
+          )
           .set('stock_status', 'instock'),
         observe: 'response',
       }).pipe(

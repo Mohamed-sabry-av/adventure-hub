@@ -68,8 +68,22 @@ export interface Product {
   has_options?: boolean;
   post_password?: string;
   global_unique_id?: string;
-  yoast_head?: string;
-  taxonomy_info?: any[];
+  yoast_head_json?: {
+    title: string;
+    description: string;
+    canonical: string;
+    og_title?: string;
+    og_description?: string;
+    og_url?: string;
+    og_site_name?: string;
+    og_image?: Array<{ url: string; width: number; height: number; type: string }>;
+    robots?: { index: string; follow: string };
+    twitter_card?: string;
+    twitter_site?: string;
+    schema?: any;
+    [key: string]: any;
+  };
+    taxonomy_info?: any[];
   featured_image_src_large?: any[];
   author_info?: any[];
   comment_info?: string;
