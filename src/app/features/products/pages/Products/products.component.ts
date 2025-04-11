@@ -1,16 +1,20 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { ProductService } from '../../../../core/services/product.service';
+import {
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
 import { CategoriesService } from '../../../../core/services/categories.service';
-import { map, of, switchMap } from 'rxjs';
+import { FilterService } from '../../../../core/services/filter.service';
 import { FilterSidebarComponent } from '../../components/filter-sidebar/filter-sidebar.component';
 import { BreadcrumbComponent } from '../../components/breadcrumb/breadcrumb.component';
 import { FilterDrawerComponent } from '../../components/filter-drawer/filter-drawer.component';
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
-import { FilterService } from '../../../../core/services/filter.service';
+import { ProductService } from '../../../../core/services/product.service';
 
 @Component({
   selector: 'app-products',
@@ -29,239 +33,188 @@ import { FilterService } from '../../../../core/services/filter.service';
 })
 export class ProductsComponent implements OnInit {
   products: any[] = [];
-  isLoading = true;
-isLoadingMore = false;
-currentCategoryId: number | null = null;
-currentPage: number = 1;
-itemPerPage: number = 20;
-totalProducts: number = 0;
-filterDrawerOpen = false;
-selectedOrderby: string = 'date';
+  isLoading = false;
+  isLoadingMore = false;
+  currentCategoryId: number | null = null;
+  currentPage = 1;
+  itemsPerPage = 20;
+  totalProducts = 0;
+  filterDrawerOpen = false;
+  selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
 
-@ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
-@ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
+  @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
+  @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
 
-constructor(
-  private productService: ProductService,
-  private categoriesService: CategoriesService,
-  private route: ActivatedRoute,
-  private filterService: FilterService
-) {}
+  constructor(
+    private productService: ProductService,
+    private categoriesService: CategoriesService,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    private filterService: FilterService
+  ) {}
 
-async ngOnInit() {
-  try {
+  async ngOnInit() {
     this.isLoading = true;
-    const params = this.route.snapshot.params; // نستخدم snapshot بدل params observable عشان نسهل الـ async/await
-    const slugs = [
-      params['mainCategorySlug'],
-      params['subCategorySlug'],
-      params['subSubCategorySlug'],
-      params['subSubSubCategorySlug'],
-      params['subSubSubSubCategorySlug'],
-    ].filter((s) => s);
-    const deepestSlug = slugs.pop();
+    try {
+      // استخراج الـ slugs من المسار الديناميكي
+      const slugs = this.route.snapshot.url
+        .map((segment) => segment.path)
+        .filter((path) => path !== 'category'); // تجاهل "category" من المسار
+      const deepestSlug = slugs[slugs.length - 1];
 
-    if (deepestSlug) {
-      const category = await this.categoriesService.getCategoryBySlug(deepestSlug).toPromise();
-      this.currentCategoryId = category ? category.id : null;
-    } else {
-      this.currentCategoryId = null;
+      if (deepestSlug) {
+        const category = await this.categoriesService
+          .getCategoryBySlug(deepestSlug)
+          .toPromise();
+        this.currentCategoryId = category?.id ?? null;
+      } else {
+        this.currentCategoryId = null;
+      }
+
+      await this.loadProducts(true); // تحميل الصفحة الأولى
+      await this.loadTotalProducts();
+    } catch (error) {
+      console.error('Error in ngOnInit:', error);
+    } finally {
+      this.isLoading = false;
+      this.cdr.markForCheck();
     }
+  }
 
+  ngAfterViewInit() {
+    if (this.filterSidebar) {
+      this.filterSidebar.filtersChanges.subscribe((filters: any) => {
+        this.currentPage = 1;
+        this.products = [];
+        this.loadProducts(true, filters);
+      });
+    } else {
+      console.warn('FilterSidebarComponent not initialized');
+    }
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  onScroll(event: Event) {
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+    if (
+      scrollTop + windowHeight >= documentHeight - 500 &&
+      !this.isLoading &&
+      !this.isLoadingMore &&
+      this.currentPage * this.itemsPerPage < this.totalProducts
+    ) {
+      this.loadMoreProducts();
+    }
+  }
+
+  private async loadProducts(
+    isInitialLoad = false,
+    filters?: { [key: string]: string[] }
+  ) {
+    const page = isInitialLoad ? 1 : this.currentPage;
+    this.isLoading = isInitialLoad;
+    this.isLoadingMore = !isInitialLoad;
+
+    try {
+      const effectiveFilters =
+        filters ?? this.filterSidebar?.selectedFilters ?? {};
+      const products = await this.filterService
+        .getFilteredProductsByCategory(
+          this.currentCategoryId,
+          effectiveFilters,
+          page,
+          this.itemsPerPage,
+          this.selectedOrderby,
+          this.selectedOrder
+        )
+        .toPromise();
+
+      this.products = isInitialLoad
+        ? products || []
+        : [...this.products, ...(products || [])];
+      if (isInitialLoad) this.currentPage = 1;
+    } catch (error) {
+      console.error('Error loading products:', error);
+      if (isInitialLoad) this.products = [];
+    } finally {
+      this.isLoading = false;
+      this.isLoadingMore = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  private async loadMoreProducts() {
+    this.currentPage++;
+    await this.loadProducts(false);
+  }
+
+  private async loadTotalProducts() {
+    try {
+      const total = this.currentCategoryId
+        ? await this.productService
+            .getTotalProductsByCategoryId(this.currentCategoryId)
+            .toPromise()
+        : await this.productService.getTotalProducts().toPromise();
+      this.totalProducts = total ?? 0;
+    } catch (error) {
+      console.error('Error loading total products:', error);
+      this.totalProducts = 0;
+    }
+  }
+
+  getCurrentPath(): string[] {
+    return this.route.snapshot.url
+      .map((segment) => segment.path)
+      .filter((path) => path !== 'category');
+  }
+
+  async onCategoryIdChange(categoryId: number | null) {
+    this.currentCategoryId = categoryId;
     this.currentPage = 1;
     this.products = [];
-    await this.loadProducts(this.currentCategoryId, this.currentPage);
-    await this.loadTotalProducts(this.currentCategoryId);
-  } catch (error) {
-    console.error('Error in ngOnInit:', error);
-  } finally {
-    this.isLoading = false;
-  }
-}
-
-ngAfterViewInit() {
-  if (this.filterSidebar) {
-    this.filterSidebar.filtersChanges.subscribe((filters: any) => {
-      this.loadProductsWithFilters(this.currentCategoryId, filters);
-    });
-  } else {
-    console.warn('FilterSidebarComponent not initialized in ngAfterViewInit');
-  }
-}
-
-@HostListener('window:scroll', ['$event'])
-onScroll(event: Event) {
-  const windowHeight = window.innerHeight;
-  const documentHeight = document.documentElement.scrollHeight;
-  const scrollTop = window.scrollY || document.documentElement.scrollTop;
-
-  if (
-    scrollTop + windowHeight >= documentHeight - 500 &&
-    !this.isLoading &&
-    !this.isLoadingMore &&
-    this.currentPage * this.itemPerPage < this.totalProducts
-  ) {
-    this.loadMoreProducts();
-  }
-}
-
-private async loadProducts(categoryId: number | null, page: number) {
-  const isInitialLoad = page === 1;
-  if (isInitialLoad) {
-    this.isLoading = true;
-  } else {
-    this.isLoadingMore = true;
+    await this.loadProducts(true);
+    await this.loadTotalProducts();
   }
 
-  try {
-    const filters = this.filterSidebar?.selectedFilters || {};
-    const products = await this.filterService
-      .getFilteredProductsByCategory(
-        categoryId,
-        filters,
-        page,
-        this.itemPerPage,
-        this.selectedOrderby,
-        this.selectedOrder
-      )
-      .toPromise();
-      this.products = isInitialLoad ? (products || []) : [...this.products, ...(products || [])];    }
-       catch (error) {
-    console.error('Error loading products:', error);
-    if (isInitialLoad) this.products = [];
-  } finally {
-    this.isLoading = false;
-    this.isLoadingMore = false;
-  }
-}
-
-private async loadMoreProducts(): Promise<void> {
-  this.currentPage++;
-  await this.loadProducts(this.currentCategoryId, this.currentPage);
-}
-
-private async loadTotalProducts(categoryId: number | null): Promise<void> {
-  try {
-    if (categoryId !== null) {
-      const total = await this.productService.getTotalProductsByCategoryId(categoryId).toPromise();
-      this.totalProducts = total ?? 0;
-          } else {
-            const total = await this.productService.getTotalProducts().toPromise();
-            this.totalProducts = total ?? 0;
-                }
-  } catch (error) {
-    console.error('Error loading total products:', error);
-    this.totalProducts = 0;
-  }
-}
-
-
-private async loadProductsWithFilters(categoryId: number | null, filters: { [key: string]: string[] }): Promise<void> {
-  this.isLoading = true;
-  this.currentPage = 1;
-  this.products = [];
-
-  try {
-    const products = await this.filterService
-      .getFilteredProductsByCategory(
-        categoryId,
-        filters,
-        this.currentPage,
-        this.itemPerPage,
-        this.selectedOrderby,
-        this.selectedOrder
-      )
-      .toPromise();
-    this.products = products || [];
-  } catch (error) {
-    console.error('Error loading filtered products:', error);
-    this.products = [];
-  } finally {
-    this.isLoading = false;
-  }
-}
-
-getCurrentPath(): string[] {
-  const params = this.route.snapshot.params;
-  return Object.keys(params)
-    .filter((key) => key.includes('CategorySlug'))
-    .map((key) => params[key])
-    .filter((s) => s);
-}
-
-async onCategoryIdChange(categoryId: number | null) {
-  this.currentCategoryId = categoryId;
-  this.currentPage = 1;
-  this.products = [];
-  this.isLoading = true;
-  console.log(
-    'Category ID updated from Breadcrumb/Filter:',
-    this.currentCategoryId
-  );
-  try{
-
-    if (categoryId !== null) {
-      this.loadProducts(categoryId, this.currentPage);
-      this.loadTotalProducts(categoryId);
+  async onSortChange(sortValue: string) {
+    switch (sortValue) {
+      case 'popular':
+        this.selectedOrderby = 'popularity';
+        this.selectedOrder = 'desc';
+        break;
+      case 'rating':
+        this.selectedOrderby = 'rating';
+        this.selectedOrder = 'desc';
+        break;
+      case 'newest':
+        this.selectedOrderby = 'date';
+        this.selectedOrder = 'desc';
+        break;
+      case 'price-asc':
+        this.selectedOrderby = 'price';
+        this.selectedOrder = 'asc';
+        break;
+      case 'price-desc':
+        this.selectedOrderby = 'price';
+        this.selectedOrder = 'desc';
+        break;
+      default:
+        this.selectedOrderby = 'date';
+        this.selectedOrder = 'desc';
     }
-  }catch(error){
-    console.error('Error in onCategoryIdChange:', error);
-  }finally{
-    this.isLoading= false
+    await this.loadProducts(true);
   }
-}
 
-async onSortChange(sortValue: string) {
-  console.log('Sort value received:', sortValue); // اطبع الـ sortValue
-  switch (sortValue) {
-    case 'popular':
-      this.selectedOrderby = 'popularity';
-      this.selectedOrder = 'desc';
-      break;
-
-    case 'rating':
-      this.selectedOrderby = 'rating';
-      this.selectedOrder = 'desc';
-      break;
-
-    case 'newest':
-      this.selectedOrderby = 'date';
-      this.selectedOrder = 'desc';
-      break;
-
-    case 'price-asc':
-      this.selectedOrderby = 'price';
-      this.selectedOrder = 'asc';
-      break;
-
-    case 'price-desc':
-      this.selectedOrderby = 'price';
-      this.selectedOrder = 'desc';
-      break;
-
-    default:
-      this.selectedOrderby = 'date';
-      this.selectedOrder = 'desc';
-      break;
+  openFilterDrawer() {
+    this.filterDrawerOpen = true;
+    this.cdr.markForCheck();
   }
-  console.log(
-    'New orderby:',
-    this.selectedOrderby,
-    'New order:',
-    this.selectedOrder
-  ); // اطبع القيم الجديدة
-  await this.loadProductsWithFilters(
-    this.currentCategoryId,
-    this.filterSidebar?.selectedFilters || {}
-  );
-}
 
-openFilterDrawer() {
-  this.filterDrawer['drawer'].open();
-}
-
-closeFilterDrawer() {
-  this.filterDrawerOpen = false;
-}
+  closeFilterDrawer() {
+    this.filterDrawerOpen = false;
+    this.cdr.markForCheck();
+  }
 }

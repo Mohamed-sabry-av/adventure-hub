@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { BehaviorSubject, catchError, Observable, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { LoginResponse, User } from '../../interfaces/user.model';
 
@@ -22,9 +22,8 @@ export class AccountAuthService {
   ) {
     const token = this.localStorageService.getItem<string>(this.TOKEN_KEY);
     this.isLoggedInSubject.next(!!token);
-    this.verifyTokenOnInit();
+    this.verifyTokenOnInit()
   }
-
   verifyToken(): Observable<any> {
     const token = this.getToken();
     if (!token) {
@@ -36,13 +35,9 @@ export class AccountAuthService {
     }
 
     return this.http
-      .post(
-        `${this.Api_Url}/wp-json/jwt-auth/v1/token/validate`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
+      .post(`${this.Api_Url}/wp-json/jwt-auth/v1/token/validate`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .pipe(
         tap((response: any) => {
           if (response.code === 'jwt_auth_valid_token') {
@@ -74,41 +69,20 @@ export class AccountAuthService {
     }
   }
 
-  login(credentials: {
-    email?: string;
-    username?: string;
-    password: string;
-  }): Observable<LoginResponse> {
+  login(credentials: { email?: string; username?: string; password: string }): Observable<HttpResponse<LoginResponse>> {
     return this.http
-      .post<LoginResponse>(
-        `${this.Api_Url}/wp-json/jwt-auth/v1/token`,
-        credentials,
-        {
-          observe: 'response',
-        }
-      )
+      .post<LoginResponse>(`${this.Api_Url}/wp-json/jwt-auth/v1/token`, credentials, {
+        withCredentials:true,
+        observe: 'response'
+      })
       .pipe(
-        tap((response) => {
-          console.log(
-            'Response Headers:',
-            response.headers
-              .keys()
-              .map((key) => `${key}: ${response.headers.get(key)}`)
-          );
-          console.log('Response Body:', response.body);
-
+        tap((response: HttpResponse<LoginResponse>) => {
+          console.log('Cookies from response:', response.headers.get('Set-Cookie'));
           if (response.body?.token) {
-            this.localStorageService.setItem(
-              this.TOKEN_KEY,
-              response.body.token
-            );
+            this.localStorageService.setItem(this.TOKEN_KEY, response.body.token);
             this.localStorageService.setItem(this.USER_KEY, {
-              username:
-                response.body.user_username ||
-                credentials.username ||
-                credentials.email ||
-                '',
-              email: response.body.user_email || '',
+              username: response.body.user_username || credentials.username || credentials.email || '',
+              email: response.body.user_email || ''
             });
             this.isLoggedInSubject.next(true);
           }
@@ -119,14 +93,22 @@ export class AccountAuthService {
         })
       );
   }
+  
 
-  signup(userData: {
-    username: string;
-    email: string;
-    password: string;
-  }): Observable<any> {
+  getCart(): Observable<HttpResponse<any>> {
+    return this.http.get(`${this.Api_Url}/wp-json/wc/store/v1/cart`, {
+      withCredentials: true,
+      observe: 'response'
+    }).pipe(
+      tap(response => console.log('Cart Cookies:', response.headers.get('Set-Cookie')))
+    );
+  }
+
+  signup(userData: { username: string; email: string; password: string }): Observable<any> {
     return this.WooApi.postRequest('customers', userData).pipe(
-      tap(() => console.log('SignUp successfully')),
+      tap((response) => {
+        console.log('SignUp successfully');
+      }),
       catchError((error) => {
         console.log('signUp failed', error);
         throw error;

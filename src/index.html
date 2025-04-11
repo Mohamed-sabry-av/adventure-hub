@@ -1,46 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Advhub</title>
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <script>
-      window.fbAsyncInit = function () {
-        FB.init({
-          appId: '639673088797642', // استخدم الـ App ID الخاص بتطبيقك
-          cookie: true,
-          xfbml: true,
-          version: 'v13.0', // استخدم النسخة المناسبة
-        });
 
-        FB.AppEvents.logPageView();
-      };
+<head>
+  <meta charset="utf-8" />
+  <title>Advhub</title>
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <script>
+    window.fbAsyncInit = function () {
+      FB.init({
+        appId: '639673088797642', // استخدم الـ App ID الخاص بتطبيقك
+        cookie: true,
+        xfbml: true,
+        version: 'v13.0', // استخدم النسخة المناسبة
+      });
 
-      (function (d, s, id) {
-        var js,
-          fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) {
-          return;
-        }
-        js = d.createElement(s);
-        js.id = id;
-        js.src = "https://connect.facebook.net/en_US/sdk.js";
-        js.async = true;
-        js.defer = true;
-        fjs.parentNode.insertBefore(js, fjs);
-      })(document, 'script', 'facebook-jssdk');
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="manifest" href="manifest.webmanifest">
-    <meta name="theme-color" content="#1976d2">
-  </head>
-  <body class="mat-typography">
-    <app-root></app-root>
-    <noscript>Please enable JavaScript to continue using this application.</noscript>
-  </body>
+      FB.AppEvents.logPageView();
+    };
+
+    (function (d, s, id) {
+      var js,
+        fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) {
+        return;
+      }
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      js.async = true;
+      js.defer = true;
+      fjs.parentNode.insertBefore(js, fjs);
+    })(document, 'script', 'facebook-jssdk');
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1976d2">
+
+  <!-- Google Tag Manager -->
+  <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-KQZ3H8ND');</script>
+  <!-- End Google Tag Manager -->
+</head>
+
+<body class="mat-typography">
+  <app-root></app-root>
+  <noscript>Please enable JavaScript to continue using this application.</noscript>
+
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KQZ3H8ND"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+</body>
+
 </html>

@@ -1,12 +1,89 @@
-.skeleton-item {
-    height: 300px;
-    background-color: #e5e7eb;
-    border-radius: 8px;
-    animation: pulse 1.5s infinite;
+.products-grid-container {
+  min-height: 300px;
+}
+
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+}
+.product-card {
+  @apply relative rounded-lg shadow transition-all duration-300 bg-white h-full flex flex-col;
+  position: relative;
+  overflow: visible; 
+  z-index: 1;
+}
+
+.product-card:hover {
+  @apply shadow-lg;
+  z-index: 2000 !important; /* رفع الـ z-index عند الهوفر */
+}
+
+/* .product-card:hover {
+  transform: translateY(-5px);
+} */
+
+/* Skeleton loading animations */
+.product-skeleton {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
   }
-  @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+  50% {
+    opacity: 0.8;
   }
-  
+}
+
+@keyframes skeletonWave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-wave {
+  animation: skeletonWave 1.5s infinite linear;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Empty state animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .products-grid-container {
+    padding: 0 0.5rem;
+  }
+}

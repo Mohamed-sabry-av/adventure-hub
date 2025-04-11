@@ -14,11 +14,14 @@
     class="fixed inset-0 z-50 flex transition ease-in-out duration-300 transform"
     [ngClass]="filterDrawerOpen ? 'translate-x-0' : 'translate-x-full'"
   >
+  <ng-container *ngIf="filterDrawerOpen">
     <app-filter-drawer
-      [categoryId]="currentCategoryId"
-      [isOpen]="filterDrawerOpen"
-      (closed)="closeFilterDrawer()"
-    ></app-filter-drawer>
+    [categoryId]="currentCategoryId"
+    [isOpen]="filterDrawerOpen"
+    (closed)="closeFilterDrawer()"
+  ></app-filter-drawer>
+  </ng-container>
+  
   </div>
 
   <main class="mx-auto max-w-7xl px-2 sm:px-4 lg:px-1">
@@ -28,7 +31,6 @@
         <app-sort-menu (sortChange)="onSortChange($event)"></app-sort-menu>
         <button
           type="button"
-          (click)="openFilterDrawer()"
           class="p-1 sm:p-2 ml-2 sm:ml-4 text-gray-400 hover:text-gray-500 lg:hidden"
         >
           <span class="sr-only">Filters</span>

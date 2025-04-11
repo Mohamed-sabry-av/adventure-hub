@@ -1,13 +1,13 @@
 export interface Product {
   id: number;
-  currency:string;
+  currency: string;
   name: string;
   price: any;
   brand?: string;
   images: { src: string; alt?: string }[];
   categories: { id: number; name: string; slug: string }[];
   description: string;
-  attributes?: Attribute[];
+  attributes?: Attribute[] | any;
   slug?: string;
   permalink?: string;
   date_created?: string;
@@ -42,6 +42,7 @@ export interface Product {
   stock_quantity?: number;
   backorders?: string;
   backorders_allowed?: boolean;
+
   backordered?: boolean;
   low_stock_amount?: any;
   sold_individually?: boolean;
@@ -58,7 +59,7 @@ export interface Product {
   parent_id?: number;
   purchase_note?: string;
   tags?: any[];
-  default_attributes?: [];
+  default_attributes?: { name: string; option: string }[];
   variations: Variation[];
   grouped_products?: any[];
   menu_order?: number;
@@ -73,27 +74,41 @@ export interface Product {
   featured_image_src_large?: any[];
   author_info?: any[];
   comment_info?: string;
-  meta_data?: MetaDaum[]
+  meta_data?: MetaDaum[];
   brandSlug?: string;
+  quantity_limits?: QuantityLimits;
 }
 
 export interface Variation {
   id?: number;
   attributes?: VariationAttribute[] | any;
   image?: Image | any;
-  images?:{ src: string; alt?: string }[] |any;
+  images?: { src: string; alt?: string }[] | any;
   price?: string;
   regular_price?: string;
   sale_price?: string;
   stock_status?: string;
-  meta_data?: MetaDaum[]
+  meta_data?: MetaDaum[];
+  quantity_limits?: QuantityLimits;
+}
 
+export interface CardState {
+  variations: Variation[];
+  colorOptions: { color: string; image: string; inStock: boolean }[];
+  uniqueSizes: { size: string; inStock: boolean }[];
+  selectedColor: string | null;
+  selectedSize: string | null;
+  currentSlide: number;
+  isHovered: boolean;
+  visibleSizes: { size: string; inStock: boolean }[];
+  sizeScrollIndex: number;
+  maxScrollIndex: number;
 }
 
 export interface MetaDaum {
-  id?: number
-  key?: string
-  value?: any
+  id?: number;
+  key?: string;
+  value?: any;
 }
 
 export interface VariationAttribute {
@@ -118,10 +133,16 @@ export interface Attribute {
   slug?: string; // Use slug instead of name
   name?: string | any;
   terms?: { id: string; name: string }[];
-  options: (string | { name?: string; value?: string,slug?:string })[];
+  options: (string | { name?: string; value?: string; slug?: string })[];
 }
 
 export interface ProductAttribute {
   name: string;
   options: (string | { name?: string; value?: string })[]; // options ممكن تكون نصوص أو كائنات
+}
+
+export interface QuantityLimits {
+  minimum?: number;
+  maximum?: number;
+  multiple_of?: number;
 }

@@ -211,9 +211,9 @@ export class ProductsByBrandComponent implements OnInit {
     }
   }
 
-  openFilterDrawer() {
-    this.filterDrawer['drawer'].open();
-  }
+  // openFilterDrawer() {
+  //   this.filterDrawer['drawer'].open();
+  // }
 
   closeFilterDrawer() {
     this.filterDrawerOpen = false;

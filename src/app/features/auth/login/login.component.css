@@ -1,191 +1,208 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    transition: all 0.3s ease-in-out;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f8f9fa;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    padding: 20px;
-}
-
-/* Login Section */
-.login-section {
-    padding: 60px;
-    border-right: 2px solid #f0f0f0;
+.login-content {
+    padding: 20px 0;
+  }
+  
+  .form-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0c5460;
+    margin-bottom: 5px;
+    text-align: center;
+  }
+  
+  .form-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .auth-form {
+    max-width: 450px;
+    margin: 0 auto;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
     position: relative;
-}
-
-/* Headings */
-h1 {
-    font-size: 2.5rem;
-    color: #2c3e50;
-    margin-bottom: 40px;
-    position: relative;
-    display: inline-block;
-}
-
-h1::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    width: 50px;
-    height: 3px;
-    background: #3498db;
-}
-
-/* Form Elements */
-.form-group {
-    margin-bottom: 25px;
-}
-
-label {
+  }
+  
+  .form-group label {
     display: block;
-    margin-bottom: 10px;
-    color: #7f8c8d;
-    font-weight: 500;
-}
-
-input {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a4a4a;
+    margin-bottom: 8px;
+  }
+  
+  .form-group .icon-user,
+  .form-group .icon-lock {
+    display: inline-block;
+    margin-right: 5px;
+  }
+  
+  .input-container {
+    position: relative;
+  }
+  
+  .input-container input {
     width: 100%;
     padding: 15px;
-    border: 2px solid #ecf0f1;
-    border-radius: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
     font-size: 16px;
-    background: #fcfcfc;
-    transition: all 0.3s ease-in-out;
-}
-
-input:focus {
+    background-color: #f9f9f9;
+    transition: all 0.3s;
+  }
+  
+  .input-container input:focus {
     outline: none;
-    border-color: #3498db;
-    background: white;
-    box-shadow: 0 0 10px rgba(52,152,219,0.1);
-}
-
-input.invalid{
-    border-color:red ;
-}
-
-/* Social Buttons */
-.social-login {
-    display: flex;
-    gap: 15px;
-    margin: 25px 0;
-}
-
-.social-btn {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    text-decoration: none;
+    border-color: #0c5460;
+    box-shadow: 0 0 0 3px rgba(12, 84, 96, 0.2);
+  }
+  
+  .input-container input.invalid {
+    border-color: #d9534f;
+    background-color: #fff8f8;
+  }
+  
+  .error-message {
+    color: #d9534f;
+    font-size: 12px;
+    margin-top: 5px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+  }
+  
+  .icon-error {
+    display: inline-block;
+    margin-right: 5px;
+  }
+  
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .remember-me {
+    display: flex;
+    align-items: center;
+  }
+  
+  .custom-checkbox {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    accent-color: #0c5460;
+  }
+  
+  .forgot-password {
+    font-size: 14px;
+    color: #0c5460;
+    text-decoration: none;
     font-weight: 500;
-    transition: all 0.3s ease-in-out;
-}
-
-.facebook-btn {
-    background: #1877f2;
-    color: white;
-}
-
-.google-btn {
-    background: #db4437;
-    color: white;
-}
-
-/* Submit Button */
-.submit-btn {
+    transition: color 0.2s;
+  }
+  
+  .forgot-password:hover {
+    color: #0a4b66;
+    text-decoration: underline;
+  }
+  
+  .submit-btn {
     width: 100%;
-    padding: 16px;
-    background: #3498db;
+    background-color: #0c5460;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
+    padding: 15px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 15px;
-    transition: all 0.3s ease-in-out;
-}
-
-.submit-btn:disabled{
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-.submit-btn:hover {
-    background: #2980b9;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .submit-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: width 0.3s ease;
+  }
+  
+  .submit-btn:hover {
+    background-color: #0a4b66;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52,152,219,0.3);
-}
-
-.wrong{
-    color:red;
-    font-size: 0.9em;
-    margin-top: 5px;
-    display: block;
-}
-
-/* Additional Links */
-.additional-links {
-    margin-top: 25px;
-    text-align: center;
-}
-
-.link {
-    color: #3498db;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease-in-out;
-}
-
-.link:hover {
-    text-decoration: underline;
-}
-
-/* Checkbox */
-.checkbox-group {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .submit-btn:hover:before {
+    width: 100%;
+  }
+  
+  .submit-btn:disabled {
+    background-color: #889c9e;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .icon-arrow-right {
+    font-size: 18px;
+  }
+  
+  .auth-divider {
     display: flex;
     align-items: center;
-    margin: 20px 0;
-}
-
-input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin-right: 10px;
-    transition: all 0.3s ease-in-out;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .login-section {
-        border-right: none;
-        border-bottom: 2px solid #f0f0f0;
-        padding: 40px;
-    }
-
-    h1 {
-        font-size: 2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .login-section {
-        padding: 30px;
-    }
-
-    .social-login {
+    margin: 25px 0;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .auth-divider:before,
+  .auth-divider:after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #ddd;
+  }
+  
+  .auth-divider span {
+    padding: 0 15px;
+  }
+  
+  .social-login {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .error {
+    color: #d9534f;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    background-color: #fff8f8;
+    border: 1px solid #ffc8c8;
+    padding: 10px;
+    border-radius: 4px;
+  }
+  
+  @media (max-width:768px){
+    .social-login{
         flex-direction: column;
+        gap: 4px;
     }
-}
+  }

@@ -1,0 +1,56 @@
+<app-breadcrumb></app-breadcrumb>
+<div class="bg-white">
+  <!-- الـ backdrop بيظهر لما الـ drawer مفتوح -->
+  <div
+    *ngIf="filterDrawerOpen"
+    class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 transition-opacity ease-linear duration-300"
+    [ngClass]="filterDrawerOpen ? 'opacity-100' : 'opacity-0'"
+    (click)="closeFilterDrawer()"
+    aria-hidden="true"
+  ></div>
+
+  <!-- الـ Filter Drawer -->
+  <div
+    class="fixed inset-0 z-50 flex transition ease-in-out duration-300 transform"
+    [ngClass]="filterDrawerOpen ? 'translate-x-0' : 'translate-x-full'"
+  >
+    <app-filter-drawer
+      [isOpen]="filterDrawerOpen"
+      (closed)="closeFilterDrawer()"
+    ></app-filter-drawer>
+  </div>
+
+  <main class="mx-auto max-w-7xl px-2 sm:px-4 lg:px-1">
+    <div class="flex items-baseline justify-between border-b border-gray-200 pt-2 sm:pt-4 lg:pt-9 pb-2 sm:pb-4 lg:pb-6">
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">Products on Sale</h1>
+      <div class="flex items-center">
+        <app-sort-menu (sortChange)="onSortChange($event)"></app-sort-menu>
+        <button
+          type="button"
+          (click)="openFilterDrawer()"
+          class="p-1 sm:p-2 ml-2 sm:ml-4 text-gray-400 hover:text-gray-500 lg:hidden"
+        >
+          <span class="sr-only">Filters</span>
+          <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v6.586a1 1 0 01-1.707.707l-2-2a1 1 0 01-.293-.707v-4.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <section class="pt-2 sm:pt-4 pb-8 sm:pb-12 lg:pb-24">
+      <div class="grid grid-cols-1 gap-x-4 gap-y-4 sm:gap-x-6 sm:gap-y-6 lg:gap-x-8 lg:gap-y-10 lg:grid-cols-3">
+        <div class="hidden lg:block">
+          <!-- <app-filter-sidebar></app-filter-sidebar> -->
+        </div>
+        <div class="lg:col-span-3">
+          <app-products-grid
+            [products]="products"
+            [isLoading]="isLoading"
+            [isLoadingMore]="isLoadingMore"
+          ></app-products-grid>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

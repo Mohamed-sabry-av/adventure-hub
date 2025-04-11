@@ -1,69 +1,107 @@
-<div class="mt-4 border-t border-gray-200">
-  <div class="mb-4 subroutes-section px-4 py-2">
+<div class="filter-sidebar-container">
+  <div class="mb-4 subroutes-section px-4">
     <app-breadcrumb-routes [categoryId]="categoryId"></app-breadcrumb-routes>
   </div>
-  <form class="px-4">
-    <h3 class="sr-only">Filters</h3>
+
+  <div class="px-1">
+    <div class="flex items-center justify-between mb-3 px-3">
+      <h3 class="text-base font-medium text-gray-900">Filters</h3>
+      
+      <!-- Reset Button -->
+      <button 
+        *ngIf="hasSelectedFilters"
+        (click)="resetFilters()" 
+        class="text-sm text-indigo-600 hover:text-indigo-800 focus:outline-none"
+        @fadeSlideIn
+      >
+        Reset All
+      </button> 
+    </div>
+    
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="text-center py-4 text-red-600 text-sm">
+      {{ errorMessage }}
+    </div>
+
     @if (isLoadingAttributes) {
-      <div class="space-y-6">
-        <div class="skeleton-filter" *ngFor="let item of [].constructor(3)">
-          <div class="skeleton-header h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div class="skeleton-term h-3 bg-gray-200 rounded w-1/2 mb-1" *ngFor="let term of [].constructor(5)"></div>
+      <div class="space-y-6 px-2">
+        <div class="skeleton-filter" *ngFor="let item of [1,2,3,4]">
+          <div class="skeleton-header h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div class="skeleton-term flex items-center gap-2 mb-2" *ngFor="let term of [1,2,3,4,5]">
+            <div class="h-4 w-4 bg-gray-200 rounded"></div>
+            <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
         </div>
       </div>
     } @else {
-      <div *ngFor="let attr of attributes" class="border-t border-gray-200 px-4 py-6">
-        <h3 class="-mx-2 -my-3 flow-root">
-          <button
-            type="button"
-            (click)="toggleSection(attr.slug)"
-            class="flex w-full items-center justify-between bg-white px-2 py-2 text-gray-400 hover:text-gray-500"
-          >
-            <span class="font-medium text-gray-900">{{ attr.name }}</span>
-            <span class="ml-6 flex items-center">
-              <svg *ngIf="!openSections[attr.slug]" class="size-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-              </svg>
-              <svg *ngIf="openSections[attr.slug]" class="size-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z" clip-rule="evenodd" />
-              </svg>
-            </span>
-          </button>
-        </h3>
-        <div
-          class="filter-section"
-          [ngClass]="{'open': openSections[attr.slug], 'closed': !openSections[attr.slug]}"
+      <div 
+        *ngFor="let attr of attributes; trackBy: trackByAttr" 
+        class="filter-group mb-3 border border-gray-100 rounded-lg shadow-sm"
+      >
+        <!-- Filter Header -->
+        <button
+          type="button"
+          (click)="toggleSection(attr.slug)"
+          class="flex w-full items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-lg transition-colors"
+          [class.bg-gray-50]="sectionStates[attr.slug]?.isOpen"
         >
-          <!-- ScrollBar -->
-          <div class="max-h-60 overflow-y-auto space-y-4 custom-scrollbar">
+          <span class="font-medium text-sm">{{ attr.name }}</span>
+          <span class="ml-6 flex items-center text-gray-400">
+            <svg *ngIf="!sectionStates[attr.slug]?.isOpen" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <svg *ngIf="sectionStates[attr.slug]?.isOpen" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+            </svg>
+          </span>
+        </button>
+        
+        <!-- Filter Options Container with Scrollbar -->
+        <div [@expandCollapse]="sectionStates[attr.slug]?.animationState" class="filter-options-container">
+          <div class="px-4 py-3 max-h-60 overflow-y-auto custom-scrollbar space-y-2">
             <div
-              *ngFor="let term of attr.terms"
-              class="flex gap-3"
+              *ngFor="let term of getVisibleTerms(attr); trackBy: trackByTerm" 
+              class="filter-option flex items-center gap-2 py-1 transition-all hover:translate-x-1"
             >
-              <div class="flex h-5 shrink-0 items-center">
-                <div class="group grid size-4 grid-cols-1">
-                  <input
-                    [id]="'attr-' + attr.slug + '-' + term.id"
-                    type="checkbox"
-                    class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    [checked]="isSelected(attr.slug, term.id)"
-                    (change)="onFilterChange(attr.slug, term.id)"
-                  />
-                  <svg class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white" viewBox="0 0 14 14" fill="none">
-                    <path class="opacity-0 group-has-checked:opacity-100" d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </div>
+              <div class="relative flex items-center">
+                <input
+                  [id]="'attr-' + attr.slug + '-' + term.id"
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 transition-colors cursor-pointer"
+                  [checked]="isSelected(attr.slug, term.id)"
+                  (change)="onFilterChange(attr.slug, term.id)"
+                  [attr.data-pulse]="isSelected(attr.slug, term.id) ? 'pulse' : ''"
+                  [@pulse]="isSelected(attr.slug, term.id)"
+                />
               </div>
               <label
-                class="min-w-0 flex-1 text-gray-800 "
                 [for]="'attr-' + attr.slug + '-' + term.id"
+                class="ml-1 text-sm text-gray-700 cursor-pointer"
               >
                 {{ term.name }}
               </label>
             </div>
+
+            <!-- Show More/Less Button -->
+            <div *ngIf="hasMoreTerms(attr)" class="text-center mt-2">
+              <button
+                (click)="toggleShowAll(attr.slug, $event)"
+                class="text-sm text-indigo-600 hover:text-indigo-800 focus:outline-none"
+              >
+                {{ getShowMoreText(attr) }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
+      
+      <!-- Empty State -->
+      <div *ngIf="attributes.length === 0 && !errorMessage" class="text-center py-6 text-gray-500">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.586a1 1 0 01-.293.707l-2 2a1 1 0 01-1.414 0l-4-4a1 1 0 01-.293-.707V7.293a1 1 0 00-.293-.707L3.293 4.293A1 1 0 013 3.586V4z" />
+        </svg>
+        <p class="mt-2 text-sm">No filters available</p>
+      </div>
     }
-  </form>
+  </div>
 </div>

@@ -3,7 +3,7 @@
   <div class="text-xs text-gray-500 uppercase mb-1 category">
     <span *ngIf="product.categories && product.categories.length">{{ product.categories[0].name }}</span>
     <span *ngIf="product.categories && product.categories.length && getBrandName()">, </span>
-    <a *ngIf="getBrandName()" [routerLink]="['/brand', getBrandSlug()]" class="hover:underline">{{ getBrandName() }}</a>
+    <a *ngIf="getBrandName()" [routerLink]="['/product/brand', getBrandSlug()]" class="hover:underline">{{ getBrandName() }}</a>
   </div>
 
   <!-- Product Name -->
@@ -11,7 +11,7 @@
     <a [routerLink]="['/product', product.slug]">{{ product.name }}</a>
   </h3>
 
-  <!-- Rating Stars -->
+  <!-- Rating Stars
   <div class="flex items-center mb-2">
     <div class="flex text-yellow-400">
       <span *ngFor="let _ of [1,2,3,4,5]; let i = index" class="star" [style.--star-index]="i">
@@ -21,18 +21,20 @@
       </span>
     </div>
     <span class="text-xs text-gray-500 ml-1">({{ product.rating_count || 10 }})</span>
-  </div>
+  </div> -->
 
-  <!-- Price -->
-  <div class="flex items-center price">
-    <span *ngIf="product.on_sale && product.sale_price" class="text-sm font-medium text-red-600 sale-price">
-      {{ product.sale_price }} {{ product.currency || "AED" }}
-    </span>
-    <span *ngIf="!product.on_sale || !product.sale_price" class="text-sm font-medium text-gray-900 current-price">
-      {{ product.regular_price || product.price || 'Unavailable' }} {{ product.currency || "AED" }}
-    </span>
-    <span *ngIf="product.on_sale && product.regular_price" class="text-xs text-gray-500 line-through ml-2 old-price">
-      {{ product.regular_price }}
-    </span>
-  </div>
+<!-- Price -->
+<div class="flex items-center price">
+  <span class="text-sm " [ngClass]="{
+    'text-red-600': oldPrice,
+    'text-gray-900': !oldPrice
+  }">
+    {{ displayPrice }}
+  </span>
+
+  <span *ngIf="oldPrice" class="text-xs text-gray-500 line-through ml-2 old-price">
+    {{ oldPrice }}
+  </span>
+</div>
+
 </div>

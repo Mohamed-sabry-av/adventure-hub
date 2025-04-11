@@ -1,29 +1,34 @@
-import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
-import { CommonModule, isPlatformServer } from '@angular/common';
+import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
-import { TransferState, makeStateKey } from '@angular/core';
-import { CacheService } from '../../../../core/services/cashing.service';
-import { Observable } from 'rxjs';
 import { ProductsBrandService } from '../../services/products-brand.service';
+import { Observable, finalize, debounceTime, BehaviorSubject } from 'rxjs';
+import { trigger, transition, style, animate, state } from '@angular/animations';
 
-interface AttributesResponse {
-  [key: string]: { name: string; terms: { id: number; name: string }[] };
+interface Term {
+  id: number;
+  name: string;
 }
 
 interface Attribute {
   slug: string;
   name: string;
-  terms: { id: number; name: string }[];
+  terms: Term[];
 }
 
-interface CachedAttributes {
-  attributes: AttributesResponse;
-  totalPages: number;
+interface AttributeData {
+  name: string;
+  terms: Term[];
 }
 
-const ATTRIBUTES_KEY = (id: number, type: 'category' | 'brand') => makeStateKey<Attribute[]>(`${type}_attributes_${id}`);
+interface SectionState {
+  isOpen: boolean;
+  showAll: boolean;
+  visibleTermsCount: number;
+  animationState: 'expanded' | 'collapsed';
+}
 
 @Component({
   selector: 'app-filter-sidebar',
@@ -31,178 +36,203 @@ const ATTRIBUTES_KEY = (id: number, type: 'category' | 'brand') => makeStateKey<
   imports: [CommonModule, FormsModule, BreadcrumbRoutesComponent],
   templateUrl: './filter-sidebar.component.html',
   styleUrls: ['./filter-sidebar.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush 
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('expandCollapse', [
+      state('collapsed', style({ height: '0', overflow: 'hidden', opacity: 0, margin: '0', padding: '0' })),
+      state('expanded', style({ height: '*', opacity: 1 })),
+      transition('collapsed <=> expanded', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
+    ]),
+    trigger('fadeSlideIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-10px)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(-10px)' }))
+      ])
+    ]),
+    trigger('pulse', [
+      transition('* => *', [
+        style({ transform: 'scale(1)' }),
+        animate('300ms ease-in-out', style({ transform: 'scale(1.05)' })),
+        animate('200ms ease-in-out', style({ transform: 'scale(1)' }))
+      ])
+    ])
+  ]
 })
 export class FilterSidebarComponent implements OnInit {
   @Input() categoryId: number | null = null;
   @Input() brandTermId: number | null = null;
+  @Input() selectedFilters: { [key: string]: string[] } = {};
   @Output() filtersChanges = new EventEmitter<{ [key: string]: string[] }>();
 
   attributes: Attribute[] = [];
-  selectedFilters: { [key: string]: string[] } = {};
-  openSections: { [key: string]: boolean } = {};
-  showAll: { [key: string]: boolean } = {};
+  sectionStates: { [slug: string]: SectionState } = {};
   isLoadingAttributes = true;
+  errorMessage: string | null = null;
+  private readonly DEFAULT_VISIBLE_TERMS = 5;
+
+  private filtersSubject = new BehaviorSubject<{ [key: string]: string[] }>({});
 
   constructor(
     private filterService: FilterService,
-    private transferState: TransferState,
-    private cacheService: CacheService,
-    private cdr: ChangeDetectorRef,
     private productsByBrandService: ProductsBrandService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
-    console.log('ngOnInit called with categoryId:', this.categoryId, 'brandTermId:', this.brandTermId);
     this.loadAttributes();
+    this.filtersSubject.subscribe(filters => this.filtersChanges.emit({ ...filters }));
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log('ngOnChanges called with changes:', changes);
     if (
       (changes['categoryId'] && !changes['categoryId'].firstChange) ||
       (changes['brandTermId'] && !changes['brandTermId'].firstChange)
     ) {
-      this.selectedFilters = {};
-      this.openSections = {};
-      this.showAll = {};
-      this.isLoadingAttributes = true;
-      this.attributes = [];
+      this.resetState();
       this.loadAttributes();
     }
+
+    if (changes['selectedFilters'] && !changes['selectedFilters'].firstChange) {
+      this.updateFilterState();
+    }
+  }
+
+  private resetState(): void {
+    this.selectedFilters = {};
+    this.sectionStates = {};
+    this.isLoadingAttributes = true;
+    this.attributes = [];
+    this.errorMessage = null;
+    this.updateUI();
+  }
+
+  private updateFilterState(): void {
+    if (Object.keys(this.selectedFilters).length > 0) {
+      Object.keys(this.selectedFilters).forEach(slug => {
+        this.sectionStates[slug] = {
+          ...this.sectionStates[slug],
+          isOpen: true,
+          animationState: 'expanded'
+        };
+      });
+    }
+    this.updateUI();
   }
 
   private loadAttributes(): void {
-    console.log('loadAttributes called with categoryId:', this.categoryId, 'brandTermId:', this.brandTermId);
     this.isLoadingAttributes = true;
+    this.errorMessage = null;
+    this.updateUI();
 
-    const id = this.categoryId !== null && this.categoryId !== undefined ? this.categoryId : this.brandTermId;
-    const type = this.categoryId !== null && this.categoryId !== undefined ? 'category' : 'brand';
+    const id = this.categoryId ?? this.brandTermId;
+    const type = this.categoryId !== null ? 'category' : 'brand';
 
     if (id === null || id === undefined) {
-      console.log('No valid ID provided, exiting loadAttributes');
-      this.isLoadingAttributes = false;
-      this.attributes = [];
-      this.cdr.markForCheck();
+      this.handleEmptyAttributes();
       return;
     }
 
-    const attributesKey = ATTRIBUTES_KEY(id, type);
-    const cacheKey = `attributes_terms_${type}_${id}_page_1`;
-    const cachedValue = this.cacheService.get(cacheKey);
+    const observable: Observable<Record<string, AttributeData>> = type === 'category'
+      ? this.filterService.getAllAttributesAndTermsByCategory(id)
+      : this.productsByBrandService.getAllAttributesAndTermsByBrand(id);
 
-    if (cachedValue) {
-      console.log('Using cached value:', cachedValue);
-      this.attributes = this.processAttributesData(cachedValue, type);
-      this.isLoadingAttributes = false;
-      this.initializeSections();
-      this.cdr.markForCheck();
-      return;
-    }
-
-    const stateAttributes = this.transferState.get(attributesKey, null as any);
-    if (stateAttributes) {
-      console.log('Using transfer state attributes:', stateAttributes);
-      this.attributes = stateAttributes;
-      this.isLoadingAttributes = false;
-      this.initializeSections();
-      this.cdr.markForCheck();
-      return;
-    }
-
-    console.log(`Subscribing to ${type} service for ID ${id}`);
-    if (type === 'category') {
-      this.filterService.getAttributesAndTermsByCategory(id).subscribe({
-        next: (data) => {
-          console.log('Data from FilterService:', data);
-          this.attributes = this.processAttributesData(data, type);
-          this.cacheService.set(cacheKey, data, 300000);
-          if (isPlatformServer(this.platformId)) {
-            this.transferState.set(attributesKey, this.attributes);
-          }
-          this.isLoadingAttributes = false;
-          this.initializeSections();
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          console.error('Error from FilterService:', error);
-          this.attributes = [];
-          this.isLoadingAttributes = false;
-          this.cdr.markForCheck();
-        },
-        complete: () => console.log('FilterService observable completed'),
-      });
-    } else {
-      this.productsByBrandService.getAllAttributesAndTermsByBrand(id).subscribe({
-        next: (data) => {
-          console.log('Data from ProductsBrandService:', data);
-          this.attributes = this.processAttributesData(data, type);
-          this.cacheService.set(cacheKey, data, 300000);
-          if (isPlatformServer(this.platformId)) {
-            this.transferState.set(attributesKey, this.attributes);
-          }
-          this.isLoadingAttributes = false;
-          this.initializeSections();
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          console.error('Error from ProductsBrandService:', error);
-          this.attributes = [];
-          this.isLoadingAttributes = false;
-          this.cdr.markForCheck();
-        },
-        complete: () => console.log('ProductsBrandService observable completed'),
-      });
-    }
-  }
-
-  private processAttributesData(data: any, type: 'category' | 'brand'): Attribute[] {
-    const attributes = type === 'category' ? data.attributes : data;
-    console.log('Processed attributes data:', attributes);
-    return attributes
-      ? Object.entries(attributes).map(([slug, attrData]: [string, any]) => ({
-          slug,
-          name: attrData.name,
-          terms: attrData.terms,
-        }))
-      : [];
-  }
-
-  private initializeSections() {
-    this.attributes.forEach((attr) => {
-      this.openSections[attr.slug] = false;
-      this.showAll[attr.slug] = false;
+    observable.pipe(
+      finalize(() => {
+        this.isLoadingAttributes = false;
+        this.updateUI();
+      })
+    ).subscribe({
+      next: (data) => {
+        this.attributes = this.processAttributesData(data, type);
+        this.initializeSections();
+        this.updateUI();
+      },
+      error: (error) => {
+        console.error(`Error fetching attributes for ${type}:`, error);
+        this.attributes = [];
+        this.errorMessage = 'Failed to load filters. Please try again later.';
+        this.updateUI();
+      }
     });
   }
 
-  toggleSection(slug: string) {
-    this.openSections[slug] = !this.openSections[slug];
-    this.cdr.markForCheck();
+  private handleEmptyAttributes(): void {
+    this.attributes = [];
+    this.isLoadingAttributes = false;
+    this.errorMessage = 'No category or brand selected.';
+    this.updateUI();
   }
 
-  onFilterChange(attrSlug: string, termId: number) {
-    if (!this.selectedFilters[attrSlug]) {
-      this.selectedFilters[attrSlug] = [];
-    }
+  private processAttributesData(data: Record<string, AttributeData>, type: 'category' | 'brand'): Attribute[] {
+    return data
+      ? Object.entries(data)
+          .map(([slug, attrData]) => ({
+            slug,
+            name: attrData.name,
+            terms: attrData.terms,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      : [];
+  }
+
+  private initializeSections(): void {
+    this.attributes.forEach(attr => {
+      this.sectionStates[attr.slug] = {
+        isOpen: !!this.selectedFilters[attr.slug]?.length,
+        showAll: false,
+        visibleTermsCount: this.DEFAULT_VISIBLE_TERMS,
+        animationState: this.selectedFilters[attr.slug]?.length ? 'expanded' : 'collapsed'
+      };
+    });
+  }
+
+  toggleSection(slug: string): void {
+    const state = this.sectionStates[slug];
+    state.isOpen = !state.isOpen;
+    state.animationState = state.isOpen ? 'expanded' : 'collapsed';
+    this.updateUI();
+  }
+
+  toggleShowAll(slug: string, event: Event): void {
+    event.stopPropagation();
+    const state = this.sectionStates[slug];
+    state.showAll = !state.showAll;
+    state.visibleTermsCount = state.showAll
+      ? this.getAttributeBySlug(slug)?.terms.length ?? this.DEFAULT_VISIBLE_TERMS
+      : this.DEFAULT_VISIBLE_TERMS;
+    this.updateUI();
+  }
+
+  onFilterChange(attrSlug: string, termId: number): void {
     const termIdStr = termId.toString();
-    if (this.selectedFilters[attrSlug].includes(termIdStr)) {
-      this.selectedFilters[attrSlug] = this.selectedFilters[attrSlug].filter((id) => id !== termIdStr);
-    } else {
-      this.selectedFilters[attrSlug].push(termIdStr);
-    }
-    if (this.selectedFilters[attrSlug].length === 0) {
-      delete this.selectedFilters[attrSlug];
+    const currentFilters = { ...this.selectedFilters };
+
+    if (!currentFilters[attrSlug]) {
+      currentFilters[attrSlug] = [];
     }
 
-    this.filtersChanges.emit({ ...this.selectedFilters });
-    this.updateAvailableAttributes(attrSlug);
-    this.cdr.markForCheck();
+    if (currentFilters[attrSlug].includes(termIdStr)) {
+      currentFilters[attrSlug] = currentFilters[attrSlug].filter(id => id !== termIdStr);
+    } else {
+      currentFilters[attrSlug].push(termIdStr);
+    }
+
+    if (currentFilters[attrSlug].length === 0) {
+      delete currentFilters[attrSlug];
+    }
+
+    this.selectedFilters = currentFilters;
+    this.filtersSubject.next(currentFilters);
+    this.updateAvailableAttributes(); // استدعاء بدون selectedAttrSlug
+    this.updateUI();
   }
 
-  private updateAvailableAttributes(selectedAttrSlug: string): void {
-    const id = this.categoryId !== null && this.categoryId !== undefined ? this.categoryId : this.brandTermId;
-    const type = this.categoryId !== null && this.categoryId !== undefined ? 'category' : 'brand';
+  private updateAvailableAttributes(): void {
+    const id = this.categoryId ?? this.brandTermId;
+    const type = this.categoryId !== null ? 'category' : 'brand';
 
     if (!id) return;
 
@@ -210,28 +240,81 @@ export class FilterSidebarComponent implements OnInit {
       ? this.filterService.getAvailableAttributesAndTerms(id, this.selectedFilters)
       : this.productsByBrandService.getAvailableAttributesAndTermsByBrand(id, this.selectedFilters);
 
-    observable.subscribe({
-      next: (attributesData) => {
-        console.log('Updated attributes data:', attributesData);
-        const selectedAttr = this.attributes.find((attr) => attr.slug === selectedAttrSlug);
-        this.attributes = attributesData
-          ? Object.entries(attributesData).map(([slug, data]: [string, any]) => ({
-              slug,
-              name: data.name,
-              terms: slug === selectedAttrSlug && selectedAttr ? selectedAttr.terms : data.terms,
-            }))
-          : this.attributes;
-        this.cdr.markForCheck();
+    observable.pipe(debounceTime(300)).subscribe({
+      next: (attributesData: Record<string, AttributeData>) => {
+        this.attributes = this.processAttributesData(attributesData, type); 
+        this.adjustSectionsAfterUpdate();
+        this.updateUI();
       },
-      error: (error) => console.error('Error updating attributes:', error),
+      error: (error) => {
+        console.error('Error updating attributes:', error);
+        this.errorMessage = 'Failed to update available filters.';
+        this.updateUI();
+      }
     });
   }
 
-  isSelected(attrSlug: string, termId: number): boolean {
-    return this.selectedFilters[attrSlug]?.includes(termId.toString()) || false;
+  private adjustSectionsAfterUpdate(): void {
+    const newSectionStates: { [slug: string]: SectionState } = {};
+    this.attributes.forEach(attr => {
+      const existingState = this.sectionStates[attr.slug] || {
+        isOpen: false,
+        showAll: false,
+        visibleTermsCount: this.DEFAULT_VISIBLE_TERMS,
+        animationState: 'collapsed'
+      };
+      newSectionStates[attr.slug] = {
+        ...existingState,
+        isOpen: existingState.isOpen || !!this.selectedFilters[attr.slug]?.length,
+        animationState: (existingState.isOpen || !!this.selectedFilters[attr.slug]?.length) ? 'expanded' : 'collapsed'
+      };
+    });
+    this.sectionStates = newSectionStates;
   }
 
-  private isObservable(obj: any): obj is Observable<any> {
-    return obj && typeof obj.subscribe === 'function';
+  isSelected(attrSlug: string, termId: number): boolean {
+    return this.selectedFilters[attrSlug]?.includes(termId.toString()) ?? false;
+  }
+
+  getVisibleTerms(attribute: Attribute): Term[] {
+    const state = this.sectionStates[attribute.slug];
+    const max = state?.showAll ? attribute.terms.length : (state?.visibleTermsCount ?? this.DEFAULT_VISIBLE_TERMS);
+    return attribute.terms.slice(0, max);
+  }
+
+  hasMoreTerms(attribute: Attribute): boolean {
+    const state = this.sectionStates[attribute.slug];
+    return attribute.terms.length > (state?.visibleTermsCount ?? this.DEFAULT_VISIBLE_TERMS);
+  }
+
+  getShowMoreText(attribute: Attribute): string {
+    const state = this.sectionStates[attribute.slug];
+    return state?.showAll ? 'Show Less' : `Show All (${attribute.terms.length})`;
+  }
+
+  getAttributeBySlug(slug: string): Attribute | undefined {
+    return this.attributes.find(attr => attr.slug === slug);
+  }
+
+  resetFilters(): void {
+    this.selectedFilters = {};
+    this.filtersSubject.next({});
+    this.loadAttributes();
+  }
+
+  get hasSelectedFilters(): boolean {
+    return Object.keys(this.selectedFilters).length > 0;
+  }
+
+  trackByAttr(index: number, attr: Attribute): string {
+    return attr.slug;
+  }
+
+  trackByTerm(index: number, term: Term): number {
+    return term.id;
+  }
+
+  private updateUI(): void {
+    this.cdr.markForCheck();
   }
 }

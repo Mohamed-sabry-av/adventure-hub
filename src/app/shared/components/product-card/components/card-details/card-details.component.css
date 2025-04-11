@@ -1,7 +1,47 @@
-/* Product Name Hover Effect */
+/* Card Details Container */
+app-card-details {
+  min-height: 110px; /* ارتفاع ثابت للتفاصيل */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+/* Category */
+.category {
+  min-height: 16px; /* ارتفاع ثابت للـ category */
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 4px;
+  transition: all 0.3s ease;
+}
+
+:host-context(.product-card:hover) .category {
+  letter-spacing: 0.01em;
+}
+
+/* Product Name */
+.product-name {
+  min-height: 44px; /* ارتفاع ثابت للعنوان عشان يستوعب سطر أو سطرين */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* يسمح بـ 2 سطر كحد أقصى */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
 .product-name a {
   position: relative;
+  font-size: 0.875rem;
+  line-height: 1.25rem; /* ارتفاع السطر ثابت */
+  color: #1f2937;
   transition: all 0.3s ease;
+}
+
+.product-name a:hover {
+  color: #2563eb;
 }
 
 .product-name a::after {
@@ -19,7 +59,14 @@
   width: 100%;
 }
 
-/* Star Rating Animation */
+/* Star Rating (معلّق حاليًا في الـ HTML) */
+.star-rating {
+  min-height: 20px; /* ارتفاع ثابت للتقييم لو رجع */
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .star {
   transition: all 0.3s ease;
   transform-origin: center;
@@ -35,8 +82,14 @@
   50% { transform: scale(1.2); opacity: 0.8; }
 }
 
-/* Price Animation */
+/* Price */
 .price {
+  min-height: 24px; /* ارتفاع ثابت للسعر */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  font-size: 0.875rem;
   position: relative;
 }
 
@@ -58,10 +111,11 @@
   opacity: 1;
 }
 
-/* Sale Price Highlight */
+/* Sale Price */
 .sale-price {
   position: relative;
   display: inline-block;
+  color: #dc2626;
 }
 
 .sale-price::after {
@@ -83,11 +137,8 @@
   transform-origin: bottom left;
 }
 
-/* Category Animation */
-.category {
-  transition: all 0.3s ease;
-}
-
-:host-context(.product-card:hover) .category {
-  letter-spacing: 0.05em;
+.old-price {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-decoration: line-through;
 }

@@ -1,7 +1,46 @@
-<div class="account-wrapper">
-  <!-- في حاله انه مش لوجين -->
-  <app-login></app-login>
-  <app-signup></app-signup>
+<!-- Auth Component with Login and Signup Tabs -->
+<div class="auth-container">
+  <!-- Mountain Background Image in HTML -->
+  <div class="auth-background-container">
+<img class="auth-background-image" src="authBackground/authBackground.webp" alt="Mountain climber" loading="lazy">    <div class="auth-background-overlay"></div>
+  </div>
+  
+  <div class="auth-card-container">
+    <!-- Brand Logo and Title -->
+    <div class="auth-header">
+      <div class="logo-container">
+        <img class="logo-Head" src="header/White logo-01.png">
+        <!-- <h1 class="brand-title">Adventures Hub</h1> -->
+        <p class="brand-tagline">Gear Up For Your Next Summit</p>
+      </div>
+    </div>
+
+    <!-- Auth Card with Tabs -->
+    <div class="auth-card">
+      <!-- Auth Navigation Tabs -->
+      <div class="auth-tabs">
+        <button class="tab-button" [class.active]="activeTab === 'login'" (click)="setActiveTab('login')">Sign In</button>
+        <button class="tab-button" [class.active]="activeTab === 'signup'" (click)="setActiveTab('signup')">Create Account</button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="auth-content">
+        <!-- Login Form -->
+        <div class="tab-content" *ngIf="activeTab === 'login'">
+          <app-login></app-login>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="tab-content" *ngIf="activeTab === 'signup'">
+          <app-signup></app-signup>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outdoor Quote -->
+    <div class="outdoor-quote">
+      <p>"The summit is what drives us, but the climb itself is what matters."</p>
+      <span>- Conrad Anker</span>
+    </div>
+  </div>
 </div>
-<!-- في حاله انه لوجين -->
-<!-- <app-account-details /> -->

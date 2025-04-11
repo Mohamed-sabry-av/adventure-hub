@@ -33,7 +33,7 @@ export class NavbarMainCategoriesComponent {
   }
 
   getCategoryRoute(category: Category): string[] {
-    const pathSegments: string[] = [];
+    const pathSegments: string[] = ['category'];
     this.buildFullPath(category, pathSegments);
     return pathSegments;
   }

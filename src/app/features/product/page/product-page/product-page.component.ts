@@ -7,6 +7,7 @@ import { ProductDescComponent } from '../../components/product-desc/product-desc
 import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { map, switchMap } from 'rxjs';
+import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
 
 @Component({
   selector: 'app-product-page',
@@ -17,8 +18,8 @@ import { map, switchMap } from 'rxjs';
     ProductDescComponent,
     ProductRelatedComponent,
     AppContainerComponent,
-
-  ],
+    BreadcrumbComponent
+],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
   host: { ngSkipHydration: '' },
@@ -35,7 +36,6 @@ export class ProductPageComponent implements OnInit {
   onSelectedColorChange(color: string | null) {
     this.selectedColor = color;
   }
-
 
   ngOnInit() {
     const subscription = this.productService

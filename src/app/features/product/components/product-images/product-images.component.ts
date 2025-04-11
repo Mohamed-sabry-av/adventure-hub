@@ -1,4 +1,4 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './product-images.component.html',
   styleUrls: ['./product-images.component.css'],
 })
-export class ProductImagesComponent implements OnInit {
+export class ProductImagesComponent implements OnInit, OnDestroy {
   // Inputs from parent component
   productImages = input<any>();
   selectedColor = input<string | null>(null);
@@ -54,7 +54,7 @@ export class ProductImagesComponent implements OnInit {
       return Array.isArray(images)
         ? images.map((img: any) => ({
             src: img.src || img,
-            alt: img.alt || 'صورة المنتج'
+            alt: img.alt || ''
           }))
         : [];
     }

@@ -1,24 +1,181 @@
-::ng-deep .p-tabs .p-component {
-  @apply bg-white  border-b font-thin text-gray-600;
+.product-description {
+  margin: 30px 0;
 }
 
-::ng-deep .p-tab {
-  @apply p-0 sm:py-4 sm:px-[18px];
+/* Tab Navigation */
+.description-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
 }
 
-::ng-deep .p-tablist-tab-list {
-  @apply flex gap-x-6;
+.tab-item {
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
 }
 
-::ng-deep .p-tablist-tab-list,
-::ng-deep .content {
-  @apply bg-white max-w-[1250px] lg:px-10 px-4 mx-auto;
+.tab-item.active {
+  color: #e7603a;
 }
 
-::ng-deep .p-tablist-active-bar {
-  @apply h-[2px] bg-black w-[2px];
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #e7603a;
 }
 
-::ng-deep .p-tab.p-tab-active {
-  @apply text-black font-semibold !important;
+.tab-item:hover {
+  color: #e7603a;
+}
+
+/* Tab Content */
+.tab-content {
+  padding: 15px 0;
+}
+
+/* Description Section */
+.description-section {
+  margin-bottom: 25px;
+}
+
+.text-content {
+  line-height: 1.6;
+  color: #555;
+  font-size: 15px;
+}
+
+/* Image-Text Sections */
+.image-text-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .image-text-section {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .image-text-section.left-align {
+    flex-direction: row;
+  }
+
+  .image-text-section.right-align {
+    flex-direction: row-reverse;
+  }
+}
+
+.section-image {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-image img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+}
+
+.section-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 15px;
+}
+
+.section-text {
+  line-height: 1.6;
+  color: #555;
+  font-size: 15px;
+}
+
+/* Specifications Table */
+.specifications-content {
+  margin-top: 20px;
+}
+
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.specs-table th,
+.specs-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.specs-table th {
+  width: 30%;
+  font-weight: 600;
+  color: #333;
+  background-color: #f9f9f9;
+}
+
+.specs-table td {
+  color: #555;
+}
+
+/* Raw Description */
+.raw-description {
+  line-height: 1.6;
+  color: #555;
+}
+
+/* No Specifications Message */
+.no-specs {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+/* Loading state */
+.loading-description {
+  padding: 30px;
+  text-align: center;
+  color: #666;
+}
+
+/* Responsive Styles */
+@media (max-width: 767px) {
+  .tab-item {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .text-content,
+  .section-text {
+    font-size: 14px;
+  }
+
+  .specs-table th,
+  .specs-table td {
+    padding: 10px;
+    font-size: 14px;
+  }
 }

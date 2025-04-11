@@ -1,33 +1,95 @@
 .related-products {
-    font-family: 'Poppins', sans-serif;
+  margin-top: 40px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Carousel container */
+.carousel-item-container {
+  padding: 50px;
+  height: 100%;
+}
+
+/* Product grid fallback if carousel isn't available */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.product-card-wrapper {
+  width: 100%;
+}
+
+/* Empty state */
+.no-related-products {
+  padding: 30px;
+  text-align: center;
+  color: #777;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  margin-bottom: 40px;
+}
+
+/* Custom carousel navigation styles */
+:host ::ng-deep .p-carousel .p-carousel-indicators {
+  display: none;
+}
+
+:host ::ng-deep .p-carousel-prev,
+:host ::ng-deep .p-carousel-next {
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  margin: 0 4px;
+  transition: all 0.2s;
+}
+
+:host ::ng-deep .p-carousel-prev:hover,
+:host ::ng-deep .p-carousel-next:hover {
+  background-color: rgba(231, 96, 58, 0.1);
+  color: #e7603a;
+}
+
+:host ::ng-deep .p-carousel-prev:focus,
+:host ::ng-deep .p-carousel-next:focus {
+  box-shadow: none;
+  outline: 0;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
-  
-  .bg-orange {
-    background-color: #c85d3c;
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
   }
-  
-  .text-orange {
-    color: #c85d3c;
+
+  .section-title {
+    font-size: 20px;
   }
-  
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+
+  .carousel-item-container {
+    padding: 5px;
   }
-  
-  .transition-transform {
-    transition: transform 0.2s;
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 10px;
   }
-  
-  .hover\:shadow-md:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
-  }
-  
-  input[type="checkbox"]:checked {
-    background-color: #c85d3c;
-    border-color: #c85d3c;
-  }
-  
+}

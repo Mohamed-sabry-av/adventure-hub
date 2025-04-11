@@ -1,25 +1,15 @@
 // src/app/components/header/header.component.ts
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
-import { NavbarComponent } from '../navbar/navbar.component';
 import { Category } from '../../../interfaces/category.model';
-import { MobileNavbarComponent } from '../navbar/Mobile-navbar/mobile-navbar.component';
-import {
-  animate,
-  query,
-  stagger,
-  state,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
 import { Carousel } from 'primeng/carousel';
 import { ButtonModule } from 'primeng/button';
 import { AppContainerComponent } from '../app-container/app-container.component';
 import { NavbarContainerComponent } from '../navbar-container/navbar-container.component';
 import { NavbarService } from '../../services/navbar.service';
 import { RouterLink } from '@angular/router';
+import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
 import { Observable } from 'rxjs';
 
@@ -28,14 +18,12 @@ import { Observable } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule,
-    NavbarComponent,
-    MobileNavbarComponent,
     Carousel,
     ButtonModule,
     AppContainerComponent,
     NavbarContainerComponent,
     RouterLink,
-    AsyncPipe,
+    SearchBarComponent
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
@@ -50,10 +38,14 @@ export class HeaderComponent implements OnInit {
     this.navbarService.siwtchSideNav(visible);
   }
 
-  // -------------------------------------------------------------
+  announcements: string[] = [
+    '<strong>Free Delivery</strong> for orders over AED 500',
+    'Buy Now & Pay Later with <strong>Tabby</strong>',
+  ];
 
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
+  // -------------------------------------------------------------
 
   constructor(private categoriesService: CategoriesService) {}
 

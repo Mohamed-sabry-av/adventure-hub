@@ -1,60 +1,57 @@
-.sidebar-content {
-  width: 100%;
+.filter-sidebar-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group {
+  transition: all 0.3s ease;
+}
+
+.filter-group:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.filter-options-container {
+  overflow: hidden;
+}
+
+.filter-option {
+  transition: all 0.2s ease;
+}
+
+.filter-option:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+/* Custom Checkbox Styling */
+input[type="checkbox"] {
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+/* Skeleton Loading Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .skeleton-filter {
   margin-bottom: 1.5rem;
 }
 
-.skeleton-header {
-  width: 60%;
-  height: 20px;
-  background-color: #e5e7eb;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  animation: pulse 1.5s infinite;
+.skeleton-header, .skeleton-term {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-
-.skeleton-term {
-  width: 80%;
-  height: 16px;
-  background-color: #e5e7eb;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-/* إضافة مسافة بين اسم الفلتر والـ options */
-button {
-  margin-bottom: 16px; /* مسافة بين اسم الفلتر والـ options */
-}
-
-/* تخصيص الانيميشن عند فتح وغلق الفلاتر */
-.filter-section {
-  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  max-height: 0;  /* مخفي في البداية */
-  opacity: 0;
-  overflow: hidden; /* إخفاء المحتوى الزائد */
-}
-
-.filter-section.open {
-  max-height: 240px;  /* ارتفاع محدد عند فتح الفلتر */
-  opacity: 1;
-}
-
-.filter-section.closed {
-  max-height: 0;  /* إخفاء المحتوى عند غلق الفلتر */
-  opacity: 0;
-}
-
-/* لتأكيد أن الـ scrollbar يعمل بشكل جيد */
+/* Custom Scrollbar for terms list */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #a0aec0 #edf2f7;
@@ -71,4 +68,14 @@ button {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #a0aec0;
   border-radius: 4px;
+}
+
+/* Sticky sidebar */
+@media (min-width: 1024px) {
+  .filter-sidebar-container {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
 }

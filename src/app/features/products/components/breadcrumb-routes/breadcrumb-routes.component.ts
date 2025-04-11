@@ -13,7 +13,7 @@ import { Observable } from 'rxjs';
   imports: [CommonModule, RouterLink],
   template: `
     <ul class="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
-      @defer (when isDataFullyLoaded) {
+    @defer () {
         <li *ngFor="let subCat of subcategories">
           <a
             [routerLink]="getSubCategoryRoute(subCat.category)"
@@ -130,7 +130,7 @@ export class BreadcrumbRoutesComponent implements OnInit {
   getSubCategoryRoute(category: Category): string[] {
     const currentUrl = this.route.snapshot.url.map((segment) => segment.path).join('/');
     const currentSegments = currentUrl.split('/').filter((segment) => segment && segment !== 'products');
-    const newSegments = [...currentSegments, category.slug].filter(
+    const newSegments = ['category',...currentSegments, category.slug].filter(
       (item, index, self) => index === self.lastIndexOf(item)
     );
     return ['/', ...newSegments];

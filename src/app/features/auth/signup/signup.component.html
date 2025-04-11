@@ -1,87 +1,116 @@
-<section class="register-section">
-    <h1>Create Account</h1>
-    <form [formGroup]="signupForm" (ngSubmit)="onSignupSubmit()">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input 
+<div class="signup-content">
+  <h2 class="form-title">Join The Adventure</h2>
+  <p class="form-subtitle">Create your account and start exploring the outdoors</p>
+
+  <form [formGroup]="signupForm" (ngSubmit)="onSignupSubmit()" class="auth-form">
+    <div class="form-group">
+      <label for="signupUsername">
+        <i class="icon-user"></i>
+        Username
+      </label>
+      <div class="input-container">
+        <input
           type="text"
           id="signupUsername"
           formControlName="username"
-          placeholder="User Name"
+          placeholder="Choose a username"
           [class.invalid]="signupForm.get('username')?.touched && signupForm.get('username')?.invalid"
-          required>
-        @if(signupForm.get('username')?.touched && signupForm.get('username')?.hasError('required')) {
-          <span class="wrong">Username is required</span>
-        }
-        @if(signupForm.get('username')?.touched && signupForm.get('username')?.hasError('minlength')) {
-          <span class="wrong">Username must be at least 3 characters</span>
-        }
+          required
+        />
       </div>
-  
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input 
+      @if(signupForm.get('username')?.touched && signupForm.get('username')?.hasError('required')){
+        <div class="error-message">
+          <i class="icon-error"></i> Username is required
+        </div>
+      }
+      @if(signupForm.get('username')?.touched && signupForm.get('username')?.hasError('minlength')){
+        <div class="error-message">
+          <i class="icon-error"></i> Username must be at least 3 characters
+        </div>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="signupEmail">
+        <i class="icon-mail"></i>
+        Email Address
+      </label>
+      <div class="input-container">
+        <input
           type="email"
           id="signupEmail"
           formControlName="email"
-          placeholder="Your Email Address"
+          placeholder="Your email address"
           [class.invalid]="signupForm.get('email')?.touched && signupForm.get('email')?.invalid"
-          required>
-        @if(signupForm.get('email')?.touched && signupForm.get('email')?.hasError('required')) {
-          <span class="wrong">Email is required</span>
-        }
-        @if(signupForm.get('email')?.touched && signupForm.get('email')?.hasError('email')) {
-          <span class="wrong">Please enter a valid email</span>
-        }
+          required
+        />
       </div>
-  
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
+      @if(signupForm.get('email')?.touched && signupForm.get('email')?.hasError('required')){
+        <div class="error-message">
+          <i class="icon-error"></i> Email is required
+        </div>
+      }
+      @if(signupForm.get('email')?.touched && signupForm.get('email')?.hasError('email')){
+        <div class="error-message">
+          <i class="icon-error"></i> Please enter a valid email
+        </div>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="signupPassword">
+        <i class="icon-lock"></i>
+        Password
+      </label>
+      <div class="input-container">
+        <input
           type="password"
           id="signupPassword"
-          placeholder="Your Password"
           formControlName="password"
+          placeholder="Create a secure password"
           [class.invalid]="signupForm.get('password')?.touched && signupForm.get('password')?.invalid"
-          required>
-        @if(signupForm.get('password')?.touched && signupForm.get('password')?.hasError('required')) {
-          <span class="wrong">Password is required</span>
-        }
-        @if(signupForm.get('password')?.touched && signupForm.get('password')?.hasError('minlength')) {
-          <span class="wrong">Password must be at least 6 characters</span>
-        }
+          required
+        />
       </div>
-  
-      <div class="form-group">
-        <!-- إضافة reCAPTCHA -->
-       <app-recapcha (recaptchaSuccess)="onRecaptchaSuccess($event)">
+      @if(signupForm.get('password')?.touched && signupForm.get('password')?.hasError('required')){
+        <div class="error-message">
+          <i class="icon-error"></i> Password is required
+        </div>
+      }
+      @if(signupForm.get('password')?.touched && signupForm.get('password')?.hasError('minlength')){
+        <div class="error-message">
+          <i class="icon-error"></i> Password must be at least 6 characters
+        </div>
+      }
+    </div>
 
-       </app-recapcha>
-      </div>
-  
-      <div class="checkbox-group">
-        <input type="checkbox" id="vendor">
-        <label for="vendor">Become a Vendor?</label>
-      </div>
-  
-      <p class="privacy-policy">
+    <div class="form-group">
+      <app-recapcha (recaptchaSuccess)="onRecaptchaSuccess($event)"></app-recapcha>
+    </div>
+
+    <div class="vendor-checkbox">
+      <input type="checkbox" id="vendor" class="custom-checkbox">
+      <label for="vendor">Become a Vendor?</label>
+    </div>
+
+    <div class="terms-agreement">
+      <p>
         By creating an account, you agree to our
-        <a href="#" class="link">Terms of Service</a> and
-        <a href="#" class="link">Privacy Policy</a>.
+        <a href="#" class="terms-link">Terms of Service</a> and
+        <a href="#" class="terms-link">Privacy Policy</a>.
       </p>
-  
-      <button type="submit" class="submit-btn" [disabled]="signupForm.invalid || !recaptchaToken">Register Now</button>
-    </form>
-  
+    </div>
+
+    <button type="submit" class="submit-btn" [disabled]="signupForm.invalid || !recaptchaToken">
+      <span>Create Account</span>
+      <i class="icon-arrow-right"></i>
+    </button>
+
     @if(signupError) {
-      <div class="error-message">{{ signupError }}</div>
+      <div class="error-message-box">{{ signupError }}</div>
     }
     @if(signupSuccess) {
-      <div class="success-message">{{ signupSuccess }}</div>
+      <div class="success-message-box">{{ signupSuccess }}</div>
     }
-  
-    <div class="additional-links">
-      <span>Already have an account?</span>
-      <a routerLink="/login" class="link">Login Here</a>
-    </div>
-  </section>
+  </form>
+</div>
