@@ -31,6 +31,7 @@ export class ProductsComponent implements OnInit {
   isLoadingMore = false;
   currentCategoryId: number | null = null;
   currentPage = 1;
+  currentCategory: any = null;
   itemsPerPage = 20;
   totalProducts = 0;
   filterDrawerOpen = false;
@@ -51,20 +52,20 @@ export class ProductsComponent implements OnInit {
   async ngOnInit() {
     this.isLoading = true;
     try {
-      // استخراج الـ slugs من المسار الديناميكي
       const slugs = this.route.snapshot.url
         .map((segment) => segment.path)
-        .filter((path) => path !== 'category'); // تجاهل "category" من المسار
+        .filter((path) => path !== 'category');
       const deepestSlug = slugs[slugs.length - 1];
-
+  
       if (deepestSlug) {
-        const category = await this.categoriesService.getCategoryBySlug(deepestSlug).toPromise();
-        this.currentCategoryId = category?.id ?? null;
+        this.currentCategory = await this.categoriesService.getCategoryBySlug(deepestSlug).toPromise();
+        this.currentCategoryId = this.currentCategory?.id ?? null; // احصل على ID من الفئة
       } else {
+        this.currentCategory = null;
         this.currentCategoryId = null;
       }
-
-      await this.loadProducts(true); // تحميل الصفحة الأولى
+  
+      await this.loadProducts(true);
       await this.loadTotalProducts();
     } catch (error) {
       console.error('Error in ngOnInit:', error);
@@ -73,6 +74,7 @@ export class ProductsComponent implements OnInit {
       this.cdr.markForCheck();
     }
   }
+
 
   ngAfterViewInit() {
     if (this.filterSidebar) {
@@ -100,6 +102,13 @@ export class ProductsComponent implements OnInit {
     ) {
       this.loadMoreProducts();
     }
+  }
+
+  onFiltersChange(filters: { [key: string]: string[] }) {
+    console.log('Filters changed in ProductsComponent:', filters);
+    this.currentPage = 1;
+    this.products = [];
+    this.loadProducts(true, filters);
   }
 
   private async loadProducts(isInitialLoad = false, filters?: { [key: string]: string[] }) {
@@ -149,6 +158,10 @@ export class ProductsComponent implements OnInit {
     }
   }
 
+  getcategoryName():string{
+    return this.currentCategory?.name
+  }
+
   getCurrentPath(): string[] {
     return this.route.snapshot.url
       .map((segment) => segment.path)
@@ -156,12 +169,19 @@ export class ProductsComponent implements OnInit {
   }
 
   async onCategoryIdChange(categoryId: number | null) {
-    this.currentCategoryId = categoryId;
-    this.currentPage = 1;
-    this.products = [];
-    await this.loadProducts(true);
-    await this.loadTotalProducts();
+  this.currentCategoryId = categoryId;
+  this.currentPage = 1;
+  this.products = [];
+
+  if (categoryId) {
+    this.currentCategory = await this.categoriesService.getCategoryById(categoryId).toPromise();
+  } else {
+    this.currentCategory = null;
   }
+
+  await this.loadProducts(true);
+  await this.loadTotalProducts();
+}
 
   async onSortChange(sortValue: string) {
     switch (sortValue) {

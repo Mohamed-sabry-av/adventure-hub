@@ -133,4 +133,17 @@ export class CategoriesService {
     //  console.log(`Filtered categories. Original: ${categories.length}, After exclusion: ${filtered.length}`);
      return filtered;
    }
+
+   getCategoryById(id: number): Observable<Category | null> {
+    return this.getAllCategories().pipe(
+      map((categories) => {
+        const category = categories.find((cat) => cat.id === id);
+        return category || null;
+      }),
+      catchError((error) => {
+        console.error(`Error finding category by id "${id}":`, error);
+        return of(null);
+      })
+    );
+  }
 }

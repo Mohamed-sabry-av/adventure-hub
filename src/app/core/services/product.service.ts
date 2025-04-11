@@ -29,7 +29,7 @@ export class ProductService {
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
-          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes')
+          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits')
           .set('per_page', perPage.toString())
           .set('page', page.toString())
           .set('stock_status', 'instock'),
@@ -107,7 +107,7 @@ export class ProductService {
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('category', categoryId.toString())
-          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes')
+          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits')
           .set('per_page', perPage.toString())
           .set('page', page.toString())
           .set('stock_status', 'instock'),
@@ -256,7 +256,7 @@ export class ProductService {
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('include', ids.join(','))
-          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes')
+          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits')
           .set('stock_status', 'instock'),
         observe: 'response',
       }).pipe(

@@ -1,6 +1,6 @@
 <nav class="breadcrumb">
   <ol class="breadcrumb-list">
-    <li *ngFor="let item of breadcrumbs$ | async; let last = last"w  class="breadcrumb-item">
+    <li *ngFor="let item of breadcrumbs$ | async; let last = last" class="breadcrumb-item">
       <a *ngIf="!last" [routerLink]="item.url">{{ item.label }}</a>
       <span *ngIf="last">{{ item.label }}</span>
       <span *ngIf="!last" class="separator">/</span>

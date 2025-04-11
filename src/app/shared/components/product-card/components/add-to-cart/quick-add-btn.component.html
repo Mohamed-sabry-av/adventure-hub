@@ -17,13 +17,14 @@
 ></app-size-selector>
 
 <!-- Desktop Combined Color/Size Selector - Shows sizes on hover -->
-<app-size-selector
-  *ngIf="!isMobile && hasColors() && hasSizes() && isHovered"
-  [isHovered]="isHovered"
-  [uniqueSizes]="uniqueSizes"
-  [selectedSize]="selectedSize"
-  (selectSize)="onSelectSize($event)"
-></app-size-selector>
+ @if(!isMobile && hasColors() && hasSizes() && isHovered){
+   <app-size-selector
+   [isHovered]="isHovered"
+   [uniqueSizes]="uniqueSizes"
+   [selectedSize]="selectedSize"
+   (selectSize)="onSelectSize($event)"
+   ></app-size-selector>
+  }
 
 <!-- Mobile Quick Add Button (for products with both colors and sizes) -->
 <div *ngIf="shouldShowQuickAddButton()" class="mobile-quick-add-section">

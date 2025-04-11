@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
 import { animate, style, transition, trigger } from '@angular/animations';
@@ -53,6 +53,7 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
 export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
 
+  
   variationsLoaded = false;
   variations: Variation[] = [];
   colorOptions: { color: string; image: string; inStock: boolean }[] = [];
@@ -71,19 +72,24 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   maxSizeScrollIndex: number = 0;
   sizesPerPage: number = 5;
   mobileQuickAddExpanded: boolean = false;
+  displayedImages: { src: string }[] = [];
+  modifiedProduct: Product;
+  selectedVariation: Variation | any = null;
 
   private resizeSubscription?: Subscription;
   private clickOutsideSubscription?: Subscription;
 
   constructor(
     private productService: ProductService,
-    private cartService: CartService
-  ) {}
+    private cartService: CartService,
+    private cdr: ChangeDetectorRef
+  ) {this.modifiedProduct = {} as Product;}
 
   ngOnInit(): void {
     if (!this.product) return;
     this.fetchVariations();
     this.checkIfMobile();
+    this.modifiedProduct = { ...this.product };
     this.setupResizeListener();
     this.setupClickOutsideListener();
   }
@@ -140,6 +146,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.updateVisibleColors();
         this.updateVisibleSizes();
         this.variationsLoaded = true;
+        this.setDefaultVariation();
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);
@@ -195,42 +202,41 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   private setDefaultVariation(): void {
-    if (!this.product.default_attributes?.length) {
-      if (this.colorOptions.length) {
-        this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
-      }
+    if (this.variations.length === 0) {
       return;
     }
-
-    const defaultColor = this.product.default_attributes.find((attr: any) => attr.name === 'Color')?.option;
-    const defaultSize = this.product.default_attributes.find((attr: any) => attr.name === 'Size')?.option;
-    if (defaultColor) {
-      const matchingColor = this.colorOptions.find((opt) => opt.color === defaultColor);
-      if (matchingColor) this.selectColor(matchingColor.color, matchingColor.image);
+  
+    const defaultColor = this.product.default_attributes?.find((attr: any) => attr.name === 'Color')?.option;
+  
+    if (defaultColor && this.colorOptions.length > 0) {
+      const matchingColor = this.colorOptions.find((opt) => opt.color.toLowerCase() === defaultColor.toLowerCase());
+      if (matchingColor) {
+        this.selectColor(matchingColor.color, matchingColor.image); 
+      }
+    } else if (this.colorOptions.length > 0) {
+      this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
     }
-    if (defaultSize && this.uniqueSizes.some((size) => size.size === defaultSize)) {
-      this.selectSize(defaultSize);
-    }
+  
+    this.updateSelectedVariation();
   }
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
-    this.product.images = this.variations
-      ?.filter((v) => v.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === color))
+    this.displayedImages = this.variations 
+         ?.filter((v) => v.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === color))
       .map((v) => ({ src: v.image?.src || image })) || [];
     this.currentSlide = 0;
     this.uniqueSizes = this.getSizesForColor(color);
     this.selectedSize = null;
     this.updateVisibleSizes();
+    this.cdr.detectChanges()
   
-    //    بيفتح Quick Add تلقائيًا
-    // if (this.isMobile && this.hasColors() && this.hasSizes() && !this.mobileQuickAddExpanded) {
-    //   this.mobileQuickAddExpanded = true;
-    // }
+    this.updateSelectedVariation();
   }
 
   selectSize(size: string): void {
     this.selectedSize = size;
+    this.updateSelectedVariation();
 
     // If on desktop with both color and size, auto-add to cart when both are selected
     if (!this.isMobile && this.hasColors() && this.hasSizes() && this.selectedColor && size) {
@@ -287,7 +293,9 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   onAddToCartWithOptions(): void {
     if (this.isAddToCartDisabled()) return;
-
+    let productToAdd: Product = { ...this.product }; 
+    let variationId: number | undefined;
+    
     if(this.variations.length>0){
       const selectedVariation = this.variations.find((variation)=>{
         const colorAttr = variation.attributes?.find((attr:any)=> attr.name ==='Color')
@@ -298,6 +306,9 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         
       })
 
+
+  
+      
       // if(selectedVariation){
       //   this.cartService.addProductToCart(this.product, selectedVariation.id);
       // }else{
@@ -334,14 +345,37 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   getBrandName(): string | null {
-    const brandAttr = this.product?.attributes?.find((attr) => attr.name === 'Brand');
+    const brandAttr = this.product?.attributes?.find((attr:any) => attr.name === 'Brand');
     const option = brandAttr?.options?.[0];
     return option ? (typeof option === 'string' ? option : option.name || option.value || null) : null;
   }
 
   getBrandSlug(): string | null {
-    const brandAttr = this.product?.attributes?.find((attr) => attr.name === 'Brand');
+    const brandAttr = this.product?.attributes?.find((attr:any) => attr.name === 'Brand');
     const option = brandAttr?.options?.[0];
     return option && typeof option !== 'string' ? option.slug || null : null;
+  }
+
+  private updateSelectedVariation(): void {
+    if (this.variations.length > 0) {
+      this.selectedVariation = this.variations.find((variation) => {
+        const colorAttr = variation.attributes?.find((attr: any) => attr.name === 'Color');
+        const sizeAttr = variation.attributes?.find((attr: any) => attr.name === 'Size');
+        const matchColor = !this.hasColors() || (colorAttr && colorAttr.option === this.selectedColor);
+        const matchSize = !this.hasSizes() || (sizeAttr && sizeAttr.option === this.selectedSize);
+        return matchColor && matchSize;
+      });
+  
+      if (this.selectedVariation && !this.selectedVariation.quantity_limits) {
+        this.selectedVariation.quantity_limits = this.product.quantity_limits;
+      }
+            if (!this.selectedVariation && this.selectedColor) {
+        this.selectedVariation = this.variations.find((variation) =>
+          variation.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === this.selectedColor)
+        ) || null;
+      }
+  
+      console.log('Selected Variation:', this.selectedVariation);
+    }
   }
 }

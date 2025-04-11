@@ -1,60 +1,88 @@
 .breadcrumb {
-  background: #ffffff;
-  border-radius: 5px;
-  display: flex;
-  align-items: center; 
-  padding: 1px;
-  margin-left:78px;
-  font-size: 14px;
+  width: 100%;
+  padding: 10px 100px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .breadcrumb-list {
-  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   padding: 0;
   margin: 0;
-  display: flex;
-  align-items: center;
+  list-style: none;
+  white-space: nowrap;
 }
 
-
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  margin-right: 5px;
+  max-width: 100%;
+}
 
 .breadcrumb-item a {
+  /* color: #0066cc; */
   text-decoration: none;
-  color: #000000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease;
 }
 
 .breadcrumb-item a:hover {
+  color: #004080;
   text-decoration: underline;
 }
 
-/* Subcategories List */
-
-/* 
-.subcategories {
-  margin-top: 10px;
+.breadcrumb-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.subcategories h4 {
-  font-size: 1rem;
-  margin: 0 0 5px 0;
-  color: #333;
+.breadcrumb-item .separator {
+  margin: 0 1px;
+  color: #888;
 }
 
-.subcategory-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+/* Responsive styles */
+@media (max-width: 768px) {
+  .breadcrumb {
+    padding: 8px 10px;
+    overflow-x: auto;
+  }
+
+  .breadcrumb-list {
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  .breadcrumb-item {
+    font-size: 12px;
+  }
+
+  /* For very small screens, truncate items */
+  @media (max-width: 480px) {
+    .breadcrumb-item:not(:last-child):not(:first-child) {
+      max-width: 80px;
+    }
+
+    .breadcrumb-item:not(:last-child):not(:first-child) a {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 }
 
-.subcategory-item a {
-  text-decoration: none;
-  color: #444;
-  font-size: 0.9rem;
+/* RTL Support for Arabic */
+[dir="rtl"] .breadcrumb-item {
+  margin-right: 0;
+  margin-left: 5px;
 }
 
-.subcategory-item a:hover {
-  color: #e51937;
-} */
+[dir="rtl"] .breadcrumb-item .separator {
+  transform: rotate(180deg);
+}

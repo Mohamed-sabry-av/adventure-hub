@@ -1,5 +1,4 @@
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
-  <!-- صور المنتج -->
   <app-card-image-slider
     [product]="product"
     [currentSlide]="currentSlide"
@@ -8,15 +7,15 @@
   >
   </app-card-image-slider>
 
-  <!-- تفاصيل المنتج (العنوان، السعر، إلخ) -->
   <app-card-details
-    [product]="product"
-    [getBrandName]="getBrandName.bind(this)"
-    [getBrandSlug]="getBrandSlug.bind(this)"
-  >
-  </app-card-details>
+  [product]="product"
+  [colorOptions]="colorOptions"
+  [uniqueSizes]="uniqueSizes"
+  [getBrandName]="getBrandName.bind(this)"
+  [getBrandSlug]="getBrandSlug.bind(this)"
+  [selectedVariation]="selectedVariation"
+></app-card-details>
 
-  <!-- الألوان (لو موجودة) -->
   <app-color-swatches
     *ngIf="colorOptions.length > 0"
     [colorOptions]="colorOptions"
@@ -29,21 +28,20 @@
     class="color-swatches-container">
   </app-color-swatches>
 
-  <!-- Quick Add Wrapper (للموبايل والديسكتوب) -->
   <div class="quick-add-wrapper" [ngClass]="{'quick-add-mobile-wrapper': isMobile, 'quick-add-desktop-wrapper': !isMobile}">
     <app-mobile-quick-add
-      [uniqueSizes]="uniqueSizes"
-      [selectedSize]="selectedSize"
-      [mobileQuickAddExpanded]="mobileQuickAddExpanded"
-      [colorOptions]="colorOptions"
-      [selectedColor]="selectedColor"
-      [visibleColors]="visibleColors"
-      [isMobile]="isMobile"
-      [isHovered]="isHovered"
-      (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
-      (selectSize)="onSelectSize($event)"
-      (selectColor)="selectColor($event.color, $event.image)"
-      (addToCart)="onAddToCartWithOptions()">
-    </app-mobile-quick-add>
+    [uniqueSizes]="uniqueSizes"
+    [selectedSize]="selectedSize"
+    [mobileQuickAddExpanded]="mobileQuickAddExpanded"
+    [colorOptions]="colorOptions"
+    [selectedColor]="selectedColor"
+    [visibleColors]="visibleColors"
+    [isMobile]="isMobile"
+    [isHovered]="isHovered"
+    (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
+    (selectSize)="onSelectSize($event)"
+    (selectColor)="selectColor($event.color, $event.image)"
+    (addToCart)="onAddToCartWithOptions()">
+  </app-mobile-quick-add>
   </div>
 </div>

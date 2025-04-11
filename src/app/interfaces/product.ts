@@ -7,7 +7,7 @@ export interface Product {
   images: { src: string; alt?: string }[];
   categories: { id: number; name: string; slug: string }[];
   description: string;
-  attributes?: Attribute[];
+  attributes?: Attribute[] |any;
   slug?: string;
   permalink?: string;
   date_created?: string;
@@ -75,6 +75,7 @@ export interface Product {
   comment_info?: string;
   meta_data?: MetaDaum[]
   brandSlug?: string;
+  quantity_limits?: QuantityLimits;
 }
 
 export interface Variation {
@@ -87,7 +88,7 @@ export interface Variation {
   sale_price?: string;
   stock_status?: string;
   meta_data?: MetaDaum[]
-
+  quantity_limits?: QuantityLimits;
 }
 
 export interface CardState {
@@ -137,4 +138,10 @@ export interface Attribute {
 export interface ProductAttribute {
   name: string;
   options: (string | { name?: string; value?: string })[]; // options ممكن تكون نصوص أو كائنات
+}
+
+export interface QuantityLimits {
+  minimum?: number;
+  maximum?: number;
+  multiple_of?: number;
 }
