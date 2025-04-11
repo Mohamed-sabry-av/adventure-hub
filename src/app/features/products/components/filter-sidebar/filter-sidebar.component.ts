@@ -68,7 +68,6 @@ export class FilterSidebarComponent implements OnInit {
       this.updateAvailableAttributes();
     });
     this.loadAttributes();
-    this.filtersSubject.subscribe(filters => this.filtersChanges.emit({ ...filters }));
   }
 
 

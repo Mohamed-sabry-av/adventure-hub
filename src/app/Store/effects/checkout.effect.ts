@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { createOrderAction } from '../actions/checkout.action';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs';
 
 export class CheckoutEffect {
   private actions$ = inject(Actions);
@@ -16,7 +16,7 @@ export class CheckoutEffect {
       this.actions$.pipe(
         ofType(createOrderAction),
         switchMap(({ orderDetails }) => {
-          console.log('Order Details:', orderDetails);
+          console.log(orderDetails);
           let authToken: any = localStorage.getItem('auth_token');
           authToken = authToken ? JSON.parse(authToken) : '';
 
@@ -33,15 +33,10 @@ export class CheckoutEffect {
               }
             )
             .pipe(
-              map((res) => {
-                console.log('Success:', res);
-                alert('تم إنشاء الطلب بنجاح!');
-                return res; // ممكن ترجع حاجة لو عايز
-              }),
+              map((res) => console.log('success : ', res)),
               catchError((error: any) => {
-                console.error('Error:', error);
-                alert('حدث خطأ أثناء إنشاء الطلب: ' + error.message);
-                return of(''); // نرجع Observable فاضي عشان الصمت
+                console.log('errr : ', error);
+                return '';
               })
             );
         })

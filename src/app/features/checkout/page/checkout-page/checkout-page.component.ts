@@ -7,6 +7,5 @@ import { CheckoutSummaryComponent } from '../../component/checkout-summary/check
   imports: [CheckoutFormComponent, CheckoutSummaryComponent],
   templateUrl: './checkout-page.component.html',
   styleUrl: './checkout-page.component.css',
-  host: { ngSkipHydration: '' },
 })
 export class CheckoutPageComponent {}

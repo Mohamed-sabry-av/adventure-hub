@@ -3,16 +3,56 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-
+// import {
+//   combineLatest,
+//   concatMap,
+//   exhaustMap,
+//   filter,
+//   finalize,
+//   from,
+//   map,
+//   mergeMap,
+//   of,
+//   switchMap,
+//   take,
+//   tap,
+//   toArray,
+// } from 'rxjs';
+// import {
+//   addProductToLSCartAction,
+//   initUserCartAction,
+//   deleteProductInCartLSAction,
+//   getCartFromLSAction,
+//   fetchUserCartAction,
+//   fetchCartFromLSAction,
+//   updateCountOfProductInCartLSAction,
+//   getUserCartAction,
+//   updateProductOfUserCartAction,
+//   deleteProductOfUserCartAction,
+//   addProductToUserCartAction,
+//   getPaymentDataAction,
+//   fetchPaymentDataAction,
+// } from '../actions/cart.action';
+// import { Product } from '../../Shared/models/product.model';
+// import { selectedProductDataSelector } from '../selectors/product.selector';
+// import { CartService } from '../../Features/cart/services/cart.service';
+// import { Cart } from '../../Features/cart/models/cart.model';
+// import { PaymentDetails } from '../../Features/placeorders/models/payment.model';
+// import { savedUserCartSelector } from '../selectors/cart.selector';
 import { Router } from '@angular/router';
 import { CartService } from '../../features/cart/service/cart.service';
 import { Product } from '../../interfaces/product';
 import { catchError, map, of, switchMap, take, tap } from 'rxjs';
 import {
+  addProductToLSCartAction,
   addProductToUserCartAction,
+  deleteProductInCartLSAction,
   deleteProductOfUserCarAction,
+  fetchCartFromLSAction,
   fetchUserCartAction,
+  getCartFromLSAction,
   getUserCartAction,
+  updateCountOfProductInCartLSAction,
   updateProductOfUserCartAction,
 } from '../actions/cart.action';
 
@@ -23,6 +63,8 @@ export class CartEffect {
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
   private destroyRef = inject(DestroyRef);
+
+  // -------------------------------------------------------------------
 
   // initUserCart = createEffect(
   //   () =>
@@ -110,11 +152,10 @@ export class CartEffect {
               price,
               sale_price,
               attributes,
-              image,
-              type,
+              images,
             } = product;
 
-            image = image.src;
+            images = images[0].src;
 
             let selectedProduct = {
               id,
@@ -126,8 +167,7 @@ export class CartEffect {
                 sale_price,
               },
               attributes,
-              images: image,
-              type,
+              images,
             };
 
             let loadedProducts: any = localStorage.getItem('Cart');
@@ -146,6 +186,7 @@ export class CartEffect {
             }
 
             const cart = this.cartService.calcCartPrice(loadedProducts);
+            console.log(cart);
             localStorage.setItem('Cart', JSON.stringify(cart));
 
             this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
@@ -155,6 +196,42 @@ export class CartEffect {
       ),
     { dispatch: false }
   );
+
+  // paymentUserCart = createEffect(() =>
+  //   this.actions$.pipe(
+  //     ofType(fetchPaymentDataAction),
+  //     switchMap(({ customerInfo, paymentMethod }) => {
+  //       return this.cartService.savedUserCart$.pipe(
+  //         filter((response) => response.cartId),
+  //         switchMap(({ cartId }) => {
+  //           let url = 'https://ecommerce.routemisr.com/api/v1/orders/';
+
+  //           if (paymentMethod === 'cod') {
+  //             url = url + cartId;
+  //           } else {
+  //             url = `${url}checkout-session/${cartId}?url=http://localhost:3000`;
+  //           }
+
+  //           return this.httpClient
+  //             .post(url, {
+  //               shippingAddress: customerInfo,
+  //             })
+  //             .pipe(
+  //               map((response: any) => {
+  //                 console.log(response);
+  //                 return getPaymentDataAction({ paymentData: response });
+  //               }),
+  //               tap(() => {
+  //                 if (paymentMethod === 'cod') {
+  //                   this.router.navigate(['/allorders'], { replaceUrl: true });
+  //                 }
+  //               })
+  //             );
+  //         })
+  //       );
+  //     })
+  //   )
+  // );
 
   loadUserCart = createEffect(() =>
     this.actions$.pipe(
@@ -190,7 +267,6 @@ export class CartEffect {
                     prices: item.prices,
                     quantity: item.quantity,
                     quantity_limits: item.quantity_limits,
-                    attributes: item.attributes,
                   };
                 });
 
