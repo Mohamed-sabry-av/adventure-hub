@@ -13,7 +13,13 @@
     @for (item of (loadedCart$ | async)?.items; track $index) {
 
     <div class="flex gap-x-6 border-b pb-4 mt-5">
-      <img [src]="item.images" alt="" class="w-[112px] h-fit bg-cover" />
+      <!-- الصوره -->
+      <img
+        [src]="item.images"
+        alt=""
+        class="w-[112px] h-[112px] object-cover"
+      />
+
       <div class="flex-1">
         <div class="flex justify-between">
           <div class="flex flex-col font-semibold gap-y-1 text-sm">
@@ -29,12 +35,13 @@
               }}</del>
               }
             </p>
-            @if (item.type ==='variation') { @for (variation of item.variation;
+
+            @if (item.type ==='variation') { @for (attribute of item.attributes;
             track $index) {
             <p>
-              {{ variation.attribute }} :
+              {{ attribute.name }} :
               <span class="font-light">
-                {{ variation.value }}
+                {{ attribute.value }}
               </span>
             </p>
             } }

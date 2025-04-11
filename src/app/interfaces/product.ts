@@ -1,6 +1,6 @@
 export interface Product {
   id: number;
-  currency:string;
+  currency: string;
   name: string;
   price: any;
   brand?: string;
@@ -87,7 +87,7 @@ export interface Product {
   featured_image_src_large?: any[];
   author_info?: any[];
   comment_info?: string;
-  meta_data?: MetaDaum[]
+  meta_data?: MetaDaum[];
   brandSlug?: string;
   quantity_limits?: QuantityLimits;
 }
@@ -96,7 +96,7 @@ export interface Variation {
   id?: number;
   attributes?: VariationAttribute[] | any;
   image?: Image | any;
-  images?:{ src: string; alt?: string }[] |any;
+  images?: { src: string; alt?: string }[] | any;
   price?: string;
   regular_price?: string;
   sale_price?: string;
@@ -119,9 +119,9 @@ export interface CardState {
 }
 
 export interface MetaDaum {
-  id?: number
-  key?: string
-  value?: any
+  id?: number;
+  key?: string;
+  value?: any;
 }
 
 export interface VariationAttribute {
@@ -146,7 +146,7 @@ export interface Attribute {
   slug?: string; // Use slug instead of name
   name?: string | any;
   terms?: { id: string; name: string }[];
-  options: (string | { name?: string; value?: string,slug?:string })[];
+  options: (string | { name?: string; value?: string; slug?: string })[];
 }
 
 export interface ProductAttribute {

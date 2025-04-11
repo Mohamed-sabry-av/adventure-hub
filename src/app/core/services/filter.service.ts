@@ -119,26 +119,39 @@ export class FilterService {
     orderby: string = 'date',
     order: 'asc' | 'desc' = 'desc'
   ): Observable<Product[]> {
-    const cacheKey = `filtered_products_category_${categoryId || 'all'}_filters_${JSON.stringify(filters)}_page_${page}_orderby_${orderby}_order_${order}`;
+    const cacheKey = `filtered_products_category_${
+      categoryId || 'all'
+    }_filters_${JSON.stringify(
+      filters
+    )}_page_${page}_orderby_${orderby}_order_${order}`;
     return this.cachingService.cacheObservable(
       cacheKey,
-      this.wooAPI.getRequestProducts<any>('products', {
-        params: this.buildFilterParams(categoryId, filters, page, perPage, orderby, order),
-        observe: 'response',
-      }).pipe(
-        map((response: HttpResponse<any>) => {
-          console.log('API Request URL:', `${response.url}`);
-          return (response.body || []).map((product: any) => ({
-            ...product,
-            images: product.images?.slice(0, 3) || [],
-          }));
-        }),
-        catchError((error) => {
-          console.error('Error fetching filtered products:', error);
-          return of([]);
-        }),
-        shareReplay(1)
-      ),
+      this.wooAPI
+        .getRequestProducts<any>('products', {
+          params: this.buildFilterParams(
+            categoryId,
+            filters,
+            page,
+            perPage,
+            orderby,
+            order
+          ),
+          observe: 'response',
+        })
+        .pipe(
+          map((response: HttpResponse<any>) => {
+            console.log('API Request URL:', `${response.url}`);
+            return (response.body || []).map((product: any) => ({
+              ...product,
+              images: product.images?.slice(0, 3) || [],
+            }));
+          }),
+          catchError((error) => {
+            console.error('Error fetching filtered products:', error);
+            return of([]);
+          }),
+          shareReplay(1)
+        ),
       300000
     );
   }
@@ -187,21 +200,37 @@ export class FilterService {
   getAvailableAttributesAndTerms(
     categoryId: any,
     filters: { [key: string]: string[] }
-  ): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
-    const cacheKey = `available_attributes_terms_category_${categoryId}_filters_${JSON.stringify(filters)}`;
+  ): Observable<{
+    [key: string]: { name: string; terms: { id: number; name: string }[] };
+  }> {
+    const cacheKey = `available_attributes_terms_category_${categoryId}_filters_${JSON.stringify(
+      filters
+    )}`;
     return this.cachingService.cacheObservable(
       cacheKey,
-      this.wooAPI.getRequestProducts<any>('products', {
-        params: this.buildFilterParams(categoryId, filters, 1, 100, 'date', 'desc'),
-        observe: 'response',
-      }).pipe(
-        map((response: HttpResponse<any>) => this.processAttributes(response).attributes),
-        catchError((error) => {
-          console.error(`Error fetching available attributes/terms:`, error);
-          return of({});
-        }),
-        shareReplay(1)
-      ),
+      this.wooAPI
+        .getRequestProducts<any>('products', {
+          params: this.buildFilterParams(
+            categoryId,
+            filters,
+            1,
+            100,
+            'date',
+            'desc'
+          ),
+          observe: 'response',
+        })
+        .pipe(
+          map(
+            (response: HttpResponse<any>) =>
+              this.processAttributes(response).attributes
+          ),
+          catchError((error) => {
+            console.error(`Error fetching available attributes/terms:`, error);
+            return of({});
+          }),
+          shareReplay(1)
+        ),
       300000
     );
   }

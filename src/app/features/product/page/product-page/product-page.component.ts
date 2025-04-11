@@ -9,6 +9,7 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
 import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
+import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
 
 @Component({
   selector: 'app-product-page',

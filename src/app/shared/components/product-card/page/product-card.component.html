@@ -7,6 +7,7 @@
   >
   </app-card-image-slider>
 
+  <!-- تفاصيل المنتج (العنوان، السعر، إلخ) -->
   <app-card-details
   [product]="product"
   [colorOptions]="colorOptions"
@@ -16,6 +17,7 @@
   [selectedVariation]="selectedVariation"
 ></app-card-details>
 
+  <!-- الألوان (لو موجودة) -->
   <app-color-swatches
     *ngIf="colorOptions.length > 0"
     [colorOptions]="colorOptions"

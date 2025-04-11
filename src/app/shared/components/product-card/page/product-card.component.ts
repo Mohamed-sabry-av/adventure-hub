@@ -269,8 +269,13 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     return this.product.images?.length ? Array.from({ length: this.product.images.length }, (_, i) => i) : [];
   }
 
+
+
   scrollColors(direction: number): void {
-    this.colorScrollIndex = Math.max(0, Math.min(this.colorScrollIndex + direction, this.maxColorScrollIndex));
+    this.colorScrollIndex = Math.max(
+      0,
+      Math.min(this.colorScrollIndex + direction, this.maxColorScrollIndex)
+    );
     this.updateVisibleColors();
   }
 

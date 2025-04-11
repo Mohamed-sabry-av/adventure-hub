@@ -23,25 +23,40 @@
       <div class="grid grid-cols-1 md:grid-cols-12 items-center">
         <!-- Logo -->
         <div class="col-span-2 flex justify-start">
-          <img src="header/White logo-01.png" routerLink="/home" class="h-10 w-auto" />
+          <img
+            src="header/White logo-01.png"
+            routerLink="/home"
+            class="h-10 w-auto"
+          />
         </div>
 
         <!-- Search -->
-        <div class="col-span-12 md:col-span-8 relative flex items-center order-3 md:order-2 mt-2 md:mt-0">
+        <div
+          class="col-span-12 md:col-span-8 relative flex items-center order-3 md:order-2 mt-2 md:mt-0"
+        >
           <app-search-bar
-            class=" w-full py-2 pl-14 pr-[95px] rounded-xl outline-none border border-transparent focus:border-white transition-all duration-200 placeholder-gray-600 placeholder:text-sm"
+            class="w-full py-2 pl-14 pr-[95px] rounded-xl outline-none border border-transparent focus:border-white transition-all duration-200 placeholder-gray-600 placeholder:text-sm"
           ></app-search-bar>
         </div>
 
         <!-- Icons -->
-        <div class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3">
+        <div
+          class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3"
+        >
           <a routerLink="/myaccount">
-            <i class="pi pi-user text-white text-lg lg:text-2xl cursor-pointer"></i>
+            <i
+              class="pi pi-user text-white text-lg lg:text-2xl cursor-pointer"
+            ></i>
           </a>
           <a routerLink="/cart">
-            <i class="pi pi-shopping-bag text-white text-lg lg:text-2xl cursor-pointer"></i>
+            <i
+              class="pi pi-shopping-bag text-white text-lg lg:text-2xl cursor-pointer"
+            ></i>
           </a>
-          <i class="pi pi-bars text-white text-lg lg:text-2xl cursor-pointer" (click)="onSiwtchSideNav(true)"></i>
+          <i
+            class="pi pi-bars text-white text-lg lg:text-2xl cursor-pointer"
+            (click)="onSiwtchSideNav(true)"
+          ></i>
         </div>
       </div>
     </div>
