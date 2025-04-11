@@ -75,7 +75,6 @@ export class ProductsComponent implements OnInit {
     }
   }
 
-
   ngAfterViewInit() {
     if (this.filterSidebar) {
       this.filterSidebar.filtersChanges.subscribe((filters: any) => {

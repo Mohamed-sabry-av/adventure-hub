@@ -2,19 +2,12 @@ import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { BehaviorSubject, Observable } from 'rxjs';
 import {
-  addProductToLSCartAction,
   addProductToUserCartAction,
-  deleteProductInCartLSAction,
   deleteProductOfUserCarAction,
-  fetchCartFromLSAction,
   fetchUserCartAction,
-  updateCountOfProductInCartLSAction,
   updateProductOfUserCartAction,
 } from '../../../Store/actions/cart.action';
-import {
-  savedCartOfLSSelector,
-  savedUserCartSelector,
-} from '../../../Store/selectors/cart.selector';
+import { savedUserCartSelector } from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
 
@@ -45,13 +38,6 @@ export class CartService {
     };
   }
 
-  // fetchUserCart() {
-  //   this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
-  // }
-  // savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
-
-  // اللوجيك الصح
-
   fetchUserCart() {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
@@ -62,21 +48,6 @@ export class CartService {
     });
   }
   savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
-
-  // updateQuantityOfProductInCart(
-  //   selectedProductQuantity: number,
-  //   selectedProduct: Product
-  // ) {
-  //   this.store.dispatch(
-  //     updateProductOfUserCartAction({
-  //       product: selectedProduct,
-  //       productQuantity: selectedProductQuantity,
-  //       isLoggedIn: true,
-  //     })
-  //   );
-  // }
-
-  // اللوجيك الصح
 
   updateQuantityOfProductInCart(
     selectedProductQuantity: number,
@@ -103,10 +74,9 @@ export class CartService {
     });
   }
 
-  x = 0;
-  // -----------------------------------------------------------------------------------------
+  addProductToCart(selectedProduct: any) {
+    console.log(selectedProduct);
 
-  addProductToCart(selectedProduct: Product) {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
         this.store.dispatch(
