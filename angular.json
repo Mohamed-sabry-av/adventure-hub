@@ -20,12 +20,16 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
-                "glob": "**/*",
+                "glob": "/*",
                 "input": "public"
+              },
+              {
+                "glob": "/*",
+                "input": "src/assets"
               }
             ],
             "styles": ["src/custom-theme.scss", "src/styles.css"],
-            "scripts": ["node_modules/@stripe/stripe-js/dist/stripe.js"],
+            "scripts": [],
             "server": "src/main.server.ts",
             "prerender": true,
             "ssr": {
@@ -54,8 +58,6 @@
               },
               "sourceMap": false,
               "extractLicenses": true,
-              "vendorChunk": true,
-              "buildOptimizer": true,
               "serviceWorker": "ngsw-config.json"
             },
             "development": {
@@ -88,7 +90,7 @@
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {
-                "glob": "**/*",
+                "glob": "/*",
                 "input": "public"
               }
             ],

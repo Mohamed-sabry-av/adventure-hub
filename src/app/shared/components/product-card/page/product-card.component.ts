@@ -392,9 +392,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     //   size: this.selectedSize
     // });
 
-    console.log(this.product);
-
-    // this.cartService.addProductToCart(this.product);
+    this.cartService.addProductToCart(this.selectedVariation);
 
     // Reset selection after adding to cart
     if (this.isMobile) {

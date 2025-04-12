@@ -5,7 +5,7 @@
   [modal]="true"
   styleClass="filter-drawer-sidebar"
   (onHide)="close()">
-  <div class="h-full flex flex-col bg-white" (click)="$event.stopPropagation()">
+  <div class="h-full flex flex-col bg-white">
     <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b border-gray-200">
       <h2 class="text-lg font-medium text-gray-900">Filters</h2>
@@ -17,14 +17,12 @@
       </button>
     </div>
 
-    <!-- Content -->
+    <!-- Content area - this will be scrollable -->
     <div class="flex-1 overflow-y-auto">
       <app-filter-sidebar
         [categoryId]="categoryId"
-        [brandTermId]="brandTermId"
-        [selectedFilters]="selectedFilters"
-        (filtersChanges)="onFiltersChange($event)"
-      ></app-filter-sidebar>
+        (filtersChanges)="onFiltersChange($event)">
+      </app-filter-sidebar>
     </div>
 
     <!-- Footer -->

@@ -7,7 +7,7 @@ export interface Product {
   images: { src: string; alt?: string }[];
   categories: { id: number; name: string; slug: string }[];
   description: string;
-  attributes?: Attribute[] | any;
+  attributes?: Attribute[] |any;
   slug?: string;
   permalink?: string;
   date_created?: string;
@@ -42,7 +42,7 @@ export interface Product {
   stock_quantity?: number;
   backorders?: string;
   backorders_allowed?: boolean;
-
+  
   backordered?: boolean;
   low_stock_amount?: any;
   sold_individually?: boolean;
@@ -59,8 +59,7 @@ export interface Product {
   parent_id?: number;
   purchase_note?: string;
   tags?: any[];
-  default_attributes?: { name: string; option: string }[];
-  variations: Variation[];
+  default_attributes?: { name: string; option: string }[];  variations: Variation[];
   grouped_products?: any[];
   menu_order?: number;
   price_html?: string;
@@ -69,8 +68,22 @@ export interface Product {
   has_options?: boolean;
   post_password?: string;
   global_unique_id?: string;
-  yoast_head?: string;
-  taxonomy_info?: any[];
+  yoast_head_json?: {
+    title: string;
+    description: string;
+    canonical: string;
+    og_title?: string;
+    og_description?: string;
+    og_url?: string;
+    og_site_name?: string;
+    og_image?: Array<{ url: string; width: number; height: number; type: string }>;
+    robots?: { index: string; follow: string };
+    twitter_card?: string;
+    twitter_site?: string;
+    schema?: any;
+    [key: string]: any;
+  };
+    taxonomy_info?: any[];
   featured_image_src_large?: any[];
   author_info?: any[];
   comment_info?: string;
@@ -88,7 +101,7 @@ export interface Variation {
   regular_price?: string;
   sale_price?: string;
   stock_status?: string;
-  meta_data?: MetaDaum[];
+  meta_data?: MetaDaum[]
   quantity_limits?: QuantityLimits;
 }
 

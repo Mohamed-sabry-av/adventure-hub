@@ -81,7 +81,6 @@ export class CartEffect {
 
             const body = {
               product_id: product.id,
-              quantity: 1,
             };
 
             return this.httpClient

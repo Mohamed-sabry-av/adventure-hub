@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { SizeSelectorComponent } from '../size-selector/size-selector.component';
@@ -62,6 +62,12 @@ export class MobileQuickAddComponent {
     this.cdr.markForCheck();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['uniqueSizes']) {
+      console.log('uniqueSizes changed in MobileQuickAdd:', this.uniqueSizes);
+      this.cdr.detectChanges(); // أضف ده عشان يحدث الـ UI
+    }
+  }
   onSelectColor(color: string, image: string): void {
     this.selectColor.emit({ color, image });
     this.cdr.markForCheck();

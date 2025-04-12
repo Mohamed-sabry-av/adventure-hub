@@ -1,34 +1,15 @@
-import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
-import { ProductsBrandService } from '../../services/products-brand.service';
-import { Observable, finalize, debounceTime, BehaviorSubject } from 'rxjs';
-import { trigger, transition, style, animate, state } from '@angular/animations';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { debounceTime, finalize } from 'rxjs/operators';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
-interface Term {
-  id: number;
-  name: string;
-}
-
-interface Attribute {
-  slug: string;
-  name: string;
-  terms: Term[];
-}
-
-interface AttributeData {
-  name: string;
-  terms: Term[];
-}
-
-interface SectionState {
-  isOpen: boolean;
-  showAll: boolean;
-  visibleTermsCount: number;
-  animationState: 'expanded' | 'collapsed';
-}
+interface Term { id: number; name: string }
+interface Attribute { slug: string; name: string; terms: Term[] }
+interface SectionState { isOpen: boolean; showAll: boolean; visibleTermsCount: number; animationState: 'expanded' | 'collapsed' }
 
 @Component({
   selector: 'app-filter-sidebar',
@@ -39,152 +20,104 @@ interface SectionState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('expandCollapse', [
-      state('collapsed', style({ height: '0', overflow: 'hidden', opacity: 0, margin: '0', padding: '0' })),
+      state('collapsed', style({ height: '0', overflow: 'hidden', opacity: 0 })),
       state('expanded', style({ height: '*', opacity: 1 })),
-      transition('collapsed <=> expanded', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
-    ]),
-    trigger('fadeSlideIn', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-10px)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ]),
-      transition(':leave', [
-        animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(-10px)' }))
-      ])
-    ]),
-    trigger('pulse', [
-      transition('* => *', [
-        style({ transform: 'scale(1)' }),
-        animate('300ms ease-in-out', style({ transform: 'scale(1.05)' })),
-        animate('200ms ease-in-out', style({ transform: 'scale(1)' }))
-      ])
+      transition('collapsed <=> expanded', animate('200ms ease-out'))
     ])
   ]
 })
 export class FilterSidebarComponent implements OnInit {
   @Input() categoryId: number | null = null;
-  @Input() brandTermId: number | null = null;
-  @Input() selectedFilters: { [key: string]: string[] } = {};
   @Output() filtersChanges = new EventEmitter<{ [key: string]: string[] }>();
+  originalAttributes: Attribute[] = [];
 
   attributes: Attribute[] = [];
   sectionStates: { [slug: string]: SectionState } = {};
   isLoadingAttributes = true;
   errorMessage: string | null = null;
   private readonly DEFAULT_VISIBLE_TERMS = 5;
-
   private filtersSubject = new BehaviorSubject<{ [key: string]: string[] }>({});
+  selectedFilters: { [key: string]: string[] } = {};
 
   constructor(
     private filterService: FilterService,
-    private productsByBrandService: ProductsBrandService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['categoryId']) {
+      // إعادة تعيين الفلاتر عند تغيير الفئة
+      this.selectedFilters = {};
+      localStorage.removeItem(`filters_${changes['categoryId'].previousValue}`); // حذف الفلاتر القديمة إذا لزم الأمر
+      
+      // تحميل الفلاتر المحفوظة للفئة الجديدة إن وجدت
+      // const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
+      // this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
+      
+      this.filtersSubject.next({ ...this.selectedFilters }); // إرسال الفلاتر الجديدة
+      this.loadAttributes(); // تحميل السمات للفئة الجديدة
+    }
+  }
+  
+  ngOnInit(): void {
+    const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
+    this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
+    this.filtersSubject.next({ ...this.selectedFilters }); // إرسال الفلاتر المحفوظة فورًا
+    this.filtersSubject.pipe(debounceTime(300)).subscribe(filters => {
+      this.filtersChanges.emit({ ...filters });
+      this.updateAvailableAttributes();
+    });
     this.loadAttributes();
     this.filtersSubject.subscribe(filters => this.filtersChanges.emit({ ...filters }));
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (
-      (changes['categoryId'] && !changes['categoryId'].firstChange) ||
-      (changes['brandTermId'] && !changes['brandTermId'].firstChange)
-    ) {
-      this.resetState();
-      this.loadAttributes();
-    }
 
-    if (changes['selectedFilters'] && !changes['selectedFilters'].firstChange) {
-      this.updateFilterState();
-    }
-  }
-
-  private resetState(): void {
-    this.selectedFilters = {};
-    this.sectionStates = {};
+  private async loadAttributes(): Promise<void> {
     this.isLoadingAttributes = true;
+    this.errorMessage = null;
     this.attributes = [];
-    this.errorMessage = null;
     this.updateUI();
-  }
-
-  private updateFilterState(): void {
-    if (Object.keys(this.selectedFilters).length > 0) {
-      Object.keys(this.selectedFilters).forEach(slug => {
-        this.sectionStates[slug] = {
-          ...this.sectionStates[slug],
-          isOpen: true,
-          animationState: 'expanded'
-        };
-      });
-    }
-    this.updateUI();
-  }
-
-  private loadAttributes(): void {
-    this.isLoadingAttributes = true;
-    this.errorMessage = null;
-    this.updateUI();
-
-    const id = this.categoryId ?? this.brandTermId;
-    const type = this.categoryId !== null ? 'category' : 'brand';
-
-    if (id === null || id === undefined) {
-      this.handleEmptyAttributes();
+  
+    if (!this.categoryId) {
+      this.isLoadingAttributes = false;
+      this.errorMessage = 'No category selected.';
+      this.updateUI();
       return;
     }
-
-    const observable: Observable<Record<string, AttributeData>> = type === 'category'
-      ? this.filterService.getAllAttributesAndTermsByCategory(id)
-      : this.productsByBrandService.getAllAttributesAndTermsByBrand(id);
-
-    observable.pipe(
-      finalize(() => {
-        this.isLoadingAttributes = false;
-        this.updateUI();
-      })
-    ).subscribe({
-      next: (data) => {
-        this.attributes = this.processAttributesData(data, type);
+  
+    try {
+      const data = await this.filterService.getAllAttributesAndTermsByCategory(this.categoryId).toPromise();
+      console.log('data receiver:', data);
+      if (data) {
+        this.originalAttributes = Object.entries(data).map(([slug, attr]) => ({
+          slug,
+          name: attr.name,
+          terms: attr.terms.sort((a, b) => a.name.localeCompare(b.name))
+        }));
+        console.log('Original attributes:', this.originalAttributes);
+        this.attributes = [...this.originalAttributes];
+        console.log('Attributes copied:', this.attributes);
         this.initializeSections();
-        this.updateUI();
-      },
-      error: (error) => {
-        console.error(`Error fetching attributes for ${type}:`, error);
-        this.attributes = [];
-        this.errorMessage = 'Failed to load filters. Please try again later.';
-        this.updateUI();
+      } else {
+        this.errorMessage = 'No attributes available.';
+        console.warn('No data received from filter service.');
       }
-    });
-  }
-
-  private handleEmptyAttributes(): void {
-    this.attributes = [];
-    this.isLoadingAttributes = false;
-    this.errorMessage = 'No category or brand selected.';
-    this.updateUI();
-  }
-
-  private processAttributesData(data: Record<string, AttributeData>, type: 'category' | 'brand'): Attribute[] {
-    return data
-      ? Object.entries(data)
-          .map(([slug, attrData]) => ({
-            slug,
-            name: attrData.name,
-            terms: attrData.terms,
-          }))
-          .sort((a, b) => a.name.localeCompare(b.name))
-      : [];
+    } catch (error) {
+      this.errorMessage = 'Failed to load filters.';
+      console.error('Error loading attributes:', error);
+    } finally {
+      this.isLoadingAttributes = false;
+      this.cdr.detectChanges();
+    }
   }
 
   private initializeSections(): void {
     this.attributes.forEach(attr => {
       this.sectionStates[attr.slug] = {
-        isOpen: !!this.selectedFilters[attr.slug]?.length,
+        isOpen: true,
         showAll: false,
         visibleTermsCount: this.DEFAULT_VISIBLE_TERMS,
-        animationState: this.selectedFilters[attr.slug]?.length ? 'expanded' : 'collapsed'
+        animationState: 'expanded' 
       };
     });
   }
@@ -200,55 +133,58 @@ export class FilterSidebarComponent implements OnInit {
     event.stopPropagation();
     const state = this.sectionStates[slug];
     state.showAll = !state.showAll;
-    state.visibleTermsCount = state.showAll
-      ? this.getAttributeBySlug(slug)?.terms.length ?? this.DEFAULT_VISIBLE_TERMS
-      : this.DEFAULT_VISIBLE_TERMS;
+    state.visibleTermsCount = state.showAll ? this.getAttributeBySlug(slug)!.terms.length : this.DEFAULT_VISIBLE_TERMS;
     this.updateUI();
   }
 
   onFilterChange(attrSlug: string, termId: number): void {
     const termIdStr = termId.toString();
-    const currentFilters = { ...this.selectedFilters };
-
-    if (!currentFilters[attrSlug]) {
-      currentFilters[attrSlug] = [];
-    }
-
-    if (currentFilters[attrSlug].includes(termIdStr)) {
-      currentFilters[attrSlug] = currentFilters[attrSlug].filter(id => id !== termIdStr);
+    if (!this.selectedFilters[attrSlug]) this.selectedFilters[attrSlug] = [];
+    
+    const index = this.selectedFilters[attrSlug].indexOf(termIdStr);
+    if (index > -1) {
+      this.selectedFilters[attrSlug].splice(index, 1);
+      if (this.selectedFilters[attrSlug].length === 0) delete this.selectedFilters[attrSlug];
     } else {
-      currentFilters[attrSlug].push(termIdStr);
+      this.selectedFilters[attrSlug].push(termIdStr);
     }
-
-    if (currentFilters[attrSlug].length === 0) {
-      delete currentFilters[attrSlug];
-    }
-
-    this.selectedFilters = currentFilters;
-    this.filtersSubject.next(currentFilters);
-    this.updateAvailableAttributes(); // استدعاء بدون selectedAttrSlug
+    
+    localStorage.setItem(`filters_${this.categoryId}`, JSON.stringify(this.selectedFilters));
+    
+    this.filtersSubject.next({ ...this.selectedFilters });
     this.updateUI();
   }
 
   private updateAvailableAttributes(): void {
-    const id = this.categoryId ?? this.brandTermId;
-    const type = this.categoryId !== null ? 'category' : 'brand';
+    if (!this.categoryId) return;
 
-    if (!id) return;
+    this.filterService.getAvailableAttributesAndTerms(this.categoryId, this.selectedFilters).subscribe({
+      next: (data) => {
+        const availableAttributes = Object.entries(data).map(([slug, attr]) => ({
+          slug,
+          name: attr.name,
+          terms: attr.terms
+        }));
 
-    const observable = type === 'category'
-      ? this.filterService.getAvailableAttributesAndTerms(id, this.selectedFilters)
-      : this.productsByBrandService.getAvailableAttributesAndTermsByBrand(id, this.selectedFilters);
+        // ندمج الـ attributes الأصلية مع المتاحة
+        this.attributes = this.originalAttributes.map(originalAttr => {
+          const selectedTerms = this.selectedFilters[originalAttr.slug];
+          const availableAttr = availableAttributes.find(attr => attr.slug === originalAttr.slug);
 
-    observable.pipe(debounceTime(300)).subscribe({
-      next: (attributesData: Record<string, AttributeData>) => {
-        this.attributes = this.processAttributesData(attributesData, type); 
+          // لو فيه فلتر مختار لهذا الـ attribute، نرجع كل الـ terms الأصلية
+          if (selectedTerms && selectedTerms.length > 0) {
+            return { ...originalAttr };
+          }
+          // لو مفيش فلتر مختار، نرجع الـ terms المتاحة
+          return availableAttr || { ...originalAttr, terms: [] };
+        });
+
         this.adjustSectionsAfterUpdate();
         this.updateUI();
       },
       error: (error) => {
         console.error('Error updating attributes:', error);
-        this.errorMessage = 'Failed to update available filters.';
+        this.errorMessage = 'Failed to update filters.';
         this.updateUI();
       }
     });
@@ -278,13 +214,18 @@ export class FilterSidebarComponent implements OnInit {
 
   getVisibleTerms(attribute: Attribute): Term[] {
     const state = this.sectionStates[attribute.slug];
-    const max = state?.showAll ? attribute.terms.length : (state?.visibleTermsCount ?? this.DEFAULT_VISIBLE_TERMS);
-    return attribute.terms.slice(0, max);
+    const sortedTerms = [...attribute.terms].sort((a, b) => {
+      const aSelected = this.isSelected(attribute.slug, a.id);
+      const bSelected = this.isSelected(attribute.slug, b.id);
+      return aSelected === bSelected ? 0 : aSelected ? -1 : 1;
+    });
+  
+    // نرجع العناصر المرئية بناءً على showAll أو DEFAULT_VISIBLE_TERMS
+    return sortedTerms.slice(0, state?.showAll ? sortedTerms.length : this.DEFAULT_VISIBLE_TERMS);
   }
 
   hasMoreTerms(attribute: Attribute): boolean {
-    const state = this.sectionStates[attribute.slug];
-    return attribute.terms.length > (state?.visibleTermsCount ?? this.DEFAULT_VISIBLE_TERMS);
+    return attribute.terms.length > this.DEFAULT_VISIBLE_TERMS;
   }
 
   getShowMoreText(attribute: Attribute): string {
@@ -298,6 +239,7 @@ export class FilterSidebarComponent implements OnInit {
 
   resetFilters(): void {
     this.selectedFilters = {};
+    localStorage.removeItem(`filters_${this.categoryId}`);
     this.filtersSubject.next({});
     this.loadAttributes();
   }
@@ -306,15 +248,16 @@ export class FilterSidebarComponent implements OnInit {
     return Object.keys(this.selectedFilters).length > 0;
   }
 
-  trackByAttr(index: number, attr: Attribute): string {
+  trackByAttr(_: number, attr: Attribute): string {
     return attr.slug;
   }
 
-  trackByTerm(index: number, term: Term): number {
+  trackByTerm(_: number, term: Term): number {
     return term.id;
   }
 
   private updateUI(): void {
+    console.log('Updating UI', { isLoadingAttributes: this.isLoadingAttributes, attributes: this.attributes });
     this.cdr.markForCheck();
-  }
+    }
 }

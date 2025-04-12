@@ -36,7 +36,7 @@ export class CardDetailsComponent {
       return `${variation.price} ${currency}`;
     }
   
-    // fallback to product price
+    // Fallback to product price
     return `${this.product.sale_price || this.product.regular_price || this.product.price || 'Unavailable'} ${currency}`;
   }
   
@@ -60,6 +60,5 @@ export class CardDetailsComponent {
     }
   
     return null;
-  }
-  
+  } 
 }

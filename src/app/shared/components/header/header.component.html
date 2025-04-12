@@ -1,20 +1,21 @@
 <header>
   <!-- معلومات فرعية -->
-  <div>
-    <p-carousel
-      [value]="announcements"
-      [numVisible]="1"
-      [numScroll]="1"
-      [showNavigators]="false"
-    >
-      <ng-template let-announcement #item>
-        <div class="py-[6px] text-center px-4 text-white">
-          <p class="text-sm" [innerHTML]="announcement"></p>
-        </div>
-      </ng-template>
-    </p-carousel>
-  </div>
-  <hr class="-mt-2 md:hidden block" />
+    <div>
+      <p-carousel
+        [value]="announcements"
+        [numVisible]="1"
+        [numScroll]="1"
+        [circular]="true"
+        [showNavigators]="false"
+      >
+        <ng-template let-announcement #item>
+          <div class="py-[6px] text-center px-4 text-white">
+            <p class="text-sm" [innerHTML]="announcement"></p>
+          </div>
+        </ng-template>
+      </p-carousel>
+    </div>
+    <hr class="-mt-2 md:hidden block" />
   <!-- معلومات اساسية -->
   <app-app-container>
     <div class="py-3">
@@ -62,9 +63,9 @@
   </app-app-container>
 
   @defer (on idle) {
-  <app-navbar-container
-    [mainCategories]="mainCategories"
-    [allCategories]="allCategories"
-  />
+    <app-navbar-container
+      [mainCategories]="mainCategories"
+      [allCategories]="allCategories"
+    />
   }
 </header>

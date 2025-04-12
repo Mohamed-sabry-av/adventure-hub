@@ -12,16 +12,19 @@ import { Observable } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <ul class="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
+    <ul class="space-y-1 border-b border-gray-200  text-sm font-medium text-gray-900">
     @defer () {
         <li *ngFor="let subCat of subcategories">
-          <a
+          @if(subCat.productCount > 0) {
+
+            <a
             [routerLink]="getSubCategoryRoute(subCat.category)"
             (click)="onSubcategoryClick(subCat.category)"
             class="block"
-          >
+            >
             {{ subCat.category.name }} ({{ subCat.productCount }})
           </a>
+        }
         </li>
       } @placeholder {
         <li *ngFor="let item of [].constructor(3)" class="skeleton">
