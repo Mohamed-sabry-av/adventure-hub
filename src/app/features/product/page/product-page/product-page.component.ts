@@ -6,7 +6,6 @@ import { RouterLink } from '@angular/router';
 import { ProductDescComponent } from '../../components/product-desc/product-desc.component';
 import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
-import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
 import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";

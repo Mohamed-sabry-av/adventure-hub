@@ -1,0 +1,77 @@
+.orders-content {
+    width: 100%;
+  }
+  
+  .loading, .no-orders {
+    padding: 2rem 0;
+    text-align: center;
+    color: #666;
+  }
+  
+  .error-message {
+    padding: 1rem;
+    background-color: #fff5f5;
+    border: 1px solid #feb2b2;
+    color: #c53030;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+  }
+  
+  .status-pending {
+    background-color: #e9f6fd;
+    color: #3182ce;
+  }
+  
+  .status-processing {
+    background-color: #ebf8ff;
+    color: #4299e1;
+  }
+  
+  .status-on-hold {
+    background-color: #fefcbf;
+    color: #d69e2e;
+  }
+  
+  .status-completed {
+    background-color: #e6fffa;
+    color: #38b2ac;
+  }
+  
+  .status-cancelled {
+    background-color: #feebc8;
+    color: #dd6b20;
+  }
+  
+  .status-refunded {
+    background-color: #fed7d7;
+    color: #e53e3e;
+  }
+  
+  .status-failed {
+    background-color: #fed7d7;
+    color: #e53e3e;
+  }
+  
+  .status-default {
+    background-color: #edf2f7;
+    color: #4a5568;
+  }
+  
+  .view-order-btn {
+    display: inline-block;
+    font-weight: 500;
+    text-align: center;
+  }
+  
+  .shop-button {
+    font-weight: 500;
+  }
+  

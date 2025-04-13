@@ -1,5 +1,11 @@
-<!-- products-by-brand.component.html -->
-<div class="bg-white">
+<!-- Yoast Part -->
+<ng-container>
+  @if(schemaData){
+    <ng-container>
+      <script type="application/ld+json" [innerHTML]="schemaData"></script>
+    </ng-container>
+    
+  }<div class="bg-white">
     <!-- الـ backdrop بيظهر لما الـ drawer مفتوح -->
     <div
       *ngIf="filterDrawerOpen"

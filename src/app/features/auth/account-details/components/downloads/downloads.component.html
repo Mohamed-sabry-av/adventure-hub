@@ -1,0 +1,52 @@
+<div class="downloads-content">
+    <h2 class="text-2xl font-semibold mb-4">Downloads</h2>
+  
+    <div *ngIf="isLoading" class="loading">
+      <p>Loading your downloads...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
+  
+    <div *ngIf="!isLoading && !error">
+      <div *ngIf="downloads && downloads.length > 0" class="downloads-list">
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="py-3 px-4 text-left">Product</th>
+                <th class="py-3 px-4 text-left">Downloads remaining</th>
+                <th class="py-3 px-4 text-left">Expires</th>
+                <th class="py-3 px-4 text-left">Download</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let download of downloads" class="border-b">
+                <td class="py-3 px-4">{{ download.product_name }}</td>
+                <td class="py-3 px-4">
+                  {{ download.downloads_remaining === '' ? 'Unlimited' : download.downloads_remaining }}
+                </td>
+                <td class="py-3 px-4">
+                  {{ download.access_expires === '' ? 'Never' : formatDate(download.access_expires) }}
+                </td>
+                <td class="py-3 px-4">
+                  <a [href]="download.download_url" class="download-btn px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                    <i class="pi pi-download mr-1"></i> Download
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+  
+      <div *ngIf="downloads && downloads.length === 0" class="no-downloads">
+        <p>No downloads available yet.</p>
+        <a href="javascript:void(0)" class="shop-button inline-block mt-4 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+          Browse Products
+        </a>
+      </div>
+    </div>
+  </div>
+  

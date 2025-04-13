@@ -1,0 +1,48 @@
+<div class="addresses-content">
+    <h2 class="text-2xl font-semibold mb-4">Addresses</h2>
+  
+    <div *ngIf="isLoading" class="loading">
+      <p>Loading your addresses...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
+  
+    <div *ngIf="!isLoading && !error && customerDetails" class="addresses-container">
+      <p class="text-sm mb-4">The following addresses will be used on the checkout page by default.</p>
+  
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Billing Address -->
+        <div class="address-card p-5 border rounded">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-lg font-medium">Billing Address</h3>
+            <a href="javascript:void(0)" class="edit-btn text-sm text-blue-600 hover:text-blue-800">Edit</a>
+          </div>
+  
+          <div class="address-details">
+            <p>{{ customerDetails.billing.first_name }} {{ customerDetails.billing.last_name }}</p>
+            <p *ngIf="customerDetails.billing.company">{{ customerDetails.billing.company }}</p>
+            <p>{{ formatAddress(customerDetails.billing) }}</p>
+            <p *ngIf="customerDetails.billing.email">Email: {{ customerDetails.billing.email }}</p>
+            <p *ngIf="customerDetails.billing.phone">Phone: {{ customerDetails.billing.phone }}</p>
+          </div>
+        </div>
+  
+        <!-- Shipping Address -->
+        <div class="address-card p-5 border rounded">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-lg font-medium">Shipping Address</h3>
+            <a href="javascript:void(0)" class="edit-btn text-sm text-blue-600 hover:text-blue-800">Edit</a>
+          </div>
+  
+          <div class="address-details">
+            <p>{{ customerDetails.shipping.first_name }} {{ customerDetails.shipping.last_name }}</p>
+            <p *ngIf="customerDetails.shipping.company">{{ customerDetails.shipping.company }}</p>
+            <p>{{ formatAddress(customerDetails.shipping) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  

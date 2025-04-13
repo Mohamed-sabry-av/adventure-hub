@@ -1,0 +1,54 @@
+.account-nav .nav-item {
+    transition: all 0.2s ease;
+  }
+  
+  .account-nav .nav-item:hover {
+    color: #1a202c;
+    background-color: #f7fafc;
+  }
+  
+  .account-nav .nav-item:hover i {
+    color: #1a202c;
+  }
+  
+  .account-nav .nav-item.active {
+    color: #1a202c;
+    font-weight: 500;
+    background-color: #f7fafc;
+  }
+  
+  .account-nav .nav-item.active i {
+    color: #1a202c;
+  }
+  
+  .mobile-menu {
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Animation for mobile menu */
+  .mobile-menu {
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  
+  .mobile-menu-overlay {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  

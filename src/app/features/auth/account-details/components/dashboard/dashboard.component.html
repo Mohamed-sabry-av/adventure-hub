@@ -1,0 +1,55 @@
+<div class="dashboard-content">
+    <div *ngIf="isLoading" class="loading">
+      <p>Loading your information...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
+  
+    <div *ngIf="!isLoading && !error && customerDetails">
+      <div class="welcome-section">
+        <h2>Hello, {{ customerDetails.first_name || 'Customer' }}!</h2>
+        <p>From your account dashboard you can view your recent orders, manage your shipping and billing addresses, and edit your password and account details.</p>
+      </div>
+  
+      <div class="dashboard-grid mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Recent Orders -->
+        <div class="dashboard-card p-5 border rounded-md">
+          <h3 class="text-lg font-medium mb-3">Recent Orders</h3>
+          <p class="text-gray-500 mb-3">View and track your recent orders</p>
+          <a href="javascript:void(0)" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+            View Orders
+          </a>
+        </div>
+  
+        <!-- Download items -->
+        <div class="dashboard-card p-5 border rounded-md">
+          <h3 class="text-lg font-medium mb-3">Downloads</h3>
+          <p class="text-gray-500 mb-3">Download your purchased digital products</p>
+          <a href="javascript:void(0)" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+            View Downloads
+          </a>
+        </div>
+  
+        <!-- Addresses -->
+        <div class="dashboard-card p-5 border rounded-md">
+          <h3 class="text-lg font-medium mb-3">Addresses</h3>
+          <p class="text-gray-500 mb-3">Manage your billing and shipping addresses</p>
+          <a href="javascript:void(0)" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+            Manage Addresses
+          </a>
+        </div>
+  
+        <!-- Account Details -->
+        <div class="dashboard-card p-5 border rounded-md">
+          <h3 class="text-lg font-medium mb-3">Account Details</h3>
+          <p class="text-gray-500 mb-3">Update your account information</p>
+          <a href="javascript:void(0)" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+            Edit Details
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  

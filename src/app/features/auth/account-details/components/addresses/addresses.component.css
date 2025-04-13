@@ -1,0 +1,37 @@
+.addresses-content {
+    width: 100%;
+  }
+  
+  .loading {
+    padding: 2rem 0;
+    text-align: center;
+    color: #666;
+  }
+  
+  .error-message {
+    padding: 1rem;
+    background-color: #fff5f5;
+    border: 1px solid #feb2b2;
+    color: #c53030;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .address-card {
+    height: 100%;
+    transition: all 0.2s ease;
+  }
+  
+  .address-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .address-details p {
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+  }
+  
+  .edit-btn {
+    font-weight: 500;
+  }
+  

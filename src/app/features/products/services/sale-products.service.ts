@@ -28,7 +28,7 @@ export class SaleProductsService {
           .set('on_sale', 'true')
           .set(
             '_fields',
-            'id,name,price,regular_price,sale_price,images,categories,description,attributes'
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits'
           ) 
           .set('page', page.toString())
           .set('stock_status', 'instock'),
@@ -49,7 +49,7 @@ export class SaleProductsService {
         }),
         shareReplay(1)
       ),
-      300000 // مدة التخزين المؤقت 5 دقائق
+      3000000 
     );
   }
 }

@@ -7,6 +7,7 @@ import { FilterDrawerComponent } from '../../components/filter-drawer/filter-dra
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
 import { ProductsBrandService } from '../../services/products-brand.service';
+import { SeoService } from '../../../../core/services/seo.service';
 
 @Component({
   selector: 'app-brand-products',
@@ -31,48 +32,73 @@ export class ProductsByBrandComponent implements OnInit {
   currentBrandSlug: string | null = null;
   brandName: string = 'Loading...';
   currentPage: number = 1;
+   brandInfo: any = null;
   itemPerPage: number = 20;
   totalProducts: number = 0;
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
+  schemaData:any
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
 
   constructor(
     private productsBrandService: ProductsBrandService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private seoService:SeoService,
   ) {}
 
   async ngOnInit() {
     try {
       this.isLoading = true;
       this.currentBrandSlug = this.route.snapshot.paramMap.get('brandSlug');
-  
+
       if (this.currentBrandSlug) {
-        const brandInfo = await this.productsBrandService
+        // جلب بيانات البراند
+        this.brandInfo = await this.productsBrandService
           .getBrandInfoBySlug(this.currentBrandSlug)
           .toPromise();
-  
-        if (brandInfo) {
-          this.currentBrandTermId = brandInfo.id;
-          this.brandName = brandInfo.name;
-          // يمكنك استخدام brandInfo.slug إذا أردت لاحقًا
+
+        if (this.brandInfo) {
+          this.currentBrandTermId = this.brandInfo.id;
+          this.brandName = this.brandInfo.name;
+
+          // تطبيق الـ SEO tags بناءً على yoast_head_json
+          this.schemaData = this.seoService.applySeoTags(this.brandInfo, {
+            title: this.brandInfo?.name || 'Brand Products - Adventures HUB Sports Shop',
+            description:
+              this.brandInfo?.description ||
+              `Explore products by ${this.brandInfo?.name} at Adventures HUB Sports Shop.`,
+          });
+
           await this.loadProducts(this.currentBrandTermId, this.currentPage);
           await this.loadTotalProducts(this.currentBrandTermId);
         } else {
-          this.brandName = 'Unknown Brand';
+          // Fallback SEO tags إذا لم يتم العثور على البراند
+          this.schemaData = this.seoService.applySeoTags(null, {
+            title: 'Brand Products - Adventures HUB Sports Shop',
+            description: 'Explore products by brand at Adventures HUB Sports Shop.',
+          });
         }
+      } else {
+        this.schemaData = this.seoService.applySeoTags(null, {
+          title: 'Brand Products - Adventures HUB Sports Shop',
+          description: 'Explore products by brand at Adventures HUB Sports Shop.',
+        });
       }
     } catch (error) {
       console.error('Error in ngOnInit:', error);
-      this.brandName = 'Unknown Brand';
+      // Fallback SEO tags في حالة حدوث خطأ
+      this.schemaData = this.seoService.applySeoTags(null, {
+        title: 'Brand Products - Adventures HUB Sports Shop',
+        description: 'Explore products by brand at Adventures HUB Sports Shop.',
+      });
     } finally {
       this.isLoading = false;
     }
   }
-
+  
   ngAfterViewInit() {
     console.log('FilterSidebar:', this.filterSidebar);
     if (this.filterSidebar) {

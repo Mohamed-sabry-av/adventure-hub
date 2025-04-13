@@ -1,0 +1,40 @@
+<div class="payment-methods-content">
+    <h2 class="text-2xl font-semibold mb-4">Payment Methods</h2>
+  
+    <div *ngIf="isLoading" class="loading">
+      <p>Loading your payment methods...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
+  
+    <div *ngIf="!isLoading && !error">
+      <p class="text-sm mb-4">The following payment methods are available on your account.</p>
+  
+      <div *ngIf="paymentGateways && paymentGateways.length > 0" class="payment-methods-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div *ngFor="let gateway of paymentGateways" class="payment-method-card p-5 border rounded">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-lg font-medium">{{ gateway.title }}</h3>
+            <div class="payment-method-icon">
+              <i class="pi" [ngClass]="{
+                'pi-credit-card': gateway.id === 'stripe' || gateway.id === 'bacs',
+                'pi-paypal': gateway.id === 'paypal',
+                'pi-money-bill': gateway.id === 'cod'
+              }"></i>
+            </div>
+          </div>
+          <p class="text-gray-500 mb-3" [innerHTML]="gateway.description"></p>
+  
+          <a href="javascript:void(0)" class="manage-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+            Manage
+          </a>
+        </div>
+      </div>
+  
+      <div *ngIf="paymentGateways && paymentGateways.length === 0" class="no-payment-methods">
+        <p>No payment methods available.</p>
+      </div>
+    </div>
+  </div>
+  

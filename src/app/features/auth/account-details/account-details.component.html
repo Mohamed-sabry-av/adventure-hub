@@ -6,68 +6,171 @@
     <p>My account</p>
   </div>
 
-  <!-- title and bars -->
+  <!-- title and mobile menu toggle -->
   <div class="flex items-center justify-between mb-4">
     <div>
       <h1 class="text-4xl font-semibold">My account</h1>
     </div>
-    <i class="pi pi-bars text-xl lg:hidden"></i>
+    <i (click)="toggleMobileMenu()" class="pi pi-bars text-xl cursor-pointer lg:hidden"></i>
   </div>
 
   <!-- content -->
-  <div class="grid grid-cols-12">
-    <div class="col-span-2 hidden lg:block">
-      <!-- الواجهه الرئيسيه -->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>Dashboard</p>
-        <i class="pi text-gray-400 pi-user"></i>
-      </div>
-      <!-- الاوردرات -->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>Orders</p>
-        <i class="pi text-gray-400 pi-clipboard"></i>
-      </div>
+  <div class="grid grid-cols-12 gap-6">
+    <!-- Sidebar navigation - desktop -->
+    <div class="col-span-12 lg:col-span-3 hidden lg:block">
+      <nav class="account-nav">
+        <!-- Dashboard -->
+        <div
+          (click)="setActiveSection('dashboard')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'dashboard'">
+          <p>Dashboard</p>
+          <i class="pi text-gray-400 pi-user"></i>
+        </div>
 
-      <!-- التنزيلات -->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>Downloads</p>
-        <i class="pi text-gray-400 pi-download"></i>
-      </div>
+        <!-- Orders -->
+        <div
+          (click)="setActiveSection('orders')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'orders'">
+          <p>Orders</p>
+          <i class="pi text-gray-400 pi-clipboard"></i>
+        </div>
 
-      <!-- العناوين -->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>Addresses</p>
-        <i class="pi text-gray-400 pi-home"></i>
-      </div>
+        <!-- Downloads -->
+        <div
+          (click)="setActiveSection('downloads')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'downloads'">
+          <p>Downloads</p>
+          <i class="pi text-gray-400 pi-download"></i>
+        </div>
 
-      <!-- وسائل الدفع -->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>Payment methods</p>
-        <i class="pi text-gray-400 pi-credit-card"></i>
-      </div>
+        <!-- Addresses -->
+        <div
+          (click)="setActiveSection('addresses')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'addresses'">
+          <p>Addresses</p>
+          <i class="pi text-gray-400 pi-home"></i>
+        </div>
 
-      <!-- تفاصيل الاكونت-->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>Account details</p>
-        <i class="pi text-gray-400 pi-user"></i>
-      </div>
+        <!-- Payment methods -->
+        <div
+          (click)="setActiveSection('payment-methods')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'payment-methods'">
+          <p>Payment methods</p>
+          <i class="pi text-gray-400 pi-credit-card"></i>
+        </div>
 
-      <!-- التفضيلات -->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>My wishlist</p>
-        <i class="pi text-gray-400 pi-heart"></i>
-      </div>
+        <!-- Wishlist -->
+        <div
+          (click)="setActiveSection('wishlist')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'wishlist'">
+          <p>My wishlist</p>
+          <i class="pi text-gray-400 pi-heart"></i>
+        </div>
 
-      <!-- تسجيل الخروج -->
-      <div class="flex justify-between items-center py-4 border-b">
-        <p>Log out</p>
-        <i class="pi text-gray-400 pi-sign-out"></i>
-      </div>
+        <!-- Logout -->
+        <div
+          (click)="logout()"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer">
+          <p>Log out</p>
+          <i class="pi text-gray-400 pi-sign-out"></i>
+        </div>
+      </nav>
     </div>
-    <div class="lg:col-start-4 lg:col-span-9 col-span-12">
-      <p>HHHH</p>
+
+    <!-- Mobile menu overlay -->
+    <div *ngIf="isMobileMenuOpen" class="mobile-menu-overlay fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" (click)="toggleMobileMenu()"></div>
+
+    <!-- Mobile menu -->
+    <div *ngIf="isMobileMenuOpen" class="mobile-menu fixed top-0 left-0 h-full w-3/4 bg-white z-50 p-5 transform transition-transform lg:hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">Account Menu</h2>
+        <i (click)="toggleMobileMenu()" class="pi pi-times text-xl cursor-pointer"></i>
+      </div>
+
+      <nav class="account-nav">
+        <!-- Dashboard -->
+        <div
+          (click)="setActiveSection('dashboard')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'dashboard'">
+          <p>Dashboard</p>
+          <i class="pi text-gray-400 pi-user"></i>
+        </div>
+
+        <!-- Orders -->
+        <div
+          (click)="setActiveSection('orders')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'orders'">
+          <p>Orders</p>
+          <i class="pi text-gray-400 pi-clipboard"></i>
+        </div>
+
+        <!-- Downloads -->
+        <div
+          (click)="setActiveSection('downloads')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'downloads'">
+          <p>Downloads</p>
+          <i class="pi text-gray-400 pi-download"></i>
+        </div>
+
+        <!-- Addresses -->
+        <div
+          (click)="setActiveSection('addresses')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'addresses'">
+          <p>Addresses</p>
+          <i class="pi text-gray-400 pi-home"></i>
+        </div>
+
+        <!-- Payment methods -->
+        <div
+          (click)="setActiveSection('payment-methods')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'payment-methods'">
+          <p>Payment methods</p>
+          <i class="pi text-gray-400 pi-credit-card"></i>
+        </div>
+
+        <!-- Wishlist -->
+        <div
+          (click)="setActiveSection('wishlist')"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
+          [class.active]="activeSection === 'wishlist'">
+          <p>My wishlist</p>
+          <i class="pi text-gray-400 pi-heart"></i>
+        </div>
+
+        <!-- Logout -->
+        <div
+          (click)="logout()"
+          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer">
+          <p>Log out</p>
+          <i class="pi text-gray-400 pi-sign-out"></i>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Content section -->
+    <div class="col-span-12 lg:col-span-9">
+      <!-- Content components -->
+      <div [ngSwitch]="activeSection">
+        <app-dashboard *ngSwitchCase="'dashboard'"></app-dashboard>
+        <app-orders *ngSwitchCase="'orders'"></app-orders>
+        <app-downloads *ngSwitchCase="'downloads'"></app-downloads>
+        <app-addresses *ngSwitchCase="'addresses'"></app-addresses>
+        <app-payment-methods *ngSwitchCase="'payment-methods'"></app-payment-methods>
+        <app-wishlist *ngSwitchCase="'wishlist'"></app-wishlist>
+      </div>
     </div>
   </div>
 
-  <app-service-highlights />
+  <app-service-highlights></app-service-highlights>
 </app-app-container>

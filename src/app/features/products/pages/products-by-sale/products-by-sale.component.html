@@ -1,6 +1,9 @@
+<ng-container *ngIf="schemaData">
+  <script type="application/ld+json" [innerHTML]="schemaData"></script>
+</ng-container>
+
 <app-breadcrumb></app-breadcrumb>
 <div class="bg-white">
-  <!-- الـ backdrop بيظهر لما الـ drawer مفتوح -->
   <div
     *ngIf="filterDrawerOpen"
     class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 transition-opacity ease-linear duration-300"

@@ -6,6 +6,7 @@ import { FilterDrawerComponent } from '../../components/filter-drawer/filter-dra
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
 import { FilterService } from '../../../../core/services/filter.service';
+import { SeoService } from '../../../../core/services/seo.service';
 
 @Component({
   selector: 'app-products-by-sale',
@@ -31,20 +32,30 @@ export class ProductsBySaleComponent implements OnInit {
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
-
+  schemaData: any;
+  
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
 
-  constructor(private filterService: FilterService) {}
+  constructor(private filterService: FilterService,private seoService:SeoService) {}
 
   async ngOnInit() {
     this.isLoading = true;
     try {
+      this.schemaData = this.seoService.applySeoTags(null, {
+        title: 'On Sale Products - Adventures HUB Sports Shop',
+        description: 'Discover discounted diving equipment, outdoor gear, and sports accessories at Adventures HUB Sports Shop. Shop now and save on premium products!',
+      });
+
       await this.loadProductsWithFilters(this.currentPage);
       await this.loadTotalProductsOnSale();
       this.loadAvailableAttributes();
     } catch (error) {
       console.error('Error in ngOnInit:', error);
+      // Fallback SEO tags in case of error
+      this.schemaData = this.seoService.applySeoTags(null, {
+        title: 'On Sale Products - Adventures HUB Sports Shop',
+      });
     } finally {
       this.isLoading = false;
     }

@@ -18,7 +18,7 @@ export class ProductsBrandService {
     private apiService: ApiService,
     private cacheService: CacheService,
     private productService: ProductService,
-    private handelErrorService:HandleErrorsService,
+    private handelErrorService: HandleErrorsService,
     private filterService: FilterService
   ) {}
 
@@ -34,7 +34,10 @@ export class ProductsBrandService {
     let params = new HttpParams()
       .set('attribute', 'pa_brand')
       .set('attribute_term', brandTermId.toString())
-      .set('_fields', 'id,name,price,images,categories,description,attributes')
+      .set(
+        '_fields',
+        'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits'
+      )
       .set('per_page', perPage.toString())
       .set('page', page.toString())
       .set('stock_status', 'instock')
@@ -50,26 +53,30 @@ export class ProductsBrandService {
 
     return this.cacheService.cacheObservable(
       cacheKey,
-      this.apiService.getRequestProducts<any>('products', {
-        params,
-        observe: 'response',
-      }).pipe(
-        map((response) => {
-          return response.body.map((product: any) => ({
-            ...product,
-            images: product.images.slice(0, 3) || [],
-          }));
-        }),
-        catchError((error) => {
-          console.error(`Error fetching products for brand term ${brandTermId}:`, error);
-          return of([]);
-        }),
-        shareReplay(1)
-      ),
+      this.apiService
+        .getRequestProducts<any>('products', {
+          params,
+          observe: 'response',
+        })
+        .pipe(
+          map((response) => {
+            return response.body.map((product: any) => ({
+              ...product,
+              images: product.images.slice(0, 3) || [],
+            }));
+          }),
+          catchError((error) => {
+            console.error(
+              `Error fetching products for brand term ${brandTermId}:`,
+              error
+            );
+            return of([]);
+          }),
+          shareReplay(1)
+        ),
       300000
     );
   }
-
 
   getTotalProductsByBrandTermId(
     brandTermId: number,
@@ -93,73 +100,106 @@ export class ProductsBrandService {
 
     return this.cacheService.cacheObservable(
       cacheKey,
-      this.apiService.getRequestProducts<any>('products', {
-        params,
-        observe: 'response',
-      }).pipe(
-        map((response) => {
-          const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
-          return isNaN(total) ? 0 : total;
-        }),
-        catchError((error) => {
-          console.error(`Error fetching total products for brand term ${brandTermId}:`, error);
-          return of(0);
+      this.apiService
+        .getRequestProducts<any>('products', {
+          params,
+          observe: 'response',
         })
-      ),
+        .pipe(
+          map((response) => {
+            const total = parseInt(
+              response.headers.get('X-WP-Total') || '0',
+              10
+            );
+            return isNaN(total) ? 0 : total;
+          }),
+          catchError((error) => {
+            console.error(
+              `Error fetching total products for brand term ${brandTermId}:`,
+              error
+            );
+            return of(0);
+          })
+        ),
       300000
     );
-  } 
+  }
 
-  getBrandInfoBySlug(brandSlug: string): Observable<{ id: number; name: string; slug: string } | null> {
+  getBrandInfoBySlug(
+    brandSlug: string
+  ): Observable<{ id: number; name: string; slug: string } | null> {
     const cacheKey = `brand_info_${brandSlug}`;
     return this.cacheService.cacheObservable(
       cacheKey,
-      this.apiService.getRequestProducts<any>('products/attributes/3/terms', {
-        params: new HttpParams()
-          .set('slug', brandSlug)
-          .set('_fields', 'id,name,slug'),
-      }).pipe(
-        map((response) => {
-          const term = Array.isArray(response) && response.length > 0 ? response[0] : null;
-          return term ? { id: term.id, name: term.name, slug: term.slug } : null;
-        }),
-        catchError((error) => {
-          console.error(`Error fetching brand info for slug ${brandSlug}:`, error);
-          return of(null);
-        }),
-        shareReplay(1)
-      ),
+      this.apiService
+        .getRequestProducts<any>('products/attributes/3/terms', {
+          params: new HttpParams()
+            .set('slug', brandSlug)
+            .set('_fields', 'id,name,slug'),
+        })
+        .pipe(
+          map((response) => {
+            const term =
+              Array.isArray(response) && response.length > 0
+                ? response[0]
+                : null;
+            return term
+              ? { id: term.id, name: term.name, slug: term.slug }
+              : null;
+          }),
+          catchError((error) => {
+            console.error(
+              `Error fetching brand info for slug ${brandSlug}:`,
+              error
+            );
+            return of(null);
+          }),
+          shareReplay(1)
+        ),
       300000
     );
   }
 
-
-
-  getAllAttributesAndTermsByBrand(brandTermId: any): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
+  getAllAttributesAndTermsByBrand(
+    brandTermId: any
+  ): Observable<{
+    [key: string]: { name: string; terms: { id: number; name: string }[] };
+  }> {
     const cacheKey = `attributes_terms_brand_${brandTermId}_page_1`;
     return this.cacheService.cacheObservable(
       cacheKey,
-      this.apiService.getRequestProducts<any>('products', {
-        params: new HttpParams()
-          .set('attribute', 'pa_brand')
-          .set('attribute_term', brandTermId.toString())
-          .set('_fields', 'id,attributes')
-          .set('per_page', '100')
-          .set('page', '1'),
-        observe: 'response',
-      }).pipe(
-        map((response: HttpResponse<any>) => this.filterService.processAttributes(response).attributes),
-        catchError((error) => {
-          console.error(`Error fetching attributes/terms for brand ${brandTermId}:`, error);
-          return of({});
-        }),
-        shareReplay(1)
-      ),
+      this.apiService
+        .getRequestProducts<any>('products', {
+          params: new HttpParams()
+            .set('attribute', 'pa_brand')
+            .set('attribute_term', brandTermId.toString())
+            .set('_fields', 'id,attributes')
+            .set('per_page', '100')
+            .set('page', '1'),
+          observe: 'response',
+        })
+        .pipe(
+          map(
+            (response: HttpResponse<any>) =>
+              this.filterService.processAttributes(response).attributes
+          ),
+          catchError((error) => {
+            console.error(
+              `Error fetching attributes/terms for brand ${brandTermId}:`,
+              error
+            );
+            return of({});
+          }),
+          shareReplay(1)
+        ),
       300000
     );
   }
 
-  getAvailableAttributesAndTermsByBrand(brandTermId: any, filters: { [key: string]: string[] }): Observable<any> {
+  getAvailableAttributesAndTermsByBrand(
+    brandTermId: any,
+    filters: { [key: string]: string[] }
+  ): Observable<any> {
     let params = new HttpParams()
       .set('attribute', 'pa_brand')
       .set('attribute_term', brandTermId.toString());
@@ -168,6 +208,8 @@ export class ProductsBrandService {
         params = params.set(key, values.join(','));
       }
     }
-    return this.apiService.getRequestProducts<any>('products/attributes', { params });
+    return this.apiService.getRequestProducts<any>('products/attributes', {
+      params,
+    });
   }
 }

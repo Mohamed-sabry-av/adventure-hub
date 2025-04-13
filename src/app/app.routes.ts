@@ -5,9 +5,9 @@ import { blogRoutes } from './features/blog/blog.routes';
 import { productsRoutes } from './features/products/products.routes';
 import { pagesRoutes } from './features/terms,about,contactUs/pages.routes';
 import { categoryRoutes } from './features/products/categories.routes';
+import { authroutes } from './features/auth/auth.route';
 
 export const routes: Routes = [
-  // المسارات الثابتة
   {
     path: '',
     loadComponent: () =>
@@ -41,10 +41,8 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'myaccount',
-    loadComponent: () =>
-      import('./features/auth/auth.component').then((m) => m.AuthComponent),
-    pathMatch: 'full',
+    path: 'user',
+    children: authroutes,
   },
 
   // Nested Routes 

@@ -1,0 +1,50 @@
+<div class="wishlist-content">
+    <h2 class="text-2xl font-semibold mb-4">My Wishlist</h2>
+  
+    <div *ngIf="isLoading" class="loading">
+      <p>Loading your wishlist...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
+  
+    <div *ngIf="!isLoading && !error">
+      <div *ngIf="wishlistItems && wishlistItems.length > 0" class="wishlist-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let item of wishlistItems" class="wishlist-item p-4 border rounded relative">
+          <!-- Remove button -->
+          <button class="remove-btn absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors" (click)="removeFromWishlist(item.id)">
+            <i class="pi pi-times"></i>
+          </button>
+  
+          <!-- Product image -->
+          <div class="product-image mb-3">
+            <img [src]="item.product.images?.[0]?.src || 'assets/placeholder.jpg'" alt="{{ item.product.name }}" class="w-full h-44 object-cover rounded">
+          </div>
+  
+          <!-- Product info -->
+          <div class="product-info">
+            <h3 class="text-lg font-medium mb-2">{{ item.product.name }}</h3>
+            <p class="price mb-3" [innerHTML]="item.product.price_html"></p>
+  
+            <div class="flex space-x-2">
+              <a [href]="item.product.permalink" class="view-btn flex-1 px-3 py-2 text-center bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                View
+              </a>
+              <button class="add-to-cart-btn flex-1 px-3 py-2 text-center bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div *ngIf="wishlistItems && wishlistItems.length === 0" class="no-wishlist-items">
+        <p>No items in your wishlist.</p>
+        <a href="javascript:void(0)" class="shop-button inline-block mt-4 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+          Browse Products
+        </a>
+      </div>
+    </div>
+  </div>
+  

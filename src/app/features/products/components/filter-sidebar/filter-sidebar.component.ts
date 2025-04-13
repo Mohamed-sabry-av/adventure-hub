@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, SimpleChanges, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
@@ -26,18 +26,18 @@ interface SectionState { isOpen: boolean; showAll: boolean; visibleTermsCount: n
     ])
   ]
 })
-export class FilterSidebarComponent implements OnInit {
+export class FilterSidebarComponent implements OnInit, OnChanges {
   @Input() categoryId: number | null = null;
+  @Input() selectedFilters: { [key: string]: string[] } = {};
   @Output() filtersChanges = new EventEmitter<{ [key: string]: string[] }>();
-  originalAttributes: Attribute[] = [];
 
+  originalAttributes: Attribute[] = [];
   attributes: Attribute[] = [];
   sectionStates: { [slug: string]: SectionState } = {};
   isLoadingAttributes = true;
   errorMessage: string | null = null;
   private readonly DEFAULT_VISIBLE_TERMS = 5;
   private filtersSubject = new BehaviorSubject<{ [key: string]: string[] }>({});
-  selectedFilters: { [key: string]: string[] } = {};
 
   constructor(
     private filterService: FilterService,
@@ -46,30 +46,41 @@ export class FilterSidebarComponent implements OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['categoryId']) {
-      // إعادة تعيين الفلاتر عند تغيير الفئة
-      this.selectedFilters = {};
-      localStorage.removeItem(`filters_${changes['categoryId'].previousValue}`); // حذف الفلاتر القديمة إذا لزم الأمر
-      
-      // تحميل الفلاتر المحفوظة للفئة الجديدة إن وجدت
-      // const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
-      // this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
-      
-      this.filtersSubject.next({ ...this.selectedFilters }); // إرسال الفلاتر الجديدة
-      this.loadAttributes(); // تحميل السمات للفئة الجديدة
+      // Reset filters when category changes
+      if (!changes['selectedFilters']) {
+        this.selectedFilters = {};
+      }
+      localStorage.removeItem(`filters_${changes['categoryId'].previousValue}`);
+
+      this.filtersSubject.next({ ...this.selectedFilters });
+      this.loadAttributes();
+    }
+
+    if (changes['selectedFilters'] && !changes['categoryId']) {
+      console.log('selectedFilters changed:', this.selectedFilters);
+      this.filtersSubject.next({ ...this.selectedFilters });
+      this.updateAvailableAttributes();
     }
   }
-  
+
   ngOnInit(): void {
-    const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
-    this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
-    this.filtersSubject.next({ ...this.selectedFilters }); // إرسال الفلاتر المحفوظة فورًا
+    if (!this.selectedFilters || Object.keys(this.selectedFilters).length === 0) {
+      const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
+      this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
+    }
+
+    this.filtersSubject.next({ ...this.selectedFilters });
+
     this.filtersSubject.pipe(debounceTime(300)).subscribe(filters => {
       this.filtersChanges.emit({ ...filters });
       this.updateAvailableAttributes();
     });
+
     this.loadAttributes();
-    this.filtersSubject.subscribe(filters => this.filtersChanges.emit({ ...filters }));
   }
+
+
+  
 
 
   private async loadAttributes(): Promise<void> {
