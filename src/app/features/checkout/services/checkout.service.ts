@@ -6,14 +6,18 @@ import { Store } from '@ngrx/store';
 import { StoreInterface } from '../../../Store/store';
 import { createOrderAction } from '../../../Store/actions/checkout.action';
 import { HttpClient } from '@angular/common/http';
+import { ApiService } from '../../../core/services/api.service';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
   private cartService = inject(CartService);
+  private wooApi = inject(ApiService);
   private destroyRef = inject(DestroyRef);
-  private httpClient = inject(HttpClient);
   private store = inject(Store<StoreInterface>);
-  private apiUrl = 'https://adventures-hub.com/create-payment-intent';
+
+  getAllCoupons() {
+    this.wooApi.getRequest('coupons').subscribe((res) => console.log(res));
+  }
 
   createOrder(
     addresses: { billing: any; shipping: any },
@@ -48,9 +52,5 @@ export class CheckoutService {
       });
 
     this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
-  }
-
-  createPaymentIntent(amount: number, currency: string): Observable<any> {
-    return this.httpClient.post<any>(this.apiUrl, { amount, currency });
   }
 }

@@ -36,3 +36,9 @@ input[type="radio"] {
 .paymentOptionActive {
   @apply border border-[#ff5722] bg-[#f8e5e0ee];
 }
+
+svg {
+  width: 60px;
+  margin-left: auto;
+  margin-right: auto;
+}

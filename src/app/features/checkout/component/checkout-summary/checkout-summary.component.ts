@@ -11,6 +11,7 @@ import { AsyncPipe } from '@angular/common';
 })
 export class CheckoutSummaryComponent {
   private cartService = inject(CartService);
+  @Input({ required: true }) isVisible$!: Observable<boolean>;
 
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
 

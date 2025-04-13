@@ -1,6 +1,6 @@
 // src/app/components/header/header.component.ts
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../interfaces/category.model';
 import { Carousel } from 'primeng/carousel';
@@ -8,10 +8,10 @@ import { ButtonModule } from 'primeng/button';
 import { AppContainerComponent } from '../app-container/app-container.component';
 import { NavbarContainerComponent } from '../navbar-container/navbar-container.component';
 import { NavbarService } from '../../services/navbar.service';
-import { RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
-import { Observable } from 'rxjs';
+import { filter, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -23,7 +23,7 @@ import { Observable } from 'rxjs';
     AppContainerComponent,
     NavbarContainerComponent,
     RouterLink,
-    SearchBarComponent
+    SearchBarComponent,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
@@ -31,26 +31,34 @@ import { Observable } from 'rxjs';
 export class HeaderComponent implements OnInit {
   private navbarService = inject(NavbarService);
   private accountAuthService = inject(AccountAuthService);
+  private categoriesService = inject(CategoriesService);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
 
-  onSiwtchSideNav(visible: boolean) {
-    this.navbarService.siwtchSideNav(visible);
-  }
-
-  announcements: string[] = [
-    '<strong>Free Delivery</strong> for orders over AED 500',
-    'Buy Now & Pay Later with <strong>Tabby</strong>',
-  ];
-
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
-  // -------------------------------------------------------------
-
-  constructor(private categoriesService: CategoriesService) {}
+  currentPage: string = '';
 
   ngOnInit() {
     this.fetchAllCategories();
+
+    const subscribtion = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        if (event.url === '/checkout') {
+          this.currentPage = 'checkout';
+        } else {
+          this.currentPage = '';
+        }
+      });
+
+    this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
+  }
+
+  onSiwtchSideNav(visible: boolean) {
+    this.navbarService.siwtchSideNav(visible);
   }
 
   private fetchAllCategories(): void {

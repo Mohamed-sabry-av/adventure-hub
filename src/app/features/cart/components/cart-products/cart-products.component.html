@@ -1,7 +1,31 @@
-<div class="w-full mb-20">
-  <h1 class="text-[#4d4f3a] text-3xl font-semibold mb-8 text-center">
+<div class="w-full">
+  <!-- Title -->
+  <h1 class="text-[#4d4f3a] text-2xl md:text-5xl font-bold mb-8 text-center">
     Your Cart
   </h1>
+
+  <!-- Free Shipping Container -->
+  <div class="mb-12 text-[#4d4f3a]">
+    <p class="text-center text-base md:text-lg mb-2">
+      @if (progressValue > 100) {
+      <span class="font-semibold">
+        Your order is eligible for free shipping!
+      </span>
+      }@else {
+      <span>
+        Spend <strong>{{ progressValue | currency : "AED" }}</strong> more for
+        <strong>free shipping!</strong></span
+      >
+      }
+    </p>
+
+    <div class="h-2 rounded-lg w-full bg-gray-200 overflow-hidden">
+      <div
+        class="h-full bg-[#4d4f3a] transition-all duration-500"
+        [style.width.%]="progressValue"
+      ></div>
+    </div>
+  </div>
 
   <div
     class="p-2"
@@ -12,21 +36,19 @@
   >
     @for (item of (loadedCart$ | async)?.items; track $index) {
 
-    <div class="flex gap-x-6 border-b pb-4 mt-5">
+    <div class="flex gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <img
-        [src]="item.images"
-        alt=""
-        class="w-[112px] h-[112px] object-cover"
-      />
+      <a class="block md:w-[112px] md:h-[112px] w-[64px] h-[64px]">
+        <img [src]="item.images" alt="" class="w-full h-full bg-cover" />
+      </a>
 
       <div class="flex-1">
-        <div class="flex justify-between">
+        <div class="flex justify-between flex-col md:flex-row">
           <div class="flex flex-col font-semibold gap-y-1 text-sm">
             <p class="font-normal text-[#b2b48d]">
               {{ item.name.split(" ")[0] }}
             </p>
-            <p class="text-base">{{ item.name }}</p>
+            <p class="text-base" [innerHTML]="item.name"></p>
             <p class="text-base">
               {{ item.prices.price }}
               @if (item.prices.regular_price !== item.prices.price) {
@@ -93,15 +115,12 @@
           </div>
 
           <!-- Price -->
-          <div class="text-center">
+          <div class="md:text-center pt-4 md:pt-0">
+            <p class="mb-2 text-[#4d4f3a] md:hidden block">Subtotal</p>
+
             <p class="text-base font-semibold">
-              {{ item.prices.price }}
+              {{ item.totals.line_total | currency : "AED" }}
             </p>
-            @if (item.prices.regular_price !== item.prices.price) {
-            <del class="text-sm text-gray-400">{{
-              item.prices.regular_price
-            }}</del>
-            }
           </div>
         </div>
       </div>

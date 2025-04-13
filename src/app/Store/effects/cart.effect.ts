@@ -190,6 +190,7 @@ export class CartEffect {
                     quantity: item.quantity,
                     quantity_limits: item.quantity_limits,
                     attributes: item.attributes,
+                    totals: item.totals,
                   };
                 });
 

@@ -18,16 +18,7 @@
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
-            "assets": [
-              {
-                "glob": "/*",
-                "input": "public"
-              },
-              {
-                "glob": "/*",
-                "input": "src/assets"
-              }
-            ],
+            "assets": ["src/favicon.ico", "src/assets", "src/public"],
             "styles": ["src/custom-theme.scss", "src/styles.css"],
             "scripts": [],
             "server": "src/main.server.ts",
@@ -58,6 +49,8 @@
               },
               "sourceMap": false,
               "extractLicenses": true,
+              "vendorChunk": true,
+              "buildOptimizer": true,
               "serviceWorker": "ngsw-config.json"
             },
             "development": {
@@ -90,7 +83,7 @@
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {
-                "glob": "/*",
+                "glob": "**/*",
                 "input": "public"
               }
             ],

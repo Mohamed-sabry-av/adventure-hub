@@ -25,13 +25,9 @@ export class CheckoutEffect {
           });
 
           return this.httpClient
-            .post(
-              'https://adventures-hub.com/wp-json/wc/v3/orders',
-              orderDetails,
-              {
-                headers,
-              }
-            )
+            .post('http://46.202.88.235/wp-json/wc/v3/orders', orderDetails, {
+              headers,
+            })
             .pipe(
               map((res) => {
                 console.log('Success:', res);

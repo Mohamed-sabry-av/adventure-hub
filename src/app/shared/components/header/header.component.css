@@ -1,3 +1,11 @@
+.pi {
+  @apply text-white text-lg lg:text-2xl cursor-pointer;
+}
+
+.bag-checkout {
+  @apply text-orange-500 absolute right-4 lg:right-8 xl:right-32  top-1/2 -translate-y-1/2;
+}
+
 .pi-bars {
   @apply text-white hidden text-lg lg:text-2xl cursor-pointer;
 }
