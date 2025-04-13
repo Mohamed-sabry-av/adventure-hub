@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
 import { CommonModule } from '@angular/common';
@@ -14,6 +14,8 @@ export class DashboardComponent implements OnInit {
   customerDetails: any = null;
   isLoading = true;
   error: string | null = null;
+
+  @Output() sectionChange = new EventEmitter<string>();
 
   private accountService = inject(WooCommerceAccountService);
   private localStorageService = inject(LocalStorageService);
@@ -46,5 +48,26 @@ export class DashboardComponent implements OnInit {
   getCustomerId(): number | null {
     const customerIdStr:any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
+  }
+
+  navigateTo(section: string): void {
+    // Find parent component (app-account-details) and change the active section
+    const parentElement = document.querySelector('app-account-details');
+    if (parentElement) {
+      const event = new CustomEvent('sectionChange', { detail: section });
+      parentElement.dispatchEvent(event);
+
+      // Update the URL parameter directly
+      const url = new URL(window.location.href);
+      url.searchParams.set('section', section);
+      window.history.pushState({}, '', url);
+
+      // This is a workaround for the Angular router, as we're using a more direct DOM approach
+      // A better solution would be to use Angular's router or to expose the setActiveSection method
+      // in the parent component, but this simpler solution will work for now
+      setTimeout(() => {
+        window.dispatchEvent(new Event('popstate'));
+      }, 100);
+    }
   }
 }

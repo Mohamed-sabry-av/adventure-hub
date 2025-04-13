@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AppContainerComponent } from '../../../shared/components/app-container/app-container.component';
@@ -12,6 +12,7 @@ import { DownloadsComponent } from './components/downloads/downloads.component';
 import { AddressesComponent } from './components/addresses/addresses.component';
 import { PaymentMethodsComponent } from './components/payment-methods/payment-methods.component';
 import { WishlistComponent } from './components/wishlist/wishlist.component';
+import { AccountDetailsEditComponent } from './components/account-details-edit/account-details-edit.component';
 
 @Component({
   selector: 'app-account-details',
@@ -28,7 +29,8 @@ import { WishlistComponent } from './components/wishlist/wishlist.component';
     DownloadsComponent,
     AddressesComponent,
     PaymentMethodsComponent,
-    WishlistComponent
+    WishlistComponent,
+    AccountDetailsEditComponent
   ]
 })
 export class AccountDetailsComponent implements OnInit {
@@ -38,6 +40,13 @@ export class AccountDetailsComponent implements OnInit {
   private accountService = inject(WooCommerceAccountService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  @HostListener('sectionChange', ['$event'])
+  onSectionChange(event: CustomEvent) {
+    if (event.detail) {
+      this.setActiveSection(event.detail);
+    }
+  }
 
   ngOnInit(): void {
     // Get the active section from the route if available

@@ -49,11 +49,54 @@ export class DownloadsComponent implements OnInit {
   }
 
   formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  }
+
+  getFileIcon(filename: string): string {
+    const extension = filename.split('.').pop()?.toLowerCase() || '';
+
+    const iconMap: {[key: string]: string} = {
+      'pdf': 'pi-file-pdf',
+      'doc': 'pi-file-word',
+      'docx': 'pi-file-word',
+      'xls': 'pi-file-excel',
+      'xlsx': 'pi-file-excel',
+      'ppt': 'pi-file-powerpoint',
+      'pptx': 'pi-file-powerpoint',
+      'jpg': 'pi-image',
+      'jpeg': 'pi-image',
+      'png': 'pi-image',
+      'gif': 'pi-image',
+      'zip': 'pi-file-archive',
+      'rar': 'pi-file-archive',
+      'mp3': 'pi-volume-up',
+      'mp4': 'pi-video',
+      'default': 'pi-file'
+    };
+
+    return `pi ${iconMap[extension] || iconMap['default']}`;
+  }
+
+  getRemainingDownloads(download: any): string {
+    if (!download.download_limit) return 'Unlimited';
+
+    const remaining = download.download_limit - download.download_count;
+    return remaining.toString();
+  }
+
+  isDownloadExpired(download: any): boolean {
+    if (!download.access_expires) return false;
+
+    const expiryDate = new Date(download.access_expires);
+    const now = new Date();
+
+    return expiryDate < now;
   }
 }

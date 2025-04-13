@@ -8,7 +8,7 @@ import { HttpParams } from '@angular/common/http';
   providedIn: 'root',
 })
 export class WooCommerceAccountService {
-  private apiEndpoint = '';
+  private baseUrl = 'https://adventures-hub.com/';
 
   constructor(
     private apiService: ApiService,
@@ -31,14 +31,57 @@ export class WooCommerceAccountService {
     return this.apiService.getRequest(`customers/${customerId}`);
   }
 
+  // Update Customer Details
+  updateCustomerDetails(customerId: number, customerData: any): Observable<any> {
+    return this.apiService.putRequest(`customers/${customerId}`, customerData);
+  }
+
+  // Update Customer Billing Address
+  updateBillingAddress(customerId: number, billingData: any): Observable<any> {
+    const data = { billing: billingData };
+    return this.apiService.putRequest(`customers/${customerId}`, data);
+  }
+
+  // Update Customer Shipping Address
+  updateShippingAddress(customerId: number, shippingData: any): Observable<any> {
+    const data = { shipping: shippingData };
+    return this.apiService.putRequest(`customers/${customerId}`, data);
+  }
+
   // Get Payment Gateways
   getPaymentGateways(): Observable<any> {
     return this.apiService.getRequest('payment_gateways');
   }
 
-  // Get Wishlist (if you have YITH Wishlist Plugin)
+  // Update Payment Method
+  updatePaymentMethod(paymentMethodId: string, data: any): Observable<any> {
+    return this.apiService.putRequest(`payment_gateways/${paymentMethodId}`, data);
+  }
+
+  // Get Wishlist
   getWishlist(): Observable<any> {
-    return this.apiService.getRequest('yith/wishlist/v1/lists');
+    const url = `${this.baseUrl}wp-json/wc-wishlist/v1/get`;
+    return this.apiService.getExternalRequest(url);
+  }
+
+  // Add item to Wishlist
+  addToWishlist(productId: number): Observable<any> {
+    const url = `${this.baseUrl}wp-json/wc-wishlist/v1/add`;
+    const body = { product_id: productId };
+    return this.apiService.postExternalRequest(url, body);
+  }
+
+  // Remove item from Wishlist
+  removeFromWishlist(productId: number): Observable<any> {
+    const url = `${this.baseUrl}wp-json/wc-wishlist/v1/remove`;
+    const body = { product_id: productId };
+    return this.apiService.postExternalRequest(url, body);
+  }
+
+  // Get Customer ID from local storage
+  getCustomerId(): number | null {
+    const customerIdStr: any = this.localStorageService.getItem('customerId');
+    return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
 
   // Log out
