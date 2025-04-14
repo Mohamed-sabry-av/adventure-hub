@@ -71,3 +71,7 @@
   display: inline-block;
   margin-top: 0.25rem;
 }
+
+.layerVisible {
+  z-index: 1000;
+}

@@ -12,6 +12,7 @@ export class AccountAuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
   private readonly Api_Url = 'https://adventures-hub.com';
+  private readonly USER_ID_KEY = 'customerId';
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
@@ -22,7 +23,7 @@ export class AccountAuthService {
   ) {
     const token = this.localStorageService.getItem<string>(this.TOKEN_KEY);
     this.isLoggedInSubject.next(!!token);
-    this.verifyTokenOnInit()
+    this.verifyTokenOnInit();
   }
   verifyToken(): Observable<any> {
     const token = this.getToken();
@@ -35,9 +36,13 @@ export class AccountAuthService {
     }
 
     return this.http
-      .post(`${this.Api_Url}/wp-json/jwt-auth/v1/token/validate`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .post(
+        `${this.Api_Url}/wp-json/jwt-auth/v1/token/validate`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .pipe(
         tap((response: any) => {
           if (response.code === 'jwt_auth_valid_token') {
@@ -69,21 +74,41 @@ export class AccountAuthService {
     }
   }
 
-  login(credentials: { email?: string; username?: string; password: string }): Observable<HttpResponse<LoginResponse>> {
+  login(credentials: {
+    email?: string;
+    username?: string;
+    password: string;
+  }): Observable<HttpResponse<LoginResponse>> {
     return this.http
-      .post<LoginResponse>(`${this.Api_Url}/wp-json/jwt-auth/v1/token`, credentials, {
-        withCredentials:true,
-        observe: 'response'
-      })
+      .post<LoginResponse>(
+        `${this.Api_Url}/wp-json/jwt-auth/v1/token`,
+        credentials,
+        {
+          withCredentials: true,
+          observe: 'response',
+        }
+      )
       .pipe(
         tap((response: HttpResponse<LoginResponse>) => {
-          console.log('Cookies from response:', response.headers.get('Set-Cookie'));
           if (response.body?.token) {
-            this.localStorageService.setItem(this.TOKEN_KEY, response.body.token);
+            this.localStorageService.setItem(
+              this.TOKEN_KEY,
+              response.body.token
+            );
             this.localStorageService.setItem(this.USER_KEY, {
-              username: response.body.user_username || credentials.username || credentials.email || '',
-              email: response.body.user_email || ''
+              username:
+                response.body.user_username ||
+                credentials.username ||
+                credentials.email ||
+                '',
+              email: response.body.user_email || '',
             });
+            if (response.body.user_id) {
+              this.localStorageService.setItem(
+                this.USER_ID_KEY,
+                response.body.user_id.toString()
+              );
+            }
             this.isLoggedInSubject.next(true);
           }
         }),
@@ -93,18 +118,25 @@ export class AccountAuthService {
         })
       );
   }
-  
 
   getCart(): Observable<HttpResponse<any>> {
-    return this.http.get(`${this.Api_Url}/wp-json/wc/store/v1/cart`, {
-      withCredentials: true,
-      observe: 'response'
-    }).pipe(
-      tap(response => console.log('Cart Cookies:', response.headers.get('Set-Cookie')))
-    );
+    return this.http
+      .get(`${this.Api_Url}/wp-json/wc/store/v1/cart`, {
+        withCredentials: true,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response) =>
+          console.log('Cart Cookies:', response.headers.get('Set-Cookie'))
+        )
+      );
   }
 
-  signup(userData: { username: string; email: string; password: string }): Observable<any> {
+  signup(userData: {
+    username: string;
+    email: string;
+    password: string;
+  }): Observable<any> {
     return this.WooApi.postRequest('customers', userData).pipe(
       tap((response) => {
         console.log('SignUp successfully');

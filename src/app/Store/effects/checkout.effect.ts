@@ -16,7 +16,6 @@ export class CheckoutEffect {
       this.actions$.pipe(
         ofType(createOrderAction),
         switchMap(({ orderDetails }) => {
-          console.log('Order Details:', orderDetails);
           let authToken: any = localStorage.getItem('auth_token');
           authToken = authToken ? JSON.parse(authToken) : '';
 
@@ -25,9 +24,13 @@ export class CheckoutEffect {
           });
 
           return this.httpClient
-            .post('http://46.202.88.235/wp-json/wc/v3/orders', orderDetails, {
-              headers,
-            })
+            .post(
+              'https://adventures-hub.com/wp-json/wc/v3/orders',
+              orderDetails,
+              {
+                headers,
+              }
+            )
             .pipe(
               map((res) => {
                 console.log('Success:', res);

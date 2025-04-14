@@ -25,9 +25,11 @@ import {
   StripeCardCvcElement,
   StripeCardExpiryElement,
   StripeCardNumberElement,
+  StripePaymentRequestButtonElement,
 } from '@stripe/stripe-js';
 import { CheckoutSummaryComponent } from '../checkout-summary/checkout-summary.component';
 import { BehaviorSubject } from 'rxjs';
+import { StripeService } from 'ngx-stripe';
 
 @Component({
   selector: 'app-checkout-form',
@@ -102,16 +104,15 @@ export class CheckoutFormComponent {
   );
   isVisible: boolean = false;
 
-  // ngOnInit() {
+  ngOnInit() {
+    const subscribtion = this.form
+      .get('paymentMethod')
+      ?.valueChanges.subscribe((method) => {
+        this.toggleCreditCardValidators(method!);
+      });
 
-  //   const subscribtion = this.form
-  //     .get('paymentMethod')
-  //     ?.valueChanges.subscribe((method) => {
-  //       this.toggleCreditCardValidators(method!);
-  //     });
-
-  //   this.destroyRef.onDestroy(() => subscribtion?.unsubscribe());
-  // }
+    this.destroyRef.onDestroy(() => subscribtion?.unsubscribe());
+  }
 
   avaliableCountries(): any[] {
     const countries = [
@@ -249,6 +250,13 @@ export class CheckoutFormComponent {
   cardExpiry: StripeCardExpiryElement | null = null;
   cardCvc: StripeCardCvcElement | null = null;
 
+  // Google pay
+  paymentRequest: any;
+  prButton!: StripePaymentRequestButtonElement;
+  @ViewChild('googlePayButton', { static: true })
+  googlePayButtonRef!: ElementRef;
+  private stripeService = inject(StripeService);
+
   async ngAfterViewInit() {
     this.stripe = await loadStripe(
       'pk_test_51RD3yPIPLmPtcaOkAPNrNJV5j2bFeHAdAzwZa2Rif9dG6C8psDSow39N3QE66a0F6gbQONj3bb3IeoPFRHOXxMqX00Aw6qKltl'
@@ -256,7 +264,6 @@ export class CheckoutFormComponent {
     if (this.stripe) {
       this.elements = this.stripe.elements();
 
-      // إنشاء الحقول المنفصلة مع تخصيص الشكل
       const style = {
         base: {
           fontSize: '16px',
@@ -271,11 +278,42 @@ export class CheckoutFormComponent {
       this.cardExpiry = this.elements.create('cardExpiry', { style });
       this.cardCvc = this.elements.create('cardCvc', { style });
 
-      // ربط الحقول بالـ DOM
       this.cardNumber.mount(this.cardNumberElementRef.nativeElement);
       this.cardExpiry.mount(this.cardExpiryElementRef.nativeElement);
       this.cardCvc.mount(this.cardCvcElementRef.nativeElement);
     }
+    // Google Pay
+    this.paymentRequest = this.stripe!.paymentRequest({
+      country: 'US', // غيّر حسب بلدك
+      currency: 'usd', // غيّر حسب العملة
+      total: {
+        label: 'إجمالي الطلب',
+        amount: 1000, // المبلغ بالسنت (مثال: 10 دولار = 1000)
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+      requestShipping: true,
+    });
+
+    const result = await this.paymentRequest.canMakePayment();
+
+    // const result = await paymentRequest.canMakePayment();
+    console.log(result);
+    // if (result) {
+    //   console.log('PAAAY', result);
+    //   const elements = this.stripe!.elements();
+    //   this.prButton = elements.create('paymentRequestButton', {
+    //     paymentRequest: paymentRequest,
+    //     style: {
+    //       paymentRequestButton: {
+    //         type: 'default',
+    //         theme: 'dark',
+    //         height: '40px',
+    //       },
+    //     },
+    //   });
+    //   this.prButton.mount(this.googlePayButtonRef.nativeElement);
+    // }
   }
 
   async payNow() {

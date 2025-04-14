@@ -42,6 +42,7 @@ export class CheckoutService {
           billing: addresses.billing,
           shipping: addresses.shipping,
           line_items: loadedCartData,
+          customer_id: 0,
         };
 
         if (stripeToken) {

@@ -25,7 +25,7 @@
   <!-- Loading State -->
   <div
     *ngIf="loading"
-    class="absolute left-1/2 transform -translate-x-1/2 w-full md:w-[80%] bg-white shadow-md rounded-b-xl p-3 z-20 mt-1 backdrop-blur-sm"
+    class="absolute left-1/2 transform -translate-x-1/2 w-full md:w-[80%] bg-white shadow-md rounded-b-xl p-3 mt-1 backdrop-blur-sm layerVisible"
   >
     <p class="text-center text-gray-600 py-2">Loading...</p>
   </div>
@@ -33,7 +33,7 @@
   <!-- Search Results -->
   <div
     *ngIf="!loading && showResults && products.length > 0"
-    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl max-h-[400px] overflow-y-auto z-20 mt-1 backdrop-blur-sm"
+    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl max-h-[400px] overflow-y-auto mt-1 backdrop-blur-sm layerVisible"
   >
     <ul class="py-1">
       <li
@@ -85,7 +85,7 @@
     *ngIf="
       !loading && showResults && searchInput.value && products.length === 0
     "
-    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl p-4 z-20 mt-1 backdrop-blur-sm"
+    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl p-4 z-20 mt-1 backdrop-blur-sm layerVisible"
   >
     <p class="text-center text-gray-600 text-sm">
       No products found for "{{ searchInput.value }}"

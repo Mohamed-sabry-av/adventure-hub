@@ -10,9 +10,9 @@
   @apply text-white text-base font-semibold relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-white after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100;
 }
 
-.links-name.active {
+/* .links-name.active {
   @apply bg-red-600;
-}
+} */
 
 @media (min-width: 1500px) {
   .links-parent {
@@ -28,4 +28,30 @@
   .links-child {
     @apply hidden;
   }
+}
+@media (min-width: 960px) {
+  ::ng-deep .p-drawer {
+    @apply hidden;
+  }
+}
+
+::ng-deep .p-drawer {
+  @apply !top-[143.2px] md:!top-[102px] w-full;
+  z-index: 50 !important;
+}
+
+::ng-deep .p-drawer .p-drawer-header {
+  @apply hidden;
+}
+
+::ng-deep .p-drawer-content {
+  @apply bg-[#2E2E2E];
+}
+
+.haveChilds {
+  @apply text-sm bg-[#423e3e] rounded-md px-2 py-1 ml-2 text-white mt-2 block;
+}
+
+.notHaveChilds {
+  @apply text-sm ml-2 text-white mt-2 block;
 }

@@ -7,11 +7,19 @@
 }
 
 .pi-bars {
-  @apply text-white hidden text-lg lg:text-2xl cursor-pointer;
+  @apply hidden;
+}
+
+.pi-times {
+  @apply hidden;
 }
 
 @media (max-width: 960px) {
   .pi-bars {
+    @apply block;
+  }
+
+  .pi-times {
     @apply block;
   }
 }

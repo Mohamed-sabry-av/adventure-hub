@@ -1,5 +1,5 @@
 // src/app/components/header/header.component.ts
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../interfaces/category.model';
@@ -18,12 +18,12 @@ import { filter, Observable } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule,
-    Carousel,
     ButtonModule,
     AppContainerComponent,
     NavbarContainerComponent,
     RouterLink,
     SearchBarComponent,
+    AsyncPipe,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
@@ -36,7 +36,7 @@ export class HeaderComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
-
+  sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
@@ -54,7 +54,20 @@ export class HeaderComponent implements OnInit {
         }
       });
 
-    this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
+    const subscribtion2 = this.sidenavIsVisible$.subscribe((visible) => {
+      if (visible) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'auto';
+      }
+      console.log(visible);
+      // document.body.style.overflow = visible ? 'hidden' : 'auto';
+    });
+
+    this.destroyRef.onDestroy(() => {
+      subscribtion.unsubscribe();
+      subscribtion2.unsubscribe();
+    });
   }
 
   onSiwtchSideNav(visible: boolean) {
