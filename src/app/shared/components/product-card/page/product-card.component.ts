@@ -9,8 +9,8 @@ import { CartService } from '../../../../features/cart/service/cart.service';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
-import { SizeSelectorComponent } from '../components/size-selector/size-selector.component';
 import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
+import { SeoService } from '../../../../core/services/seo.service';
 
 @Component({
   selector: 'app-product-card',
@@ -20,7 +20,6 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
     CardImageSliderComponent,
     CardDetailsComponent,
     ColorSwatchesComponent,
-    SizeSelectorComponent,
     MobileQuickAddComponent
   ],
   templateUrl: './product-card.component.html',
@@ -75,6 +74,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   displayedImages: { src: string }[] = [];
   modifiedProduct: Product;
   selectedVariation: Variation | any = null;
+  schemaData:any;
 
   private resizeSubscription?: Subscription;
   private clickOutsideSubscription?: Subscription;
@@ -82,7 +82,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private cartService: CartService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private seoService:SeoService
   ) {this.modifiedProduct = {} as Product;}
 
   ngOnInit(): void {
@@ -92,6 +93,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.modifiedProduct = { ...this.product };
     this.setupResizeListener();
     this.setupClickOutsideListener();
+    this.applySeoTags();
   }
 
   ngOnDestroy(): void {
@@ -107,6 +109,15 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.updateVisibleColors();
         this.updateVisibleSizes();
       });
+  }
+
+  
+  private applySeoTags(): void {
+    
+    // Use yoast_head_json if available, otherwise fallback
+    this.schemaData = this.seoService.applySeoTags(
+      this.product?.yoast_head_json || this.product?.yoast_head || null
+    );
   }
 
   private setupClickOutsideListener(): void {
@@ -145,8 +156,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.updateVisibleColors();
         this.updateVisibleSizes();
         this.variationsLoaded = true;
-        // Call setDefaultVariation again to ensure correct initialization
         this.setDefaultVariation();
+        this.applySeoTags();
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);

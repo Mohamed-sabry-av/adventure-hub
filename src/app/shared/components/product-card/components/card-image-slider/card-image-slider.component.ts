@@ -23,7 +23,7 @@ export class CardImageSliderComponent implements OnInit {
   @Input() product!: Product;
   @Input() currentSlide: number = 0;
   @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
-  @Input() variations: Variation[] = []; // إضافة variations كـ Input
+  @Input() variations: Variation[] = []; 
   @Output() goToSlide = new EventEmitter<number>();
   @ViewChild('sliderContainer') sliderContainer!: ElementRef;
 
@@ -47,8 +47,8 @@ export class CardImageSliderComponent implements OnInit {
   }
 
   onTouchMove(e: TouchEvent) {
-    if (!this.isSwiping) return;
-    this.touchEndX = e.touches[0].clientX;
+    // if (!this.isSwiping) return;
+    // this.touchEndX = e.touches[0].clientX;
   }
 
   onTouchEnd(e: TouchEvent) {

@@ -15,6 +15,7 @@ export interface Product {
   date_modified?: string;
   date_modified_gmt?: string;
   type?: string;
+  yoast_head?:string;
   status?: string;
   featured?: boolean;
   catalog_visibility?: string;
