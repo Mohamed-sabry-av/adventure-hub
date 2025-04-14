@@ -1,11 +1,12 @@
-<div class="sm:p-10 w-full">
+<div class="lg:p-4">
   <!-- items -->
+  @if ( !(isVisible$ |async) ) {
   <div
     class="border p-4 rounded-lg"
     [class]="{
-    'h-[440px]': (loadedCart$ | async)?.items?.length>6,
-    'overflow-auto': (loadedCart$ | async)?.items?.length>6,
-  }"
+  'h-[440px]': (loadedCart$ | async)?.items?.length>6,
+  'overflow-auto': (loadedCart$ | async)?.items?.length>6,
+}"
   >
     <div class="flex flex-col gap-y-4">
       <!-- Product Data -->
@@ -26,7 +27,7 @@
               </span>
             </div>
           </div>
-          <p class="text-sm">{{ product.name }}</p>
+          <p class="text-sm" [innerHTML]="product.name"></p>
         </div>
 
         <!-- Price -->
@@ -35,6 +36,8 @@
       }
     </div>
   </div>
+  }
+
   <!-- Coupon -->
   <div class="flex gap-x-2 items-center mt-4">
     <input
@@ -84,4 +87,6 @@
 
     <p class="text-gray-400 -mt-3">Including AED 113.95 in taxes</p>
   </div>
+
+  <ng-content />
 </div>

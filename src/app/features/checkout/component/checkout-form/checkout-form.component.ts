@@ -16,7 +16,7 @@ import { RouterLink } from '@angular/router';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { FormValidationService } from '../../../../shared/services/form-validation.service';
 import { CheckoutService } from '../../services/checkout.service';
-import { NgClass } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import {
   loadStripe,
   Stripe,
@@ -25,7 +25,11 @@ import {
   StripeCardCvcElement,
   StripeCardExpiryElement,
   StripeCardNumberElement,
+  StripePaymentRequestButtonElement,
 } from '@stripe/stripe-js';
+import { CheckoutSummaryComponent } from '../checkout-summary/checkout-summary.component';
+import { BehaviorSubject } from 'rxjs';
+import { StripeService } from 'ngx-stripe';
 
 @Component({
   selector: 'app-checkout-form',
@@ -35,6 +39,8 @@ import {
     RouterLink,
     Select,
     NgClass,
+    CheckoutSummaryComponent,
+    AsyncPipe,
   ],
   templateUrl: './checkout-form.component.html',
   styleUrl: './checkout-form.component.css',
@@ -93,16 +99,20 @@ export class CheckoutFormComponent {
   });
 
   paymentRadiosValue: string = 'creditCard';
+  summaryIsVisible$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    false
+  );
+  isVisible: boolean = false;
 
-  // ngOnInit() {
-  //   const subscribtion = this.form
-  //     .get('paymentMethod')
-  //     ?.valueChanges.subscribe((method) => {
-  //       this.toggleCreditCardValidators(method!);
-  //     });
+  ngOnInit() {
+    const subscribtion = this.form
+      .get('paymentMethod')
+      ?.valueChanges.subscribe((method) => {
+        this.toggleCreditCardValidators(method!);
+      });
 
-  //   this.destroyRef.onDestroy(() => subscribtion?.unsubscribe());
-  // }
+    this.destroyRef.onDestroy(() => subscribtion?.unsubscribe());
+  }
 
   avaliableCountries(): any[] {
     const countries = [
@@ -117,6 +127,11 @@ export class CheckoutFormComponent {
     ];
 
     return countries.sort((a, b) => a.country.localeCompare(b.country));
+  }
+
+  onShowSummary() {
+    this.isVisible = !this.isVisible;
+    this.summaryIsVisible$.next(this.isVisible);
   }
 
   toggleCreditCardValidators(method: string) {
@@ -225,10 +240,6 @@ export class CheckoutFormComponent {
 
   // --------------------------------------------------------
 
-  // stripePromise = loadStripe(
-  //   'pk_live_51QIucCEaH7ud4cFjJA3tS40v4ZDuZP0N1dKN5uMdaFtbB8ywDfUH6GWdUvQ1uy0Ghnsdb9DmRuVhVVH5CEk1Zgqe001oM9u8ay'
-  // );
-
   @ViewChild('cardNumberElement') cardNumberElementRef!: ElementRef;
   @ViewChild('cardExpiryElement') cardExpiryElementRef!: ElementRef;
   @ViewChild('cardCvcElement') cardCvcElementRef!: ElementRef;
@@ -239,14 +250,20 @@ export class CheckoutFormComponent {
   cardExpiry: StripeCardExpiryElement | null = null;
   cardCvc: StripeCardCvcElement | null = null;
 
+  // Google pay
+  paymentRequest: any;
+  prButton!: StripePaymentRequestButtonElement;
+  @ViewChild('googlePayButton', { static: true })
+  googlePayButtonRef!: ElementRef;
+  private stripeService = inject(StripeService);
+
   async ngAfterViewInit() {
     this.stripe = await loadStripe(
-      'pk_live_51QIucCEaH7ud4cFjJA3tS40v4ZDuZP0N1dKN5uMdaFtbB8ywDfUH6GWdUvQ1uy0Ghnsdb9DmRuVhVVH5CEk1Zgqe001oM9u8ay'
+      'pk_test_51RD3yPIPLmPtcaOkAPNrNJV5j2bFeHAdAzwZa2Rif9dG6C8psDSow39N3QE66a0F6gbQONj3bb3IeoPFRHOXxMqX00Aw6qKltl'
     );
     if (this.stripe) {
       this.elements = this.stripe.elements();
 
-      // إنشاء الحقول المنفصلة مع تخصيص الشكل
       const style = {
         base: {
           fontSize: '16px',
@@ -261,11 +278,42 @@ export class CheckoutFormComponent {
       this.cardExpiry = this.elements.create('cardExpiry', { style });
       this.cardCvc = this.elements.create('cardCvc', { style });
 
-      // ربط الحقول بالـ DOM
       this.cardNumber.mount(this.cardNumberElementRef.nativeElement);
       this.cardExpiry.mount(this.cardExpiryElementRef.nativeElement);
       this.cardCvc.mount(this.cardCvcElementRef.nativeElement);
     }
+    // Google Pay
+    this.paymentRequest = this.stripe!.paymentRequest({
+      country: 'US', // غيّر حسب بلدك
+      currency: 'usd', // غيّر حسب العملة
+      total: {
+        label: 'إجمالي الطلب',
+        amount: 1000, // المبلغ بالسنت (مثال: 10 دولار = 1000)
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+      requestShipping: true,
+    });
+
+    const result = await this.paymentRequest.canMakePayment();
+
+    // const result = await paymentRequest.canMakePayment();
+    console.log(result);
+    // if (result) {
+    //   console.log('PAAAY', result);
+    //   const elements = this.stripe!.elements();
+    //   this.prButton = elements.create('paymentRequestButton', {
+    //     paymentRequest: paymentRequest,
+    //     style: {
+    //       paymentRequestButton: {
+    //         type: 'default',
+    //         theme: 'dark',
+    //         height: '40px',
+    //       },
+    //     },
+    //   });
+    //   this.prButton.mount(this.googlePayButtonRef.nativeElement);
+    // }
   }
 
   async payNow() {
@@ -277,6 +325,7 @@ export class CheckoutFormComponent {
         alert('فشل الدفع: ' + result.error.message);
       } else if (result.token) {
         console.log('الـ Token: ', result.token.id);
+
         this.onSubmit(result.token.id);
         // هنا هنضيف منطق إرسال الـ Token لـ WooCommerce لاحقًا
       }
@@ -285,474 +334,3 @@ export class CheckoutFormComponent {
     }
   }
 }
-
-/*
-<form
-  class="sm:p-10 my-2 sm:my-0 lg:border-r"
-  [formGroup]="form"
-  (ngSubmit)="onSubmit()"
->
-  <div class="flex flex-col gap-y-8">
-    <!-- Contact -->
-    <section>
-      <div class="flex flex-col items-center">
-        <p class="text-gray-400 text-sm text-center">Express checkout</p>
-
-        <!-- Stripe -->
-        <div class="pt-4 w-full text-center">
-          <a
-            [routerLink]=""
-            class="bg-blue-400 block font-semibold w-full xl:w-[262px] lg:mx-auto py-3 text-center text-white rounded-lg cursor-pointer hover:bg-blue-500 transition-all duration-150 tracking-wider"
-            >Stripe</a
-          >
-          <div class="flex items-center gap-4 pt-4 pb-7">
-            <span class="flex-grow h-px bg-gray-400"></span>
-            <span class="text-gray-400 text-sm">OR</span>
-            <span class="flex-grow h-px bg-gray-400"></span>
-          </div>
-        </div>
-
-        <!-- Contact with Email -->
-        <div class="w-full flex items-center justify-between">
-          <h2 class="font-semibold text-xl">
-            Contact <span class="text-red-500 text-base">*</span>
-          </h2>
-          <a [routerLink]="" class="text-red-400 underline text-sm">Log in</a>
-        </div>
-
-        <!-- الاينبوت بتاع الايميل -->
-        <div class="py-4 w-full">
-          <input
-            type="email"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="Email"
-            formControlName="email"
-            [class]="{
-              'border-red-500': emailIsInvalid,
-            }"
-          />
-        </div>
-        @if (emailIsInvalid) {
-        <p class="text-sm text-red-500 w-full -mt-2 mb-4">
-          Please enter a valid email address.
-        </p>
-        }
-
-        <div class="w-full flex gap-x-2 items-center">
-          <input type="checkbox" class="w-4 h-6" />
-          <span class="text-sm">Email me with news and offers</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Biling -->
-    <section class="flex flex-col gap-y-4">
-      <h2 class="font-semibold text-xl">
-        Billing details
-        <span class="text-red-500 text-base">*</span>
-      </h2>
-      <!-- Country Select -->
-      <div>
-        <p-select
-          [options]="avaliableCountries()"
-          optionLabel="country"
-          optionValue="country"
-          placeholder="Select a Country"
-          class="bg-white w-full py-[14px] px-3 rounded-lg"
-          formControlName="countrySelect"
-        />
-      </div>
-
-      <!-- First and Last Name -->
-      <div
-        class="flex sm:flex-row flex-col items-start gap-y-4 sm:gap-y-0 sm:gap-x-2"
-      >
-        <div
-          class="w-full relative"
-          [class]="{
-            'mb-5': firstNameIsInvalid || lastNameIsInvalid
-          }"
-        >
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="First name"
-            formControlName="firstName"
-            [class]="{
-              'border-red-500': firstNameIsInvalid,
-            }"
-          />
-
-          @if (firstNameIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a first name
-          </p>
-          }
-        </div>
-
-        <div class="w-full relative">
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="Last name"
-            formControlName="lastName"
-            [class]="{
-              'border-red-500': lastNameIsInvalid,
-            }"
-          />
-
-          @if (lastNameIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a last name
-          </p>
-          }
-        </div>
-      </div>
-
-      <!-- Address -->
-      <div>
-        <input
-          type="text"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg"
-          placeholder="Address"
-          formControlName="address"
-          [class]="{
-    'border-red-500': addressIsInvalid,
-  }"
-        />
-        @if (addressIsInvalid) {
-        <p class="text-sm text-red-500 w-full mt-1">Enter an address</p>
-        }
-      </div>
-
-      <!-- Apartment -->
-      <input
-        type="text"
-        class="bg-white border w-full py-[14px] px-3 rounded-lg"
-        placeholder="Apartment, suite, etc. (optional)"
-        formControlName="apartment"
-      />
-
-      <!-- City and State -->
-      <div
-        class="flex items-center gap-x-2"
-        [class]="{
-          'mb-5': stateIsInvalid || cityIsInvalid
-        }"
-      >
-        <div class="w-full relative">
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="City"
-            formControlName="city"
-            [class]="{
-              'border-red-500': cityIsInvalid,
-            }"
-          />
-          @if (cityIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a city
-          </p>
-          }
-        </div>
-        <div class="w-full relative">
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="State"
-            formControlName="state"
-            [class]="{
-              'border-red-500': stateIsInvalid,
-            }"
-          />
-
-          @if (stateIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a state
-          </p>
-          }
-        </div>
-      </div>
-
-      <!-- Postcode -->
-      <div>
-        <input
-          type="number"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-          placeholder="Postcode / Zip"
-          formControlName="postCode"
-          [class]="{
-          'border-red-500': postCodeIsInvalid,
-        }"
-        />
-        @if (postCodeIsInvalid) {
-        <p class="text-sm text-red-500 w-full mt-[6px]">Enter a Postcode</p>
-        }
-      </div>
-
-      <!-- Phone -->
-      <div class="w-full relative">
-        <input
-          type="number"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-          placeholder="Phone"
-          formControlName="phone"
-          [class]="{
-            'border-red-500': phoneIsInvalid,
-          }"
-        />
-
-        @if (phoneIsInvalid) {
-        <p class="text-sm text-red-500 mt-2">Enter a valid phone</p>
-        }
-        <div class="absolute top-[50%] right-[3%] -translate-y-[48%]">
-          <div class="relative group">
-            <i class="pi pi-question-circle cursor-pointer text-gray-400"></i>
-            <span
-              class="absolute right-0 -top-[120%] hidden group-hover:block bg-gray-800 text-white text-sm py-1 px-2 rounded-md shadow-md whitespace-nowrap"
-            >
-              in case we need to contact you about your order
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="w-full flex gap-x-2 items-center">
-        <input type="checkbox" class="w-4 h-6" />
-        <span class="text-sm">Save this information for next time </span>
-      </div>
-    </section>
-
-    <!-- Payment -->
-    <section>
-      <h2 class="font-semibold text-xl">Payment</h2>
-      <p class="text-sm text-gray-500 mt-1">
-        All transactions are secure and encrypted.
-      </p>
-
-      <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
-        <!-- Credit Card -->
-        <div>
-          <!-- Option 1 -->
-          <div
-            class="flex justify-between items-center bg-white rounded-t-lg p-4"
-            [class]="{
-              paymentOptionActive: paymentRadiosValue === 'creditCard',
-              'mb-3': paymentRadiosValue === 'creditCard'
-            }"
-          >
-            <div class="flex items-center gap-x-2">
-              <input
-                type="radio"
-                id="credit-card"
-                value="creditCard"
-                formControlName="paymentMethod"
-              />
-              <label class="text-sm" for="credit-card">Credit card</label>
-            </div>
-            <div class="flex items-center gap-x-2">
-              <img
-                src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/visa.sxIq5Dot.svg"
-                alt=""
-              />
-              <img
-                src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/mastercard.1c4_lyMp.svg"
-                alt=""
-              />
-            </div>
-          </div>
-          @if (paymentRadiosValue === 'creditCard') {
-          <!-- Card Details -->
-          <div class="flex flex-col gap-y-3 px-4">
-            <!-- Card Number -->
-            <div class="w-full relative">
-              <input
-                type="number"
-                class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-                placeholder="Card number"
-                formControlName="cardNumber"
-              />
-              <i
-                class="pi pi-lock absolute top-[50%] right-[3%] -translate-y-[48%]"
-              ></i>
-            </div>
-
-            <!-- Expreation Date , Code -->
-            <div
-              class="flex sm:flex-row flex-col items-center gap-y-4 sm:gap-y-0 sm:gap-x-2"
-            >
-              <input
-                type="number"
-                class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-                placeholder="Expiration date (MM / YY)"
-                formControlName="expDate"
-              />
-              <input
-                type="number"
-                class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-                placeholder="Security code"
-                formControlName="securityCode"
-              />
-            </div>
-
-            <!-- Name on card -->
-            <input
-              type="text"
-              class="bg-white border w-full py-[14px] px-3 rounded-lg mb-3"
-              placeholder="Name on card"
-              formControlName="nameOnCard"
-            />
-          </div>
-          }
-        </div>
-
-        <!-- Tabby -->
-        <!-- <div>
-          <div
-            class="flex justify-between items-center bg-white rounded-b-lg p-4"
-            [class]="{
-              paymentOptionActive: paymentRadiosValue === 'tabby',
-              'border-t': paymentRadiosValue !== 'tabby'
-            }"
-          >
-            <div class="flex items-center gap-x-2">
-              <input
-                type="radio"
-                name="options"
-                id="tabby"
-                value="tabby"
-                (click)="onPayment($event)"
-                [checked]="paymentRadiosValue === 'tabby'"
-              />
-              <label class="text-sm" for="tabby"
-                >Pay in 4 with Tabby. No interest. No fees</label
-              >
-            </div>
-            <img
-              src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/tabby.C7-15TZI.svg"
-              alt=""
-            />
-          </div>
-
-          @if (paymentRadiosValue === 'tabby') {
-          <div class="px-3">
-            <div class="flex flex-col items-center gap-y-6 mt-8">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="-252.3 356.1 163 80.9"
-                class="w-[160px] h-20 text-gray-500"
-              >
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-miterlimit="10"
-                  stroke-width="2"
-                  d="M-108.9 404.1v30c0 1.1-.9 2-2 2H-231c-1.1 0-2-.9-2-2v-75c0-1.1.9-2 2-2h120.1c1.1 0 2 .9 2 2v37m-124.1-29h124.1"
-                ></path>
-                <circle
-                  cx="-227.8"
-                  cy="361.9"
-                  r="1.8"
-                  fill="currentColor"
-                ></circle>
-                <circle
-                  cx="-222.2"
-                  cy="361.9"
-                  r="1.8"
-                  fill="currentColor"
-                ></circle>
-                <circle
-                  cx="-216.6"
-                  cy="361.9"
-                  r="1.8"
-                  fill="currentColor"
-                ></circle>
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-miterlimit="10"
-                  stroke-width="2"
-                  d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"
-                ></path>
-              </svg>
-              <p class="text-sm w-[350px] text-center mb-3">
-                After clicking “Pay now”, you will be redirected to Pay in 4
-                with Tabby. No interest. No fees to complete your purchase
-                securely.
-              </p>
-            </div>
-          </div>
-          }
-        </div> -->
-
-        <!-- COD -->
-        <div>
-          <!-- Option 2 -->
-          <div
-            class="flex justify-between items-center bg-white rounded-b-lg p-4"
-            [class]="{
-              paymentOptionActive: paymentRadiosValue === 'cod',
-              'border-t': paymentRadiosValue !== 'cod'
-            }"
-          >
-            <div class="flex items-center gap-x-2">
-              <input
-                type="radio"
-                id="cod"
-                value="cod"
-                formControlName="paymentMethod"
-              />
-              <label class="text-sm" for="cod"> Cash on delivery </label>
-            </div>
-          </div>
-
-          @if (paymentRadiosValue === 'cod') {
-          <!-- COD Details -->
-          <div class="px-3">
-            <div class="mt-3">
-              <p class="text-sm mb-3">
-                Choose this option to pay in cash upon delivery. AED 20 service
-                fee applies. Please have the exact amount ready. Available
-                across the UAE.
-              </p>
-            </div>
-          </div>
-          }
-        </div>
-      </div>
-
-      <!-- Pay Button -->
-      <div class="mt-6 mb-12">
-        <button
-          [routerLink]=""
-          [disabled]="form.invalid"
-          class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
-          [ngClass]="
-            form.invalid
-              ? 'bg-gray-500 hover:bg-gray-500 cursor-default'
-              : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
-          "
-        >
-          @if (paymentRadiosValue === 'cod') { Complete order }@else { Pay now }
-        </button>
-      </div>
-      <hr />
-
-      <!-- Polices -->
-      <div class="flex gap-x-4 mt-4">
-        <a [routerLink]="" class="underline text-sm text-red-400"
-          >Refund policy</a
-        >
-        <a [routerLink]="" class="underline text-sm text-red-400"
-          >Privacy policy</a
-        >
-        <a [routerLink]="" class="underline text-sm text-red-400"
-          >Terms of service</a
-        >
-      </div>
-    </section>
-  </div>
-
-</form>
-*/

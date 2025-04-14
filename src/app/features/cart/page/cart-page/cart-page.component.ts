@@ -3,6 +3,7 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
 import { CartProductsComponent } from '../../components/cart-products/cart-products.component';
 import { CartCheckoutComponent } from '../../components/cart-checkout/cart-checkout.component';
 import { CartService } from '../../service/cart.service';
+import { ServiceHighlightsComponent } from '../../../../shared/components/service-highlights/service-highlights.component';
 
 @Component({
   selector: 'app-cart-page',
@@ -10,6 +11,7 @@ import { CartService } from '../../service/cart.service';
     AppContainerComponent,
     CartProductsComponent,
     CartCheckoutComponent,
+    ServiceHighlightsComponent,
   ],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',

@@ -16,7 +16,6 @@ export class CheckoutEffect {
       this.actions$.pipe(
         ofType(createOrderAction),
         switchMap(({ orderDetails }) => {
-          console.log('Order Details:', orderDetails);
           let authToken: any = localStorage.getItem('auth_token');
           authToken = authToken ? JSON.parse(authToken) : '';
 

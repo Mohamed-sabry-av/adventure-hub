@@ -81,7 +81,6 @@ export class CartEffect {
 
             const body = {
               product_id: product.id,
-              quantity: 1,
             };
 
             return this.httpClient
@@ -191,6 +190,7 @@ export class CartEffect {
                     quantity: item.quantity,
                     quantity_limits: item.quantity_limits,
                     attributes: item.attributes,
+                    totals: item.totals,
                   };
                 });
 

@@ -1,77 +1,94 @@
-<div class="relative w-full max-w-lg mx-auto search-container">
-    <!-- Search Input with Icon -->
-    <div class="relative">
-      <input
-        #searchInput
-        type="text"
-        class="search-input bg-[#3a3a32] w-full py-3 px-6 rounded-full outline-none border border-transparent focus:border-gray-300 transition-all duration-200 text-white placeholder-gray-400 placeholder:text-sm"
-        placeholder="Search"
-        (input)="onSearch($event)"
-        (focus)="onFocus()"
-        (blur)="onBlur()"
-      />
-      <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-base"></i>
-      <button
-        *ngIf="searchInput.value"
-        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-lg"
-        (click)="clearSearch()"
-      >
-        <i class="pi pi-times"></i>
-      </button>
-    </div>
-  
-    <!-- Loading State -->
-    <div *ngIf="loading" class="absolute w-full bg-white shadow-md rounded-b-xl p-3 z-20 mt-1 backdrop-blur-sm">
-      <p class="text-center text-gray-600 py-2">Loading...</p>
-    </div>
-  
-    <!-- Search Results -->
-    <div
-      *ngIf="!loading && showResults && products.length > 0"
-      class="search-results absolute w-full bg-white shadow-2xl rounded-xl max-h-[400px] overflow-y-auto z-20 mt-1 backdrop-blur-sm"
+<div class="relative">
+  <!-- Search Input with Icon -->
+  <div class="relative w-full md:w-[80%] mx-auto">
+    <input
+      #searchInput
+      type="text"
+      class="w-full bg-[#f5f5dc] p-2 pl-14 rounded-xl outline-none border border-transparent transition-all duration-300 placeholder:text-[#4b5563] placeholder:text-sm focus:border-white"
+      placeholder="Search"
+      (input)="onSearch($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+    />
+    <i
+      class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-base"
+    ></i>
+    <button
+      *ngIf="searchInput.value"
+      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-lg"
+      (click)="clearSearch()"
     >
-      <ul class="py-1">
-        <li
-          *ngFor="let product of products"
-          class="py-3 px-4 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
-          (click)="selectProduct(product)"
-        >
-          <div class="flex items-center gap-4">
-            <div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
-              <img
-                [src]="product.images[0]?.src"
-                alt="{{ product.name }}"
-                class="w-full h-full object-cover"
-                *ngIf="product.images?.length"
-              />
-              <div *ngIf="!product.images?.length" class="w-full h-full flex items-center justify-center">
-                <i class="pi pi-image text-gray-400"></i>
-              </div>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-sm font-medium text-gray-800">{{ product.name }}</h3>
-                <!-- علامة العرض -->
-                <span
-                  *ngIf="product.onSale"
-                  class="bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full"
-                >
-                  On Sale
-                </span>
-              </div>
-              <p class="text-xs text-gray-600 mt-1">{{ product.price | currency:'AED ' }}</p>
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div
+    *ngIf="loading"
+    class="absolute left-1/2 transform -translate-x-1/2 w-full md:w-[80%] bg-white shadow-md rounded-b-xl p-3 mt-1 backdrop-blur-sm layerVisible"
+  >
+    <p class="text-center text-gray-600 py-2">Loading...</p>
+  </div>
+
+  <!-- Search Results -->
+  <div
+    *ngIf="!loading && showResults && products.length > 0"
+    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl max-h-[400px] overflow-y-auto mt-1 backdrop-blur-sm layerVisible"
+  >
+    <ul class="py-1">
+      <li
+        *ngFor="let product of products"
+        class="py-3 px-4 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+        (click)="selectProduct(product)"
+      >
+        <div class="flex items-center gap-4">
+          <div
+            class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden"
+          >
+            <img
+              [src]="product.images[0]?.src"
+              alt="{{ product.name }}"
+              class="w-full h-full object-cover"
+              *ngIf="product.images?.length"
+            />
+            <div
+              *ngIf="!product.images?.length"
+              class="w-full h-full flex items-center justify-center"
+            >
+              <i class="pi pi-image text-gray-400"></i>
             </div>
           </div>
-        </li>
-      </ul>
-    </div>
-  
-    <!-- No Results -->
-    <div
-      *ngIf="!loading && showResults && searchInput.value && products.length === 0"
-      class="absolute w-full bg-white shadow-2xl rounded-xl p-4 z-20 mt-1 backdrop-blur-sm"
-    >
-      <p class="text-center text-gray-600 text-sm">No products found for "{{ searchInput.value }}"</p>
-    </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-medium text-gray-800">
+                {{ product.name }}
+              </h3>
+              <!-- علامة العرض -->
+              <span
+                *ngIf="product.onSale"
+                class="bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full"
+              >
+                On Sale
+              </span>
+            </div>
+            <p class="text-xs text-gray-600 mt-1">
+              {{ product.price | currency : "AED " }}
+            </p>
+          </div>
+        </div>
+      </li>
+    </ul>
   </div>
-  
+
+  <!-- No Results -->
+  <div
+    *ngIf="
+      !loading && showResults && searchInput.value && products.length === 0
+    "
+    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl p-4 z-20 mt-1 backdrop-blur-sm layerVisible"
+  >
+    <p class="text-center text-gray-600 text-sm">
+      No products found for "{{ searchInput.value }}"
+    </p>
+  </div>
+</div>

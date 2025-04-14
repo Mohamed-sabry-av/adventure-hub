@@ -1,368 +1,449 @@
-<form
-  class="sm:p-10 my-2 sm:my-0 lg:border-r"
-  [formGroup]="form"
-  (ngSubmit)="onSubmit()"
->
-  <div class="flex flex-col gap-y-8">
-    <!-- Contact -->
-    <section>
-      <div class="flex flex-col items-center">
-        <p class="text-gray-400 text-sm text-center">Express checkout</p>
+<form class="my-2 sm:my-0 w-full" [formGroup]="form">
+  <div class="flex lg:flex-row flex-col w-full">
+    <div class="lg:w-[55%] lg:border-r">
+      <div class="flex flex-col gap-y-8 lg:p-10 mb-5 lg:mb-0">
+        <!-- Contact -->
+        <section>
+          <div class="flex flex-col items-center">
+            <p class="text-gray-400 text-sm text-center">Express checkout</p>
 
-        <!-- Stripe -->
-        <div class="pt-4 w-full text-center">
-          <a
-            [routerLink]=""
-            class="bg-blue-400 block font-semibold w-full xl:w-[262px] lg:mx-auto py-3 text-center text-white rounded-lg cursor-pointer hover:bg-blue-500 transition-all duration-150 tracking-wider"
-            >Stripe</a
-          >
-          <div class="flex items-center gap-4 pt-4 pb-7">
-            <span class="flex-grow h-px bg-gray-400"></span>
-            <span class="text-gray-400 text-sm">OR</span>
-            <span class="flex-grow h-px bg-gray-400"></span>
+            <!-- GPay -->
+            <div class="pt-4 w-full text-center">
+              <span
+                [routerLink]=""
+                class="bg-black block font-semibold w-full xl:w-[262px] lg:mx-auto py-3 text-center text-white rounded-lg cursor-pointer hover:bg-gray-800 transition-all duration-150 tracking-wider"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 126 50"
+                  fill="none"
+                >
+                  <g
+                    clip-path="url(#gpay-light__a)"
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                  >
+                    <path
+                      d="M59.62 7.342v12.636h7.793c1.857 0 3.392-.625 4.605-1.872 1.247-1.244 1.872-2.73 1.872-4.447 0-1.684-.625-3.15-1.872-4.401-1.213-1.278-2.748-1.919-4.605-1.919H59.62v.003Zm0 17.083v14.657h-4.654V2.895h12.348c3.135 0 5.796 1.043 7.99 3.132 2.228 2.089 3.343 4.633 3.343 7.632 0 3.066-1.115 5.629-3.343 7.68-2.157 2.059-4.824 3.083-7.993 3.083h-7.69v.003Zm23.73 7.078c0 1.213.514 2.222 1.545 3.033 1.027.804 2.234 1.21 3.615 1.21 1.959 0 3.7-.724 5.236-2.17 1.538-1.451 2.302-3.153 2.302-5.106-1.451-1.145-3.475-1.718-6.072-1.718-1.887 0-3.466.458-4.728 1.368-1.266.91-1.897 2.034-1.897 3.383Zm6.023-17.996c3.441 0 6.155.92 8.148 2.754 1.987 1.838 2.984 4.358 2.984 7.558v15.263h-4.454v-3.435h-.2c-1.926 2.828-4.488 4.246-7.694 4.246-2.73 0-5.017-.811-6.855-2.427-1.838-1.618-2.758-3.64-2.758-6.065 0-2.563.97-4.6 2.91-6.116 1.94-1.516 4.527-2.274 7.767-2.274 2.76 0 5.042.504 6.827 1.516v-1.064c0-1.616-.64-2.99-1.922-4.116a6.598 6.598 0 0 0-4.502-1.693c-2.6 0-4.655 1.092-6.174 3.287l-4.098-2.581c2.26-3.234 5.602-4.853 10.02-4.853m36.683.81L110.519 50h-4.806l5.769-12.484-10.219-23.198h5.06l7.387 17.791h.099l7.186-17.794 5.06.003Z"
+                      fill="white"
+                    ></path>
+                    <path
+                      d="M40.81 21.267c0-1.464-.123-2.878-.359-4.228H20.818v8.01h11.247a9.623 9.623 0 0 1-4.16 6.319v5.199h6.713c3.93-3.62 6.192-8.975 6.192-15.3"
+                      fill="#4285F4"
+                    ></path>
+                    <path
+                      d="M20.819 41.585c5.62 0 10.348-1.841 13.799-5.016l-6.713-5.203c-1.866 1.257-4.27 1.99-7.087 1.99-5.428 0-10.039-3.658-11.685-8.584H2.219v5.357a20.821 20.821 0 0 0 18.6 11.46"
+                      fill="#34A853"
+                    ></path>
+                    <path
+                      d="M9.133 24.771a12.484 12.484 0 0 1 0-7.96v-5.356H2.219A20.667 20.667 0 0 0 0 20.788c0 3.358.805 6.53 2.219 9.337l6.914-5.357v.003Z"
+                      fill="#FABB05"
+                    ></path>
+                    <path
+                      d="M20.818 8.229c3.07 0 5.818 1.052 7.985 3.12v.002l5.942-5.935C31.142 2.06 26.438 0 20.82 0A20.821 20.821 0 0 0 2.222 11.457l6.914 5.357c1.646-4.927 6.257-8.585 11.685-8.585"
+                      fill="#E94235"
+                    ></path>
+                  </g>
+                  <defs>
+                    <clipPath id="gpay-light__a">
+                      <rect width="126" height="50" fill="#fff"></rect>
+                    </clipPath>
+                  </defs>
+                </svg>
+              </span>
+              <div class="flex items-center gap-4 pt-4 pb-7">
+                <span class="flex-grow h-px bg-gray-400"></span>
+                <span class="text-gray-400 text-sm">OR</span>
+                <span class="flex-grow h-px bg-gray-400"></span>
+              </div>
+            </div>
+
+            <!-- Contact with Email -->
+            <div class="w-full flex items-center justify-between">
+              <h2 class="font-semibold text-xl">
+                Contact <span class="text-red-500 text-base">*</span>
+              </h2>
+              <a [routerLink]="" class="text-red-400 underline text-sm"
+                >Log in</a
+              >
+            </div>
+
+            <!-- الاينبوت بتاع الايميل -->
+            <div class="py-4 w-full">
+              <input
+                type="email"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="Email"
+                formControlName="email"
+                [class]="{
+                  'border-red-500': emailIsInvalid,
+                }"
+              />
+            </div>
+            @if (emailIsInvalid) {
+            <p class="text-sm text-red-500 w-full -mt-2 mb-4">
+              Please enter a valid email address.
+            </p>
+            }
+
+            <div class="w-full flex gap-x-2 items-center">
+              <input type="checkbox" class="w-4 h-6" />
+              <span class="text-sm">Email me with news and offers</span>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Contact with Email -->
-        <div class="w-full flex items-center justify-between">
+        <!-- Biling -->
+        <section class="flex flex-col gap-y-4">
           <h2 class="font-semibold text-xl">
-            Contact <span class="text-red-500 text-base">*</span>
+            Billing details
+            <span class="text-red-500 text-base">*</span>
           </h2>
-          <a [routerLink]="" class="text-red-400 underline text-sm">Log in</a>
-        </div>
-
-        <!-- الاينبوت بتاع الايميل -->
-        <div class="py-4 w-full">
-          <input
-            type="email"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="Email"
-            formControlName="email"
-            [class]="{
-              'border-red-500': emailIsInvalid,
-            }"
-          />
-        </div>
-        @if (emailIsInvalid) {
-        <p class="text-sm text-red-500 w-full -mt-2 mb-4">
-          Please enter a valid email address.
-        </p>
-        }
-
-        <div class="w-full flex gap-x-2 items-center">
-          <input type="checkbox" class="w-4 h-6" />
-          <span class="text-sm">Email me with news and offers</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Biling -->
-    <section class="flex flex-col gap-y-4">
-      <h2 class="font-semibold text-xl">
-        Billing details
-        <span class="text-red-500 text-base">*</span>
-      </h2>
-      <!-- Country Select -->
-      <div>
-        <p-select
-          [options]="avaliableCountries()"
-          optionLabel="country"
-          optionValue="country"
-          placeholder="Select a Country"
-          class="bg-white w-full py-[14px] px-3 rounded-lg"
-          formControlName="countrySelect"
-        />
-      </div>
-
-      <!-- First and Last Name -->
-      <div
-        class="flex sm:flex-row flex-col items-start gap-y-4 sm:gap-y-0 sm:gap-x-2"
-      >
-        <div
-          class="w-full relative"
-          [class]="{
-            'mb-5': firstNameIsInvalid || lastNameIsInvalid
-          }"
-        >
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="First name"
-            formControlName="firstName"
-            [class]="{
-              'border-red-500': firstNameIsInvalid,
-            }"
-          />
-
-          @if (firstNameIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a first name
-          </p>
-          }
-        </div>
-
-        <div class="w-full relative">
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="Last name"
-            formControlName="lastName"
-            [class]="{
-              'border-red-500': lastNameIsInvalid,
-            }"
-          />
-
-          @if (lastNameIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a last name
-          </p>
-          }
-        </div>
-      </div>
-
-      <!-- Address -->
-      <div>
-        <input
-          type="text"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg"
-          placeholder="Address"
-          formControlName="address"
-          [class]="{
-    'border-red-500': addressIsInvalid,
-  }"
-        />
-        @if (addressIsInvalid) {
-        <p class="text-sm text-red-500 w-full mt-1">Enter an address</p>
-        }
-      </div>
-
-      <!-- Apartment -->
-      <input
-        type="text"
-        class="bg-white border w-full py-[14px] px-3 rounded-lg"
-        placeholder="Apartment, suite, etc. (optional)"
-        formControlName="apartment"
-      />
-
-      <!-- City and State -->
-      <div
-        class="flex items-center gap-x-2"
-        [class]="{
-          'mb-5': stateIsInvalid || cityIsInvalid
-        }"
-      >
-        <div class="w-full relative">
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="City"
-            formControlName="city"
-            [class]="{
-              'border-red-500': cityIsInvalid,
-            }"
-          />
-          @if (cityIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a city
-          </p>
-          }
-        </div>
-        <div class="w-full relative">
-          <input
-            type="text"
-            class="bg-white border w-full py-[14px] px-3 rounded-lg"
-            placeholder="State"
-            formControlName="state"
-            [class]="{
-              'border-red-500': stateIsInvalid,
-            }"
-          />
-
-          @if (stateIsInvalid) {
-          <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
-            Enter a state
-          </p>
-          }
-        </div>
-      </div>
-
-      <!-- Postcode -->
-      <div>
-        <input
-          type="number"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-          placeholder="Postcode / Zip"
-          formControlName="postCode"
-          [class]="{
-          'border-red-500': postCodeIsInvalid,
-        }"
-        />
-        @if (postCodeIsInvalid) {
-        <p class="text-sm text-red-500 w-full mt-[6px]">Enter a Postcode</p>
-        }
-      </div>
-
-      <!-- Phone -->
-      <div class="w-full relative">
-        <input
-          type="number"
-          class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-          placeholder="Phone"
-          formControlName="phone"
-          [class]="{
-            'border-red-500': phoneIsInvalid,
-          }"
-        />
-
-        @if (phoneIsInvalid) {
-        <p class="text-sm text-red-500 mt-2">Enter a valid phone</p>
-        }
-        <div class="absolute top-[50%] right-[3%] -translate-y-[48%]">
-          <div class="relative group">
-            <i class="pi pi-question-circle cursor-pointer text-gray-400"></i>
-            <span
-              class="absolute right-0 -top-[120%] hidden group-hover:block bg-gray-800 text-white text-sm py-1 px-2 rounded-md shadow-md whitespace-nowrap"
-            >
-              in case we need to contact you about your order
-            </span>
+          <!-- Country Select -->
+          <div>
+            <p-select
+              [options]="avaliableCountries()"
+              optionLabel="country"
+              optionValue="country"
+              placeholder="Select a Country"
+              class="bg-white w-full py-[14px] px-3 rounded-lg"
+              formControlName="countrySelect"
+            />
           </div>
-        </div>
-      </div>
 
-      <div class="w-full flex gap-x-2 items-center">
-        <input type="checkbox" class="w-4 h-6" />
-        <span class="text-sm">Save this information for next time </span>
-      </div>
-    </section>
-
-    <!-- Payment -->
-    <section>
-      <h2 class="font-semibold text-xl">Payment</h2>
-      <p class="text-sm text-gray-500 mt-1">
-        All transactions are secure and encrypted.
-      </p>
-
-      <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
-        <!-- Credit Card -->
-        <div>
+          <!-- First and Last Name -->
           <div
-            class="flex justify-between items-center bg-white rounded-t-lg p-4"
-            [class]="{
-              paymentOptionActive: paymentRadiosValue === 'creditCard',
-              'mb-3': paymentRadiosValue === 'creditCard'
-            }"
+            class="flex sm:flex-row flex-col items-start gap-y-4 sm:gap-y-0 sm:gap-x-2"
           >
-            <div class="flex items-center gap-x-2">
-              <input
-                type="radio"
-                id="credit-card"
-                value="creditCard"
-                formControlName="paymentMethod"
-              />
-              <label class="text-sm" for="credit-card">Credit card</label>
-            </div>
-            <div class="flex items-center gap-x-2">
-              <img
-                src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/visa.sxIq5Dot.svg"
-                alt=""
-              />
-              <img
-                src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/mastercard.1c4_lyMp.svg"
-                alt=""
-              />
-            </div>
-          </div>
-          @if (paymentRadiosValue === 'creditCard') {
-          <!-- حقول Stripe Elements المنفصلة -->
-          <div class="flex flex-col gap-y-3 px-4 pb-4">
-            <!-- Card Number -->
             <div
-              #cardNumberElement
-              class="bg-white border rounded-lg p-3"
-            ></div>
-            <!-- Expiration Date & CVC -->
-            <div
-              class="flex sm:flex-row flex-col items-center gap-y-4 sm:gap-y-0 sm:gap-x-2"
+              class="w-full relative"
+              [class]="{
+                'mb-5': firstNameIsInvalid || lastNameIsInvalid
+              }"
             >
-              <div
-                #cardExpiryElement
-                class="bg-white border rounded-lg p-3 w-full"
-              ></div>
-              <div
-                #cardCvcElement
-                class="bg-white border rounded-lg p-3 w-full"
-              ></div>
-            </div>
-          </div>
-          }
-        </div>
-
-        <!-- COD -->
-        <div>
-          <!-- Option 2 -->
-          <div
-            class="flex justify-between items-center bg-white rounded-b-lg p-4"
-            [class]="{
-              paymentOptionActive: paymentRadiosValue === 'cod',
-              'border-t': paymentRadiosValue !== 'cod'
-            }"
-          >
-            <div class="flex items-center gap-x-2">
               <input
-                type="radio"
-                id="cod"
-                value="cod"
-                formControlName="paymentMethod"
+                type="text"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="First name"
+                formControlName="firstName"
+                [class]="{
+                  'border-red-500': firstNameIsInvalid,
+                }"
               />
-              <label class="text-sm" for="cod"> Cash on delivery </label>
-            </div>
-          </div>
 
-          @if (paymentRadiosValue === 'cod') {
-          <!-- COD Details -->
-          <div class="px-3">
-            <div class="mt-3">
-              <p class="text-sm mb-3">
-                Choose this option to pay in cash upon delivery. AED 20 service
-                fee applies. Please have the exact amount ready. Available
-                across the UAE.
+              @if (firstNameIsInvalid) {
+              <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+                Enter a first name
               </p>
+              }
+            </div>
+
+            <div class="w-full relative">
+              <input
+                type="text"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="Last name"
+                formControlName="lastName"
+                [class]="{
+                  'border-red-500': lastNameIsInvalid,
+                }"
+              />
+
+              @if (lastNameIsInvalid) {
+              <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+                Enter a last name
+              </p>
+              }
             </div>
           </div>
-          }
-        </div>
-      </div>
 
-      <!-- Pay Button -->
-      <div class="mt-6 mb-12">
-        <button
-          [disabled]="form.invalid"
-          (click)="paymentRadiosValue === 'creditCard' ? payNow() : onSubmit()"
-          class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
-          [ngClass]="
-            form.invalid
-              ? 'bg-gray-500 hover:bg-gray-500 cursor-default'
-              : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
-          "
-        >
-          @if (paymentRadiosValue === 'cod') { Complete order } @else { Pay now
-          }
+          <!-- Address -->
+          <div>
+            <input
+              type="text"
+              class="bg-white border w-full py-[14px] px-3 rounded-lg"
+              placeholder="Address"
+              formControlName="address"
+              [class]="{
+        'border-red-500': addressIsInvalid,
+      }"
+            />
+            @if (addressIsInvalid) {
+            <p class="text-sm text-red-500 w-full mt-1">Enter an address</p>
+            }
+          </div>
+
+          <!-- Apartment -->
+          <input
+            type="text"
+            class="bg-white border w-full py-[14px] px-3 rounded-lg"
+            placeholder="Apartment, suite, etc. (optional)"
+            formControlName="apartment"
+          />
+
+          <!-- City and State -->
+          <div
+            class="flex items-center gap-x-2"
+            [class]="{
+              'mb-5': stateIsInvalid || cityIsInvalid
+            }"
+          >
+            <div class="w-full relative">
+              <input
+                type="text"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="City"
+                formControlName="city"
+                [class]="{
+                  'border-red-500': cityIsInvalid,
+                }"
+              />
+              @if (cityIsInvalid) {
+              <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+                Enter a city
+              </p>
+              }
+            </div>
+            <div class="w-full relative">
+              <input
+                type="text"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="State"
+                formControlName="state"
+                [class]="{
+                  'border-red-500': stateIsInvalid,
+                }"
+              />
+
+              @if (stateIsInvalid) {
+              <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
+                Enter a state
+              </p>
+              }
+            </div>
+          </div>
+
+          <!-- Postcode -->
+          <div>
+            <input
+              type="number"
+              class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
+              placeholder="Postcode / Zip"
+              formControlName="postCode"
+              [class]="{
+              'border-red-500': postCodeIsInvalid,
+            }"
+            />
+            @if (postCodeIsInvalid) {
+            <p class="text-sm text-red-500 w-full mt-[6px]">Enter a Postcode</p>
+            }
+          </div>
+
+          <!-- Phone -->
+          <div class="w-full relative">
+            <input
+              type="number"
+              class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
+              placeholder="Phone"
+              formControlName="phone"
+              [class]="{
+                'border-red-500': phoneIsInvalid,
+              }"
+            />
+
+            @if (phoneIsInvalid) {
+            <p class="text-sm text-red-500 mt-2">Enter a valid phone</p>
+            }
+            <div class="absolute top-[50%] right-[3%] -translate-y-[48%]">
+              <div class="relative group">
+                <i
+                  class="pi pi-question-circle cursor-pointer text-gray-400"
+                ></i>
+                <span
+                  class="absolute right-0 -top-[120%] hidden group-hover:block bg-gray-800 text-white text-sm py-1 px-2 rounded-md shadow-md whitespace-nowrap"
+                >
+                  in case we need to contact you about your order
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full flex gap-x-2 items-center">
+            <input type="checkbox" class="w-4 h-6" />
+            <span class="text-sm">Save this information for next time </span>
+          </div>
+        </section>
+
+        <!-- Payment -->
+        <section>
+          <h2 class="font-semibold text-xl">Payment</h2>
+          <p class="text-sm text-gray-500 mt-1">
+            All transactions are secure and encrypted.
+          </p>
+
+          <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
+            <!-- Credit Card -->
+            <div>
+              <div
+                class="flex justify-between items-center bg-white rounded-t-lg p-4"
+                [class]="{
+                  paymentOptionActive: paymentRadiosValue === 'creditCard',
+                  'mb-3': paymentRadiosValue === 'creditCard'
+                }"
+              >
+                <div class="flex items-center gap-x-2">
+                  <input
+                    type="radio"
+                    id="credit-card"
+                    value="creditCard"
+                    formControlName="paymentMethod"
+                  />
+                  <label class="text-sm" for="credit-card">Credit card</label>
+                </div>
+                <div class="flex items-center gap-x-2">
+                  <img
+                    src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/visa.sxIq5Dot.svg"
+                    alt=""
+                  />
+                  <img
+                    src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/mastercard.1c4_lyMp.svg"
+                    alt=""
+                  />
+                </div>
+              </div>
+              @if (paymentRadiosValue === 'creditCard') {
+              <!-- حقول Stripe Elements المنفصلة -->
+              <div class="flex flex-col gap-y-3 px-4 pb-4">
+                <!-- Card Number -->
+                <div
+                  #cardNumberElement
+                  class="bg-white border rounded-lg p-3"
+                ></div>
+                <!-- Expiration Date & CVC -->
+                <div
+                  class="flex sm:flex-row flex-col items-center gap-y-4 sm:gap-y-0 sm:gap-x-2"
+                >
+                  <div
+                    #cardExpiryElement
+                    class="bg-white border rounded-lg p-3 w-full"
+                  ></div>
+                  <div
+                    #cardCvcElement
+                    class="bg-white border rounded-lg p-3 w-full"
+                  ></div>
+                </div>
+              </div>
+              }
+            </div>
+
+            <!-- COD -->
+            <div>
+              <!-- Option 2 -->
+              <div
+                class="flex justify-between items-center bg-white rounded-b-lg p-4"
+                [class]="{
+                  paymentOptionActive: paymentRadiosValue === 'cod',
+                  'border-t': paymentRadiosValue !== 'cod'
+                }"
+              >
+                <div class="flex items-center gap-x-2">
+                  <input
+                    type="radio"
+                    id="cod"
+                    value="cod"
+                    formControlName="paymentMethod"
+                  />
+                  <label class="text-sm" for="cod"> Cash on delivery </label>
+                </div>
+              </div>
+
+              @if (paymentRadiosValue === 'cod') {
+              <!-- COD Details -->
+              <div class="px-3">
+                <div class="mt-3">
+                  <p class="text-sm mb-3">
+                    Choose this option to pay in cash upon delivery. AED 20
+                    service fee applies. Please have the exact amount ready.
+                    Available across the UAE.
+                  </p>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+
+          <!-- Pay Button -->
+          <div class="mt-6 mb-12 lg:block hidden">
+            <button
+              [disabled]="form.invalid"
+              (click)="
+                paymentRadiosValue === 'creditCard' ? payNow() : onSubmit()
+              "
+              class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
+              [ngClass]="
+                form.invalid
+                  ? 'bg-gray-500 hover:bg-gray-500 cursor-default'
+                  : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
+              "
+            >
+              @if (paymentRadiosValue === 'cod') { Complete order } @else { Pay
+              now }
+            </button>
+          </div>
+          <hr />
+
+          <!-- Polices -->
+          <div class="lg:block hidden">
+            <div class="flex gap-x-4 mt-4">
+              <a [routerLink]="" class="underline text-sm text-red-400"
+                >Refund policy</a
+              >
+              <a [routerLink]="" class="underline text-sm text-red-400"
+                >Privacy policy</a
+              >
+              <a [routerLink]="" class="underline text-sm text-red-400"
+                >Terms of service</a
+              >
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center mb-4 lg:hidden">
+      <p class="text-xl font-semibold">Order summary</p>
+
+      <div class="flex items-center gap-x-2 text-orange-500">
+        <button (click)="onShowSummary()">
+          {{ !(summaryIsVisible$ | async) ? "Hide" : "Show" }}
         </button>
+        <i class="pi pi-sort-down-fill"></i>
       </div>
-      <hr />
+    </div>
 
-      <!-- Polices -->
-      <div class="flex gap-x-4 mt-4">
-        <a [routerLink]="" class="underline text-sm text-red-400"
-          >Refund policy</a
-        >
-        <a [routerLink]="" class="underline text-sm text-red-400"
-          >Privacy policy</a
-        >
-        <a [routerLink]="" class="underline text-sm text-red-400"
-          >Terms of service</a
-        >
-      </div>
-    </section>
+    <div class="lg:w-[45%]">
+      <app-checkout-summary [isVisible$]="summaryIsVisible$!">
+        <div class="mt-6 mb-12 lg:hidden block">
+          <button
+            [disabled]="form.invalid"
+            (click)="
+              paymentRadiosValue === 'creditCard' ? payNow() : onSubmit()
+            "
+            class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
+            [ngClass]="
+              form.invalid
+                ? 'bg-gray-500 hover:bg-gray-500 cursor-default'
+                : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
+            "
+          >
+            @if (paymentRadiosValue === 'cod') { Complete order } @else { Pay
+            now }
+          </button>
+        </div>
+      </app-checkout-summary>
+    </div>
   </div>
 </form>
+
+<div #googlePayButton></div>
