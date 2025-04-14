@@ -1,7 +1,8 @@
 .image-slider {
   position: relative;
   width: 100%;
-  aspect-ratio: 3/4;
+  height: 300px; 
+  max-height: 300px; 
   overflow: hidden;
   background-color: #f9f9f9;
   border-top-left-radius: 0.375rem;
@@ -27,7 +28,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100%; 
   opacity: 0;
   transition: opacity 0.3s ease;
   display: none;
@@ -50,7 +51,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain; /* Image will be contained within the frame */
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   transition: transform 0.3s ease;
 }
 
@@ -230,17 +231,19 @@
 .card-image-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 3/4;
+  height: 100%; /* بياخد الارتفاع من الـ parent (image-slider) */
+  max-height: 400px;
+  overflow: hidden;
   border-top-left-radius: 0.375rem;
   border-top-right-radius: 0.375rem;
-  overflow: hidden;
 }
 
 .product-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* الصورة هتظهر كاملة بدون قص */
   object-position: center;
+  background-color: #ffffff;
 }
 
 /* Mobile swipe indicators */
@@ -271,5 +274,16 @@
 @media (max-width: 768px) {
   .slide {
     height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .image-slider {
+    aspect-ratio: 1 / 1; /* نسبة مربعة للهواتف */
+    max-height: 230px; /* تقليل الارتفاع على الهواتف */
+  }
+
+  .slide img {
+    object-fit: contain;
   }
 }

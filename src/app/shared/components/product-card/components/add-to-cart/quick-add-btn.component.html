@@ -1,32 +1,4 @@
-<!-- Desktop Add to Cart Button (for products with no variations or only one type of variation) -->
-<div *ngIf="!isMobile && shouldShowAddToCartButton()" class="desktop-add-to-cart-container">
-  <button
-    class="desktop-add-to-cart-btn"
-    [disabled]="isAddToCartDisabled()"
-    (click)="onAddToCart()">
-    Add to Cart
-  </button>
-</div>
-<!-- Desktop Size Selector (for products with only sizes, no colors) -->
-<app-size-selector
-  *ngIf="shouldShowDesktopSizeSelector()"
-  [isHovered]="isHovered"
-  [uniqueSizes]="uniqueSizes"
-  [selectedSize]="selectedSize"
-  (selectSize)="onSelectSize($event)"
-></app-size-selector>
-
-<!-- Desktop Combined Color/Size Selector - Shows sizes on hover -->
- @if(!isMobile && hasColors() && hasSizes() && isHovered){
-   <app-size-selector
-   [isHovered]="isHovered"
-   [uniqueSizes]="uniqueSizes"
-   [selectedSize]="selectedSize"
-   (selectSize)="onSelectSize($event)"
-   ></app-size-selector>
-  }
-
-<!-- Mobile Quick Add Button (for products with both colors and sizes) -->
+<!-- Mobile Quick Add Button (for products with sizes) -->
 <div *ngIf="shouldShowQuickAddButton()" class="mobile-quick-add-section">
   <div class="quick-add-button-container">
     <button
@@ -45,7 +17,7 @@
   </div>
 </div>
 
-<!-- Size Selector Overlay for Mobile - Positioned as a dropdown -->
+<!-- Size Selector Overlay for Mobile -->
 <div *ngIf="mobileQuickAddExpanded" class="mobile-size-selector-overlay">
   <div class="mobile-size-heading">Select Size</div>
   <div class="mobile-size-scroll-container">
@@ -67,8 +39,8 @@
   </button>
 </div>
 
-<!-- Mobile Add to Cart Button (for products with no variations or only one type) -->
-<div *ngIf="isMobile && !shouldShowQuickAddButton() && shouldShowAddToCartButton()" class="mobile-add-to-cart-section">
+<!-- Mobile Add to Cart Button (for products with no variations) -->
+<div *ngIf="isMobile && shouldShowAddToCartButton()" class="mobile-add-to-cart-section">
   <button
     class="mobile-direct-add-btn"
     [disabled]="isAddToCartDisabled()"
@@ -76,3 +48,32 @@
     Add to Cart
   </button>
 </div>
+
+<!-- Desktop Add to Cart Button (for products with no variations or only one type of variation) -->
+<div *ngIf="!isMobile && shouldShowAddToCartButton()" class="desktop-add-to-cart-container">
+  <button
+    class="desktop-add-to-cart-btn"
+    [disabled]="isAddToCartDisabled()"
+    (click)="onAddToCart()">
+    Add to Cart
+  </button>
+</div>
+
+<!-- Desktop Size Selector (for products with only sizes, no colors) -->
+<app-size-selector
+  *ngIf="shouldShowDesktopSizeSelector()"
+  [isHovered]="isHovered"
+  [uniqueSizes]="uniqueSizes"
+  [selectedSize]="selectedSize"
+  (selectSize)="onSelectSize($event)"
+></app-size-selector>
+
+<!-- Desktop Combined Color/Size Selector - Shows sizes on hover -->
+@if (!isMobile && hasColors() && hasSizes() && isHovered) {
+  <app-size-selector
+    [isHovered]="isHovered"
+    [uniqueSizes]="uniqueSizes"
+    [selectedSize]="selectedSize"
+    (selectSize)="onSelectSize($event)"
+  ></app-size-selector>
+}

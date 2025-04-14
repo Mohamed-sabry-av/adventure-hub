@@ -1,4 +1,10 @@
 /* Product Page Styles */
+.product-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem; /* إضافة padding لتحسين العرض على الهواتف */
+}
+
 .sticky-wrapper {
   position: relative;
 }
@@ -6,6 +12,12 @@
 .sticky-info {
   position: sticky;
   top: 20px;
+}
+
+/* Description section styling */
+.full-width-description {
+  margin-top: 2rem;
+  width: 100%; /* للتأكد من أن الوصف يأخذ العرض الكامل */
 }
 
 /* Mobile responsive styling */
@@ -16,17 +28,20 @@
   }
 
   .full-width-description {
-    width: 100%;
+    margin-top: 1rem; /* تقليل المسافة العلوية على الهواتف */
+  }
+
+  .product-images-wrapper {
+    width: 100%; /* الصور تأخذ العرض الكامل على الهواتف */
+  }
+
+  .sticky-wrapper {
+    width: 100%; /* المعلومات تأخذ العرض الكامل */
   }
 }
 
-/* Description section styling */
-.full-width-description {
-  margin-top: 2rem;
-}
-
-/* Enhance spacing for better readability */
-.product-container {
-  max-width: 1200px;
-  margin: 0 auto;
+@media (min-width: 769px) {
+  .full-width-description {
+    margin-top: 0; /* إزالة المسافة العلوية على الشاشات الكبيرة */
+  }
 }

@@ -42,8 +42,8 @@ export class CardImageSliderComponent implements OnInit {
   }
 
   onTouchStart(e: TouchEvent) {
-    this.touchStartX = e.touches[0].clientX;
-    this.isSwiping = true;
+    // this.touchStartX = e.touches[0].clientX;
+    // this.isSwiping = true;
   }
 
   onTouchMove(e: TouchEvent) {

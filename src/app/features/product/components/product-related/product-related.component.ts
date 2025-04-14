@@ -20,23 +20,10 @@ export class ProductRelatedComponent implements OnInit {
   relatedProducts: any[] = [];
 
   responsiveOptions = [
-    {
-      breakpoint: '1024px', // شاشات كبيرة
-      numVisible: 4,
-      numScroll: 1
-    },
-    {
-      breakpoint: '768px', // التابلت
-      numVisible: 3,
-      numScroll: 1
-    },
-    {
-      breakpoint: '560px', // الموبايل
-      numVisible: 2,
-      numScroll: 1
-    }
+    { breakpoint: '1024px', numVisible: 3, numScroll: 1 },
+    { breakpoint: '768px', numVisible: 2, numScroll: 1 },
+    { breakpoint: '480px', numVisible: 1, numScroll: 1 }
   ];
-
   ngOnInit() {
     this.getRelatedProducts();
   }

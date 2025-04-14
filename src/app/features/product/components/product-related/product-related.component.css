@@ -1,95 +1,55 @@
-.related-products {
-  margin-top: 40px;
+.related-products-container {
+  padding: 20px 0;
+  margin-top: 50px;
 }
 
 .section-title {
-  font-size: 22px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 25px;
+  color: #3e3e30;
+  position: relative;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
 }
 
-/* Carousel container */
-.carousel-item-container {
-  padding: 50px;
-  height: 100%;
+.product-item {
+  padding: 0 10px;
 }
 
-/* Product grid fallback if carousel isn't available */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 40px;
-}
-
-.product-card-wrapper {
-  width: 100%;
-}
-
-/* Empty state */
-.no-related-products {
-  padding: 30px;
+.no-products {
   text-align: center;
+  padding: 20px;
   color: #777;
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  margin-bottom: 40px;
+  font-style: italic;
 }
 
-/* Custom carousel navigation styles */
+/* Customize the carousel navigation buttons */
 :host ::ng-deep .p-carousel .p-carousel-indicators {
-  display: none;
+  margin-top: 1rem;
 }
 
-:host ::ng-deep .p-carousel-prev,
-:host ::ng-deep .p-carousel-next {
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.8);
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev,
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next {
+  color: #3e3e30;
+  border: 1px solid #ddd;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
   margin: 0 4px;
-  transition: all 0.2s;
+  background-color: white;
 }
 
-:host ::ng-deep .p-carousel-prev:hover,
-:host ::ng-deep .p-carousel-next:hover {
-  background-color: rgba(231, 96, 58, 0.1);
-  color: #e7603a;
-}
-
-:host ::ng-deep .p-carousel-prev:focus,
-:host ::ng-deep .p-carousel-next:focus {
-  box-shadow: none;
-  outline: 0;
-}
-
-/* Responsive styles */
-@media (max-width: 1024px) {
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev:hover,
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next:hover {
+  background-color: #f1f1f1;
 }
 
 @media (max-width: 768px) {
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+  .related-products-container {
+    padding: 15px 0;
   }
 
   .section-title {
-    font-size: 20px;
-  }
-
-  .carousel-item-container {
-    padding: 5px;
-  }
-}
-
-@media (max-width: 480px) {
-  .product-grid {
-    grid-template-columns: repeat(1, 1fr);
-    gap: 10px;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
   }
 }

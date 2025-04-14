@@ -9,6 +9,8 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
 import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
+import { RecentlyViewedComponent } from '../../components/recently-viewed/recently-viewed.component';
+import { RecentlyViewedService } from '../../services/recently-viewed.service';
 
 @Component({
   selector: 'app-product-page',
@@ -20,6 +22,7 @@ import { BreadcrumbComponent } from "../../../products/components/breadcrumb/bre
     ProductRelatedComponent,
     AppContainerComponent,
     BreadcrumbComponent,
+    RecentlyViewedComponent,
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
@@ -35,6 +38,7 @@ export class ProductPageComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private seoService: SeoService,
+    private recentlyViewedService: RecentlyViewedService,
     private destroyRef: DestroyRef
   ) {}
 
@@ -70,6 +74,9 @@ export class ProductPageComponent implements OnInit {
             description: this.productData?.short_description,
             image: this.productData?.images?.[0]?.src,
           });
+
+          // Add product to recently viewed using the service
+          this.recentlyViewedService.addProduct(this.productData);
         },
         error: (err) => {
           console.error('Error fetching product data:', err);
