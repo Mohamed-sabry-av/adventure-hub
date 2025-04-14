@@ -1,11 +1,11 @@
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
-  <app-card-image-slider
-    [product]="product"
-    [currentSlide]="currentSlide"
-    [getDotCount]="getDotCount.bind(this)"
-    (goToSlide)="goToSlide($event)"
-  >
-  </app-card-image-slider>
+ <app-card-image-slider
+  [product]="modifiedProduct"
+  [currentSlide]="currentSlide"
+  [colorOptions]="colorOptions"
+  [variations]="variations"
+  (goToSlide)="goToSlide($event)"
+></app-card-image-slider>
 
   <!-- تفاصيل المنتج (العنوان، السعر، إلخ) -->
   <app-card-details

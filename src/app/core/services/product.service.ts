@@ -31,7 +31,7 @@ export class ProductService {
         params: new HttpParams()
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json'
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
@@ -112,7 +112,7 @@ export class ProductService {
           .set('category', categoryId.toString())
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json'
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
@@ -264,7 +264,7 @@ export class ProductService {
           .set('include', ids.join(','))
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits'
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('stock_status', 'instock'),
         observe: 'response',

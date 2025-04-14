@@ -64,7 +64,7 @@ export class MobileQuickAddComponent {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['uniqueSizes']) {
-      console.log('uniqueSizes changed in MobileQuickAdd:', this.uniqueSizes);
+      // console.log('uniqueSizes changed in MobileQuickAdd:', this.uniqueSizes);
       this.cdr.detectChanges(); // أضف ده عشان يحدث الـ UI
     }
   }

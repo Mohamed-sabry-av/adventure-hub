@@ -7,13 +7,12 @@ import { WooCommerceAccountService } from '../../account-details.service';
   templateUrl: './wishlist.component.html',
   styleUrls: ['./wishlist.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
 })
 export class WishlistComponent implements OnInit {
   wishlistItems: any[] = [];
   isLoading = true;
   error: string | null = null;
-  wishlistId: number | null = null;
 
   private accountService = inject(WooCommerceAccountService);
 
@@ -27,71 +26,64 @@ export class WishlistComponent implements OnInit {
 
     this.accountService.getWishlist().subscribe({
       next: (data) => {
-        if (data && data.length > 0) {
-          this.wishlistId = data[0].id;
-          this.wishlistItems = data[0].items || [];
-        } else {
-          this.wishlistItems = [];
-        }
+        this.wishlistItems = Array.isArray(data) ? data : [];
         this.isLoading = false;
+        console.log('Wishlist loaded:', this.wishlistItems);
       },
       error: (err) => {
-        this.error = 'Failed to load wishlist. Please try again later.';
+        this.error = err.error?.message || 'Failed to load wishlist. Please try again later.';
         this.isLoading = false;
         console.error('Error loading wishlist:', err);
-      }
+      },
     });
   }
 
   removeFromWishlist(productId: number, index: number): void {
-    if (!this.wishlistId) {
-      this.error = 'Could not determine wishlist ID';
-      return;
-    }
-
-    // Show removing state
     this.wishlistItems[index].isRemoving = true;
 
-    this.accountService.removeFromWishlist(this.wishlistId).subscribe({
-      next: () => {
-        // Remove the item from the local array
-        this.wishlistItems = this.wishlistItems.filter((item, i) => i !== index);
+    this.accountService.removeFromWishlist(productId).subscribe({
+      next: (response) => {
+        if (response.success !== false) {
+          this.wishlistItems = this.wishlistItems.filter((_, i) => i !== index);
+        } else {
+          this.wishlistItems[index].isRemoving = false;
+          this.error = response.message || 'Failed to remove item from wishlist.';
+        }
       },
       error: (err) => {
-        // Reset removing state
         this.wishlistItems[index].isRemoving = false;
-        this.error = 'Failed to remove item from wishlist. Please try again.';
+        this.error = err.error?.message || 'Failed to remove item from wishlist. Please try again.';
         console.error('Error removing from wishlist:', err);
-      }
+      },
     });
   }
 
   addToCart(productId: number): void {
-    // This would typically be handled by another service
-    console.log('Adding product to cart:', productId);
-    // Show success message
-    alert('Product added to cart successfully!');
+    this.accountService.addToCart(productId, 1).subscribe({
+      next: (response) => {
+        if (response.success !== false) {
+          alert('Product added to cart successfully!'); // Replace with toast/notification
+        } else {
+          this.error = response.message || 'Failed to add product to cart.';
+        }
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Failed to add product to cart. Please try again.';
+        console.error('Error adding to cart:', err);
+      },
+    });
   }
 
-  // Helper method to safely get product price
   getProductPrice(product: any): string {
-    if (!product) return 'N/A';
-
-    if (product.price_html) {
-      return product.price_html;
+    if (!product || !product.price) {
+      return 'N/A';
     }
-
-    if (product.price) {
-      return `$${parseFloat(product.price).toFixed(2)}`;
-    }
-
-    return 'N/A';
+    return `$${parseFloat(product.price).toFixed(2)}`;
   }
 
-  // Helper method to safely get product image
   getProductImage(product: any): string {
-    if (product?.images && product.images.length > 0) {
-      return product.images[0].src;
+    if (product?.image) {
+      return product.image;
     }
     return 'assets/placeholder.jpg';
   }

@@ -135,7 +135,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       this.mobileQuickAddExpanded = false;
     }
   }
-
   private fetchVariations(): void {
     this.productService.getProductVariations(this.product.id).subscribe({
       next: (variations: Variation[]) => {
@@ -146,6 +145,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.updateVisibleColors();
         this.updateVisibleSizes();
         this.variationsLoaded = true;
+        // Call setDefaultVariation again to ensure correct initialization
         this.setDefaultVariation();
       },
       error: (error: any) => {
@@ -158,21 +158,25 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   private getColorOptions(): { color: string; image: string; inStock: boolean }[] {
     if (!this.variations) return [];
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
+  
     this.variations.forEach((v) => {
       const colorAttr = v.attributes?.find((attr: any) => attr.name === 'Color');
       if (colorAttr && v.image?.src) {
-        const inStock = v.stock_status === 'instock';
-        if (!colorMap.has(colorAttr.option) || inStock) {
-          colorMap.set(colorAttr.option, { image: v.image.src, inStock });
-        }
+        const current = colorMap.get(colorAttr.option) || { image: v.image.src, inStock: false };
+        // Update inStock to true if any variation for this color is in stock
+        const inStock = current.inStock || v.stock_status === 'instock';
+        colorMap.set(colorAttr.option, { image: v.image.src, inStock });
       }
     });
+  
     const options = Array.from(colorMap, ([color, data]) => ({
       color,
       image: data.image,
       inStock: data.inStock
     }));
-    return options.length > 0 ? options : [];
+  
+    // Sort to prioritize in-stock colors
+    return options.sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
   }
 
   private getSizesForColor(color: string): { size: string; inStock: boolean }[] {
@@ -203,18 +207,31 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   private setDefaultVariation(): void {
     if (this.variations.length === 0) {
+      this.displayedImages = this.product.images?.map(img => ({ src: img.src })) || [];
       return;
     }
   
-    const defaultColor = this.product.default_attributes?.find((attr: any) => attr.name === 'Color')?.option;
+    // Try default attributes first
+    const defaultColor = this.product.default_attributes?.find(
+      (attr: any) => attr.name === 'Color'
+    )?.option;
   
-    if (defaultColor && this.colorOptions.length > 0) {
-      const matchingColor = this.colorOptions.find((opt) => opt.color.toLowerCase() === defaultColor.toLowerCase());
-      if (matchingColor) {
-        this.selectColor(matchingColor.color, matchingColor.image); 
-      }
-    } else if (this.colorOptions.length > 0) {
-      this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+    let selectedColorOption = null;
+    if (defaultColor) {
+      selectedColorOption = this.colorOptions.find(
+        (opt) => opt.color.toLowerCase() === defaultColor.toLowerCase() && opt.inStock
+      );
+    }
+  
+    // If no valid default or default is out of stock, pick first in-stock color
+    if (!selectedColorOption) {
+      selectedColorOption = this.colorOptions.find((opt) => opt.inStock) || this.colorOptions[0];
+    }
+  
+    if (selectedColorOption) {
+      this.selectColor(selectedColorOption.color, selectedColorOption.image);
+    } else {
+      this.displayedImages = this.product.images?.map(img => ({ src: img.src })) || [];
     }
   
     this.updateSelectedVariation();
@@ -222,16 +239,25 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
-    this.displayedImages = this.variations 
-         ?.filter((v) => v.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === color))
-      .map((v) => ({ src: v.image?.src || image })) || [];
+    // Get images for the selected color from variations
+    const variationImages = this.variations
+      ?.filter((v) => v.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === color))
+      .map((v) => ({
+        src: v.image?.src || image,
+        alt: v.image?.alt || this.product.name
+      }))
+      .filter((img) => img.src); // Remove invalid images
+  
+    this.displayedImages = variationImages.length > 0
+      ? variationImages
+      : [{ src: image, alt: this.product.name }]; // Fallback to passed image
+  
     this.currentSlide = 0;
     this.uniqueSizes = this.getSizesForColor(color);
     this.selectedSize = null;
     this.updateVisibleSizes();
-    this.cdr.detectChanges()
-  
     this.updateSelectedVariation();
+    this.cdr.detectChanges(); // Force UI update
   }
 
   selectSize(size: string): void {
@@ -380,7 +406,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         ) || null;
       }
   
-      console.log('Selected Variation:', this.selectedVariation);
+      // console.log('Selected Variation:', this.selectedVariation);
     }
   }
+  
 }

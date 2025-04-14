@@ -59,7 +59,7 @@ export interface Product {
   parent_id?: number;
   purchase_note?: string;
   tags?: any[];
-  default_attributes?: { name: string; option: string }[];  variations: Variation[];
+  default_attributes?: { name: string; option: string }[];  variations: any[];
   grouped_products?: any[];
   menu_order?: number;
   price_html?: string;

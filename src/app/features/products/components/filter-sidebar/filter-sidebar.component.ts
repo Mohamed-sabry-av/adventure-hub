@@ -57,7 +57,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
     }
 
     if (changes['selectedFilters'] && !changes['categoryId']) {
-      console.log('selectedFilters changed:', this.selectedFilters);
+      // console.log('selectedFilters changed:', this.selectedFilters);
       this.filtersSubject.next({ ...this.selectedFilters });
       this.updateAvailableAttributes();
     }
@@ -98,16 +98,16 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
   
     try {
       const data = await this.filterService.getAllAttributesAndTermsByCategory(this.categoryId).toPromise();
-      console.log('data receiver:', data);
+      // console.log('data receiver:', data);
       if (data) {
         this.originalAttributes = Object.entries(data).map(([slug, attr]) => ({
           slug,
           name: attr.name,
           terms: attr.terms.sort((a, b) => a.name.localeCompare(b.name))
         }));
-        console.log('Original attributes:', this.originalAttributes);
+        // console.log('Original attributes:', this.originalAttributes);
         this.attributes = [...this.originalAttributes];
-        console.log('Attributes copied:', this.attributes);
+        // console.log('Attributes copied:', this.attributes);
         this.initializeSections();
       } else {
         this.errorMessage = 'No attributes available.';
@@ -268,7 +268,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
   }
 
   private updateUI(): void {
-    console.log('Updating UI', { isLoadingAttributes: this.isLoadingAttributes, attributes: this.attributes });
+    // console.log('Updating UI', { isLoadingAttributes: this.isLoadingAttributes, attributes: this.attributes });
     this.cdr.markForCheck();
     }
 }
