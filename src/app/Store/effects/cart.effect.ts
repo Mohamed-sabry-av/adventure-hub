@@ -102,51 +102,29 @@ export class CartEffect {
                 })
               );
           } else {
-            let {
-              id,
-              name,
-              regular_price,
-              price,
-              sale_price,
-              attributes,
-              image,
-              type,
-            } = product;
-
-            image = image.src;
-
-            let selectedProduct = {
-              id,
-              name,
-              quantity: 1,
-              prices: {
-                regular_price,
-                price,
-                sale_price,
-              },
-              attributes,
-              images: image,
-              type,
+            const body = {
+              product_id: product.id,
             };
 
-            let loadedProducts: any = localStorage.getItem('Cart');
-            loadedProducts = loadedProducts
-              ? JSON.parse(loadedProducts).items
-              : [];
+            return this.httpClient
+              .post(
+                'https://adventures-hub.com/wp-json/custom/v1/cart/add',
+                body
+              )
+              .pipe(
+                map((response: any) => {
+                  console.log(response);
 
-            const productIndex = loadedProducts.findIndex(
-              (p: Product) => p.id === selectedProduct.id
-            );
-
-            if (productIndex !== -1) {
-              loadedProducts[productIndex].quantity += 1;
-            } else {
-              loadedProducts.push(selectedProduct);
-            }
-
-            const cart = this.cartService.calcCartPrice(loadedProducts);
-            localStorage.setItem('Cart', JSON.stringify(cart));
-
+                  this.store.dispatch(
+                    fetchUserCartAction({ isLoggedIn: false })
+                  );
+                  console.log('ADDEDD FROM OFFLINEs');
+                }),
+                catchError((error: any) => {
+                  console.log('ERRR', error);
+                  return of();
+                })
+              );
             this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
             return '';
           }
@@ -181,7 +159,7 @@ export class CartEffect {
                   return {
                     key: item.key,
                     id: item.id,
-                    images: item.images[0].src,
+                    images: item.images[0].srcphysics,
                     name: item.name,
                     permalink: item.permalink,
                     type: item.type,
@@ -203,14 +181,56 @@ export class CartEffect {
                 return getUserCartAction({ userCart: cartData });
               }),
               catchError((error: any) => {
-                console.log('ERRRRRRRR', error);
+                console.log('ERRRRRRRR From ONLINE', error);
                 return of();
               })
             );
         } else {
-          let loadedCart: any = localStorage.getItem('Cart');
-          loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-          return of(getUserCartAction({ userCart: loadedCart }));
+          const options = {
+            params: new HttpParams().set(
+              '_fields',
+              'items,totals,payment_methods'
+            ),
+          };
+
+          return this.httpClient
+            .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
+            .pipe(
+              map((response: any) => {
+                console.log(response);
+
+                const itemsObj = response.items.map((item: any) => {
+                  return {
+                    key: item.key,
+                    id: item.id,
+                    images: item.images[0].srcphysics,
+                    name: item.name,
+                    permalink: item.permalink,
+                    type: item.type,
+                    variation: item.variation,
+                    prices: item.prices,
+                    quantity: item.quantity,
+                    quantity_limits: item.quantity_limits,
+                    attributes: item.attributes,
+                    totals: item.totals,
+                  };
+                });
+
+                const cartData = {
+                  items: itemsObj,
+                  payment_methods: response.payment_methods,
+                  totals: response.totals,
+                };
+
+                console.log(cartData);
+
+                return getUserCartAction({ userCart: cartData });
+              }),
+              catchError((error: any) => {
+                console.log('ERRRRRRRR From OFFLINE', error);
+                return of();
+              })
+            );
         }
       })
     )

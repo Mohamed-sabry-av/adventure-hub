@@ -30,6 +30,10 @@ import {
 import { CheckoutSummaryComponent } from '../checkout-summary/checkout-summary.component';
 import { BehaviorSubject } from 'rxjs';
 import { StripeService } from 'ngx-stripe';
+import { HttpClient } from '@angular/common/http';
+import { trigger, transition, style, animate } from '@angular/animations';
+
+declare var TabbyCheckout: any; // Declare TabbyCheckout for TypeScript
 
 @Component({
   selector: 'app-checkout-form',
@@ -44,6 +48,23 @@ import { StripeService } from 'ngx-stripe';
   ],
   templateUrl: './checkout-form.component.html',
   styleUrl: './checkout-form.component.css',
+  animations: [
+    trigger('slideInOut', [
+      transition(':enter', [
+        style({ transform: 'translateY(-20px)', opacity: '0' }),
+        animate(
+          '200ms ease-in',
+          style({ transform: 'translateY(0)', opacity: '1' })
+        ),
+      ]),
+      transition(':leave', [
+        animate(
+          '50ms ease-out',
+          style({ transform: 'translateY(-20px)', opacity: '0' })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class CheckoutFormComponent {
   private destroyRef = inject(DestroyRef);
@@ -100,7 +121,7 @@ export class CheckoutFormComponent {
 
   paymentRadiosValue: string = 'creditCard';
   summaryIsVisible$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
-    false
+    true
   );
   isVisible: boolean = false;
 
@@ -135,21 +156,13 @@ export class CheckoutFormComponent {
   }
 
   toggleCreditCardValidators(method: string) {
-    const fields = ['cardNumber', 'expDate', 'securityCode', 'nameOnCard'];
-
-    fields.forEach((fieldName) => {
-      const control = this.form.get(fieldName);
-
-      if (method === 'creditCard') {
-        control?.setValidators([Validators.required, Validators.maxLength(30)]);
-        this.paymentRadiosValue = 'creditCard';
-      } else {
-        this.paymentRadiosValue = 'cod';
-        control?.clearValidators();
-      }
-
-      control?.updateValueAndValidity();
-    });
+    if (method === 'creditCard') {
+      this.paymentRadiosValue = 'creditCard';
+    } else if (method === 'tabby') {
+      this.paymentRadiosValue = 'tabby';
+    } else {
+      this.paymentRadiosValue = 'cod';
+    }
   }
 
   onSubmit(stripeToken?: string) {
@@ -257,7 +270,43 @@ export class CheckoutFormComponent {
   googlePayButtonRef!: ElementRef;
   private stripeService = inject(StripeService);
 
-  async ngAfterViewInit() {
+  ngAfterViewInit() {
+    this.initStripe();
+    // Google Pay
+    // this.paymentRequest = this.stripe!.paymentRequest({
+    //   country: 'US', // غيّر حسب بلدك
+    //   currency: 'usd', // غيّر حسب العملة
+    //   total: {
+    //     label: 'إجمالي الطلب',
+    //     amount: 1000, // المبلغ بالسنت (مثال: 10 دولار = 1000)
+    //   },
+    //   requestPayerName: true,
+    //   requestPayerEmail: true,
+    //   requestShipping: true,
+    // });
+
+    // const result = await this.paymentRequest.canMakePayment();
+
+    // const result = await paymentRequest.canMakePayment();
+    // console.log(result);
+    // if (result) {
+    //   console.log('PAAAY', result);
+    //   const elements = this.stripe!.elements();
+    //   this.prButton = elements.create('paymentRequestButton', {
+    //     paymentRequest: paymentRequest,
+    //     style: {
+    //       paymentRequestButton: {
+    //         type: 'default',
+    //         theme: 'dark',
+    //         height: '40px',
+    //       },
+    //     },
+    //   });
+    //   this.prButton.mount(this.googlePayButtonRef.nativeElement);
+    // }
+  }
+
+  async initStripe() {
     this.stripe = await loadStripe(
       'pk_test_51RD3yPIPLmPtcaOkAPNrNJV5j2bFeHAdAzwZa2Rif9dG6C8psDSow39N3QE66a0F6gbQONj3bb3IeoPFRHOXxMqX00Aw6qKltl'
     );
@@ -282,38 +331,6 @@ export class CheckoutFormComponent {
       this.cardExpiry.mount(this.cardExpiryElementRef.nativeElement);
       this.cardCvc.mount(this.cardCvcElementRef.nativeElement);
     }
-    // Google Pay
-    this.paymentRequest = this.stripe!.paymentRequest({
-      country: 'US', // غيّر حسب بلدك
-      currency: 'usd', // غيّر حسب العملة
-      total: {
-        label: 'إجمالي الطلب',
-        amount: 1000, // المبلغ بالسنت (مثال: 10 دولار = 1000)
-      },
-      requestPayerName: true,
-      requestPayerEmail: true,
-      requestShipping: true,
-    });
-
-    const result = await this.paymentRequest.canMakePayment();
-
-    // const result = await paymentRequest.canMakePayment();
-    console.log(result);
-    // if (result) {
-    //   console.log('PAAAY', result);
-    //   const elements = this.stripe!.elements();
-    //   this.prButton = elements.create('paymentRequestButton', {
-    //     paymentRequest: paymentRequest,
-    //     style: {
-    //       paymentRequestButton: {
-    //         type: 'default',
-    //         theme: 'dark',
-    //         height: '40px',
-    //       },
-    //     },
-    //   });
-    //   this.prButton.mount(this.googlePayButtonRef.nativeElement);
-    // }
   }
 
   async payNow() {
@@ -332,5 +349,124 @@ export class CheckoutFormComponent {
     } else {
       console.error('Stripe أو حقل البطاقة غير جاهز');
     }
+  }
+
+  // ------------------------------------------------------------------------------------
+  // TABBBY
+
+  private httpClient = inject(HttpClient);
+  orderId: number | null = null; // Store WooCommerce order ID
+  tabbyPublicKey = 'pk_660ceea8-66e4-4c15-85d2-1c2887765112'; // Replace with your Tabby Public Key
+  wooCommerceApiUrl =
+    'https://adventures-hub.com/wp-json/wc/v3/orders?consumer_key=ck_74222275d064648b8c9f21284e42ed37f8595da5&consumer_secret=cs_4c9f3b5fd41a135d862e973fc65d5c049e05fee4'; // WooCommerce API URL
+  tabbyApiUrl = 'https://adventures-hub.com/wp-json/tabby/v1/create-payment'; // Custom Tabby endpoint
+
+  createWooCommerceOrder(): void {
+    const orderData = {
+      payment_method: 'tabby',
+      payment_method_title: 'Tabby - Pay Later',
+      set_paid: false,
+      billing: {
+        first_name: 'Customer',
+        last_name: 'Name',
+        email: 'customer@example.com',
+        phone: '+971123456789',
+      },
+      shipping: {
+        first_name: 'Customer',
+        last_name: 'Name',
+        email: 'customer@example.com',
+        phone: '+971123456789',
+      },
+      line_items: [
+        {
+          product_id: 123, // Replace with actual product ID
+          quantity: 1,
+        },
+      ],
+    };
+
+    this.httpClient.post(this.wooCommerceApiUrl, orderData, {}).subscribe(
+      (response: any) => {
+        this.orderId = response.id;
+        console.log('Order created:', this.orderId);
+      },
+      (error) => {
+        console.error('Error creating order:', error);
+      }
+    );
+  }
+
+  initiateTabbyPayment(): void {
+    if (!this.orderId) {
+      console.error('No order ID available');
+      return;
+    }
+
+    // Fetch order details for Tabby
+    this.httpClient
+      .post(this.tabbyApiUrl, { order_id: this.orderId })
+      .subscribe(
+        (response: any) => {
+          console.log('SUCCCCCCCCCCCCCCCCCCCCES', response);
+          this.setupTabbyCheckout(response);
+        },
+        (error) => {
+          console.error('Error fetching order details:', error);
+        }
+      );
+  }
+
+  setupTabbyCheckout(orderData: any): void {
+    if (typeof TabbyCheckout === 'undefined') {
+      console.error(
+        'TabbyCheckout is not loaded. Please check the SDK script.'
+      );
+      return;
+    }
+
+    TabbyCheckout({
+      public_key: this.tabbyPublicKey,
+      selector: '#tabby-checkout', // ID of the container element
+      lang: 'ar', // Arabic language
+      amount: orderData.amount,
+      currency: orderData.currency,
+      buyer: orderData.buyer,
+      items: orderData.items,
+      success: (response: any) => {
+        console.log('Payment created:', response);
+        // Update WooCommerce order status
+        // this.updateOrderStatus(this.orderId!, 'pending');
+        // Redirect to Tabby payment page
+        window.location.href = response.payment.url;
+      },
+      failure: (error: any) => {
+        console.error('Payment failed:', error);
+        // Optionally update order status to failed
+        // this.updateOrderStatus(this.orderId!, 'failed');
+      },
+    });
+  }
+
+  updateOrderStatus(orderId: number, status: string): void {
+    this.httpClient
+      .put(
+        `${this.wooCommerceApiUrl}/${orderId}`,
+        { status: status },
+        {
+          headers: {
+            Authorization:
+              'Basic ' + btoa('YOUR_CONSUMER_KEY:YOUR_CONSUMER_SECRET'),
+          },
+        }
+      )
+      .subscribe(
+        (response) => {
+          console.log('Order status updated:', response);
+        },
+        (error) => {
+          console.error('Error updating order status:', error);
+        }
+      );
   }
 }
