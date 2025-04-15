@@ -128,13 +128,7 @@ export class CardImageSliderComponent implements OnInit {
         const anyVariationInStock = this.variations.some(v => v.stock_status === 'instock');
         if (!anyVariationInStock) {
           tags.push('SOLD OUT');
-        } else {
-          // Check if only some sizes are in stock
-          const inStockVariations = this.variations.filter(v => v.stock_status === 'instock');
-          if (inStockVariations.length < this.variations.length) {
-            tags.push('LIMITED');
-          }
-        }
+        } 
       } else {
         // If no variations provided, assume out of stock
         tags.push('SOLD OUT');

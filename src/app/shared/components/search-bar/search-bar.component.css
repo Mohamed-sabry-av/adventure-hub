@@ -1,77 +1,190 @@
 :host {
   display: block;
+  position: relative;
+  z-index: 1001; /* Higher than overlay and results for the entire component */
 }
 
-/* ستايل أيقونة السيرش */
+/* Search Input Container */
+.search-input-container {
+  position: relative;
+  z-index: 1002; /* Ensure the input is above everything */
+}
+
+/* Search Input Styling */
+input {
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  background: #f5f5dc; /* Keep your beige background */
+}
+
+input:focus {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Search Icon */
 .search-icon {
   position: absolute;
   left: 1.5rem;
   top: 50%;
   transform: translateY(-50%);
-  color: white;
-  font-size: 1.125rem;
+  transition: all 0.2s ease;
 }
 
-/* ستايل الـ dropdown بتاع النتائج */
-.search-results {
+/* Overlay */
+.search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+  z-index: 999; /* Below the search input and results */
+}
+
+/* Search Results Container */
+.search-results-container {
   position: absolute;
   top: 100%;
   left: 0;
-  width: 80%;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: red;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  z-index: 10;
-  max-height: 300px;
-  overflow-y: auto;
+  right: 0;
+  max-width: 80%;
+  margin: 0 auto;
+  animation: fadeIn 0.25s ease;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-radius: 0.75rem;
+  background: white;
+  z-index: 1000; /* Above the overlay but below the input */
+  transform-origin: top center;
+  overflow: hidden;
 }
 
-/* ستايل كل منتج في النتائج */
-.product-item {
-  padding: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  cursor: pointer;
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-.product-item:hover {
-  background-color: #f3f4f6;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 8px;
 }
 
-/* ستايل الصورة */
-.product-image {
-  width: 2.5rem;
-  height: 2.5rem;
-  object-fit: cover;
-  margin-right: 0.5rem;
-  border-radius: 0.25rem;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 8px;
 }
 
-/* ستايل اسم المنتج */
-.product-name {
-  color: #1f2937;
-  font-weight: 500;
-  font-size: 0.9rem;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
-/* ستايل السعر */
-.product-price {
-  color: #4b5563;
-  font-size: 0.85rem;
+/* Sale Badge with Pulse Animation */
+.sale-badge {
+  position: relative;
+  overflow: hidden;
 }
 
-/* ستايل الليبل بتاع العرض */
-.offer-badge {
-  background-color: #ef4444;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  display: inline-block;
-  margin-top: 0.25rem;
+.sale-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  animation: shine 2s infinite;
 }
 
-.layerVisible {
-  z-index: 1000;
+/* Product Item Hover Effect */
+li {
+  transition: all 0.2s ease;
+}
+
+li:hover {
+  transform: translateX(2px);
+}
+
+/* Animation for loading dots */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Shine effect for the sale badge */
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Fade in animation for dropdown */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .search-results-container {
+    max-width: 95%;
+  }
+}
+
+/* Tab highlight effect */
+button.border-blue-500 {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+button.border-blue-500::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, #3b82f6, #60a5fa);
+  transition: transform 0.3s ease;
+  transform: scaleX(1);
+}
+
+/* Price styling for sale items */
+.line-through {
+  position: relative;
+}
+
+.line-through::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background-color: #9ca3af;
+  left: 0;
+  top: 50%;
 }

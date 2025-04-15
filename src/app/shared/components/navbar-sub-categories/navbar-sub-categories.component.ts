@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-navbar-sub-categories',
-  imports: [CommonModule,RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './navbar-sub-categories.component.html',
   styleUrl: './navbar-sub-categories.component.css',
   animations: [
@@ -65,19 +65,21 @@ export class NavbarSubCategoriesComponent {
     return this.allCategoriesData.filter((cat) => cat.parent === categoryId);
   }
 
-  getCategoryRoute(category:Category):string[]{
-    const pathSegments:string[] = ['category'];
-    this.buildFullPath(category, pathSegments)
-    return pathSegments
+  getCategoryRoute(category: Category): string[] {
+    const pathSegments: string[] = ['category'];
+    this.buildFullPath(category, pathSegments);
+    return pathSegments;
   }
 
   private buildFullPath(category: Category, path: string[]): void {
-    if(category.parent !== 0){
-      const parentCategory = this.allCategoriesData.find(c=> c.id=== category.parent)
-      if(parentCategory){
-        this.buildFullPath(parentCategory, path)
+    if (category.parent !== 0) {
+      const parentCategory = this.allCategoriesData.find(
+        (c) => c.id === category.parent
+      );
+      if (parentCategory) {
+        this.buildFullPath(parentCategory, path);
       }
     }
-    path.push(category.slug)
+    path.push(category.slug);
   }
 }

@@ -2,47 +2,49 @@
   <div class="w-full h-[1px] bg-[#717261]"></div>
 
   <div
-    class="bg-[#2E2E2E] z-3 subLinks-child text-white w-full overflow-hidden grid grid-cols-12 md:gap-x-16 xl:gap-x-24 gap-y-2"
+    class="bg-[#2E2E2E] z-3 subLinks-child text-white w-full overflow-hidden"
     (mouseleave)="onLeave()"
     (mouseenter)="onEnter()"
-    @visible
   >
-    @for (category of categoriesData; track category.id) {
-      <div class="col-span-3">
-        <!-- Main Category Link -->
-        <a
-          class="block cursor-pointer border-b border-[#717261] py-3 mb-3 text-base font-semibold"
-          [routerLink]="getCategoryRoute(category)"
-          [innerHTML]="category.name"
-        ></a>
+    <!-- Grid layout with columns for categories -->
+    <div class="grid grid-cols-12 md:gap-x-16 xl:gap-x-24 gap-y-2">
+      @for (category of categoriesData; track category.id) {
+        <div class="col-span-3">
+          <!-- Main Category Link -->
+          <a
+            class="block cursor-pointer border-b border-[#717261] py-3 mb-3 text-base font-semibold"
+            [routerLink]="getCategoryRoute(category)"
+            [innerHTML]="category.name"
+          ></a>
 
-        <!-- Subcategories -->
-        <div
-          class="max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800"
-        >
-          @for (childOfSubCategory of getSubCategories(category.id); track childOfSubCategory.id) {
-            <div class="my-2">
-              <a [routerLink]="getCategoryRoute(childOfSubCategory)">
-                <span
-                  [innerHTML]="childOfSubCategory.name"
-                  class="text-sm font-semibold cursor-pointer py-1 block hover:text-gray-400 transition-all duration-150"
-                ></span>
-              </a>
+          <!-- Subcategories -->
+          <div
+            class="max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800"
+          >
+            @for (childOfSubCategory of getSubCategories(category.id); track childOfSubCategory.id) {
+              <div class="my-2">
+                <a [routerLink]="getCategoryRoute(childOfSubCategory)">
+                  <span
+                    [innerHTML]="childOfSubCategory.name"
+                    class="text-sm font-semibold cursor-pointer py-1 block hover:text-gray-400 transition-all duration-150"
+                  ></span>
+                </a>
 
-              <!-- Children of Subcategory -->
-              @if (getSubCategories(childOfSubCategory.id).length > 0) {
-                @for (childOfChildOfSubCategory of getSubCategories(childOfSubCategory.id); track childOfChildOfSubCategory.id) {
-                  <div class="text-xs py-[2px] ml-4">
-                    <a [routerLink]="getCategoryRoute(childOfChildOfSubCategory)">
-                      {{ childOfChildOfSubCategory.name }}
-                    </a>
-                  </div>
+                <!-- Children of Subcategory -->
+                @if (getSubCategories(childOfSubCategory.id).length > 0) {
+                  @for (childOfChildOfSubCategory of getSubCategories(childOfSubCategory.id); track childOfChildOfSubCategory.id) {
+                    <div class="text-xs py-[2px] ml-4">
+                      <a [routerLink]="getCategoryRoute(childOfChildOfSubCategory)">
+                        {{ childOfChildOfSubCategory.name }}
+                      </a>
+                    </div>
+                  }
                 }
-              }
-            </div>
-          }
+              </div>
+            }
+          </div>
         </div>
-      </div>
-    }
+      }
+    </div>
   </div>
 }
