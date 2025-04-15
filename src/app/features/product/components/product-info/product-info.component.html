@@ -15,82 +15,94 @@
     <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
   </div>
 
-    <!-- Quantity Controls -->
-    <div class="product-option">
-      <label class="option-label">Quantity</label>
-      <div class="quantity-control">
-        <button class="quantity-btn" (click)="onQuantityDown()" [disabled]="quantity <= 1">-</button>
-        <span class="quantity-display">{{ quantity }}</span>
-        <button class="quantity-btn" (click)="onQuantityUp()" [disabled]="quantity >= maxLength">+</button>
-      </div>
-    </div>
-
-
-@if(getColorOptions().length){
-  <div class="product-option">
-    <!-- <label class="option-label">Color</label> -->
-    <div class="color-options">
-      @for (option of getColorOptions(); track $index) {
-
-        <div
-        class="color-option"
-        [class.active]="selectedColor === option.color"
-        [class.out-of-stock]="!option.inStock"
-        (click)="option.inStock && selectColor(option.color)"
-        >
-        <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'"></div>
-        <span class="color-name">{{ option.color }}</span>
-        <span class="out-of-stock-badge" *ngIf="!option.inStock">Out of Stock</span>
-      </div>
-    }
-    </div>
+  <!-- Stock Status Message -->
+  <div class="stock-status" *ngIf="!isProductInStock">
+    <span class="text-red-500 font-medium">Out of Stock</span>
   </div>
-  }
+
+  <!-- Quantity Controls - Only shown when product is in stock -->
+  <div class="product-option" *ngIf="isProductInStock">
+    <label class="option-label">Quantity</label>
+    <div class="quantity-control">
+      <button class="quantity-btn" (click)="onQuantityDown()" [disabled]="quantity <= 1">-</button>
+      <span class="quantity-display">{{ quantity }}</span>
+      <button class="quantity-btn" (click)="onQuantityUp()" [disabled]="quantity >= maxLength">+</button>
+    </div>
+    <!-- Display available stock info if available -->
+    <span class="text-sm text-gray-500 ml-2" *ngIf="maxLength > 0">
+      {{ maxLength }} items available
+    </span>
+  </div>
 
 
-  <!-- Size selector if available -->
-   @if(selectedColor && getSizesForColor(selectedColor).length){
-     <div class="product-option">
-       <label class="option-label">Size</label>
-    <div class="size-options">
-      @for(sizeOption of getSizesForColor(selectedColor); track $index) {
-        <div
-        class="size-option"
-        [class.active]="selectedSize === sizeOption.size"
-        [class.out-of-stock]="!sizeOption.inStock"
-        (click)="sizeOption.inStock && selectSize(sizeOption.size)"
-        >
-        {{ sizeOption.size }}
-        @if(!sizeOption.inStock) {
-          <span class="out-of-stock-badge"></span>
+  @if(getColorOptions().length){
+    <div class="product-option">
+      <!-- <label class="option-label">Color</label> -->
+      <div class="color-options">
+        @for (option of getColorOptions(); track $index) {
+          <div
+            class="color-option"
+            [class.active]="selectedColor === option.color"
+            [class.out-of-stock]="!option.inStock"
+            (click)="option.inStock && selectColor(option.color)"
+          >
+            <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'"></div>
+            <span class="color-name">{{ option.color }}</span>
+            <span class="out-of-stock-badge" *ngIf="!option.inStock">Out of Stock</span>
+          </div>
         }
       </div>
-    }
     </div>
-  </div>
-}
+  }
 
-  <!-- Add to Cart Button -->
-  <button class="w-full bg-orange-500 text-white py-3 font-medium rounded-md mb-3 hover:bg-orange-600 transition-colors"
+  <!-- Size selector if available -->
+  @if(selectedColor && getSizesForColor(selectedColor).length){
+    <div class="product-option">
+      <label class="option-label">Size</label>
+      <div class="size-options">
+        @for(sizeOption of getSizesForColor(selectedColor); track $index) {
+          <div
+            class="size-option"
+            [class.active]="selectedSize === sizeOption.size"
+            [class.out-of-stock]="!sizeOption.inStock"
+            (click)="sizeOption.inStock && selectSize(sizeOption.size)"
+          >
+            {{ sizeOption.size }}
+            @if(!sizeOption.inStock) {
+              <span class="out-of-stock-badge"></span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Add to Cart Button - Only shown when product is in stock -->
+  <button
+    *ngIf="isProductInStock"
+    class="w-full bg-orange-500 text-white py-3 font-medium rounded-md mb-3 hover:bg-orange-600 transition-colors"
     (click)="addToCart()">
     ADD TO CART
   </button>
 
-  <!-- Apple Pay Button -->
-  <button class="w-full bg-black text-white py-3 font-medium rounded-md mb-3 flex items-center justify-center" (click)="buyNow()">
+  <!-- Apple Pay Button - Only shown when product is in stock -->
+  <button
+    *ngIf="isProductInStock"
+    class="w-full bg-black text-white py-3 font-medium rounded-md mb-3 flex items-center justify-center"
+    (click)="buyNow()">
     Buy Now
   </button>
-  <!-- الاضافه الي المفضله -->
+
+  <!-- Add to Wishlist -->
   <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
     <i class="pi pi-heart text-sm"></i>
     <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
   </div>
 
-
-  <!-- Tabby Payment -->
-  <div class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
+  <!-- Tabby Payment - Only shown when product is in stock -->
+  <div *ngIf="isProductInStock" class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
     <div>
-      <p class="text-sm">4 interest-free payments or as low as <strong>AED {{ ((productInfo()?.price) /
+      <p class="text-sm">4 interest-free payments or as low as <strong>AED {{ ((parseFloatValue(getSelectedPrice())) /
           10.45).toFixed(2) }}/month</strong></p>
       <p class="text-sm text-gray-500">More options</p>
     </div>
@@ -100,7 +112,6 @@
       class="h-8"
     />
   </div>
-
 
   <!-- معلومات التوصيل -->
   <div class="mt-6 flex flex-col gap-y-1">

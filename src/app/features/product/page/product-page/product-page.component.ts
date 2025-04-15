@@ -53,10 +53,27 @@ export class ProductPageComponent implements OnInit {
             .pipe(
               map((variations) => {
                 console.log('Variations fetched:', variations);
-                return {
+                // Normalize product data
+                const normalizedProduct = {
                   ...product,
                   variations: variations || [],
+                  brand: product.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.name || product.brand || 'Unknown',
+                  available_colors: [
+                    ...new Set(
+                      (variations || []).map((v: any) =>
+                        v.attributes?.find((attr: any) => attr.name === 'Color')?.option
+                      ).filter(Boolean)
+                    )
+                  ],
+                  available_sizes: [
+                    ...new Set(
+                      (variations || []).map((v: any) =>
+                        v.attributes?.find((attr: any) => attr.name === 'Size')?.option
+                      ).filter(Boolean)
+                    )
+                  ]
                 };
+                return normalizedProduct;
               })
             );
         })
@@ -77,7 +94,7 @@ export class ProductPageComponent implements OnInit {
           this.schemaData = this.seoService.applySeoTags(null, { title: 'Product Page' });
         },
       });
-
+  
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

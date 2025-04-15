@@ -1,7 +1,6 @@
 import { Component, EventEmitter, input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CartService } from '../../../cart/service/cart.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -30,6 +29,10 @@ export class ProductInfoComponent {
         this.selectedColor = this.getColorOptions()[0].color;
         this.selectedColorChange.emit(this.selectedColor);
       }
+
+      // Set initial quantity to 1 and maxLength to available stock
+      this.quantity = 1;
+      this.updateMaxLength();
     }
   }
 
@@ -42,6 +45,23 @@ export class ProductInfoComponent {
   onQuantityDown() {
     if (this.quantity > 1) {
       this.quantity--;
+    }
+  }
+
+  // Update maxLength based on current selection
+  updateMaxLength() {
+    if (!this.selectedColor || !this.selectedSize) {
+      // If no color or size selected yet, use default product stock
+      this.maxLength = this.productInfo()?.stock_quantity || 10;
+      return;
+    }
+
+    // Find the selected variation
+    const selectedVariation = this.getSelectedVariation();
+    if (selectedVariation) {
+      this.maxLength = selectedVariation.stock_quantity || 0;
+    } else {
+      this.maxLength = 0;
     }
   }
 
@@ -125,10 +145,44 @@ export class ProductInfoComponent {
     this.selectedColor = color;
     this.selectedSize = null;
     this.selectedColorChange.emit(color);
+    this.updateMaxLength();
   }
 
   selectSize(size: string): void {
     this.selectedSize = size;
+    this.updateMaxLength();
+    // Reset quantity to 1 when size changes
+    this.quantity = 1;
+  }
+
+  getSelectedVariation() {
+    const variations = this.productInfo()?.variations || [];
+    if (!Array.isArray(variations) || !variations.length || !this.selectedColor || !this.selectedSize) {
+      return null;
+    }
+
+    return variations.find(
+      (v: any) =>
+        v.attributes?.some(
+          (attr: any) =>
+            attr?.name === 'Color' && attr?.option === this.selectedColor
+        ) &&
+        v.attributes?.some(
+          (attr: any) =>
+            attr?.name === 'Size' && attr?.option === this.selectedSize
+        )
+    );
+  }
+
+  get isProductInStock(): boolean {
+    // If no selection has been made, check the default product stock
+    if (!this.selectedColor || !this.selectedSize) {
+      return this.productInfo()?.stock_status === 'instock';
+    }
+
+    // Check if the selected variation is in stock
+    const selectedVariation = this.getSelectedVariation();
+    return selectedVariation?.stock_status === 'instock' && this.maxLength > 0;
   }
 
   getSelectedPrice(): string {
@@ -138,17 +192,7 @@ export class ProductInfoComponent {
     }
 
     if (this.selectedSize) {
-      const selectedVariation = variations.find(
-        (v: any) =>
-          v.attributes?.some(
-            (attr: any) =>
-              attr?.name === 'Color' && attr?.option === this.selectedColor
-          ) &&
-          v.attributes?.some(
-            (attr: any) =>
-              attr?.name === 'Size' && attr?.option === this.selectedSize
-          )
-      );
+      const selectedVariation = this.getSelectedVariation();
       return selectedVariation?.price || this.productInfo()?.price;
     }
 
@@ -176,8 +220,8 @@ export class ProductInfoComponent {
     // Implementation would go here in a real app
     console.log('Show more payment options clicked');
   }
+
   parseFloatValue(value: any): number {
     return parseFloat(value);
   }
-  
 }

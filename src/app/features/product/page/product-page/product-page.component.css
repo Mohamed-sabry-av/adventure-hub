@@ -1,10 +1,4 @@
-/* Product Page Styles */
-.product-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem; /* إضافة padding لتحسين العرض على الهواتف */
-}
-
+/* Sticky Product Info */
 .sticky-wrapper {
   position: relative;
 }
@@ -14,34 +8,16 @@
   top: 20px;
 }
 
-/* Description section styling */
-.full-width-description {
-  margin-top: 2rem;
-  width: 100%; /* للتأكد من أن الوصف يأخذ العرض الكامل */
+/* Full Width Description */
+.full-width-product-description {
+  margin: 40px 0;
+  padding: 20px 0;
+  border-top: 1px solid #eee;
 }
 
-/* Mobile responsive styling */
-@media (max-width: 768px) {
+/* Responsive Adjustments */
+@media (max-width: 767px) {
   .sticky-info {
-    position: relative;
-    top: 0;
-  }
-
-  .full-width-description {
-    margin-top: 1rem; /* تقليل المسافة العلوية على الهواتف */
-  }
-
-  .product-images-wrapper {
-    width: 100%; /* الصور تأخذ العرض الكامل على الهواتف */
-  }
-
-  .sticky-wrapper {
-    width: 100%; /* المعلومات تأخذ العرض الكامل */
-  }
-}
-
-@media (min-width: 769px) {
-  .full-width-description {
-    margin-top: 0; /* إزالة المسافة العلوية على الشاشات الكبيرة */
+    position: static;
   }
 }

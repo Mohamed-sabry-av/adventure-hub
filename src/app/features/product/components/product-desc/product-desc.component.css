@@ -1,12 +1,22 @@
 .product-description {
   margin: 30px 0;
+  position: relative;
+}
+
+/* Sticky Tabs */
+.sticky-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
 }
 
 /* Tab Navigation */
 .description-tabs {
   display: flex;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .tab-item {
@@ -37,9 +47,37 @@
   color: #e7603a;
 }
 
-/* Tab Content */
-.tab-content {
-  padding: 15px 0;
+.review-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  min-width: 20px;
+  padding: 0 5px;
+  background-color: #333;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+/* Content Sections */
+.tab-sections {
+  position: relative;
+}
+
+.content-section {
+  margin-bottom: 50px;
+  scroll-margin-top: 60px; /* For smooth scrolling accounting for sticky header */
+}
+
+.section-header {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin: 20px 0;
+  padding-bottom: 0; /* Updated to match image */
+  border-bottom: none; /* Updated to match image */
 }
 
 /* Description Section */
@@ -107,6 +145,43 @@
   font-size: 15px;
 }
 
+/* Specifications */
+.specifications {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.specs-header {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 20px;
+}
+
+.specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spec-item {
+  display: flex;
+  line-height: 1.6;
+}
+
+.spec-label {
+  font-weight: 600;
+  color: #333;
+  width: 40%;
+  max-width: 200px;
+  padding-right: 15px;
+}
+
+.spec-value {
+  color: #555;
+}
+
 /* Specifications Table */
 .specifications-content {
   margin-top: 20px;
@@ -133,6 +208,85 @@
 
 .specs-table td {
   color: #555;
+}
+
+/* Additional Information Section */
+.additional-info-content {
+  margin-top: 20px;
+}
+
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.info-table tr {
+  display: flex;
+  justify-content: space-between; /* Align label and value to opposite ends */
+  padding: 12px 0; /* Vertical spacing between rows */
+  border-bottom: 1px dashed #ccc; /* Dashed line separator */
+}
+
+.info-table th {
+  font-weight: 600; /* Bold labels */
+  color: #333;
+  font-size: 14px;
+  text-align: left;
+  flex: 0 0 auto; /* Prevent label from stretching */
+}
+
+.info-table td {
+  color: #555;
+  font-size: 14px;
+  text-align: right; /* Align values to the right */
+  flex: 0 0 auto; /* Prevent value from stretching */
+}
+
+.color-list,
+.size-list {
+  display: inline; /* Keep the comma-separated list inline */
+}
+
+.color-list span,
+.size-list span {
+  color: #555;
+}
+
+/* No additional information message */
+.no-info {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+/* Reviews Section */
+.reviews-content {
+  margin-top: 20px;
+}
+
+.no-reviews {
+  padding: 30px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.add-review-btn {
+  margin-top: 15px;
+  padding: 10px 25px;
+  background-color: #e7603a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-review-btn:hover {
+  background-color: #d45534;
 }
 
 /* Raw Description */
@@ -177,5 +331,14 @@
   .specs-table td {
     padding: 10px;
     font-size: 14px;
+  }
+
+  .section-header {
+    font-size: 18px;
+  }
+
+  .info-table th,
+  .info-table td {
+    font-size: 13px;
   }
 }
