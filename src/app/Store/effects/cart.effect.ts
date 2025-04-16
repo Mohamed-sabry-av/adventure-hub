@@ -7,7 +7,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CartService } from '../../features/cart/service/cart.service';
 import { Product } from '../../interfaces/product';
-import { catchError, map, of, switchMap, take, tap } from 'rxjs';
+import { catchError, EMPTY, map, of, switchMap, take, tap } from 'rxjs';
 import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
@@ -15,6 +15,8 @@ import {
   getUserCartAction,
   updateProductOfUserCartAction,
 } from '../actions/cart.action';
+import { json } from 'stream/consumers';
+import { fetchCouponsAction } from '../actions/checkout.action';
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -66,174 +68,159 @@ export class CartEffect {
   //   { dispatch: false }
   // );
 
-  addProductToUserCart = createEffect(
+  addProductToUserCart = createEffect(() =>
+    this.actions$.pipe(
+      ofType(addProductToUserCartAction),
+      switchMap(({ product, isLoggedIn }) => {
+        if (isLoggedIn) {
+          let authToken: any = localStorage.getItem('auth_token');
+          authToken = authToken ? JSON.parse(authToken) : '';
+
+          const headers = new HttpHeaders({
+            Authorization: `Bearer ${authToken.value}`,
+          });
+
+          const body = {
+            product_id: product.id,
+          };
+
+          return this.httpClient
+            .post(
+              'https://adventures-hub.com/wp-json/custom/v1/cart/add',
+              body,
+              { headers }
+            )
+            .pipe(
+              map(() => {
+                this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
+                console.log('ADDEDD');
+                return fetchUserCartAction({ isLoggedIn: true });
+              }),
+              catchError((error: any) => {
+                console.log('ERRR', error);
+                return EMPTY;
+              })
+            );
+        } else {
+          let {
+            id,
+            name,
+            regular_price,
+            price,
+            sale_price,
+            attributes,
+            image,
+            type,
+            quantity_limits,
+          } = product;
+
+          image = image.src;
+
+          let selectedProduct = {
+            id,
+            name,
+            quantity: 1,
+            prices: {
+              regular_price,
+              price,
+              sale_price,
+            },
+            attributes,
+            images: image,
+            type,
+            quantity_limits,
+            totals: {},
+          };
+
+          const productTotals: number =
+            selectedProduct.prices.price * selectedProduct.quantity;
+
+          (selectedProduct as any).totals.line_total = productTotals;
+
+          let loadedCart: any = localStorage.getItem('Cart');
+          loadedCart = loadedCart
+            ? JSON.parse(loadedCart)
+            : { items: [], coupons: {}, totals: {} };
+
+          const productIndex = loadedCart.items.findIndex(
+            (p: Product) => p.id === selectedProduct.id
+          );
+
+          if (productIndex !== -1) {
+            loadedCart.items[productIndex].quantity += 1;
+          } else {
+            loadedCart.items.push(selectedProduct);
+          }
+
+          localStorage.setItem('Cart', JSON.stringify(loadedCart));
+          this.cartService.fetchUserCart();
+          return of();
+        }
+      })
+    )
+  );
+
+  loadUserCart = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(addProductToUserCartAction),
-        switchMap(({ product, isLoggedIn }) => {
+        ofType(fetchUserCartAction),
+        switchMap(({ isLoggedIn }) => {
           if (isLoggedIn) {
             let authToken: any = localStorage.getItem('auth_token');
             authToken = authToken ? JSON.parse(authToken) : '';
 
-            const headers = new HttpHeaders({
-              Authorization: `Bearer ${authToken.value}`,
-            });
-
-            const body = {
-              product_id: product.id,
+            const options = {
+              headers: new HttpHeaders({
+                Authorization: `Bearer ${authToken.value}`,
+              }),
+              params: new HttpParams().set(
+                '_fields',
+                'items,totals,payment_methods,coupons'
+              ),
             };
 
             return this.httpClient
-              .post(
-                'https://adventures-hub.com/wp-json/custom/v1/cart/add',
-                body,
-                { headers }
-              )
-              .pipe(
-                map(() => {
-                  this.store.dispatch(
-                    fetchUserCartAction({ isLoggedIn: true })
-                  );
-                  console.log('ADDEDD');
-                }),
-                catchError((error: any) => {
-                  console.log('ERRR', error);
-                  return of();
-                })
-              );
-          } else {
-            const body = {
-              product_id: product.id,
-            };
+              .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
 
-            return this.httpClient
-              .post(
-                'https://adventures-hub.com/wp-json/custom/v1/cart/add',
-                body
-              )
               .pipe(
                 map((response: any) => {
-                  console.log(response);
+                  const itemsObj = response.items.map((item: any) => {
+                    return {
+                      key: item.key,
+                      id: item.id,
+                      images: item.images[0].src,
+                      name: item.name,
+                      permalink: item.permalink,
+                      type: item.type,
+                      variation: item.variation,
+                      prices: item.prices,
+                      quantity: item.quantity,
+                      quantity_limits: item.quantity_limits,
+                      attributes: item.attributes,
+                      totals: item.totals,
+                    };
+                  });
 
+                  const cartData = {
+                    items: itemsObj,
+                    payment_methods: response.payment_methods,
+                    totals: response.totals,
+                    coupons: response.coupons,
+                  };
                   this.store.dispatch(
-                    fetchUserCartAction({ isLoggedIn: false })
+                    getUserCartAction({ userCart: cartData })
                   );
-                  console.log('ADDEDD FROM OFFLINEs');
                 }),
                 catchError((error: any) => {
-                  console.log('ERRR', error);
+                  console.log('ERRRRRRRR', error);
                   return of();
                 })
               );
-            this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
-            return '';
           }
+          return of();
         })
       ),
     { dispatch: false }
-  );
-
-  loadUserCart = createEffect(() =>
-    this.actions$.pipe(
-      ofType(fetchUserCartAction),
-      switchMap(({ isLoggedIn }) => {
-        if (isLoggedIn) {
-          let authToken: any = localStorage.getItem('auth_token');
-          authToken = authToken ? JSON.parse(authToken) : '';
-          const options = {
-            headers: new HttpHeaders({
-              Authorization: `Bearer ${authToken.value}`,
-            }),
-            params: new HttpParams().set(
-              '_fields',
-              'items,totals,payment_methods'
-            ),
-          };
-
-          return this.httpClient
-            .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
-
-            .pipe(
-              map((response: any) => {
-                const itemsObj = response.items.map((item: any) => {
-                  return {
-                    key: item.key,
-                    id: item.id,
-                    images: item.images[0].srcphysics,
-                    name: item.name,
-                    permalink: item.permalink,
-                    type: item.type,
-                    variation: item.variation,
-                    prices: item.prices,
-                    quantity: item.quantity,
-                    quantity_limits: item.quantity_limits,
-                    attributes: item.attributes,
-                    totals: item.totals,
-                  };
-                });
-
-                const cartData = {
-                  items: itemsObj,
-                  payment_methods: response.payment_methods,
-                  totals: response.totals,
-                };
-
-                return getUserCartAction({ userCart: cartData });
-              }),
-              catchError((error: any) => {
-                console.log('ERRRRRRRR From ONLINE', error);
-                return of();
-              })
-            );
-        } else {
-          const options = {
-            params: new HttpParams().set(
-              '_fields',
-              'items,totals,payment_methods'
-            ),
-          };
-
-          return this.httpClient
-            .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
-            .pipe(
-              map((response: any) => {
-                console.log(response);
-
-                const itemsObj = response.items.map((item: any) => {
-                  return {
-                    key: item.key,
-                    id: item.id,
-                    images: item.images[0].srcphysics,
-                    name: item.name,
-                    permalink: item.permalink,
-                    type: item.type,
-                    variation: item.variation,
-                    prices: item.prices,
-                    quantity: item.quantity,
-                    quantity_limits: item.quantity_limits,
-                    attributes: item.attributes,
-                    totals: item.totals,
-                  };
-                });
-
-                const cartData = {
-                  items: itemsObj,
-                  payment_methods: response.payment_methods,
-                  totals: response.totals,
-                };
-
-                console.log(cartData);
-
-                return getUserCartAction({ userCart: cartData });
-              }),
-              catchError((error: any) => {
-                console.log('ERRRRRRRR From OFFLINE', error);
-                return of();
-              })
-            );
-        }
-      })
-    )
   );
 
   updateProductQuantityOfUserCart = createEffect(
@@ -283,81 +270,101 @@ export class CartEffect {
 
             if (!isLoggedIn) {
               let loadedCart: any = localStorage.getItem('Cart');
-              loadedCart = loadedCart ? JSON.parse(loadedCart).items : [];
+              loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
 
-              const updatedCart = loadedCart.map((product: Product) =>
+              const updatedCart = loadedCart.items.map((product: any) =>
                 product.id === selectedProduct.id
-                  ? { ...product, quantity }
+                  ? {
+                      ...product,
+                      quantity,
+                      totals: {
+                        line_total: quantity * selectedProduct.prices.price,
+                      },
+                    }
                   : product
               );
 
-              const cart = this.cartService.calcCartPrice(updatedCart);
-              console.log(cart);
+              loadedCart.items = updatedCart;
+              localStorage.setItem('Cart', JSON.stringify(loadedCart));
 
-              localStorage.setItem('Cart', JSON.stringify(cart));
-              this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
+              this.cartService.fetchUserCart();
             }
-            return '';
+            return of();
           }
         )
       ),
     { dispatch: false }
   );
 
-  deleteProductOfUserCart = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(deleteProductOfUserCarAction),
-        switchMap(({ product: selectedProduct, isLoggedIn }) => {
-          if (isLoggedIn) {
-            let authToken: any = localStorage.getItem('auth_token');
-            authToken = authToken ? JSON.parse(authToken) : '';
+  deleteProductOfUserCart = createEffect(() =>
+    this.actions$.pipe(
+      ofType(deleteProductOfUserCarAction),
+      switchMap(({ product: selectedProduct, isLoggedIn }) => {
+        if (isLoggedIn) {
+          let authToken: any = localStorage.getItem('auth_token');
+          authToken = authToken ? JSON.parse(authToken) : '';
 
-            const headers = new HttpHeaders({
-              Authorization: `Bearer ${authToken.value}`,
-            });
+          const headers = new HttpHeaders({
+            Authorization: `Bearer ${authToken.value}`,
+          });
 
-            const body = {
-              product_id: selectedProduct.id,
-            };
+          const body = {
+            product_id: selectedProduct.id,
+          };
 
-            return this.httpClient
-              .post(
-                'https://adventures-hub.com/wp-json/custom/v1/cart/remove',
-                body,
-                { headers }
-              )
-              .pipe(
-                map(() => {
-                  this.store.dispatch(
-                    fetchUserCartAction({ isLoggedIn: true })
-                  );
-                  console.log('DELETED');
-                }),
-                catchError((error: any) => {
-                  console.log('ERRR', error);
-                  return of();
-                })
-              );
-          } else {
-            let loadedProducts: any = localStorage.getItem('Cart');
-            loadedProducts = loadedProducts
-              ? JSON.parse(loadedProducts).items
-              : [];
-
-            console.log(loadedProducts);
-            const updatedProducts = loadedProducts.filter(
-              (product: Product) => {
-                return product.id !== selectedProduct.id;
-              }
+          return this.httpClient
+            .post(
+              'https://adventures-hub.com/wp-json/custom/v1/cart/remove',
+              body,
+              { headers }
+            )
+            .pipe(
+              map(() => {
+                console.log('DELETED');
+                return fetchUserCartAction({ isLoggedIn: true });
+              }),
+              catchError((error: any) => {
+                console.log('ERRR', error);
+                return EMPTY;
+              })
             );
-            const cart = this.cartService.calcCartPrice(updatedProducts);
-            localStorage.setItem('Cart', JSON.stringify(cart));
-            this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
-            return '';
+        } else {
+          let loadedCart: any = localStorage.getItem('Cart');
+          loadedCart = loadedCart
+            ? JSON.parse(loadedCart)
+            : { items: [], coupons: {}, totals: {} };
+
+          if (!loadedCart.items) {
+            loadedCart.items = [];
           }
-        })
-      ),
-    { dispatch: false }
+
+          const updatedProducts = loadedCart.items.filter(
+            (product: Product) => product.id !== selectedProduct.id
+          );
+
+          loadedCart.items = updatedProducts;
+
+          if (loadedCart.items.length === 0) {
+            localStorage.removeItem('Cart');
+            this.store.dispatch(
+              getUserCartAction({
+                userCart: { items: [], coupons: {}, totals: {} },
+              })
+            );
+          } else {
+            localStorage.setItem('Cart', JSON.stringify(loadedCart));
+            this.cartService.fetchUserCart();
+          }
+          return of();
+        }
+      })
+    )
   );
 }
+
+/*
+            const updatedCart = this.cartService.calcCartPrice(
+              loadedCart.items,
+              Object.values(loadedCart.coupons)[0] || null
+            );
+*/

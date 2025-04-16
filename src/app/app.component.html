@@ -1,11 +1,13 @@
-<div class="bg-[#2E2E2E] w-full">
+<div class="min-h-screen flex flex-col bg-[#2E2E2E]">
   <div class="w-full pb-3 md:pb-0">
     <app-header />
   </div>
-</div>
 
-<div class="bg-white w-full">
-  <router-outlet />
+  <div class="flex-1 bg-white w-full">
+    <router-outlet />
+  </div>
+
+  <app-side-cart />
+
+  <app-footer *ngIf="!isCheckoutPage" />
 </div>
-<app-side-cart />
-<app-footer *ngIf="!isCheckoutPage" />

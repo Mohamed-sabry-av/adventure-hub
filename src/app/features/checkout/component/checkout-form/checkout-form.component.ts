@@ -28,7 +28,7 @@ import {
   StripePaymentRequestButtonElement,
 } from '@stripe/stripe-js';
 import { CheckoutSummaryComponent } from '../checkout-summary/checkout-summary.component';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { StripeService } from 'ngx-stripe';
 import { HttpClient } from '@angular/common/http';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -70,6 +70,10 @@ export class CheckoutFormComponent {
   private destroyRef = inject(DestroyRef);
   private formValidationService = inject(FormValidationService);
   private checkoutService = inject(CheckoutService);
+
+  summaryIsVisible$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    false
+  );
 
   form = new FormGroup({
     email: new FormControl('', {
@@ -120,9 +124,6 @@ export class CheckoutFormComponent {
   });
 
   paymentRadiosValue: string = 'creditCard';
-  summaryIsVisible$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
-    true
-  );
   isVisible: boolean = false;
 
   ngOnInit() {
@@ -132,7 +133,16 @@ export class CheckoutFormComponent {
         this.toggleCreditCardValidators(method!);
       });
 
-    this.destroyRef.onDestroy(() => subscribtion?.unsubscribe());
+    const subscribtion2 = this.form
+      .get('countrySelect')
+      ?.valueChanges.subscribe((value) => {
+        this.onGetSelectedCountry(value);
+      });
+
+    this.destroyRef.onDestroy(() => {
+      subscribtion?.unsubscribe();
+      subscribtion2?.unsubscribe();
+    });
   }
 
   avaliableCountries(): any[] {
@@ -177,6 +187,7 @@ export class CheckoutFormComponent {
       email: this.form.value.email,
       phone: `${this.form.value.phone}`,
     };
+
     const shippingAddress = {
       first_name: this.form.value.firstName,
       last_name: this.form.value.lastName,
@@ -186,6 +197,7 @@ export class CheckoutFormComponent {
       postcode: `${this.form.value.postCode}`,
       country: this.form.value.countrySelect,
     };
+
     let paymentGateway: {
       payment_method: string;
       payment_method_title: string;
@@ -197,7 +209,18 @@ export class CheckoutFormComponent {
       paymentGateway.payment_method = 'cod';
       paymentGateway.payment_method_title = 'Cash on delivery';
     }
-    this.checkoutService.createOrder(
+
+    let coupon: any = null;
+
+    const subscribtion = this.checkoutService.appliedCoupon$.subscribe(
+      (response: any) => {
+        if (response.validCoupon !== null) {
+          coupon = response.validCoupon;
+        }
+      }
+    );
+
+    console.log(
       {
         billing: billingAddress,
         shipping: shippingAddress,
@@ -205,6 +228,18 @@ export class CheckoutFormComponent {
       paymentGateway,
       stripeToken
     );
+
+    this.checkoutService.createOrder(
+      {
+        billing: billingAddress,
+        shipping: shippingAddress,
+      },
+      paymentGateway,
+      coupon,
+      stripeToken
+    );
+
+    this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
   }
 
   get emailIsInvalid() {
@@ -249,6 +284,12 @@ export class CheckoutFormComponent {
       this.form,
       'postCode'
     );
+  }
+
+  onGetSelectedCountry(selectedCountry: any) {
+    console.log(selectedCountry);
+
+    this.checkoutService.getSelectedCountry(selectedCountry);
   }
 
   // --------------------------------------------------------

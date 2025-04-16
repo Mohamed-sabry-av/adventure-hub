@@ -5,11 +5,13 @@ import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
   fetchUserCartAction,
+  getUserCartAction,
   updateProductOfUserCartAction,
 } from '../../../Store/actions/cart.action';
 import { savedUserCartSelector } from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
+import { fetchCouponsAction } from '../../../Store/actions/checkout.action';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
@@ -21,20 +23,58 @@ export class CartService {
     this.cartIsVisible$.next(isVisible);
   }
 
-  calcCartPrice(products: any) {
+  calcCartPrice(products: any, coupon?: any) {
     const subTotal = [...products].reduce((acc, ele) => {
       return acc + +ele.quantity! * ele.prices.price;
     }, 0);
+
+    let totalDiscount: number = 0;
+    let totalPrice: number = subTotal;
+    let coupons: any = {};
+
+    if (coupon) {
+      const minAmount = parseFloat(coupon.minimum_amount || '0');
+      const maxAmount = parseFloat(coupon.maximum_amount || '0');
+
+      console.log(coupon.maximum_amount);
+
+      const isAboveMin = subTotal >= minAmount;
+      const isBelowMax = maxAmount === 0 || subTotal <= maxAmount;
+
+      if (isAboveMin && isBelowMax) {
+        if (coupon.discount_type === 'fixed_cart') {
+          totalDiscount = parseFloat(coupon.amount);
+          totalPrice = Math.max(subTotal - totalDiscount, 0);
+        } else if (coupon.discount_type === 'percent') {
+          totalDiscount = subTotal * (parseFloat(coupon.amount) / 100);
+          totalPrice = Math.max(subTotal - totalDiscount, 0);
+        }
+
+        const couponCode = coupon.code;
+        coupons = {
+          [couponCode]: {
+            code: couponCode,
+            discount_type: coupon.discount_type,
+            totals: {
+              total_discount: totalDiscount.toString(),
+            },
+          },
+        };
+      } else {
+        console.log('Coupon not applicable: subtotal is outside allowed range');
+      }
+    }
 
     return {
       items: [...products],
       payment_methods: ['stripe', 'tabby_installments'],
       totals: {
-        subTotal,
+        sub_total: subTotal,
         currency_code: 'AED',
-        total_fees: subTotal && subTotal < 100 ? 20 : 0,
-        total_items: subTotal && subTotal < 100 ? subTotal + 20 : subTotal,
+        total_discount: totalDiscount,
+        total_price: totalPrice,
       },
+      coupons,
     };
   }
 
@@ -43,7 +83,32 @@ export class CartService {
       if (isLoggedIn) {
         this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
       } else {
-        this.store.dispatch(fetchUserCartAction({ isLoggedIn: false }));
+        let loadedCart: any = localStorage.getItem('Cart');
+        loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+        console.log(loadedCart);
+        const coupons = loadedCart.coupons || {};
+        const couponKeys = Object.keys(coupons);
+
+        const couponData =
+          couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+        // if(couponData){
+
+        //   this.store.dispatch(
+        //     fetchCouponsAction({
+        //       enteredCouponValue: couponData,
+        //       isLoggedIn: false,
+        //     })
+        //   );
+        // }else{
+        //   this.store.dispatch(getUserCartAction({userCart:loadedCart}))
+        // }
+
+        this.store.dispatch(
+          fetchCouponsAction({
+            enteredCouponValue: couponData,
+            isLoggedIn: false,
+          })
+        );
       }
     });
   }

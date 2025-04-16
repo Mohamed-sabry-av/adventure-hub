@@ -4,22 +4,6 @@
   <h2 class="font-semibold text-xl">Order summary</h2>
   <hr />
 
-  <div
-    class="flex items-center justify-between cursor-pointer"
-    (click)="toggleTextarea()"
-  >
-    <p class="font-medium">Add order note</p>
-    <i
-      class="pi"
-      [class]="isTextareaVisible ? 'pi-angle-up' : 'pi-angle-down'"
-    ></i>
-  </div>
-  <textarea
-    class="border-2 border-gray-400 overflow-y-auto outline-none rounded-lg w-full"
-    [@toggleTextarea]="isTextareaVisible ? 'visible' : 'hidden'"
-  ></textarea>
-  <hr class="-mt-4" />
-
   <p>Tax included, shipping and discounts calculated at checkout.</p>
 
   <div class="flex justify-between font-semibold">
@@ -43,7 +27,7 @@
     </a>
 
     <a
-      [routerLink]=""
+      [routerLink]="['']"
       class="cursor-pointer block mt-4 text-center text-orange-600 text-sm underline"
       >Continue Shopping</a
     >

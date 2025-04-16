@@ -1,6 +1,6 @@
 <div class="lg:p-4">
   <!-- items -->
-  @if ( !(isVisible$ |async) ) {
+  @if ( !(isVisible$ |async) && (loadedCart$ | async)?.items?.length > 0 ) {
   <div
     class="border p-4 rounded-lg"
     [class]="{
@@ -31,61 +31,139 @@
         </div>
 
         <!-- Price -->
-        <p class="text-sm">AED {{ product.prices.price }}</p>
+        <p class="text-sm">
+          {{
+            product.totals.line_total
+              | currency : (loadedCart$ | async)?.totals.currency_code
+          }}
+        </p>
       </div>
       }
     </div>
   </div>
   }
 
-  <!-- Coupon -->
-  <div class="flex gap-x-2 items-center mt-4">
-    <input
-      type="text"
-      class="bg-white border w-full py-[14px] px-3 rounded-lg"
-      placeholder="Discount code or gift card"
-    />
-
-    <button
-      class="px-3 py-[14px] bg-orange-500 rounded-lg text-white font-semibold"
-    >
-      Apply
-    </button>
-  </div>
-
-  <!-- Shipping Method -->
-  <div class="mt-2">
-    <h3 class="font-semibold text-base">Shipping method</h3>
-    <div class="bg-gray-200 p-4 text-center mt-2 rounded-lg">
-      <p class="text-sm text-gray-400">
-        Enter your shipping address to view available shipping methods.
-      </p>
+  <!-- Coupon Input -->
+  <div>
+    <div class="flex gap-x-2 items-center mt-4">
+      <input
+        type="text"
+        class="bg-white border w-full py-[14px] px-3 rounded-lg text-lg font-semibold"
+        placeholder="Discount code or gift card"
+        [(ngModel)]="couponValue"
+        [disabled]="(appliedCoupon$ | async).validCoupon !== null"
+        #couponInput
+        [class]="{
+            'bg-[#d8dfee]': (appliedCoupon$ | async).validCoupon !== null,
+            'text-black': (appliedCoupon$ | async).validCoupon !== null,
+          }"
+      />
+      @if ((appliedCoupon$ | async).validCoupon === null) {
+      <button
+        class="px-3 py-[14px] bg-orange-500 rounded-lg text-white font-semibold cursor-pointer"
+        [disabled]="couponValue === ''"
+        [class]="{
+        'bg-gray-600': couponValue === '',
+      }"
+        (click)="onApplyCoupon()"
+      >
+        Apply
+      </button>
+      } @if ((appliedCoupon$ | async).validCoupon !== null) {
+      <button
+        class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold cursor-pointer"
+        (click)="onRemoveCoupon()"
+      >
+        Remove
+      </button>
+      }
     </div>
+
+    @if ((appliedCoupon$ | async)?.validCoupon === null && (appliedCoupon$ |
+    async)?.invalidCoupon !== null ) {
+    <p class="mt-1">
+      Copuon
+      <span class="text-red-500 text-xl">{{
+        (appliedCoupon$ | async)?.invalidCoupon
+      }}</span>
+      is invalid
+    </p>
+    }
   </div>
 
-  <!-- Total -->
   <div class="flex flex-col gap-y-4 text-sm mt-6">
+    <!-- Sub Total -->
     <div class="flex justify-between">
       <p>
-        Subtotal ·
-        <span>{{ (loadedCart$ | async)?.items?.length }} items</span>
+        <span class="font-semibold"> Subtotal · </span>
+        <span>{{ totalItemsLength }} items</span>
       </p>
-      <p>AED {{ (loadedCart$ | async)?.totals?.total_items }}</p>
+      <p>
+        {{
+          (loadedCart$ | async)?.totals?.sub_total
+            | currency : (loadedCart$ | async)?.totals?.currency_code
+        }}
+      </p>
     </div>
 
+    <!-- Coupon Data -->
+    @if ((loadedCart$ | async)?.totals?.total_discount) {
     <div class="flex justify-between">
-      <p>Shipping</p>
-      <p class="uppercase">free</p>
-    </div>
-
-    <div class="flex justify-between text-xl font-semibold">
-      <p>Total</p>
-      <p class="uppercase">
-        AED {{ (loadedCart$ | async)?.totals?.total_items }}
+      <p>
+        <span class="font-semibold"> Discount</span>
+      </p>
+      <p>
+        -
+        {{
+          (loadedCart$ | async)?.totals?.total_discount
+            | currency : (loadedCart$ | async)?.totals?.currency_code
+        }}
       </p>
     </div>
+    }
 
-    <p class="text-gray-400 -mt-3">Including AED 113.95 in taxes</p>
+    <!-- Shipping Method -->
+    <div
+      class="flex"
+      [class]="{
+        'flex-col': (selectedCountry$ | async) !== 'United Arab Emirates',
+        'justify-between': (selectedCountry$ | async) === 'United Arab Emirates',
+      }"
+    >
+      <h3 class="font-semibold text-base">Shipping</h3>
+      <div
+        [class]="{
+          isUAE: (selectedCountry$ | async) !== 'United Arab Emirates'
+        }"
+      >
+        <p class="text-base">
+          {{
+            (selectedCountry$ | async) !== ""
+              ? (selectedCountry$ | async) === "United Arab Emirates"
+                ? (loadedCart$ | async)?.totals?.total_price > 100
+                  ? "FREE"
+                  : "AED " + 20
+                : "Our representative will send shipping fees separately "
+              : "Enter your shipping address to view available shipping methods."
+          }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="flex justify-between text-xl text-black/80 font-semibold">
+      <p>Total</p>
+      @if ((loadedCart$ | async)?.totals?.total_price) {
+      <p class="uppercase">
+        {{
+          ((loadedCart$ | async)?.totals?.total_price > 100
+            ? (loadedCart$ | async)?.totals?.total_price
+            : (loadedCart$ | async)?.totals?.total_price + 20
+          ) | currency : (loadedCart$ | async)?.totals?.currency_code
+        }}
+      </p>
+      }
+    </div>
   </div>
 
   <ng-content />
