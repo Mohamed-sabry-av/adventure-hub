@@ -2,7 +2,7 @@ import { createAction, props } from '@ngrx/store';
 
 export const fetchUserCartAction = createAction(
   '[Cart] Fetch User Cart',
-  props<{ isLoggedIn: boolean }>()
+  props<{ isLoggedIn: boolean; coupon?: any }>()
 );
 
 export const getUserCartAction = createAction(

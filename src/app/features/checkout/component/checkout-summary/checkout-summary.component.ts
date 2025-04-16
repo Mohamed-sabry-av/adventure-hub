@@ -1,21 +1,75 @@
-import { Component, inject, Input } from '@angular/core';
-import { Observable } from 'rxjs';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  Input,
+  ViewChild,
+  viewChild,
+} from '@angular/core';
+import { filter, map, Observable } from 'rxjs';
 import { CartService } from '../../../cart/service/cart.service';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { CheckoutService } from '../../services/checkout.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-checkout-summary',
-  imports: [AsyncPipe],
+  imports: [FormsModule, AsyncPipe, CurrencyPipe],
   templateUrl: './checkout-summary.component.html',
   styleUrl: './checkout-summary.component.css',
 })
 export class CheckoutSummaryComponent {
   private cartService = inject(CartService);
+  private checkoutService = inject(CheckoutService);
+  private destroyRef = inject(DestroyRef);
   @Input({ required: true }) isVisible$!: Observable<boolean>;
+  @ViewChild('couponInput') couponInput!: ElementRef<HTMLInputElement>;
 
+  selectedCountry$: Observable<string> = this.checkoutService.selectedCountry$;
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
 
+  totalItemsLength: number = 0;
+  couponValue: string = '';
+
+  appliedCoupon$: Observable<any> = this.checkoutService.appliedCoupon$;
+
   ngOnInit() {
+    const subscribtion2 = this.appliedCoupon$.subscribe((res) => {
+      if (res?.validCoupon?.code) {
+        this.couponInput.nativeElement.value = res.validCoupon.code;
+      }
+    });
+
     this.cartService.fetchUserCart();
+
+    const subscribtion = this.loadedCart$
+      .pipe(
+        filter((response: any) => response?.items?.length > 0),
+        map((res: any) => {
+          this.totalItemsLength = 0;
+          return res.items;
+        })
+      )
+      .subscribe((response: any) => {
+        response.map((item: any) => {
+          // this.totalItemsLength = 0;
+          this.totalItemsLength += item.quantity;
+        });
+      });
+
+    this.destroyRef.onDestroy(() => {
+      subscribtion.unsubscribe();
+      subscribtion2.unsubscribe();
+    });
+  }
+
+  onApplyCoupon() {
+    this.checkoutService.applyCoupon(this.couponValue);
+  }
+
+  onRemoveCoupon() {
+    this.checkoutService.removeCoupon();
+    this.couponInput.nativeElement.value = '';
   }
 }

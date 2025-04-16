@@ -97,17 +97,45 @@ export class HomeService {
         shareReplay(1)
       );
   }
+  
+  getCategories(parent: number = 0, perPage: number = 10): Observable<any> {
+    return this.wooApi
+      .getRequestProducts<any>('products/categories', {
+        params: new HttpParams()
+          .set('parent', parent.toString())
+          .set('per_page', perPage.toString())
+          .set('_fields', 'id,name,slug,image,count'),
+        observe: 'response',
+      })
+      .pipe(
+        map((response: HttpResponse<any>) => {
+          return response.body;
+        }),
+        catchError((error) => {
+          console.error('Error fetching categories:', error);
+          return of([]);
+        }),
+        shareReplay(1)
+      );
+  }
+  
+  getBrands(perPage: number = 20): Observable<any> {
+    return this.wooApi
+      .getRequestProducts<any>('products/attributes/2/terms', {
+        params: new HttpParams()
+          .set('per_page', perPage.toString())
+          .set('_fields', 'id,name,slug,count'),
+        observe: 'response',
+      })
+      .pipe(
+        map((response: HttpResponse<any>) => {
+          return response.body;
+        }),
+        catchError((error) => {
+          console.error('Error fetching brands:', error);
+          return of([]);
+        }),
+        shareReplay(1)
+      );
+  }
 }
-
-/*
-          const featuredProducts = response.body.filter(
-            (product: any) => product.featured
-          );
-          const saleProducts = response.body.filter(
-            (product: any) => product.on_Sale === 'true'
-          );
-
-          // console.log('Arrivals', newArrivalsProducts);
-          // console.log('Featured', featuredProducts);
-          // console.log('Sale', saleProducts);
-*/

@@ -29,8 +29,7 @@ export class CartProductsComponent {
   ngOnInit() {
     const subscribtion = this.cartService.savedUserCart$.subscribe(
       (response: any) => {
-        console.log(response);
-        this.progressValue = response.totals.total_price;
+        this.progressValue = response?.totals?.total_price;
       }
     );
 

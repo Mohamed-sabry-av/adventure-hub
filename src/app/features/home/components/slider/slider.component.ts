@@ -1,81 +1,113 @@
-import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { CarouselModule } from 'primeng/carousel';
-import { Observable } from 'rxjs';
-import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { Subscription, interval } from 'rxjs';
+
+interface Slide {
+  id: number;
+  imageSrc: string;
+  imageAlt: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+  backgroundColor: string;
+}
 
 @Component({
-  selector: 'app-home-slider',
+  selector: 'app-slider',
   standalone: true,
-  imports: [CarouselModule, AsyncPipe, RouterLink, ProductCardComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './slider.component.html',
-  styleUrls: ['./slider.component.css'], 
+  styleUrls: ['./slider.component.css']
 })
-export class HomeSliderComponent implements OnInit, OnDestroy {
-  @Input({ required: true }) products$!: Observable<any>;
-
-  isMobile: boolean = false;
-  isTablet: boolean = false;
-  isDesktop: boolean = false;
-
-  private mediaQueries: { [key: string]: MediaQueryList } = {};
-  private mediaQueryListeners: {
-    [key: string]: (event: MediaQueryListEvent) => void;
-  } = {};
-
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {} 
-
-  ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.mediaQueries['mobile'] = window.matchMedia('(max-width: 768px)');
-      this.mediaQueries['tablet'] = window.matchMedia(
-        '(min-width: 769px) and (max-width: 1024px)'
-      );
-      this.mediaQueries['desktop'] = window.matchMedia(
-        '(min-width: 1025px) and (max-width: 1420px)'
-      );
-
-      this.isMobile = this.mediaQueries['mobile'].matches;
-      this.isTablet = this.mediaQueries['tablet'].matches;
-      this.isDesktop = this.mediaQueries['desktop'].matches;
-
-      this.mediaQueryListeners['mobile'] = (event: MediaQueryListEvent) => {
-        this.isMobile = event.matches;
-      };
-      this.mediaQueryListeners['tablet'] = (event: MediaQueryListEvent) => {
-        this.isTablet = event.matches;
-      };
-      this.mediaQueryListeners['desktop'] = (event: MediaQueryListEvent) => {
-        this.isDesktop = event.matches;
-      };
-
-      for (const key in this.mediaQueries) {
-        this.mediaQueries[key].addEventListener(
-          'change',
-          this.mediaQueryListeners[key]
-        );
-      }
-    } else {
-      // قيم افتراضية على السيرفر
-      this.isMobile = false;
-      this.isTablet = false;
-      this.isDesktop = false;
+export class SliderComponent implements OnInit, OnDestroy {
+  slides: Slide[] = [
+    {
+      id: 1,
+      imageSrc: 'https://images.stockcake.com/public/7/d/8/7d85a1a1-4976-468a-abe8-7ed32d870f1b_large/hiking-mountain-trail-stockcake.jpg',
+      imageAlt: 'Hikers on a mountain trail with beautiful view',
+      title: 'EXPLORE NEW ADVENTURES',
+      subtitle: 'Best outdoor gear for your mountain journeys',
+      buttonText: 'Shop Now',
+      buttonLink: '/products',
+      backgroundColor: '#c9ff00'
+    },
+    {
+      id: 2,
+      imageSrc: 'https://thumbs.dreamstime.com/b/man-hiking-mountains-mountain-landscape-trail-hiker-backpack-beautiful-view-nature-scene-adventure-tourism-outdoor-345401597.jpg',
+      imageAlt: 'Hiker with a beautiful mountain view',
+      title: 'MOUNTAIN HIKING ESSENTIALS',
+      subtitle: 'Premium gear for your mountain adventures',
+      buttonText: 'Discover',
+      buttonLink: '/category/hiking',
+      backgroundColor: '#006350'
+    },
+    {
+      id: 3,
+      imageSrc: 'https://media.self.com/photos/6238bbdfd226c69aaec6d069/4:3/w_2560%2Cc_limit/GettyImages-926586802.jpg',
+      imageAlt: 'Camping gear and tent in nature',
+      title: 'CAMPING SEASON DEALS',
+      subtitle: 'Get up to 30% off on select outdoor items',
+      buttonText: 'View Deals',
+      buttonLink: '/sale',
+      backgroundColor: '#ff6c00'
     }
+  ];
+
+  currentSlide = 0;
+  autoSlideSubscription: Subscription | null = null;
+  autoSlideInterval = 5000; // 5 seconds
+  isMobile = false;
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.checkScreenSize();
   }
 
-  ngOnDestroy() {
-    // نفذ إزالة الـ listeners بس لو كنت في المتصفح
-    if (isPlatformBrowser(this.platformId)) {
-      for (const key in this.mediaQueries) {
-        if (this.mediaQueries[key] && this.mediaQueryListeners[key]) {
-          this.mediaQueries[key].removeEventListener(
-            'change',
-            this.mediaQueryListeners[key]
-          );
-        }
-      }
+  constructor() {}
+
+  ngOnInit(): void {
+    this.checkScreenSize();
+    this.startAutoSlide();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoSlide();
+  }
+
+  checkScreenSize(): void {
+    this.isMobile = window.innerWidth < 768;
+  }
+
+  prevSlide(): void {
+    this.stopAutoSlide();
+    this.currentSlide = this.currentSlide === 0 ? this.slides.length - 1 : this.currentSlide - 1;
+    this.startAutoSlide();
+  }
+
+  nextSlide(): void {
+    this.stopAutoSlide();
+    this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+    this.startAutoSlide();
+  }
+
+  goToSlide(index: number): void {
+    this.stopAutoSlide();
+    this.currentSlide = index;
+    this.startAutoSlide();
+  }
+
+  startAutoSlide(): void {
+    this.autoSlideSubscription = interval(this.autoSlideInterval).subscribe(() => {
+      this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+    });
+  }
+
+  stopAutoSlide(): void {
+    if (this.autoSlideSubscription) {
+      this.autoSlideSubscription.unsubscribe();
+      this.autoSlideSubscription = null;
     }
   }
 }
