@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular
 import { debounceTime, distinctUntilChanged, Subject, switchMap, of } from 'rxjs';
 import { SearchBarService } from '../../services/search-bar.service';
 import { CommonModule } from '@angular/common';
+import { RouterLink, Router } from '@angular/router'; // أضفت Router هنا
 
 interface Category {
   id: number;
@@ -15,7 +16,7 @@ interface Category {
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './search-bar.component.html',
   styleUrls: ['./search-bar.component.css']
 })
@@ -32,8 +33,10 @@ export class SearchBarComponent implements OnInit {
   @ViewChild('searchInput') searchInput!: ElementRef;
   @ViewChild('resultsContainer') resultsContainer!: ElementRef;
 
-  constructor(private searchService: SearchBarService) {
-    // Load recent searches from local storage
+  constructor(
+    private searchService: SearchBarService,
+    private router: Router // أضفت Router هنا
+  ) {
     const savedSearches = localStorage.getItem('recentSearches');
     if (savedSearches) {
       this.recentSearches = JSON.parse(savedSearches).slice(0, 5);
@@ -64,18 +67,15 @@ export class SearchBarComponent implements OnInit {
           this.products = results.products || [];
           this.categories = results.categories || [];
           
-          // Process categories to create a hierarchy
           this.processCategories();
           
           this.loading = false;
           
-          // Set active tab based on results
           if (this.products.length > 0 && this.categories.length === 0) {
             this.activeTab = 'products';
           } else if (this.products.length === 0 && this.categories.length > 0) {
             this.activeTab = 'categories';
           }
-          // Otherwise, keep current tab selected
         },
         (error) => {
           console.error('Error fetching search results:', error);
@@ -84,26 +84,20 @@ export class SearchBarComponent implements OnInit {
       );
   }
 
-  // Process categories to create a proper hierarchy
   processCategories() {
-    // Create a map for faster lookup
     const categoryMap = new Map<number, Category>();
     this.categories.forEach(cat => {
       categoryMap.set(cat.id, { ...cat, children: [], expanded: false });
     });
     
-    // Root categories (no parent or parent not in our results)
     this.processedCategories = [];
     
-    // Organize into hierarchy
     this.categories.forEach(cat => {
       const category = categoryMap.get(cat.id);
       if (category) {
         if (!cat.parent || !categoryMap.has(cat.parent)) {
-          // This is a root category
           this.processedCategories.push(category);
         } else {
-          // This is a child category, add to parent
           const parent = categoryMap.get(cat.parent);
           if (parent && parent.children) {
             parent.children.push(category);
@@ -113,13 +107,11 @@ export class SearchBarComponent implements OnInit {
     });
   }
 
-  // Toggle category expansion
   toggleCategory(category: Category, event: Event) {
-    event.stopPropagation(); // Prevent category selection
+    event.stopPropagation();
     category.expanded = !category.expanded;
   }
 
-  // Check if a category has children
   hasChildren(category: Category): boolean {
     return !!(category.children && category.children.length > 0);
   }
@@ -141,25 +133,20 @@ export class SearchBarComponent implements OnInit {
     }
   }
 
-  onBlur(): void {
-    // We'll handle this with the overlay click instead
-    // to prevent issues when clicking on results
-  }
+  onBlur(): void {}
 
   selectProduct(product: any): void {
     console.log('Selected product:', product);
-    // Save search term to recent searches
     this.saveToRecentSearches(this.searchInput.nativeElement.value);
     this.showResults = false;
-    // Here you would typically navigate to product page
+    // التنقل لصفحة المنتج باستخدام Router
+    this.router.navigate([`/product/${product.id}`]);
   }
 
   selectCategory(category: any): void {
     console.log('Selected category:', category);
-    // Save search term to recent searches
     this.saveToRecentSearches(this.searchInput.nativeElement.value);
     this.showResults = false;
-    // Here you would typically navigate to category page
   }
 
   clearSearch(): void {
@@ -174,7 +161,7 @@ export class SearchBarComponent implements OnInit {
   saveToRecentSearches(term: string): void {
     if (term && !this.recentSearches.includes(term)) {
       this.recentSearches.unshift(term);
-      this.recentSearches = this.recentSearches.slice(0, 5); // Keep only 5 most recent
+      this.recentSearches = this.recentSearches.slice(0, 5);
       localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches));
     }
   }
@@ -193,7 +180,6 @@ export class SearchBarComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  // Format price with original price strikethrough if on sale
   formatPrice(product: any): string {
     if (product.onSale) {
       return `<span class="line-through text-gray-400 mr-2">${product.regular_price}</span> ${product.sale_price}`;
@@ -201,12 +187,10 @@ export class SearchBarComponent implements OnInit {
     return product.price;
   }
 
-  // Close search results when clicking outside
   closeSearchResults(): void {
     this.showResults = false;
   }
 
-  // Prevent closing when clicking inside the results container
   preventClose(event: Event): void {
     event.stopPropagation();
   }

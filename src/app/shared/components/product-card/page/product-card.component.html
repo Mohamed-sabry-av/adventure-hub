@@ -1,10 +1,4 @@
-<!-- Yoast SEO -->
-<ng-container>
-  @if(schemaData){
-    <ng-container>
-      <script type="application/ld+json" [innerHTML]="schemaData"></script>
-    </ng-container>
-  }
+
 
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
  <app-card-image-slider

@@ -1,0 +1,31 @@
+<li
+            class="nav-item dropdown"
+            ngbDropdown
+            *ngFor="let category of mainCategories"
+          >
+            <a class="nav-link dropdown-toggle" ngbDropdownToggle>
+              {{ category.name }}
+            </a>
+            <ul class="dropdown-menu" ngbDropdownMenu>
+              <!--(Subcategories) -->
+              <li
+                *ngFor="let sub of subCategories[category.id]"
+                class="subcategory-item"
+              >
+                <a class="dropdown-item subcategory-link" href="#">{{
+                  sub.name
+                }}</a>
+
+                <!--  (Sub-Subcategories) -->
+                <ul
+                  *ngIf="subCategories[sub.id]?.length"
+                  class="subsubcategory-list"
+                >
+                  <li
+                    *ngFor="let subSub of subCategories[sub.id]"
+                    class="subsubcategory-item"
+                  >
+                    <a class="dropdown-item subsubcategory-link" href="#">{{
+                      subSub.name
+                    }}</a>
+                  </li>

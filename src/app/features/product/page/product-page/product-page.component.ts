@@ -10,6 +10,8 @@ import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
 import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
 
+declare var _learnq: any; // تعريف متغير Klaviyo العام
+
 @Component({
   selector: 'app-product-page',
   imports: [
@@ -40,6 +42,18 @@ export class ProductPageComponent implements OnInit {
 
   onSelectedColorChange(color: string | null) {
     this.selectedColor = color;
+
+    // تتبع حدث Selected Color (اختياري)
+    if (typeof _learnq !== 'undefined' && color && this.productData) {
+      _learnq.push(['track', 'Selected Color', {
+        ProductID: this.productData.id,
+        ProductName: this.productData.name,
+        Color: color,
+        Brand: this.productData.brand || 'Unknown',
+        Categories: this.productData.categories?.map((cat: any) => cat.name) || []
+      }]);
+      console.log('Klaviyo: Selected Color tracked');
+    }
   }
 
   ngOnInit() {
@@ -87,6 +101,20 @@ export class ProductPageComponent implements OnInit {
             description: this.productData?.short_description,
             image: this.productData?.images?.[0]?.src,
           });
+
+          // تتبع حدث Viewed Product بعد تحميل بيانات المنتج
+          if (typeof _learnq !== 'undefined' && this.productData) {
+            _learnq.push(['track', 'Viewed Product', {
+              ProductID: this.productData.id,
+              ProductName: this.productData.name,
+              Price: this.productData.price,
+              Brand: this.productData.brand || 'Unknown',
+              Categories: this.productData.categories?.map((cat: any) => cat.name) || [],
+              AvailableColors: this.productData.available_colors || [],
+              AvailableSizes: this.productData.available_sizes || []
+            }]);
+            console.log('Klaviyo: Viewed Product tracked');
+          }
         },
         error: (err) => {
           console.error('Error fetching product data:', err);
@@ -94,7 +122,7 @@ export class ProductPageComponent implements OnInit {
           this.schemaData = this.seoService.applySeoTags(null, { title: 'Product Page' });
         },
       });
-  
+
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

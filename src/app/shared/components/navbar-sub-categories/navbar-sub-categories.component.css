@@ -16,21 +16,3 @@
 .scrollbar-thumb-gray-500 {
   scrollbar-color: gray transparent;
 }
-
-.scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: #3c3c3c;
-  border-radius: 3px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 3px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #777;
-}

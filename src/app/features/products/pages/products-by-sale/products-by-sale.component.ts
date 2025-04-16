@@ -170,15 +170,15 @@ export class ProductsBySaleComponent implements OnInit {
   }
 
   private async loadAvailableAttributes() {
-    try {
-      const attributes = await this.filterService
-        .getAvailableAttributesAndTerms(null, { on_sale: ['true'] })
-        .toPromise();
-      console.log('Available attributes for on-sale products:', attributes);
-      // يمكنكِ تمرير هذه السمات إلى FilterSidebar أو FilterDrawer إذا لزم الأمر
-    } catch (error) {
-      console.error('Error loading attributes:', error);
-    }
+    // try {
+    //   const attributes = await this.filterService
+    //     .getAvailableAttributesAndTerms(null, { on_sale: ['true'] })
+    //     .toPromise();
+    //   console.log('Available attributes for on-sale products:', attributes);
+    //   // يمكنكِ تمرير هذه السمات إلى FilterSidebar أو FilterDrawer إذا لزم الأمر
+    // } catch (error) {
+    //   console.error('Error loading attributes:', error);
+    // }
   }
 
   openFilterDrawer() {

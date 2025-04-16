@@ -127,7 +127,7 @@ export class ProductService {
           const products = this.getUniqueProducts(
             response.body.map((product: any) => ({
               ...product,
-              images: product.images.slice(0, 3) || [],
+              images: product.images.slice(0, 2) || [],
             }))
           );
           return products;

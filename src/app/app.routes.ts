@@ -1,6 +1,4 @@
 import { Routes } from '@angular/router';
-import { BlogSectionPageComponent } from './features/blog/page/blog-section-page/blog-section-page.component';
-import { blogSectionGuard } from './features/blog/guards/blog-section.guard';
 import { blogRoutes } from './features/blog/blog.routes';
 import { productsRoutes } from './features/products/products.routes';
 import { pagesRoutes } from './features/terms,about,contactUs/pages.routes';
@@ -44,25 +42,22 @@ export const routes: Routes = [
     path: 'user',
     children: authroutes,
   },
-
-  // Nested Routes 
   {
     path: 'blog',
-    children: blogRoutes,
+    children: blogRoutes, 
   },
   {
     path: 'product',
-    children: productsRoutes,
+    children: productsRoutes, 
   },
   {
     path: 'pages',
-    children: pagesRoutes,
+    children: pagesRoutes, 
   },
   {
     path: 'category',
-    children: categoryRoutes,
+    children: categoryRoutes, 
   },
-  // Wildcard Route
   {
     path: '**',
     redirectTo: '',
