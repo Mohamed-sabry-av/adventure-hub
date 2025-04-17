@@ -1,3 +1,5 @@
+@if (loadedOrder$ | async) {
+
 <main>
   <!-- Order Details -->
   <section>
@@ -15,32 +17,59 @@
         </thead>
 
         <tbody class="border-y">
-          <tr class="py-2">
-            <td>
-              Sea To Summit Lightweight Dry Bag First Aid 3L
-              <strong>× 1</strong>
+          @for (item of (loadedOrder$ | async).line_items; track $index) {
+          <tr class="py-2 border-t">
+            <td class="flex flex-col">
+              <span>
+                {{ item.name }} <strong>× {{ item.quantity }}</strong></span
+              >
+              @for (variation of item.meta_data; track $index) {
+              <span
+                >{{ variation.display_key }}: {{ variation.display_value }}
+              </span>
+              }
             </td>
-            <td class="text-sm">AED128</td>
+            <td class="text-sm">
+              {{item.total | currency :`${(loadedOrder$ | async).currency_symbol}`}}
+            </td>
           </tr>
+          }
         </tbody>
 
         <tfoot>
           <tr class="pt-3">
             <th class="font-medium">Subtotal:</th>
-            <td class="text-sm">AED128</td>
+            <td class="text-sm">
+              {{
+                (loadedOrder$ | async).total +
+                  (loadedOrder$ | async).discount_total
+              }}
+            </td>
           </tr>
           <tr>
             <th class="font-medium">Shipping:</th>
-            <td class="text-sm">Free shipping</td>
+            <td class="text-sm">
+              {{
+                (loadedOrder$ | async).shipping_total === 0
+                  ? "Free shipping"
+                  : (loadedOrder$ | async).shipping_total
+              }}
+            </td>
           </tr>
           <tr>
-            <th class="font-medium">Payment method:</th>
-            <td class="text-sm">Cash on delivery</td>
+            <th class="font-medium">
+              {{ (loadedOrder$ | async).payment_method }}:
+            </th>
+            <td class="text-sm">
+              {{ (loadedOrder$ | async).payment_method_title }}
+            </td>
           </tr>
 
           <tr class="pt-2">
             <th class="text-xl">Total:</th>
-            <td class="text-xl font-medium">AED128</td>
+            <td class="text-xl font-medium">
+              {{ (loadedOrder$ | async).total }}
+            </td>
           </tr>
         </tfoot>
       </table>
@@ -51,25 +80,30 @@
       <div class="col-span-12 md:col-span-6 mb-6">
         <h2 class="text-3xl font-semibold">Billing address</h2>
         <address>
-          Ameen Elnaggar
+          {{ (loadedOrder$ | async).billing.first_name }}
+
+          {{ (loadedOrder$ | async).billing.last_name }}
           <br />
-          30-Elwaheda – Shubra
+          {{ (loadedOrder$ | async).billing.address_1 }}
           <br />
-          cairo
-          <p class="mb-5">+201143049372</p>
-          <p>test2&#64;test2.com</p>
+          {{ (loadedOrder$ | async).billing.city }}
+          <p class="mb-5">+{{ (loadedOrder$ | async).billing.phone }}</p>
+          <p>{{ (loadedOrder$ | async).billing.email }}</p>
         </address>
       </div>
       <div class="col-span-12 md:col-span-6 mb-6">
         <h2 class="text-3xl font-semibold">Shipping address</h2>
         <address>
-          Ameen Elnaggar
+          {{ (loadedOrder$ | async).billing.first_name }}
+
+          {{ (loadedOrder$ | async).billing.last_name }}
           <br />
-          30-Elwaheda – Shubra
+          {{ (loadedOrder$ | async).billing.address_1 }}
           <br />
-          cairo
+          {{ (loadedOrder$ | async).billing.city }}
         </address>
       </div>
     </div>
   </section>
 </main>
+}

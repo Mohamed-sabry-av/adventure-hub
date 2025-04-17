@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { AccountAuthService } from './account-auth.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
 import { AccountDetailsComponent } from './account-details/account-details.component';
 import { CommonModule } from '@angular/common';
+import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-auth',
@@ -17,20 +18,35 @@ import { CommonModule } from '@angular/common';
 export class AuthComponent {
   loginError: string = '';
   registerError: string = '';
-  activeTab: string = 'login'; // Default active tab is login
+  activeTab: string = 'login';
+  isLoading: boolean = true; // ضفنا متغيّر isLoading
 
   constructor(
     private accountService: AccountAuthService,
     private fb: FormBuilder,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router,
+    private titleService: Title,
+    private metaService: Meta
   ) {}
 
   ngOnInit() {
-    // Check if there's a specific tab to show from route params
-    this.route.queryParams.subscribe(params => {
-      if (params['tab'] === 'signup') {
-        this.activeTab = 'signup';
-      }
+    this.accountService.verifyToken().subscribe({
+      next: () => {
+        this.router.navigate(['/user/Useraccount']);
+      },
+      error: () => {
+        this.route.queryParams.subscribe(params => {
+          if (params['tab'] === 'signup') {
+            this.activeTab = 'signup';
+          }
+        });
+        this.titleService.setTitle('Login - Adventures HUB Sports Shop');
+        this.metaService.updateTag({ name: 'robots', content: 'noindex, nofollow' });
+      },
+      complete: () => {
+        this.isLoading = false; // لما الـ verifyToken يخلّص، نخلّي isLoading = false
+      },
     });
   }
 

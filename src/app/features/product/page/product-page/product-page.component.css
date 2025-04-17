@@ -1,4 +1,4 @@
-/* Product Page Styles */
+/* Sticky Product Info */
 .sticky-wrapper {
   position: relative;
 }
@@ -8,25 +8,16 @@
   top: 20px;
 }
 
-/* Mobile responsive styling */
-@media (max-width: 768px) {
+/* Full Width Description */
+.full-width-product-description {
+  margin: 40px 0;
+  padding: 20px 0;
+  border-top: 1px solid #eee;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767px) {
   .sticky-info {
-    position: relative;
-    top: 0;
+    position: static;
   }
-
-  .full-width-description {
-    width: 100%;
-  }
-}
-
-/* Description section styling */
-.full-width-description {
-  margin-top: 2rem;
-}
-
-/* Enhance spacing for better readability */
-.product-container {
-  max-width: 1200px;
-  margin: 0 auto;
 }

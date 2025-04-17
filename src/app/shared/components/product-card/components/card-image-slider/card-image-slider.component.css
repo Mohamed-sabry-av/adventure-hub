@@ -1,7 +1,8 @@
 .image-slider {
   position: relative;
   width: 100%;
-  aspect-ratio: 3/4;
+  height: 300px; 
+  max-height: 300px; 
   overflow: hidden;
   background-color: #f9f9f9;
   border-top-left-radius: 0.375rem;
@@ -12,6 +13,14 @@
   position: relative;
   width: 100%;
   height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.slider-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .slide {
@@ -19,10 +28,11 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100%; 
   opacity: 0;
   transition: opacity 0.3s ease;
   display: none;
+  scroll-snap-align: start;
 }
 
 .slide.active {
@@ -41,19 +51,23 @@
   width: 100%;
   height: 100%;
   object-fit: contain; /* Image will be contained within the frame */
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   transition: transform 0.3s ease;
 }
 
-/* Product tags styling */
+/* Product tags styling - Positioned at the bottom of the card */
 .product-tags {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  bottom: 0;
+  left: 0;
+  width:fit-content;
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
   gap: 5px;
   z-index: 10;
+  /* padding: 10px; */
+  /* background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); */
 }
 
 .tag {
@@ -61,11 +75,43 @@
   font-size: 0.7rem;
   font-weight: 700;
   padding: 4px 8px;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(2px);
   white-space: nowrap;
   letter-spacing: 0.5px;
+  color: white;
+  border-radius: 0;
+}
+
+/* Tag styles based on geardoor.ae */
+.tag-sale {
+  background-color: #d4513a;
+}
+
+.tag-new {
+  background-color: #60a8c5;
+}
+
+.tag-sold-out {
+  background-color: #ba1a3a;
+}
+
+.tag-hub {
+  background-color: #434236;
+}
+
+.tag-limited {
+  background-color: #a9886a;
+}
+
+.tag-bestseller {
+  background-color: #ceaa96;
+}
+
+.tag-featured {
+  background-color: #d8c4a9;
+}
+
+.tag-default {
+  background-color: #434236;
 }
 
 /* Discount badge styling */
@@ -119,7 +165,7 @@
   display: flex;
   justify-content: center;
   gap: 5px;
-  z-index: 2;
+  z-index: 20; /* Increased to appear above tags */
 }
 
 .dot {
@@ -147,6 +193,14 @@
   width: 100%;
   height: 100%;
   transition: transform 0.3s ease-in-out;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.slides-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .slides-container .slide {
@@ -154,17 +208,7 @@
   position: relative;
   opacity: 1;
   display: block;
-}
-
-.slider-dots {
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-  z-index: 5;
+  scroll-snap-align: start;
 }
 
 .slider-dot {
@@ -187,15 +231,59 @@
 .card-image-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 3/4;
+  height: 100%; /* بياخد الارتفاع من الـ parent (image-slider) */
+  max-height: 400px;
+  overflow: hidden;
   border-top-left-radius: 0.375rem;
   border-top-right-radius: 0.375rem;
-  overflow: hidden;
 }
 
 .product-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* الصورة هتظهر كاملة بدون قص */
   object-position: center;
+  background-color: #ffffff;
+}
+
+/* Mobile swipe indicators */
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+  color: white;
+  background: rgba(0,0,0,0.3);
+  width: 20px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  z-index: 5;
+}
+
+.swipe-left {
+  left: 5px;
+}
+
+.swipe-right {
+  right: 5px;
+}
+
+@media (max-width: 768px) {
+  .slide {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .image-slider {
+    aspect-ratio: 1 / 1; /* نسبة مربعة للهواتف */
+    max-height: 230px; /* تقليل الارتفاع على الهواتف */
+  }
+
+  .slide img {
+    object-fit: contain;
+  }
 }

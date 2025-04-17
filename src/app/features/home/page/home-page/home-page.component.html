@@ -1,20 +1,19 @@
-<article>
-  <app-main-slider />
-  <app-related-categories />
-
-  <section>
-    <app-recommended-products [recommendedProducts$]="featuredProducts$" />
-  </section>
-
-  <section>
-    <app-new-products [arrivalProducts$]="newArrivalsProducts$" />
-  </section>
-
-  <section>
-    <app-sale-products [saleProducts$]="saleProducts$" />
-  </section>
-
-  <section>
-    <app-about />
-  </section>
-</article>
+<main class="home-page">
+  <!-- Main Slider -->
+  <app-slider></app-slider>
+  
+  <!-- Brand Logos -->
+  <app-brand-logos></app-brand-logos>
+  
+  <!-- Related Categories -->
+  <app-related-categories></app-related-categories>
+  
+  <!-- New Products -->
+  <app-new-products></app-new-products>
+  
+  <!-- Recommended Products -->
+  <app-recommended-products></app-recommended-products>
+  
+  <!-- Sale Products -->
+  <app-sale-products></app-sale-products>
+</main>

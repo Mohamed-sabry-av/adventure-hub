@@ -61,7 +61,7 @@ export class HeaderComponent implements OnInit {
         document.body.style.overflow = 'auto';
       }
       console.log(visible);
-      // document.body.style.overflow = visible ? 'hidden' : 'auto';
+      document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
     this.destroyRef.onDestroy(() => {

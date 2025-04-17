@@ -1,94 +1,279 @@
 <div class="relative">
   <!-- Search Input with Icon -->
-  <div class="relative w-full md:w-[80%] mx-auto">
+  <div class="search-input-container w-full md:w-[80%] mx-auto">
     <input
       #searchInput
       type="text"
-      class="w-full bg-[#f5f5dc] p-2 pl-14 rounded-xl outline-none border border-transparent transition-all duration-300 placeholder:text-[#4b5563] placeholder:text-sm focus:border-white"
-      placeholder="Search"
+      class="w-full bg-[#f5f5dc] p-2 pl-14 rounded-xl outline-none border border-transparent transition-all duration-300 focus:border-white shadow-sm text-gray-700 placeholder:text-[#4b5563] placeholder:text-sm"
+      placeholder="Search for products, categories, and more..."
       (input)="onSearch($event)"
       (focus)="onFocus()"
-      (blur)="onBlur()"
     />
-    <i
-      class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-base"
-    ></i>
+    <i class="search-icon pi pi-search text-gray-400 text-lg"></i>
     <button
       *ngIf="searchInput.value"
-      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-lg"
+      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg transition-colors duration-200"
       (click)="clearSearch()"
     >
       <i class="pi pi-times"></i>
     </button>
   </div>
 
-  <!-- Loading State -->
+  <!-- Dark Overlay - Shown when search is active -->
   <div
-    *ngIf="loading"
-    class="absolute left-1/2 transform -translate-x-1/2 w-full md:w-[80%] bg-white shadow-md rounded-b-xl p-3 mt-1 backdrop-blur-sm layerVisible"
-  >
-    <p class="text-center text-gray-600 py-2">Loading...</p>
-  </div>
+    *ngIf="showResults"
+    class="search-overlay"
+    (click)="closeSearchResults()"
+  ></div>
 
-  <!-- Search Results -->
+  <!-- Search Results Container -->
   <div
-    *ngIf="!loading && showResults && products.length > 0"
-    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl max-h-[400px] overflow-y-auto mt-1 backdrop-blur-sm layerVisible"
+    *ngIf="showResults"
+    class="search-results-container"
+    (click)="preventClose($event)"
+    #resultsContainer
   >
-    <ul class="py-1">
-      <li
-        *ngFor="let product of products"
-        class="py-3 px-4 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
-        (click)="selectProduct(product)"
+    <!-- Loading State -->
+    <div *ngIf="loading" class="p-4 text-center">
+      <div class="flex justify-center items-center space-x-2">
+        <div
+          class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"
+        ></div>
+        <div
+          class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"
+          style="animation-delay: 0.2s"
+        ></div>
+        <div
+          class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"
+          style="animation-delay: 0.4s"
+        ></div>
+      </div>
+      <p class="text-sm text-gray-500 mt-2">Searching...</p>
+    </div>
+
+    <!-- No Results -->
+    <div
+      *ngIf="!loading && searchInput.value && products.length === 0 && categories.length === 0"
+      class="p-6 text-center"
+    >
+      <div
+        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100"
       >
-        <div class="flex items-center gap-4">
-          <div
-            class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden"
-          >
-            <img
-              [src]="product.images[0]?.src"
-              alt="{{ product.name }}"
-              class="w-full h-full object-cover"
-              *ngIf="product.images?.length"
-            />
-            <div
-              *ngIf="!product.images?.length"
-              class="w-full h-full flex items-center justify-center"
-            >
-              <i class="pi pi-image text-gray-400"></i>
-            </div>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h3 class="text-sm font-medium text-gray-800">
-                {{ product.name }}
-              </h3>
-              <!-- علامة العرض -->
-              <span
-                *ngIf="product.onSale"
-                class="bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full"
-              >
-                On Sale
-              </span>
-            </div>
-            <p class="text-xs text-gray-600 mt-1">
-              {{ product.price | currency : "AED " }}
-            </p>
-          </div>
-        </div>
-      </li>
-    </ul>
-  </div>
+        <i class="pi pi-search text-gray-400 text-lg"></i>
+      </div>
+      <p class="mt-3 text-gray-600">
+        No results found for "{{ searchInput.value }}"
+      </p>
+      <p class="mt-1 text-sm text-gray-500">
+        Try using different keywords or checking for typos
+      </p>
+    </div>
 
-  <!-- No Results -->
-  <div
-    *ngIf="
-      !loading && showResults && searchInput.value && products.length === 0
-    "
-    class="absolute w-full md:w-[80%] left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-xl p-4 z-20 mt-1 backdrop-blur-sm layerVisible"
-  >
-    <p class="text-center text-gray-600 text-sm">
-      No products found for "{{ searchInput.value }}"
-    </p>
+    <!-- Recent Searches -->
+    <div
+      *ngIf="!loading && !searchInput.value && recentSearches.length > 0"
+      class="py-2 border-b border-gray-100"
+    >
+      <div class="px-4 py-2 flex justify-between items-center">
+        <h3 class="text-sm font-medium text-gray-600">
+          Recent Searches
+        </h3>
+        <button
+          class="text-xs text-blue-500 hover:text-blue-700"
+          (click)="clearRecentSearches()"
+        >
+          Clear all
+        </button>
+      </div>
+      <ul>
+        <li
+          *ngFor="let term of recentSearches"
+          class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center"
+          (click)="selectRecentSearch(term)"
+        >
+          <i class="pi pi-history text-gray-400 mr-2 text-sm"></i>
+          <span class="text-sm text-gray-700">{{ term }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Results with Tabs -->
+    <div
+      *ngIf="!loading && (products.length > 0 || categories.length > 0)"
+    >
+      <!-- Tabs -->
+      <div
+        *ngIf="products.length > 0 && categories.length > 0"
+        class="border-b border-gray-200"
+      >
+        <nav class="flex gap-4 px-4">
+          <button
+            [class]="activeTab === 'products' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+            class="py-3 px-1 text-sm font-medium focus:outline-none"
+            (click)="switchTab('products')"
+          >
+            Products ({{ products.length }})
+          </button>
+          <button
+            [class]="activeTab === 'categories' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+            class="py-3 px-1 text-sm font-medium focus:outline-none"
+            (click)="switchTab('categories')"
+          >
+            Categories ({{ categories.length }})
+          </button>
+        </nav>
+      </div>
+
+      <!-- Products Results -->
+      <div
+        *ngIf="activeTab === 'products' && products.length > 0"
+        class="overflow-y-auto max-h-[400px] custom-scrollbar"
+      >
+        <ul class="py-1">
+          <li
+            *ngFor="let product of products"
+            class="py-3 px-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
+            (click)="selectProduct(product)"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden border border-gray-200 shadow-sm"
+              >
+                <img
+                  [src]="product.images && product.images.length > 0 ? product.images[0]?.src : null"
+                  [alt]="product.name"
+                  class="w-full h-full object-cover"
+                  *ngIf="product.images && product.images.length > 0"
+                />
+                <div
+                  *ngIf="!product.images || product.images.length === 0"
+                  class="w-full h-full flex items-center justify-center bg-gray-50"
+                >
+                  <i class="pi pi-image text-gray-300 text-lg"></i>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3
+                    class="text-sm font-medium text-gray-800 truncate max-w-full"
+                  >
+                    {{ product.name }}
+                  </h3>
+                  <span
+                    *ngIf="product.onSale"
+                    class="sale-badge rounded-full text-xs font-semibold px-2 py-0.5 bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm"
+                  >
+                    {{ product.discountPercentage }}% off
+                  </span>
+                </div>
+                <div
+                  class="flex flex-wrap gap-1 mt-1"
+                  *ngIf="product.categories && product.categories.length"
+                >
+                  <span
+                    *ngFor="let cat of product.categories"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700"
+                  >
+                    {{ cat.name }}
+                  </span>
+                </div>
+                <div class="mt-1 flex items-center">
+                  <span
+                    *ngIf="product.onSale"
+                    class="line-through text-xs text-gray-400 mr-2"
+                  >
+                    {{ product.regular_price }} AED
+                  </span>
+                  <span
+                    [class]="product.onSale ? 'text-sm font-medium text-red-600' : 'text-sm text-gray-700'"
+                  >
+                    {{ product.onSale ? product.sale_price : product.price }}
+                    AED
+                  </span>
+                </div>
+              </div>
+              <div class="text-gray-400">
+                <i class="pi pi-angle-right"></i>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Categories Results -->
+      <div
+        *ngIf="activeTab === 'categories' && processedCategories.length > 0"
+        class="overflow-y-auto max-h-[400px] custom-scrollbar"
+      >
+        <ul class="py-1">
+          <ng-container
+            *ngTemplateOutlet="categoryTemplate; context: { categories: processedCategories, level: 0 }"
+          ></ng-container>
+        </ul>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Category Template for Recursion -->
+<ng-template
+  #categoryTemplate
+  let-categories="categories"
+  let-level="level"
+>
+  <li
+    *ngFor="let category of categories"
+    class="category-item border-b last:border-b-0"
+  >
+    <div
+      class="py-3 px-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150 flex items-center justify-between"
+      (click)="selectCategory(category)"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 flex items-center justify-center rounded-full"
+          [ngClass]="{'bg-blue-50 text-blue-500': level === 0, 'bg-indigo-50 text-indigo-500': level === 1, 'bg-purple-50 text-purple-500': level > 1}"
+        >
+          <i
+            class="pi"
+            [ngClass]="{'pi-folder': level === 0, 'pi-tag': level > 0}"
+          ></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-800">
+            {{ category.name }}
+          </h3>
+          <p class="text-xs text-gray-500">
+            {{ category.count || 0 }} Product
+          </p>
+        </div>
+      </div>
+      <div>
+        <button
+          *ngIf="hasChildren(category)"
+          class="p-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+          (click)="toggleCategory(category, $event)"
+        >
+          <i
+            class="pi pi-angle-right rotate-icon"
+            [ngClass]="{'expanded': category.expanded}"
+          ></i>
+        </button>
+        <i
+          *ngIf="!hasChildren(category)"
+          class="pi pi-angle-right text-gray-400"
+        ></i>
+      </div>
+    </div>
+    <div
+      *ngIf="category.expanded && hasChildren(category)"
+      class="category-children"
+    >
+      <ul>
+        <ng-container
+          *ngTemplateOutlet="categoryTemplate; context: { categories: category.children, level: level + 1 }"
+        ></ng-container>
+      </ul>
+    </div>
+  </li>
+</ng-template>

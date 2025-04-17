@@ -1,8 +1,12 @@
 import { createReducer, on } from '@ngrx/store';
-import { getCouponAction } from '../actions/checkout.action';
+import {
+  getCouponAction,
+  getOrderDataAction,
+} from '../actions/checkout.action';
 
 export interface State {
   coupon: any;
+  orderaData: any;
 }
 
 const initialState: State = {
@@ -10,6 +14,7 @@ const initialState: State = {
     validCoupon: null,
     invalidCoupon: null,
   },
+  orderaData: null,
 };
 
 export const checkoutReducer = createReducer(
@@ -22,5 +27,8 @@ export const checkoutReducer = createReducer(
         invalidCoupon: action.invalidCoupon,
       },
     };
+  }),
+  on(getOrderDataAction, (state, action) => {
+    return { ...state, orderaData: action.orderDetails };
   })
 );

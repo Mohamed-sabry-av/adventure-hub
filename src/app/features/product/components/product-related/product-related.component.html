@@ -1,9 +1,7 @@
-<div class="related-products">
-  <!-- Related Products Section -->
-  <div class="related-section" *ngIf="relatedProducts.length > 0">
-    <h2 class="section-title">You May Also Like</h2>
+<div class="related-products-container">
+  <h2 class="section-title">You May Also Like</h2>
 
-    <!-- PrimeNG Carousel for related products -->
+  <div class="related-products" *ngIf="relatedProducts.length > 0">
     <p-carousel
       [value]="relatedProducts"
       [numVisible]="4"
@@ -11,23 +9,15 @@
       [circular]="true"
       [responsiveOptions]="responsiveOptions"
       [showIndicators]="false">
-      <ng-template pTemplate="item" let-product>
-        <div class="carousel-item-container">
+      <ng-template let-product pTemplate="item">
+        <div class="product-item">
           <app-product-card [product]="product"></app-product-card>
         </div>
       </ng-template>
     </p-carousel>
-
-    <!-- Fallback if carousel is not available -->
-    <div class="product-grid" *ngIf="!relatedProducts">
-      <div *ngFor="let product of relatedProducts" class="product-card-wrapper">
-        <app-product-card [product]="product"></app-product-card>
-      </div>
-    </div>
   </div>
 
-  <!-- Empty state -->
-  <div class="no-related-products" *ngIf="relatedIds.length > 0 && relatedProducts.length === 0">
-    <p>Loading related products...</p>
+  <div class="no-products" *ngIf="relatedProducts.length === 0">
+    <p>No related products available</p>
   </div>
 </div>

@@ -1,0 +1,105 @@
+<div class="dashboard-content">
+  <div *ngIf="isLoading" class="loading p-4 text-center">
+    <p>Loading your information...</p>
+    <div class="mt-2 flex justify-center">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-800"></div>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message p-4 bg-red-50 text-red-600 rounded mb-6">
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !error && customerDetails">
+    <div class="welcome-section mb-8">
+      <h2 class="text-2xl font-semibold mb-3">Hello, {{ customerDetails.first_name || 'Customer' }}!</h2>
+      <p class="text-gray-600">From your account dashboard you can view your recent orders, manage your shipping and billing addresses, and edit your password and account details.</p>
+    </div>
+
+    <div class="dashboard-grid mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Recent Orders -->
+      <div class="dashboard-card p-5 border rounded-md hover:shadow-md transition-shadow">
+        <div class="flex items-start mb-3">
+          <i class="pi pi-clipboard text-xl mr-3 text-gray-500"></i>
+          <div>
+            <h3 class="text-lg font-medium mb-2">Recent Orders</h3>
+            <p class="text-gray-500 mb-3">View and track your recent orders</p>
+          </div>
+        </div>
+        <a (click)="navigateTo('orders')" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+          View Orders
+        </a>
+      </div>
+
+      <!-- Download items -->
+      <div class="dashboard-card p-5 border rounded-md hover:shadow-md transition-shadow">
+        <div class="flex items-start mb-3">
+          <i class="pi pi-download text-xl mr-3 text-gray-500"></i>
+          <div>
+            <h3 class="text-lg font-medium mb-2">Downloads</h3>
+            <p class="text-gray-500 mb-3">Download your purchased digital products</p>
+          </div>
+        </div>
+        <a (click)="navigateTo('downloads')" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+          View Downloads
+        </a>
+      </div>
+
+      <!-- Addresses -->
+      <div class="dashboard-card p-5 border rounded-md hover:shadow-md transition-shadow">
+        <div class="flex items-start mb-3">
+          <i class="pi pi-home text-xl mr-3 text-gray-500"></i>
+          <div>
+            <h3 class="text-lg font-medium mb-2">Addresses</h3>
+            <p class="text-gray-500 mb-3">Manage your billing and shipping addresses</p>
+          </div>
+        </div>
+        <a (click)="navigateTo('addresses')" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+          Manage Addresses
+        </a>
+      </div>
+
+      <!-- Account Details -->
+      <div class="dashboard-card p-5 border rounded-md hover:shadow-md transition-shadow">
+        <div class="flex items-start mb-3">
+          <i class="pi pi-user-edit text-xl mr-3 text-gray-500"></i>
+          <div>
+            <h3 class="text-lg font-medium mb-2">Account Details</h3>
+            <p class="text-gray-500 mb-3">Update your account information</p>
+          </div>
+        </div>
+        <a (click)="navigateTo('account-details')" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+          Edit Details
+        </a>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="dashboard-card p-5 border rounded-md hover:shadow-md transition-shadow">
+        <div class="flex items-start mb-3">
+          <i class="pi pi-credit-card text-xl mr-3 text-gray-500"></i>
+          <div>
+            <h3 class="text-lg font-medium mb-2">Payment Methods</h3>
+            <p class="text-gray-500 mb-3">Manage your payment methods</p>
+          </div>
+        </div>
+        <a (click)="navigateTo('payment-methods')" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+          Manage Payments
+        </a>
+      </div>
+
+      <!-- Wishlist -->
+      <div class="dashboard-card p-5 border rounded-md hover:shadow-md transition-shadow">
+        <div class="flex items-start mb-3">
+          <i class="pi pi-heart text-xl mr-3 text-gray-500"></i>
+          <div>
+            <h3 class="text-lg font-medium mb-2">Wishlist</h3>
+            <p class="text-gray-500 mb-3">View and manage your wishlist items</p>
+          </div>
+        </div>
+        <a (click)="navigateTo('wishlist')" class="view-btn inline-block px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+          View Wishlist
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

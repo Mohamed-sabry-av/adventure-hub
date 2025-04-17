@@ -64,7 +64,7 @@ export class MobileQuickAddComponent {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['uniqueSizes']) {
-      console.log('uniqueSizes changed in MobileQuickAdd:', this.uniqueSizes);
+      // console.log('uniqueSizes changed in MobileQuickAdd:', this.uniqueSizes);
       this.cdr.detectChanges(); // أضف ده عشان يحدث الـ UI
     }
   }
@@ -103,8 +103,8 @@ export class MobileQuickAddComponent {
   shouldShowAddToCartButton(): boolean {
     if (this.isMobile) {
       // On mobile, show direct add to cart if there are no sizes (colors only or no variations)
-      return !this.hasSizes();
-    } else {
+      return !this.hasSizes() && !this.hasColors();
+        } else {
       // On desktop, show direct add to cart if there are not both colors and sizes
       return !(this.hasColors() && this.hasSizes());
     }
@@ -112,8 +112,7 @@ export class MobileQuickAddComponent {
 
   // Show mobile Quick Add button only when there are both colors and sizes
   shouldShowQuickAddButton(): boolean {
-    return this.isMobile && this.hasColors() && this.hasSizes();
-  }
+    return this.isMobile && this.hasSizes();  }
 
   // Show the desktop hover size selector (for products with sizes only, no colors)
   shouldShowDesktopSizeSelector(): boolean {

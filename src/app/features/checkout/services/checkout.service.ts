@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { CartService } from '../../cart/service/cart.service';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../../../Store/store';
 import {
@@ -20,8 +20,8 @@ export class CheckoutService {
   private accountAuthService = inject(AccountAuthService);
 
   selectedCountry$: BehaviorSubject<string> = new BehaviorSubject<string>('');
-
   appliedCoupon$: Observable<any> = this.store.select(validCouponSelector);
+  emailIsUsed$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   applyCoupon(couponValue: string) {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
@@ -47,65 +47,134 @@ export class CheckoutService {
     this.store.dispatch(removeCouponAction());
   }
 
-  createOrder(
-    addresses: { billing: any; shipping: any },
-    paymentGateway: {
-      payment_method: string;
-      payment_method_title: string;
-    },
-    coupon: any,
-    stripeToken?: string
-  ) {
-    const subscribtion = this.cartService.savedUserCart$
-      .pipe(
-        map((response: any) =>
-          response.items.map((item: any) => {
-            return { product_id: item.id, quantity: item.quantity };
-          })
-        )
-      )
-      .subscribe((loadedCartData: any) => {
-        let customerId: number = 0;
-
-        const subscribtion2 = this.accountAuthService.isLoggedIn$.subscribe(
-          (isLoggedIn: boolean) => {
-            if (isLoggedIn) {
-              let loadedCustomerId: any = localStorage.getItem('customerid');
-              loadedCustomerId = loadedCustomerId
-                ? JSON.parse(loadedCustomerId)
-                : 0;
-              customerId = loadedCustomerId;
-            }
-          }
-        );
-
-        const couponData = coupon ? [{ code: coupon.code }] : [];
-
-        const orderData: any = {
-          ...paymentGateway,
-          set_paid: false,
-          billing: addresses.billing,
-          shipping: addresses.shipping,
-          line_items: loadedCartData,
-          customer_id: customerId,
-          coupon_lines: couponData,
-        };
-
-        console.log(orderData);
-
-        if (stripeToken) {
-          orderData.meta_data = [{ key: 'stripe_token', value: stripeToken }];
-        }
-
-        this.store.dispatch(createOrderAction({ orderDetails: orderData }));
-      });
-
-    this.destroyRef.onDestroy(() => {
-      subscribtion.unsubscribe();
-    });
-  }
-
   getSelectedCountry(country: string) {
     this.selectedCountry$.next(country);
+  }
+
+  private getPaymentMethodTitle(paymentMethod: string): string {
+    switch (paymentMethod) {
+      case 'cod':
+        return 'Cash on delivery';
+      case 'stripe':
+        return 'Credit Card (Stripe)';
+      case 'googlePay':
+        return 'Google Pay (Stripe)';
+      case 'tabby':
+        return 'Tabby Installments';
+      default:
+        return 'Unknown Payment Method';
+    }
+  }
+
+  private getSetPaid(paymentMethod: string): boolean {
+    switch (paymentMethod) {
+      case 'cod':
+        return false;
+      case 'stripe':
+      case 'googlePay':
+      case 'tabby':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private getCartItems(): Observable<any[]> {
+    return this.cartService.savedUserCart$.pipe(
+      map((response: any) =>
+        response.items.map((item: any) => ({
+          product_id: item.id,
+          quantity: item.quantity,
+        }))
+      )
+    );
+  }
+
+  private getCoupons(
+    form: FormGroup
+  ): Observable<{ isValid: boolean; coupon: any[] }> {
+    return this.appliedCoupon$.pipe(
+      map((response: any) => {
+        if (response?.validCoupon) {
+          const coupon = [{ code: response.validCoupon.code }];
+          const isUsed = response.validCoupon.used_by?.includes(
+            form.value.email
+          );
+          this.emailIsUsed$.next(isUsed);
+          return { isValid: !isUsed, coupon };
+        }
+        this.emailIsUsed$.next(false);
+        return { isValid: true, coupon: [] };
+      })
+    );
+  }
+
+  private getCustomerId(): Observable<number> {
+    return this.accountAuthService.isLoggedIn$.pipe(
+      map((isLoggedIn: boolean) => {
+        if (isLoggedIn) {
+          let loadedCustomerId: any = localStorage.getItem('customerid');
+          return loadedCustomerId ? JSON.parse(loadedCustomerId) : 0;
+        }
+        return 0;
+      })
+    );
+  }
+
+  createOrder(forms: {
+    billingForm: FormGroup;
+    shippingForm: FormGroup;
+    isShippingDifferent: boolean;
+  }) {
+    combineLatest([
+      this.getCartItems(),
+      this.getCoupons(forms.billingForm),
+      this.getCustomerId(),
+    ]).subscribe(([lineItems, couponData, customerId]) => {
+      const billingAddress = {
+        first_name: forms.billingForm.get('firstName')?.value,
+        last_name: forms.billingForm.get('lastName')?.value,
+        address_1: forms.billingForm.get('address')?.value,
+        city: forms.billingForm.get('city')?.value,
+        state: forms.billingForm.get('state')?.value,
+        postcode: `${forms.billingForm.get('postCode')?.value}`,
+        country: forms.billingForm.get('countrySelect')?.value,
+        email: forms.billingForm.get('email')?.value,
+        phone: `${forms.billingForm.get('phone')?.value}`,
+      };
+
+      const shippingAddress = forms.isShippingDifferent
+        ? {
+            first_name: forms.shippingForm.get('firstName')?.value,
+            last_name: forms.shippingForm.get('lastName')?.value,
+            address_1: forms.shippingForm.get('address')?.value,
+            city: forms.shippingForm.get('city')?.value,
+            state: forms.shippingForm.get('state')?.value,
+            postcode: `${forms.billingForm.get('postCode')?.value}`,
+            country: forms.shippingForm.get('countrySelect')?.value,
+          }
+        : { ...billingAddress };
+
+      const orderData = {
+        payment_method: forms.billingForm.get('paymentMethod')?.value || 'cod',
+        payment_method_title: this.getPaymentMethodTitle(
+          forms.billingForm.get('paymentMethod')?.value || 'cod'
+        ),
+        set_paid: this.getSetPaid(
+          forms.billingForm.get('paymentMethod')?.value || 'cod'
+        ),
+        billing: billingAddress,
+        shipping: shippingAddress,
+        line_items: lineItems || [],
+        coupon_lines: couponData.coupon || [],
+        customer_id: customerId || 0,
+      };
+
+      if (couponData.isValid || couponData.coupon.length === 0) {
+        this.store.dispatch(createOrderAction({ orderDetails: orderData }));
+      } else {
+        alert('Coupon already used. Order not created.');
+      }
+    });
   }
 }

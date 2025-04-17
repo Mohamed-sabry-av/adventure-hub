@@ -11,8 +11,8 @@ import { LoginResponse, User } from '../../interfaces/user.model';
 export class AccountAuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
+  private readonly USER_ID_KEY = 'customerId'; // مفتاح جديد لتخزين user_id
   private readonly Api_Url = 'https://adventures-hub.com';
-  private readonly USER_ID_KEY = 'customerId';
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
@@ -25,6 +25,7 @@ export class AccountAuthService {
     this.isLoggedInSubject.next(!!token);
     this.verifyTokenOnInit();
   }
+
   verifyToken(): Observable<any> {
     const token = this.getToken();
     if (!token) {
@@ -90,11 +91,9 @@ export class AccountAuthService {
       )
       .pipe(
         tap((response: HttpResponse<LoginResponse>) => {
+          console.log('Cookies from response:', response.headers.get('Set-Cookie'));
           if (response.body?.token) {
-            this.localStorageService.setItem(
-              this.TOKEN_KEY,
-              response.body.token
-            );
+            this.localStorageService.setItem(this.TOKEN_KEY, response.body.token);
             this.localStorageService.setItem(this.USER_KEY, {
               username:
                 response.body.user_username ||
@@ -103,11 +102,9 @@ export class AccountAuthService {
                 '',
               email: response.body.user_email || '',
             });
+            // خزّن user_id
             if (response.body.user_id) {
-              this.localStorageService.setItem(
-                this.USER_ID_KEY,
-                response.body.user_id.toString()
-              );
+              this.localStorageService.setItem(this.USER_ID_KEY, response.body.user_id.toString());
             }
             this.isLoggedInSubject.next(true);
           }
@@ -151,6 +148,7 @@ export class AccountAuthService {
   logout(): void {
     this.localStorageService.removeItem(this.TOKEN_KEY);
     this.localStorageService.removeItem(this.USER_KEY);
+    this.localStorageService.removeItem(this.USER_ID_KEY); // امسح user_id
     this.isLoggedInSubject.next(false);
   }
 
@@ -160,6 +158,10 @@ export class AccountAuthService {
 
   getUser(): User | null {
     return this.localStorageService.getItem<User>(this.USER_KEY);
+  }
+
+  getUserId(): string | null {
+    return this.localStorageService.getItem<string>(this.USER_ID_KEY);
   }
 
   isLoggedIn(): boolean {

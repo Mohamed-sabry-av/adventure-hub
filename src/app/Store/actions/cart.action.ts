@@ -25,14 +25,7 @@ export const deleteProductOfUserCarAction = createAction(
   props<{ product: any; isLoggedIn: boolean }>()
 );
 
-// // --------------------------------------------
-
-// export const fetchPaymentDataAction = createAction(
-//   '[Payment] Fetch Payment Deatils',
-//   props<{ customerInfo: DeliveryDetails; paymentMethod: string }>()
-// );
-
-// export const getPaymentDataAction = createAction(
-//   '[Payment] Get Payment Details',
-//   props<{ paymentData: PaymentDetails }>()
-// );
+export const updateCartStockStatusAction = createAction(
+  '[Cart] Update Products Stock In Cart',
+  props<{ productIds: string[] }>()
+);

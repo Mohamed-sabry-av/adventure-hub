@@ -7,13 +7,16 @@ import {
   applyCouponAction,
   createOrderAction,
   fetchCouponsAction,
+  fetchOrderDataAction,
   getCouponAction,
+  getOrderDataAction,
   removeCouponAction,
 } from '../actions/checkout.action';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { CartService } from '../../features/cart/service/cart.service';
 import { fetchUserCartAction, getUserCartAction } from '../actions/cart.action';
+import { Router } from '@angular/router';
 
 export class CheckoutEffect {
   private actions$ = inject(Actions);
@@ -21,6 +24,7 @@ export class CheckoutEffect {
   private wooApiService = inject(ApiService);
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
+  private router = inject(Router);
 
   fetchCouponsEffect = createEffect(() =>
     this.actions$.pipe(
@@ -107,6 +111,11 @@ export class CheckoutEffect {
           let loadedCart: any = localStorage.getItem('Cart');
           loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
 
+          const productIds =
+            loadedCart.items?.map((item: any) => item.productId) || [];
+
+          console.log(productIds);
+
           const cart = this.cartService.calcCartPrice(
             loadedCart.items,
             validCoupon
@@ -141,26 +150,45 @@ export class CheckoutEffect {
     { dispatch: false }
   );
 
-  createOrderEffect = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(createOrderAction),
-        switchMap(({ orderDetails }) => {
-          let authToken: any = localStorage.getItem('auth_token');
-          authToken = authToken ? JSON.parse(authToken) : '';
+  createOrderEffect = createEffect(() =>
+    this.actions$.pipe(
+      ofType(createOrderAction),
+      switchMap(({ orderDetails }) => {
+        return this.wooApiService.postRequest('orders', orderDetails).pipe(
+          map((res: any) => {
+            console.log('Order Created Successfully:', res);
+            const orderId = res.id;
+            const orderKey = res.order_key;
+            this.router.navigate([`/order-received/${orderId}`], {
+              queryParams: { key: orderKey },
+            });
+          }),
 
-          return this.wooApiService.postRequest('orders', orderDetails).pipe(
-            map((res) => {
-              console.log('Success:', res);
-              return res;
-            }),
-            catchError((error: any) => {
-              console.error('Error:', error);
-              return of('');
-            })
-          );
-        })
-      ),
-    { dispatch: false }
+          catchError((error: any) => {
+            console.error('Order Creation Error:', error);
+            return of(error);
+          })
+        );
+      })
+    )
+  );
+
+  getOrderDataEffect = createEffect(() =>
+    this.actions$.pipe(
+      ofType(fetchOrderDataAction),
+      switchMap(({ orderId }) => {
+        return this.wooApiService.getRequest(`orders/${orderId}`).pipe(
+          map((res: any) => {
+            console.log('Order Retrived Successfully:', res);
+            return getOrderDataAction({ orderDetails: res });
+          }),
+
+          catchError((error: any) => {
+            console.error('Order Retrived Error:', error);
+            return of(error);
+          })
+        );
+      })
+    )
   );
 }

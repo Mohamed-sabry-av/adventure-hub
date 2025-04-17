@@ -1,0 +1,60 @@
+<div class="wishlist-content">
+  <h2 class="text-2xl font-semibold mb-4">My Wishlist</h2>
+
+  <div *ngIf="isLoading" class="loading p-4 text-center">
+    <p>Loading your wishlist...</p>
+    <div class="mt-2 flex justify-center">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-800"></div>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message p-4 bg-red-50 text-red-600 rounded">
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !error">
+    <div *ngIf="wishlistItems && wishlistItems.length > 0" class="wishlist-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let item of wishlistItems; let i = index" class="wishlist-item p-4 border rounded relative hover:shadow-md transition-shadow">
+        <!-- Remove button -->
+        <button
+          class="remove-btn absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          (click)="removeFromWishlist(item.product_id, i)"
+          [disabled]="item.isRemoving">
+          <i class="pi" [ngClass]="{'pi-times': !item.isRemoving, 'pi-spinner pi-spin': item.isRemoving}"></i>
+        </button>
+
+        <!-- Product image -->
+        <div class="product-image mb-3">
+          <img [src]="getProductImage(item.product)" alt="{{ item.product?.name }}" class="w-full h-44 object-cover rounded">
+        </div>
+
+        <!-- Product info -->
+        <div class="product-info">
+          <h3 class="text-lg font-medium mb-2">{{ item.product?.name }}</h3>
+          <p class="price mb-3" [innerHTML]="getProductPrice(item.product)"></p>
+
+          <div class="flex space-x-2">
+            <a [href]="item.product?.permalink" class="view-btn flex-1 px-3 py-2 text-center bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+              View
+            </a>
+            <button
+              class="add-to-cart-btn flex-1 px-3 py-2 text-center bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
+              (click)="addToCart(item.product_id)">
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!wishlistItems || wishlistItems.length === 0" class="no-wishlist-items text-center py-8">
+      <div class="mb-4">
+        <i class="pi pi-heart-fill text-4xl text-gray-300"></i>
+      </div>
+      <p class="text-gray-600 mb-4">Your wishlist is currently empty.</p>
+      <a href="/shop" class="shop-button inline-block mt-4 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+        Browse Products
+      </a>
+    </div>
+  </div>
+</div>

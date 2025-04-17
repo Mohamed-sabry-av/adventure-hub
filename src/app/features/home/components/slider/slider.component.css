@@ -1,16 +1,39 @@
-::ng-deep .p-carousel-content {
-  @apply overflow-hidden;
+.slider-container {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-::ng-deep .p-carousel-prev-button,
-::ng-deep .p-carousel-next-button {
-  @apply text-black;
+.slide {
+  pointer-events: none;
+  visibility: hidden;
 }
 
-::ng-deep .p-carousel-prev-button {
-  @apply lg:-left-2 2xl:left-0;
+.slide[style*="z-index: 10"] {
+  pointer-events: auto;
+  visibility: visible;
 }
 
-::ng-deep .p-carousel-next-button {
-  @apply lg:-right-2 2xl:right-0;
+@media (max-width: 768px) {
+  .slide-content {
+    text-align: center;
+    align-items: center;
+  }
+}
+
+/* Animation for slides */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.slider-enter-active {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slider-leave-active {
+  animation: fadeOut 0.5s ease-in-out;
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -10,6 +10,9 @@ import { FilterDrawerComponent } from '../../components/filter-drawer/filter-dra
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
 import { SeoService } from '../../../../core/services/seo.service';
+import { catchError, finalize, of, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { isEqual } from 'lodash';
 
 @Component({
   selector: 'app-products',
@@ -25,20 +28,24 @@ import { SeoService } from '../../../../core/services/seo.service';
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css'],
   providers: [ProductService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductsComponent implements OnInit {
+export class ProductsComponent implements OnInit, OnDestroy {
   products: any[] = [];
   isLoading = false;
   isLoadingMore = false;
+  isFetching = false;
   currentCategoryId: number | null = null;
   currentPage = 1;
   currentCategory: any = null;
-  itemsPerPage = 20;
+  itemsPerPage = 12; // تقليل العدد عشان نقلل الضغط على السيرفر
   totalProducts = 0;
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
   schemaData: any;
+  private scrollSubject = new Subject<void>();
+  private maxProducts = 60; // حد أقصى لعدد المنتجات عشان نتحكم في الضغط على السيرفر
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
@@ -49,11 +56,30 @@ export class ProductsComponent implements OnInit {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private filterService: FilterService,
-    private seoService:SeoService
-  ) {}
+    private seoService: SeoService
+  ) {
+    this.scrollSubject.pipe(debounceTime(200)).subscribe(() => {
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+      if (
+        scrollTop + windowHeight >= documentHeight - 500 &&
+        !this.isLoading &&
+        !this.isLoadingMore &&
+        !this.isFetching &&
+        this.currentPage * this.itemsPerPage < this.totalProducts &&
+        this.products.length < this.maxProducts
+      ) {
+        this.loadMoreProducts();
+      }
+    });
+  }
 
   async ngOnInit() {
     this.isLoading = true;
+    this.cdr.markForCheck();
+
     try {
       const slugs = this.route.snapshot.url
         .map((segment) => segment.path)
@@ -84,71 +110,79 @@ export class ProductsComponent implements OnInit {
     }
   }
 
-
-
   ngAfterViewInit() {
     if (this.filterSidebar) {
-      this.filterSidebar.filtersChanges.subscribe((filters: any) => {
-        this.currentPage = 1;
-        this.products = [];
-        this.loadProducts(true, filters);
-      });
+      this.filterSidebar.filtersChanges
+        .pipe(distinctUntilChanged((prev, curr) => isEqual(prev, curr)))
+        .subscribe((filters: any) => {
+          this.currentPage = 1;
+          this.products = [];
+          this.loadProducts(true, filters);
+        });
     } else {
       console.warn('FilterSidebarComponent not initialized');
     }
   }
 
+  ngOnDestroy() {
+    this.scrollSubject.complete();
+  }
+
   @HostListener('window:scroll', ['$event'])
   onScroll(event: Event) {
-    const windowHeight = window.innerHeight;
-    const documentHeight = document.documentElement.scrollHeight;
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-
-    if (
-      scrollTop + windowHeight >= documentHeight - 500 &&
-      !this.isLoading &&
-      !this.isLoadingMore &&
-      this.currentPage * this.itemsPerPage < this.totalProducts
-    ) {
-      this.loadMoreProducts();
-    }
+    this.scrollSubject.next();
   }
 
   onFiltersChange(filters: { [key: string]: string[] }) {
+    // منع الطلب لو الفلاتر فاضية أو ما اتغيرتش
+    if (isEqual(filters, this.filterSidebar?.selectedFilters)) {
+      return;
+    }
     console.log('Filters changed in ProductsComponent:', filters);
     this.currentPage = 1;
     this.products = [];
     this.loadProducts(true, filters);
   }
 
-  private async loadProducts(isInitialLoad = false, filters?: { [key: string]: string[] }) {
-    const page = isInitialLoad ? 1 : this.currentPage;
+  loadProducts(isInitialLoad = false, filters?: { [key: string]: string[] }) {
+    if (this.isFetching) return;
+
+    this.isFetching = true;
     this.isLoading = isInitialLoad;
     this.isLoadingMore = !isInitialLoad;
+    this.cdr.markForCheck();
 
-    try {
-      const effectiveFilters = filters ?? this.filterSidebar?.selectedFilters ?? {};
-      const products = await this.filterService
-        .getFilteredProductsByCategory(
-          this.currentCategoryId,
-          effectiveFilters,
-          page,
-          this.itemsPerPage,
-          this.selectedOrderby,
-          this.selectedOrder
-        )
-        .toPromise();
-
-      this.products = isInitialLoad ? (products || []) : [...this.products, ...(products || [])];
-      if (isInitialLoad) this.currentPage = 1;
-    } catch (error) {
-      console.error('Error loading products:', error);
-      if (isInitialLoad) this.products = [];
-    } finally {
-      this.isLoading = false;
-      this.isLoadingMore = false;
-      this.cdr.markForCheck();
-    }
+    const effectiveFilters = filters ?? this.filterSidebar?.selectedFilters ?? {};
+    this.filterService
+      .getFilteredProductsByCategory(
+        this.currentCategoryId,
+        effectiveFilters,
+        isInitialLoad ? 1 : this.currentPage,
+        this.itemsPerPage,
+        this.selectedOrderby,
+        this.selectedOrder
+      )
+      .pipe(
+        catchError((error) => {
+          console.error('Error loading products:', error);
+          this.isLoading = false;
+          this.isLoadingMore = false;
+          this.isFetching = false;
+          this.cdr.markForCheck();
+          return of([]);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+          this.isLoadingMore = false;
+          this.isFetching = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((products) => {
+        this.products = isInitialLoad ? products : [...this.products, ...products];
+        if (isInitialLoad) this.currentPage = 1;
+        this.cdr.markForCheck();
+      });
   }
 
   private async loadMoreProducts() {
@@ -162,14 +196,16 @@ export class ProductsComponent implements OnInit {
         ? await this.productService.getTotalProductsByCategoryId(this.currentCategoryId).toPromise()
         : await this.productService.getTotalProducts().toPromise();
       this.totalProducts = total ?? 0;
+      this.cdr.markForCheck();
     } catch (error) {
       console.error('Error loading total products:', error);
       this.totalProducts = 0;
+      this.cdr.markForCheck();
     }
   }
 
-  getcategoryName():string{
-    return this.currentCategory?.name
+  getcategoryName(): string {
+    return this.currentCategory?.name ?? '';
   }
 
   getCurrentPath(): string[] {
@@ -182,20 +218,26 @@ export class ProductsComponent implements OnInit {
     this.currentCategoryId = categoryId;
     this.currentPage = 1;
     this.products = [];
+    this.cdr.markForCheck();
 
-    if (categoryId) {
-      this.currentCategory = await this.categoriesService.getCategoryById(categoryId).toPromise();
-      this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
-        title: this.currentCategory?.name,
-        description: this.currentCategory?.description,
-      });
-    } else {
-      this.currentCategory = null;
-      this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
+    try {
+      if (categoryId) {
+        this.currentCategory = await this.categoriesService.getCategoryById(categoryId).toPromise();
+        this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
+          title: this.currentCategory?.name,
+          description: this.currentCategory?.description,
+        });
+      } else {
+        this.currentCategory = null;
+        this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
+      }
+
+      await this.loadProducts(true);
+      await this.loadTotalProducts();
+    } catch (error) {
+      console.error('Error in onCategoryIdChange:', error);
+      this.cdr.markForCheck();
     }
-
-    await this.loadProducts(true);
-    await this.loadTotalProducts();
   }
 
   async onSortChange(sortValue: string) {

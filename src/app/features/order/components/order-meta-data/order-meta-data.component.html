@@ -1,3 +1,4 @@
+@if (loadedOrder$ | async) {
 <main>
   <!-- Order Recevied -->
   <div class="mt-12 mb-7">
@@ -14,24 +15,31 @@
     >
       <li class="py-3 px-5">
         Order number:
-        <strong>126303</strong>
+        <strong>{{ (loadedOrder$ | async).id }}</strong>
       </li>
       <li class="py-3 px-5">
         Date:
-        <strong>April 9 ,2025</strong>
+        <strong>{{
+          (loadedOrder$ | async).date_created | date : "longDate"
+        }}</strong>
       </li>
       <li class="py-3 px-5">
         Email:
-        <strong>test2&#64; test2.com</strong>
+        <strong>test2&#64; {{ (loadedOrder$ | async).billing.email }}</strong>
       </li>
       <li class="py-3 px-5">
         Total:
-        <strong>AED128</strong>
+        <strong>{{
+          (loadedOrder$ | async).total
+            | currency : (loadedOrder$ | async).currency
+        }}</strong>
       </li>
       <li class="py-3 px-5">
-        Payment method
-        <strong>Cash on delivery</strong>
+        {{ (loadedOrder$ | async).payment_method }}:
+        <strong>{{ (loadedOrder$ | async).payment_method_title }}</strong>
       </li>
     </ul>
   </div>
 </main>
+
+}

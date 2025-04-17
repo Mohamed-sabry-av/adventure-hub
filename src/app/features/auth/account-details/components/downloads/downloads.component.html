@@ -1,0 +1,85 @@
+<div class="downloads-content">
+  <h2 class="text-2xl font-semibold mb-4">Downloads</h2>
+
+  <div *ngIf="isLoading" class="loading p-4 text-center">
+    <p>Loading your downloads...</p>
+    <div class="mt-2 flex justify-center">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-800"></div>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message p-4 bg-red-50 text-red-600 rounded">
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !error">
+    <div *ngIf="downloads && downloads.length > 0">
+      <div class="mb-6">
+        <p class="text-sm text-gray-600">
+          These are your available downloads, including files from your purchases. Downloads will remain accessible until their expiration date.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="py-3 px-4 text-left">Product</th>
+              <th class="py-3 px-4 text-left">File name</th>
+              <th class="py-3 px-4 text-left">Expires</th>
+              <th class="py-3 px-4 text-left">Downloads remaining</th>
+              <th class="py-3 px-4 text-left">Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let download of downloads" class="border-b" [ngClass]="{'opacity-50': isDownloadExpired(download)}">
+              <td class="py-3 px-4">
+                <div class="flex items-center">
+                  <div>
+                    <p class="font-medium">{{ download.product_name }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Order #{{ download.order_id }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <div class="flex items-center">
+                  <i [class]="getFileIcon(download.file.name)" class="mr-2 text-gray-500"></i>
+                  <span class="truncate max-w-xs">{{ download.file.name }}</span>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <span *ngIf="download.access_expires" [ngClass]="{'text-red-500': isDownloadExpired(download)}">
+                  {{ formatDate(download.access_expires) }}
+                </span>
+                <span *ngIf="!download.access_expires">Never</span>
+              </td>
+              <td class="py-3 px-4">
+                {{ getRemainingDownloads(download) }}
+              </td>
+              <td class="py-3 px-4">
+                <a
+                  *ngIf="!isDownloadExpired(download)"
+                  [href]="download.download_url"
+                  class="download-btn px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors inline-flex items-center">
+                  <i class="pi pi-download mr-2"></i>
+                  Download
+                </a>
+                <span *ngIf="isDownloadExpired(download)" class="text-red-500 text-sm">Expired</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="!downloads || downloads.length === 0" class="no-downloads text-center py-12">
+      <div class="mb-4">
+        <i class="pi pi-download text-4xl text-gray-300"></i>
+      </div>
+      <p class="text-gray-600 mb-4">No downloads available at the moment.</p>
+      <a href="/shop" class="browse-button inline-block mt-2 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+        Browse Products
+      </a>
+    </div>
+  </div>
+</div>

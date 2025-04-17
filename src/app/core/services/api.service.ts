@@ -68,4 +68,86 @@ export class ApiService {
       })
       .pipe(catchError(this.handelErrorsService.handelError));
   }
+
+  putRequest<T>(endpoint:string,body:any):Observable<T>{
+    return this.http.put<T>(`${this.baseUrl}${endpoint}`,body,{
+      headers:this.authService.getAuthHeaders(),
+    })
+  }
+
+  deleteRequest<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.delete<T>(`${this.baseUrl}${endpoint}`, {
+      headers: this.authService.getAuthHeaders(),
+      body: body 
+    });
+  }
+  
+
+  getExternalRequest<T>(
+    fullUrl: string,
+    options: {
+      params?: HttpParams;
+      headers?: { [key: string]: string };
+      withCredentials?: boolean;
+    } = {}
+  ): Observable<T> {
+    return this.http
+      .get<T>(fullUrl, {
+        headers: { ...this.authService.getAuthHeaders(), ...options.headers },
+        params: options.params,
+        withCredentials: options.withCredentials || false,
+      })
+      .pipe(catchError(this.handelErrorsService.handelError));
+  }
+
+  postExternalRequest<T>(
+    fullUrl: string,
+    body: any,
+    options: {
+      headers?: { [key: string]: string };
+      withCredentials?: boolean;
+    } = {}
+  ): Observable<T> {
+    return this.http
+      .post<T>(fullUrl, body, {
+        headers: { ...this.authService.getAuthHeaders(), ...options.headers },
+        withCredentials: options.withCredentials || false,
+      })
+      .pipe(catchError(this.handelErrorsService.handelError));
+  }
+
+  putExternalRequest<T>(
+    fullUrl: string,
+    body: any,
+    options: {
+      params?: HttpParams;
+      headers?: { [key: string]: string };
+      withCredentials?: boolean;
+    } = {}
+  ): Observable<T> {
+    return this.http
+      .put<T>(fullUrl, body, {
+        headers: { ...this.authService.getAuthHeaders(), ...options.headers },
+        params: options.params,
+        withCredentials: options.withCredentials || false,
+      })
+      .pipe(catchError(this.handelErrorsService.handelError));
+  }
+
+  deleteExternalRequest<T>(
+    fullUrl: string,
+    options: {
+      params?: HttpParams;
+      headers?: { [key: string]: string };
+      withCredentials?: boolean;
+    } = {}
+  ): Observable<T> {
+    return this.http
+      .delete<T>(fullUrl, {
+        headers: { ...this.authService.getAuthHeaders(), ...options.headers },
+        params: options.params,
+        withCredentials: options.withCredentials || false,
+      })
+      .pipe(catchError(this.handelErrorsService.handelError));
+  }  
 }

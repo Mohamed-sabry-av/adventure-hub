@@ -3,26 +3,98 @@
   position="right"
   [showCloseIcon]="false"
   [modal]="true"
-  styleClass="filter-drawer-sidebar"
-  (onHide)="close()">
-  <div class="h-full flex flex-col bg-white">
+  [dismissible]="false"
+  [closeOnEscape]="false"
+  styleClass="filter-drawer-sidebar w-full max-w-sm"
+  (onHide)="close()"
+  ngSkipHydration
+>
+  <div class="h-full flex flex-col bg-white" (click)="stopPropagation($event)">
     <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b border-gray-200">
-      <h2 class="text-lg font-medium text-gray-900">Filters</h2>
-      <button (click)="close()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+      <h2 class="text-lg font-medium text-gray-900">Filter & Sort</h2>
+      <button type="button" (click)="close()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
         <span class="sr-only">Close panel</span>
-        <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
     </div>
 
-    <!-- Content area - this will be scrollable -->
-    <div class="flex-1 overflow-y-auto">
+    <!-- Sort Options -->
+    <div class="p-4 border-b border-gray-200">
+      <h3 class="text-base font-medium text-gray-900 mb-3">Sort by</h3>
+      <div class="space-y-2">
+        <div class="flex items-center">
+          <input
+            id="sort-popular"
+            name="sort-option"
+            type="radio"
+            value="popular"
+            [checked]="selectedSortOption === 'popular'"
+            (change)="onSortOptionChange('popular')"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label for="sort-popular" class="ml-3 text-sm text-gray-700">Most Popular</label>
+        </div>
+        <div class="flex items-center">
+          <input
+            id="sort-rating"
+            name="sort-option"
+            type="radio"
+            value="rating"
+            [checked]="selectedSortOption === 'rating'"
+            (change)="onSortOptionChange('rating')"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label for="sort-rating" class="ml-3 text-sm text-gray-700">Top Rated</label>
+        </div>
+        <div class="flex items-center">
+          <input
+            id="sort-newest"
+            name="sort-option"
+            type="radio"
+            value="newest"
+            [checked]="selectedSortOption === 'newest'"
+            (change)="onSortOptionChange('newest')"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label for="sort-newest" class="ml-3 text-sm text-gray-700">Newest</label>
+        </div>
+        <div class="flex items-center">
+          <input
+            id="sort-price-low"
+            name="sort-option"
+            type="radio"
+            value="price-asc"
+            [checked]="selectedSortOption === 'price-asc'"
+            (change)="onSortOptionChange('price-asc')"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label for="sort-price-low" class="ml-3 text-sm text-gray-700">Price: Low to High</label>
+        </div>
+        <div class="flex items-center">
+          <input
+            id="sort-price-high"
+            name="sort-option"
+            type="radio"
+            value="price-desc"
+            [checked]="selectedSortOption === 'price-desc'"
+            (change)="onSortOptionChange('price-desc')"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label for="sort-price-high" class="ml-3 text-sm text-gray-700">Price: High to Low</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Sidebar -->
+    <div class="flex-1 overflow-y-auto py-2">
       <app-filter-sidebar
         [categoryId]="categoryId"
-        (filtersChanges)="onFiltersChange($event)">
-      </app-filter-sidebar>
+        [selectedFilters]="selectedFilters"
+        (filtersChanges)="filtersChanged.emit($event)"
+      ></app-filter-sidebar>
     </div>
 
     <!-- Footer -->
@@ -30,13 +102,13 @@
       <div class="flex space-x-3">
         <button
           (click)="resetFilters()"
-          class="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
         >
-          Reset
+          Clear
         </button>
         <button
           (click)="applyFilters()"
-          class="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
         >
           Apply
         </button>

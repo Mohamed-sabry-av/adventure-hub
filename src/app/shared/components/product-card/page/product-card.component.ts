@@ -1,10 +1,14 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
+  Inject,
   Input,
   OnDestroy,
   OnInit,
+  PLATFORM_ID,
 } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
@@ -15,8 +19,10 @@ import { CartService } from '../../../../features/cart/service/cart.service';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
-import { SizeSelectorComponent } from '../components/size-selector/size-selector.component';
 import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
+import { SeoService } from '../../../../core/services/seo.service';
+
+declare var _learnq: any;
 
 @Component({
   selector: 'app-product-card',
@@ -26,7 +32,6 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
     CardImageSliderComponent,
     CardDetailsComponent,
     ColorSwatchesComponent,
-    SizeSelectorComponent,
     MobileQuickAddComponent,
   ],
   templateUrl: './product-card.component.html',
@@ -80,6 +85,9 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   displayedImages: { src: string }[] = [];
   modifiedProduct: Product;
   selectedVariation: Variation | any = null;
+  schemaData: any;
+  private observer: IntersectionObserver | null = null;
+  private hasTracked = false;
 
   private resizeSubscription?: Subscription;
   private clickOutsideSubscription?: Subscription;
@@ -87,7 +95,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private cartService: CartService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private el: ElementRef,
+    private seoService: SeoService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.modifiedProduct = {} as Product;
   }
@@ -99,6 +110,21 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.modifiedProduct = { ...this.product };
     this.setupResizeListener();
     this.setupClickOutsideListener();
+
+    if (typeof _learnq !== 'undefined' && this.product) {
+      _learnq.push([
+        'track',
+        'Viewed Product',
+        {
+          ProductID: this.product.id,
+          ProductName: this.product.name,
+          Price: this.product.price,
+          Categories: this.product.categories?.map((cat) => cat.name) || [],
+          Brand: this.getBrandName() || '',
+        },
+      ]);
+      console.log('Klaviyo: Viewed Product tracked');
+    }
   }
 
   ngOnDestroy(): void {
@@ -107,47 +133,70 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   private setupResizeListener(): void {
-    this.resizeSubscription = fromEvent(window, 'resize')
-      .pipe(debounceTime(200))
-      .subscribe(() => {
-        this.checkIfMobile();
-        this.updateVisibleColors();
-        this.updateVisibleSizes();
-      });
+    if (isPlatformBrowser(this.platformId)) {
+      this.resizeSubscription = fromEvent(window, 'resize')
+        .pipe(debounceTime(200))
+        .subscribe(() => {
+          this.checkIfMobile();
+          this.updateVisibleColors();
+          this.updateVisibleSizes();
+        });
+    }
   }
 
   private setupClickOutsideListener(): void {
-    // Close the mobile quick add dropdown when clicking outside
-    this.clickOutsideSubscription = fromEvent(document, 'click').subscribe(
-      (event: Event) => {
-        if (this.mobileQuickAddExpanded) {
-          // Check if the click target is inside the quick add component
-          const target = event.target as HTMLElement;
-          const quickAddEl = document.querySelector(
-            '.mobile-quick-add-section'
-          );
-          const sizeOverlayEl = document.querySelector(
-            '.mobile-size-selector-overlay'
-          );
+    if (isPlatformBrowser(this.platformId)) {
+      this.clickOutsideSubscription = fromEvent(document, 'click').subscribe(
+        (event: Event) => {
+          if (this.mobileQuickAddExpanded) {
+            const target = event.target as HTMLElement;
+            const quickAddEl = document.querySelector(
+              '.mobile-quick-add-section'
+            );
+            const sizeOverlayEl = document.querySelector(
+              '.mobile-size-selector-overlay'
+            );
 
-          if (quickAddEl && sizeOverlayEl) {
-            if (
-              !quickAddEl.contains(target) &&
-              !sizeOverlayEl.contains(target)
-            ) {
-              this.mobileQuickAddExpanded = false;
+            if (quickAddEl && sizeOverlayEl) {
+              if (
+                !quickAddEl.contains(target) &&
+                !sizeOverlayEl.contains(target)
+              ) {
+                this.mobileQuickAddExpanded = false;
+              }
             }
           }
         }
-      }
-    );
+      );
+    }
   }
 
-  private checkIfMobile(): void {
-    this.isMobile = window.innerWidth < 768;
-    // Reset mobile expand state when switching between mobile and desktop
-    if (!this.isMobile) {
-      this.mobileQuickAddExpanded = false;
+  private setupIntersectionObserver() {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !this.hasTracked) {
+            this.trackProductView();
+            this.hasTracked = true; // منع التكرار
+            this.observer?.unobserve(this.el.nativeElement);
+          }
+        });
+      },
+      { threshold: 0.5 } // المنتج لازم يكون 50% ظاهر عشان يتتبع
+    );
+
+    this.observer.observe(this.el.nativeElement);
+  }
+
+  private trackProductView() {
+    console.log('Klaviyo: Viewed Product tracked', this.product);
+  }
+
+  checkIfMobile() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.isMobile = window.innerWidth <= 768;
+    } else {
+      this.isMobile = false;
     }
   }
 
@@ -177,23 +226,28 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }[] {
     if (!this.variations) return [];
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
+
     this.variations.forEach((v) => {
       const colorAttr = v.attributes?.find(
         (attr: any) => attr.name === 'Color'
       );
       if (colorAttr && v.image?.src) {
-        const inStock = v.stock_status === 'instock';
-        if (!colorMap.has(colorAttr.option) || inStock) {
-          colorMap.set(colorAttr.option, { image: v.image.src, inStock });
-        }
+        const current = colorMap.get(colorAttr.option) || {
+          image: v.image.src,
+          inStock: false,
+        };
+        const inStock = current.inStock || v.stock_status === 'instock';
+        colorMap.set(colorAttr.option, { image: v.image.src, inStock });
       }
     });
+
     const options = Array.from(colorMap, ([color, data]) => ({
       color,
       image: data.image,
       inStock: data.inStock,
     }));
-    return options.length > 0 ? options : [];
+
+    return options.sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
   }
 
   private getSizesForColor(
@@ -234,6 +288,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   private setDefaultVariation(): void {
     if (this.variations.length === 0) {
+      this.displayedImages =
+        this.product.images?.map((img) => ({ src: img.src })) || [];
       return;
     }
 
@@ -241,15 +297,24 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       (attr: any) => attr.name === 'Color'
     )?.option;
 
-    if (defaultColor && this.colorOptions.length > 0) {
-      const matchingColor = this.colorOptions.find(
-        (opt) => opt.color.toLowerCase() === defaultColor.toLowerCase()
+    let selectedColorOption = null;
+    if (defaultColor) {
+      selectedColorOption = this.colorOptions.find(
+        (opt) =>
+          opt.color.toLowerCase() === defaultColor.toLowerCase() && opt.inStock
       );
-      if (matchingColor) {
-        this.selectColor(matchingColor.color, matchingColor.image);
-      }
-    } else if (this.colorOptions.length > 0) {
-      this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+    }
+
+    if (!selectedColorOption) {
+      selectedColorOption =
+        this.colorOptions.find((opt) => opt.inStock) || this.colorOptions[0];
+    }
+
+    if (selectedColorOption) {
+      this.selectColor(selectedColorOption.color, selectedColorOption.image);
+    } else {
+      this.displayedImages =
+        this.product.images?.map((img) => ({ src: img.src })) || [];
     }
 
     this.updateSelectedVariation();
@@ -257,28 +322,35 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
-    this.displayedImages =
-      this.variations
-        ?.filter((v) =>
-          v.attributes?.some(
-            (attr: any) => attr.name === 'Color' && attr.option === color
-          )
+    const variationImages = this.variations
+      ?.filter((v) =>
+        v.attributes?.some(
+          (attr: any) => attr.name === 'Color' && attr.option === color
         )
-        .map((v) => ({ src: v.image?.src || image })) || [];
+      )
+      .map((v) => ({
+        src: v.image?.src || image,
+        alt: v.image?.alt || this.product.name,
+      }))
+      .filter((img) => img.src);
+
+    this.displayedImages =
+      variationImages.length > 0
+        ? variationImages
+        : [{ src: image, alt: this.product.name }];
+
     this.currentSlide = 0;
     this.uniqueSizes = this.getSizesForColor(color);
     this.selectedSize = null;
     this.updateVisibleSizes();
-    this.cdr.detectChanges();
-
     this.updateSelectedVariation();
+    this.cdr.detectChanges();
   }
 
   selectSize(size: string): void {
     this.selectedSize = size;
     this.updateSelectedVariation();
 
-    // If on desktop with both color and size, auto-add to cart when both are selected
     if (
       !this.isMobile &&
       this.hasColors() &&
@@ -296,7 +368,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   onHover(hovered: boolean): void {
     this.isHovered = hovered;
-    // For products with images but no color variations, cycle through images on hover
     if (this.colorOptions.length === 0 && this.product.images?.length > 1) {
       this.currentSlide = hovered ? 1 : 0;
     }
@@ -379,22 +450,30 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         return matchColor && matchSize;
       });
 
-      // if(selectedVariation){
-      //   this.cartService.addProductToCart(this.product, selectedVariation.id);
-      // }else{
-
-      // }
+      if (selectedVariation) {
+        variationId = selectedVariation.id;
+      }
     }
 
-    // console.log('Adding to cart:', {
-    //   product: this.product,
-    //   color: this.selectedColor,
-    //   size: this.selectedSize
-    // });
-
     this.cartService.addProductToCart(this.selectedVariation);
+    if (typeof _learnq !== 'undefined') {
+      _learnq.push([
+        'track',
+        'Added to Cart',
+        {
+          ProductID: productToAdd.id,
+          ProductName: productToAdd.name,
+          Price: productToAdd.price,
+          VariationID: variationId || null,
+          Color: this.selectedColor || null,
+          Size: this.selectedSize || null,
+          Brand: this.getBrandName() || '',
+          Categories: productToAdd.categories?.map((cat) => cat.name) || [],
+        },
+      ]);
+      console.log('Klaviyo: Added to Cart tracked');
+    }
 
-    // Reset selection after adding to cart
     if (this.isMobile) {
       this.mobileQuickAddExpanded = false;
     }
@@ -464,8 +543,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
             )
           ) || null;
       }
-
-      console.log('Selected Variation:', this.selectedVariation);
     }
   }
 }

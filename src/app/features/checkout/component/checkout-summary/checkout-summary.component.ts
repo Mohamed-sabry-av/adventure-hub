@@ -1,12 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  inject,
-  Input,
-  ViewChild,
-  viewChild,
-} from '@angular/core';
+import { Component, DestroyRef, inject, Input } from '@angular/core';
 import { filter, map, Observable } from 'rxjs';
 import { CartService } from '../../../cart/service/cart.service';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
@@ -24,24 +16,21 @@ export class CheckoutSummaryComponent {
   private checkoutService = inject(CheckoutService);
   private destroyRef = inject(DestroyRef);
   @Input({ required: true }) isVisible$!: Observable<boolean>;
-  @ViewChild('couponInput') couponInput!: ElementRef<HTMLInputElement>;
 
   selectedCountry$: Observable<string> = this.checkoutService.selectedCountry$;
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
+  appliedCoupon$: Observable<any> = this.checkoutService.appliedCoupon$;
+  isUsed$: Observable<boolean> = this.checkoutService.emailIsUsed$;
 
   totalItemsLength: number = 0;
   couponValue: string = '';
 
-  appliedCoupon$: Observable<any> = this.checkoutService.appliedCoupon$;
-
   ngOnInit() {
     const subscribtion2 = this.appliedCoupon$.subscribe((res) => {
       if (res?.validCoupon?.code) {
-        this.couponInput.nativeElement.value = res.validCoupon.code;
+        this.couponValue = res.validCoupon.code;
       }
     });
-
-    this.cartService.fetchUserCart();
 
     const subscribtion = this.loadedCart$
       .pipe(
@@ -53,7 +42,6 @@ export class CheckoutSummaryComponent {
       )
       .subscribe((response: any) => {
         response.map((item: any) => {
-          // this.totalItemsLength = 0;
           this.totalItemsLength += item.quantity;
         });
       });
@@ -70,6 +58,6 @@ export class CheckoutSummaryComponent {
 
   onRemoveCoupon() {
     this.checkoutService.removeCoupon();
-    this.couponInput.nativeElement.value = '';
+    this.couponValue = '';
   }
 }

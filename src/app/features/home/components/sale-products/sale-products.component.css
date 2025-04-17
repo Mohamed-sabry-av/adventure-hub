@@ -1,0 +1,24 @@
+.sale-products {
+    background-color: #f9f9f9;
+  }
+  
+  .section-header h2 {
+    position: relative;
+  }
+  
+  .section-header h2::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 40px;
+    height: 3px;
+    background-color: #ef4444;
+  }
+  
+  @media (max-width: 640px) {
+    .products-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+  }

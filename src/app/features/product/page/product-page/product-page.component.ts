@@ -6,9 +6,11 @@ import { RouterLink } from '@angular/router';
 import { ProductDescComponent } from '../../components/product-desc/product-desc.component';
 import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
-import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
+import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
+
+declare var _learnq: any; // تعريف متغير Klaviyo العام
 
 @Component({
   selector: 'app-product-page',
@@ -40,6 +42,18 @@ export class ProductPageComponent implements OnInit {
 
   onSelectedColorChange(color: string | null) {
     this.selectedColor = color;
+
+    // تتبع حدث Selected Color (اختياري)
+    if (typeof _learnq !== 'undefined' && color && this.productData) {
+      _learnq.push(['track', 'Selected Color', {
+        ProductID: this.productData.id,
+        ProductName: this.productData.name,
+        Color: color,
+        Brand: this.productData.brand || 'Unknown',
+        Categories: this.productData.categories?.map((cat: any) => cat.name) || []
+      }]);
+      console.log('Klaviyo: Selected Color tracked');
+    }
   }
 
   ngOnInit() {
@@ -53,10 +67,27 @@ export class ProductPageComponent implements OnInit {
             .pipe(
               map((variations) => {
                 console.log('Variations fetched:', variations);
-                return {
+                // Normalize product data
+                const normalizedProduct = {
                   ...product,
                   variations: variations || [],
+                  brand: product.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.name || product.brand || 'Unknown',
+                  available_colors: [
+                    ...new Set(
+                      (variations || []).map((v: any) =>
+                        v.attributes?.find((attr: any) => attr.name === 'Color')?.option
+                      ).filter(Boolean)
+                    )
+                  ],
+                  available_sizes: [
+                    ...new Set(
+                      (variations || []).map((v: any) =>
+                        v.attributes?.find((attr: any) => attr.name === 'Size')?.option
+                      ).filter(Boolean)
+                    )
+                  ]
                 };
+                return normalizedProduct;
               })
             );
         })
@@ -70,13 +101,25 @@ export class ProductPageComponent implements OnInit {
             description: this.productData?.short_description,
             image: this.productData?.images?.[0]?.src,
           });
+
+          // تتبع حدث Viewed Product بعد تحميل بيانات المنتج
+          if (typeof _learnq !== 'undefined' && this.productData) {
+            _learnq.push(['track', 'Viewed Product', {
+              ProductID: this.productData.id,
+              ProductName: this.productData.name,
+              Price: this.productData.price,
+              Brand: this.productData.brand || 'Unknown',
+              Categories: this.productData.categories?.map((cat: any) => cat.name) || [],
+              AvailableColors: this.productData.available_colors || [],
+              AvailableSizes: this.productData.available_sizes || []
+            }]);
+            console.log('Klaviyo: Viewed Product tracked');
+          }
         },
         error: (err) => {
           console.error('Error fetching product data:', err);
           this.productData = null;
-          this.schemaData = this.seoService.applySeoTags(null, {
-            title: 'Product Page',
-          });
+          this.schemaData = this.seoService.applySeoTags(null, { title: 'Product Page' });
         },
       });
 
