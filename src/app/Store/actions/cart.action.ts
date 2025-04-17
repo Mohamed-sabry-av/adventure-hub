@@ -27,5 +27,5 @@ export const deleteProductOfUserCarAction = createAction(
 
 export const updateCartStockStatusAction = createAction(
   '[Cart] Update Products Stock In Cart',
-  props<{ productIds: string[] }>()
+  props<{ productIds: string[]; coupon: any }>()
 );

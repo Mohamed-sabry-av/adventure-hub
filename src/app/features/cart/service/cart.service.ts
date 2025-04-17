@@ -36,8 +36,6 @@ export class CartService {
       const minAmount = parseFloat(coupon.minimum_amount || '0');
       const maxAmount = parseFloat(coupon.maximum_amount || '0');
 
-      console.log(coupon.maximum_amount);
-
       const isAboveMin = subTotal >= minAmount;
       const isBelowMax = maxAmount === 0 || subTotal <= maxAmount;
 
@@ -47,6 +45,7 @@ export class CartService {
           totalPrice = Math.max(subTotal - totalDiscount, 0);
         } else if (coupon.discount_type === 'percent') {
           totalDiscount = subTotal * (parseFloat(coupon.amount) / 100);
+
           totalPrice = Math.max(subTotal - totalDiscount, 0);
         }
 
@@ -167,14 +166,5 @@ export class CartService {
         );
       }
     });
-  }
-  // savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
-
-  updateStockStatus() {
-    // let loadedCart: any = localStorage.getItem('Cart');
-    // loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-    // const productIds =
-    //   loadedCart.items?.map((item: any) => item.productId) || [];
-    // console.log(productIds);
   }
 }

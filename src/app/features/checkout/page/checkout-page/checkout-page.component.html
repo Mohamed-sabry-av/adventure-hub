@@ -20,7 +20,21 @@
   class="max-w-[700px] lg:max-w-[1180px] mx-auto flex flex-col lg:flex-row px-4 lg:px-0 lg:mt-0 mt-6"
 >
   <div class="w-full">
-    <!-- <div class="lg:w-[52.5%] w-full"> -->
+    @if (productsOutOfStock$ | async) {
+    <div class="bg-red-500 p-3 text-center rounded-lg mt-2">
+      @for (product of productsOutOfStock$ | async; track $index) {
+
+      <p class="text-white lg:text-xl">
+        Cannot create order:
+        <span class="text-black lg:text-2xl">{{
+          product.name || product.id
+        }}</span>
+        is out of stock
+      </p>
+      }
+    </div>
+    }
+
     <app-checkout-form />
   </div>
 </div>
