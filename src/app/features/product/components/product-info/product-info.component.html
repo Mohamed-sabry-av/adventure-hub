@@ -3,12 +3,11 @@
 
   <div class="flex items-baseline mb-4">
     <span class="text-2xl font-bold">{{ getSelectedPrice() }} AED</span>
-    <span class="text-gray-500 line-through ml-2">{{ productInfo()?.regular_price }}</span>
+    <!-- Show regular price with strikethrough only if on sale -->
+    <span class="text-gray-500 line-through ml-2" *ngIf="isOnSale()">
+      {{ (selectedSize && getSelectedVariation()?.regular_price) || productInfo()?.regular_price }} AED
+    </span>
   </div>
-
-  <!-- <div class="text-sm text-gray-500 mb-4">
-    VAT included
-  </div> -->
 
   <div class="product-brand" *ngIf="brandName !== 'brand'">
     <span class="brand-label">Brand:</span>
@@ -28,16 +27,13 @@
       <span class="quantity-display">{{ quantity }}</span>
       <button class="quantity-btn" (click)="onQuantityUp()" [disabled]="quantity >= maxLength">+</button>
     </div>
-    <!-- Display available stock info if available -->
     <span class="text-sm text-gray-500 ml-2" *ngIf="maxLength > 0">
       {{ maxLength }} items available
     </span>
   </div>
 
-
   @if(getColorOptions().length){
     <div class="product-option">
-      <!-- <label class="option-label">Color</label> -->
       <div class="color-options">
         @for (option of getColorOptions(); track $index) {
           <div
@@ -55,7 +51,6 @@
     </div>
   }
 
-  <!-- Size selector if available -->
   @if(selectedColor && getSizesForColor(selectedColor).length){
     <div class="product-option">
       <label class="option-label">Size</label>
@@ -77,15 +72,15 @@
     </div>
   }
 
-  <!-- Add to Cart Button - Only shown when product is in stock -->
   <button
     *ngIf="isProductInStock"
     class="w-full bg-orange-500 text-white py-3 font-medium rounded-md mb-3 hover:bg-orange-600 transition-colors"
-    (click)="addToCart()">
+    (click)="addToCart()"
+    
+    >
     ADD TO CART
   </button>
 
-  <!-- Apple Pay Button - Only shown when product is in stock -->
   <button
     *ngIf="isProductInStock"
     class="w-full bg-black text-white py-3 font-medium rounded-md mb-3 flex items-center justify-center"
@@ -93,13 +88,11 @@
     Buy Now
   </button>
 
-  <!-- Add to Wishlist -->
   <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
     <i class="pi pi-heart text-sm"></i>
     <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
   </div>
 
-  <!-- Tabby Payment - Only shown when product is in stock -->
   <div *ngIf="isProductInStock" class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
     <div>
       <p class="text-sm">4 interest-free payments or as low as <strong>AED {{ ((parseFloatValue(getSelectedPrice())) /
@@ -113,7 +106,6 @@
     />
   </div>
 
-  <!-- معلومات التوصيل -->
   <div class="mt-6 flex flex-col gap-y-1">
     <p class="text-sm">
       <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping

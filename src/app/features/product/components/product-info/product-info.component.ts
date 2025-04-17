@@ -2,6 +2,9 @@ import { Component, EventEmitter, input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { CartService } from '../../../cart/service/cart.service';
+
+declare var _learnq: any;
 
 @Component({
   selector: 'app-product-info',
@@ -20,6 +23,8 @@ export class ProductInfoComponent {
 
   @Output() selectedColorChange = new EventEmitter<string | null>();
 
+  constructor(private cartService:CartService){}
+
   ngOnInit() {
     if (this.productInfo()) {
       console.log('Product Info in ngOnInit:', this.productInfo());
@@ -30,7 +35,6 @@ export class ProductInfoComponent {
         this.selectedColorChange.emit(this.selectedColor);
       }
 
-      // Set initial quantity to 1 and maxLength to available stock
       this.quantity = 1;
       this.updateMaxLength();
     }
@@ -48,15 +52,12 @@ export class ProductInfoComponent {
     }
   }
 
-  // Update maxLength based on current selection
   updateMaxLength() {
     if (!this.selectedColor || !this.selectedSize) {
-      // If no color or size selected yet, use default product stock
       this.maxLength = this.productInfo()?.stock_quantity || 10;
       return;
     }
 
-    // Find the selected variation
     const selectedVariation = this.getSelectedVariation();
     if (selectedVariation) {
       this.maxLength = selectedVariation.stock_quantity || 0;
@@ -151,7 +152,6 @@ export class ProductInfoComponent {
   selectSize(size: string): void {
     this.selectedSize = size;
     this.updateMaxLength();
-    // Reset quantity to 1 when size changes
     this.quantity = 1;
   }
 
@@ -175,12 +175,10 @@ export class ProductInfoComponent {
   }
 
   get isProductInStock(): boolean {
-    // If no selection has been made, check the default product stock
     if (!this.selectedColor || !this.selectedSize) {
       return this.productInfo()?.stock_status === 'instock';
     }
 
-    // Check if the selected variation is in stock
     const selectedVariation = this.getSelectedVariation();
     return selectedVariation?.stock_status === 'instock' && this.maxLength > 0;
   }
@@ -188,36 +186,128 @@ export class ProductInfoComponent {
   getSelectedPrice(): string {
     const variations = this.productInfo()?.variations || [];
     if (!Array.isArray(variations) || !variations.length || !this.selectedColor) {
-      return this.productInfo()?.price;
+      return this.productInfo()?.price || '';
     }
 
     if (this.selectedSize) {
       const selectedVariation = this.getSelectedVariation();
-      return selectedVariation?.price || this.productInfo()?.price;
+      return selectedVariation?.price || this.productInfo()?.price || '';
     }
 
-    // If no size selected, get price of first variation with selected color
     const firstVariationForColor = variations.find((v: any) =>
       v.attributes?.some(
         (attr: any) =>
           attr?.name === 'Color' && attr?.option === this.selectedColor
       )
     );
-    return firstVariationForColor?.price || this.productInfo()?.price;
+    return firstVariationForColor?.price || this.productInfo()?.price || '';
+  }
+
+  // New method to determine if the product is on sale
+  isOnSale(): boolean {
+    const product = this.productInfo();
+    if (!product) return false;
+
+    // Check base product sale status
+    if (!this.selectedColor && !this.selectedSize) {
+      return (
+        product.onsale === true &&
+        product.price !== product.regular_price &&
+        parseFloat(product.price) < parseFloat(product.regular_price)
+      );
+    }
+
+    // Check variation sale status
+    const variations = product.variations || [];
+    if (!Array.isArray(variations) || !variations.length || !this.selectedColor) {
+      return (
+        product.onsale === true &&
+        product.price !== product.regular_price &&
+        parseFloat(product.price) < parseFloat(product.regular_price)
+      );
+    }
+
+    if (this.selectedSize) {
+      const selectedVariation = this.getSelectedVariation();
+      return (
+        selectedVariation?.onsale === true &&
+        selectedVariation?.price !== selectedVariation?.regular_price &&
+        parseFloat(selectedVariation?.price) < parseFloat(selectedVariation?.regular_price)
+      );
+    }
+
+    // Check if any variation for the selected color is on sale
+    const firstVariationForColor = variations.find((v: any) =>
+      v.attributes?.some(
+        (attr: any) =>
+          attr?.name === 'Color' && attr?.option === this.selectedColor
+      )
+    );
+    return (
+      firstVariationForColor?.onsale === true &&
+      firstVariationForColor?.price !== firstVariationForColor?.regular_price &&
+      parseFloat(firstVariationForColor?.price) < parseFloat(firstVariationForColor?.regular_price)
+    );
   }
 
   addToCart(): void {
-    // Implementation would go here in a real app
-    console.log('Product added to cart');
+    const product = this.productInfo();
+    if (!product) {
+      console.error('No product info available');
+      return;
+    }
+  
+    // Use the base product like ProductCardComponent
+    let cartProduct: any = { ...product, quantity: this.quantity };
+  
+    // Handle variations for price, stock status, and tracking
+    let variationId: number | undefined;
+    const selectedVariation = this.getSelectedVariation();
+    if (selectedVariation && this.selectedColor && this.selectedSize) {
+      variationId = selectedVariation.id;
+      cartProduct.price = selectedVariation.price || cartProduct.price;
+      cartProduct.stock_status = selectedVariation.stock_status || cartProduct.stock_status;
+    }
+  
+    // Validate stock status before adding
+    if (cartProduct.stock_status !== 'instock') {
+      console.error('Cannot add to cart: Product or variation is out of stock');
+      return;
+    }
+  
+    // Call CartService to add the product
+    console.log('addToCart triggered, cartService:', this.cartService);
+    if (!this.cartService) {
+      console.error('CartService is not initialized');
+      return;
+    }
+    this.cartService.addProductToCart(cartProduct);
+    console.log('Product added to cart:', cartProduct);
+  
+    // Track with Klaviyo
+    if (typeof _learnq !== 'undefined') {
+      _learnq.push([
+        'track',
+        'Added to Cart',
+        {
+          ProductID: cartProduct.id,
+          ProductName: cartProduct.name,
+          Price: cartProduct.price,
+          VariationID: variationId || null,
+          Color: this.selectedColor || null,
+          Size: this.selectedSize || null,
+          Brand: this.brandName || '',
+          Categories: product.categories?.map((cat: any) => cat.name) || [],
+        },
+      ]);
+      console.log('Klaviyo: Added to Cart tracked');
+    }
   }
-
-  buyNow(): void {
-    // Implementation would go here in a real app
+    buyNow(): void {
     console.log('Buy now with pay clicked');
   }
 
   showMoreOptions(): void {
-    // Implementation would go here in a real app
     console.log('Show more payment options clicked');
   }
 

@@ -1,47 +1,45 @@
-<div class="product-gallery" [class.mobile]="isMobile">
-  <!-- Main image container -->
-  <div class="main-image-container">
-    <button class="nav-button prev-button" (click)="prevImage()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </button>
-
-    <div class="main-image">
-      <ng-container *ngIf="getGalleryImages().length > 0">
-        <img
-          [src]="getGalleryImages()[selectedImageIndex].src"
-          [alt]="getGalleryImages()[selectedImageIndex].alt"
-          (animationend)="onAnimationDone()"
-          [class.slide-in-next]="animationDirection === 'next'"
-          [class.slide-in-prev]="animationDirection === 'prev'"
-        >
-      </ng-container>
-    </div>
-
-    <button class="nav-button next-button" (click)="nextImage()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
-    </button>
-
-    <!-- Image counter for mobile -->
-    <div class="image-counter" *ngIf="getGalleryImages().length > 1">
-      {{ selectedImageIndex + 1 }} / {{ getGalleryImages().length }}
+<div class="product-gallery" *ngIf="images.length > 0; else noImages">
+  <!-- Thumbnails -->
+  <div class="thumbnails-column">
+    <div
+      *ngFor="let image of images; let i = index; trackBy: trackByFn"
+      class="thumbnail-item"
+      [class.active]="selectedImageIndex === i"
+      (click)="selectImage(i)"
+    >
+      <img
+        [src]="image.src"
+        [alt]="image.alt || productName()"
+        class="thumbnail-img"
+      />
     </div>
   </div>
 
-  <!-- Thumbnails - vertical on desktop (left side), horizontal on mobile (bottom) -->
-  <div class="thumbnails-container" *ngIf="getGalleryImages().length > 1">
-    <div class="thumbnails-wrapper">
-      <div
-        *ngFor="let image of getGalleryImages(); let i = index"
-        class="thumbnail"
-        [class.active]="i === selectedImageIndex"
-        (click)="selectImage(i)"
-      >
-        <img [src]="image.src" [alt]="'Thumbnail ' + (i + 1)">
-      </div>
+  <div
+    class="main-image zoom-container"
+    (mousemove)="zoom($event)"
+    (mouseleave)="resetZoom()"
+    #zoomContainer
+  >
+    <button class="prev" (click)="prevImage()">❮</button>
+    <button class="next" (click)="nextImage()">❯</button>
+    
+    <div class="image-slide">
+      <img
+        *ngIf="images[selectedImageIndex]"
+        [src]="images[selectedImageIndex].src"
+        [alt]="images[selectedImageIndex].alt || productName()"
+        class="main-img"
+      />
+    </div>
+    
+    <!-- Image counter for mobile -->
+    <div class="image-counter" *ngIf="images.length > 1">
+      {{ selectedImageIndex + 1 }} / {{ images.length }}
     </div>
   </div>
 </div>
+
+<ng-template #noImages>
+  <div class="no-images">No images available</div>
+</ng-template>

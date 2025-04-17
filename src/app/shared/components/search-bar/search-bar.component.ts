@@ -11,6 +11,7 @@ interface Category {
   children?: Category[];
   parent?: number;
   expanded?: boolean;
+  slug?:any;
 }
 
 @Component({
@@ -142,11 +143,41 @@ export class SearchBarComponent implements OnInit {
     // التنقل لصفحة المنتج باستخدام Router
     this.router.navigate([`/product/${product.id}`]);
   }
-
-  selectCategory(category: any): void {
+  selectCategory(category: Category): void {
     console.log('Selected category:', category);
+    
+    // احفظ البحث الأخير
     this.saveToRecentSearches(this.searchInput.nativeElement.value);
+    
+    // أغلق نتائج البحث
     this.showResults = false;
+    
+    // احصل على مسار الـ slugs
+    const slugs = this.getCategoryPath(category);
+    
+    // قم بتوليد المسار (مثل: main-category/sub-category/sub-sub-category)
+    const path = slugs.join('/');
+    
+    // قم بالتنقل إلى المسار
+    this.router.navigate([`/category/${path}`]);
+  }
+
+
+  getCategoryPath(category: Category): string[] {
+    const slugs: string[] = [];
+    let currentCategory: Category | undefined = category;
+  
+    // اجمع الـ slugs من الفئة الحالية إلى الفئة الجذر
+    while (currentCategory) {
+      slugs.unshift(currentCategory.slug); // أضف الـ slug في بداية المصفوفة
+      if (currentCategory.parent) {
+        currentCategory = this.categories.find(cat => cat.id === currentCategory!.parent);
+      } else {
+        currentCategory = undefined;
+      }
+    }
+  
+    return slugs;
   }
 
   clearSearch(): void {

@@ -21,3 +21,81 @@
     position: static;
   }
 }
+
+
+/* Skeleton loading styles */
+.skeleton-breadcrumb,
+.skeleton-image,
+.skeleton-description,
+.skeleton-info,
+.skeleton-related,
+.skeleton-line,
+.skeleton-button,
+.skeleton-related-item {
+  background: #e0e0e0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Breadcrumb skeleton */
+.skeleton-breadcrumb {
+  height: 20px;
+  width: 50%;
+  margin: 16px 0;
+}
+
+/* Image skeleton */
+.skeleton-image {
+  height: 400px;
+  width: 100%;
+}
+
+/* Description skeleton */
+.skeleton-description {
+  margin-top: 16px;
+}
+
+.skeleton-line {
+  height: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+/* Product info skeleton */
+.skeleton-info {
+  padding: 16px;
+}
+
+.skeleton-button {
+  height: 40px;
+  width: 120px;
+  margin-top: 16px;
+}
+
+/* Related products skeleton */
+.skeleton-related {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.skeleton-related-item {
+  height: 200px;
+  width: 200px;
+}
