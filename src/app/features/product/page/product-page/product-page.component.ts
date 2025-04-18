@@ -41,7 +41,7 @@ export class ProductPageComponent implements OnInit {
     private destroyRef: DestroyRef
   ) {}
 
-  onSelectedColorChange(color: string | null) {
+  onSelectedColorChange(color: any | null) {
     this.selectedColor = color;
 
     if (typeof _learnq !== 'undefined' && color && this.productData) {

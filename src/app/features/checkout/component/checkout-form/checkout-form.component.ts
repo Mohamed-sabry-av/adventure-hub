@@ -71,69 +71,85 @@ export class CheckoutFormComponent {
   private formValidationService = inject(FormValidationService);
   private checkoutService = inject(CheckoutService);
 
+  // -----------------------------------------------------------------
+
+  billingForm!: FormGroup;
+  shippingForm!: FormGroup;
+  isShippingDifferent = false;
   summaryIsVisible$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
     false
   );
-
-  form = new FormGroup({
-    email: new FormControl('', {
-      validators: [Validators.email, Validators.required],
-    }),
-    countrySelect: new FormControl('', {
-      validators: [Validators.required],
-    }),
-    firstName: new FormControl('', {
-      validators: [Validators.maxLength(30), Validators.required],
-    }),
-    lastName: new FormControl('', {
-      validators: [Validators.maxLength(30), Validators.required],
-    }),
-    address: new FormControl('', {
-      validators: [Validators.maxLength(30), Validators.required],
-    }),
-    apartment: new FormControl('', {
-      validators: [Validators.maxLength(30)],
-    }),
-    city: new FormControl('', {
-      validators: [Validators.maxLength(30), Validators.required],
-    }),
-    state: new FormControl('', {
-      validators: [Validators.maxLength(30), Validators.required],
-    }),
-    phone: new FormControl('', {
-      validators: [Validators.maxLength(30), Validators.required],
-    }),
-    postCode: new FormControl('', {
-      validators: [Validators.maxLength(30), Validators.required],
-    }),
-
-    paymentMethod: new FormControl('creditCard'),
-
-    // cardNumber: new FormControl('', {
-    //   validators: [Validators.maxLength(30), Validators.required],
-    // }),
-    // expDate: new FormControl('', {
-    //   validators: [Validators.maxLength(30), Validators.required],
-    // }),
-    // securityCode: new FormControl('', {
-    //   validators: [Validators.maxLength(30), Validators.required],
-    // }),
-    // nameOnCard: new FormControl('', {
-    //   validators: [Validators.maxLength(30), Validators.required],
-    // }),
-  });
-
-  paymentRadiosValue: string = 'creditCard';
   isVisible: boolean = false;
+  paymentRadiosValue: string = 'cod';
+
+  private createAddressForm(includeContactInfo: boolean): FormGroup {
+    const formControls: { [key: string]: FormControl } = {
+      countrySelect: new FormControl('', [Validators.required]),
+      firstName: new FormControl('', [
+        Validators.maxLength(30),
+        Validators.required,
+      ]),
+      lastName: new FormControl('', [
+        Validators.maxLength(30),
+        Validators.required,
+      ]),
+      address: new FormControl('', [
+        Validators.maxLength(30),
+        Validators.required,
+      ]),
+      apartment: new FormControl('', [Validators.maxLength(30)]),
+      city: new FormControl('', [
+        Validators.maxLength(30),
+        Validators.required,
+      ]),
+      state: new FormControl('', [
+        Validators.maxLength(30),
+        Validators.required,
+      ]),
+      paymentMethod: new FormControl('cod'),
+      shippingMethod: new FormControl('same'),
+    };
+
+    if (includeContactInfo) {
+      formControls['email'] = new FormControl('', [
+        Validators.email,
+        Validators.required,
+      ]);
+      formControls['phone'] = new FormControl('', [
+        Validators.maxLength(30),
+        Validators.required,
+      ]);
+      formControls['postCode'] = new FormControl('', [
+        Validators.maxLength(30),
+        Validators.required,
+      ]);
+    }
+
+    return new FormGroup(formControls);
+  }
 
   ngOnInit() {
-    const subscribtion = this.form
+    this.billingForm = this.createAddressForm(true);
+    this.shippingForm = this.createAddressForm(false);
+
+    const subscribtion3 = this.billingForm
+      .get('shippingMethod')
+      ?.valueChanges.subscribe((method) => {
+        if (method === 'different') {
+          this.isShippingDifferent = true;
+        } else {
+          this.isShippingDifferent = false;
+        }
+        this.toggleShippingForm();
+      });
+
+    const subscribtion = this.billingForm
       .get('paymentMethod')
       ?.valueChanges.subscribe((method) => {
         this.toggleCreditCardValidators(method!);
       });
 
-    const subscribtion2 = this.form
+    const subscribtion2 = this.billingForm
       .get('countrySelect')
       ?.valueChanges.subscribe((value) => {
         this.onGetSelectedCountry(value);
@@ -142,6 +158,7 @@ export class CheckoutFormComponent {
     this.destroyRef.onDestroy(() => {
       subscribtion?.unsubscribe();
       subscribtion2?.unsubscribe();
+      subscribtion3?.unsubscribe();
     });
   }
 
@@ -166,134 +183,110 @@ export class CheckoutFormComponent {
   }
 
   toggleCreditCardValidators(method: string) {
-    if (method === 'creditCard') {
-      this.paymentRadiosValue = 'creditCard';
-    } else if (method === 'tabby') {
-      this.paymentRadiosValue = 'tabby';
-    } else {
-      this.paymentRadiosValue = 'cod';
+    switch (method) {
+      case 'stripe':
+        this.paymentRadiosValue = 'stripe';
+        break;
+
+      case 'tabby':
+        this.paymentRadiosValue = 'tabby';
+        break;
+
+      default:
+        this.paymentRadiosValue = 'cod';
+        break;
     }
   }
 
-  onSubmit(stripeToken?: string) {
-    const billingAddress = {
-      first_name: this.form.value.firstName,
-      last_name: this.form.value.lastName,
-      address_1: this.form.value.address,
-      city: this.form.value.city,
-      state: this.form.value.state,
-      postcode: `${this.form.value.postCode}`,
-      country: this.form.value.countrySelect,
-      email: this.form.value.email,
-      phone: `${this.form.value.phone}`,
-    };
-
-    const shippingAddress = {
-      first_name: this.form.value.firstName,
-      last_name: this.form.value.lastName,
-      address_1: this.form.value.address,
-      city: this.form.value.city,
-      state: this.form.value.state,
-      postcode: `${this.form.value.postCode}`,
-      country: this.form.value.countrySelect,
-    };
-
-    let paymentGateway: {
-      payment_method: string;
-      payment_method_title: string;
-    } = { payment_method: '', payment_method_title: '' };
-    if (this.paymentRadiosValue === 'creditCard') {
-      paymentGateway.payment_method = 'stripe';
-      paymentGateway.payment_method_title = 'Credit / Debit Card';
+  toggleShippingForm() {
+    if (this.isShippingDifferent) {
+      this.shippingForm.enable();
     } else {
-      paymentGateway.payment_method = 'cod';
-      paymentGateway.payment_method_title = 'Cash on delivery';
+      this.shippingForm.disable();
     }
+  }
 
-    let coupon: any = null;
-
-    const subscribtion = this.checkoutService.appliedCoupon$.subscribe(
-      (response: any) => {
-        if (response.validCoupon !== null) {
-          coupon = response.validCoupon;
-        }
-      }
-    );
-
-    console.log(
-      {
-        billing: billingAddress,
-        shipping: shippingAddress,
-      },
-      paymentGateway,
-      stripeToken
-    );
-
-    this.checkoutService.createOrder(
-      {
-        billing: billingAddress,
-        shipping: shippingAddress,
-      },
-      paymentGateway,
-      coupon,
-      stripeToken
-    );
-
-    this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
+  isFormValid(): boolean {
+    if (this.isShippingDifferent) {
+      return this.billingForm.valid && this.shippingForm.valid;
+    }
+    return this.billingForm.valid;
   }
 
   get emailIsInvalid() {
-    return this.formValidationService.controlFieldIsInvalid(this.form, 'email');
+    return this.formValidationService.controlFieldIsInvalid(
+      this.billingForm,
+      'email'
+    );
   }
 
   get firstNameIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(
-      this.form,
+      this.billingForm,
       'firstName'
     );
   }
 
   get lastNameIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(
-      this.form,
+      this.billingForm,
       'lastName'
     );
   }
 
   get addressIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(
-      this.form,
+      this.billingForm,
       'address'
     );
   }
 
   get cityIsInvalid() {
-    return this.formValidationService.controlFieldIsInvalid(this.form, 'city');
+    return this.formValidationService.controlFieldIsInvalid(
+      this.billingForm,
+      'city'
+    );
   }
 
   get stateIsInvalid() {
-    return this.formValidationService.controlFieldIsInvalid(this.form, 'state');
+    return this.formValidationService.controlFieldIsInvalid(
+      this.billingForm,
+      'state'
+    );
   }
 
   get phoneIsInvalid() {
-    return this.formValidationService.controlFieldIsInvalid(this.form, 'phone');
+    return this.formValidationService.controlFieldIsInvalid(
+      this.billingForm,
+      'phone'
+    );
   }
 
   get postCodeIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(
-      this.form,
+      this.billingForm,
       'postCode'
     );
   }
 
   onGetSelectedCountry(selectedCountry: any) {
-    console.log(selectedCountry);
-
     this.checkoutService.getSelectedCountry(selectedCountry);
   }
 
-  // --------------------------------------------------------
+  onSubmit(stripeToken?: string) {
+    if (!this.isFormValid()) {
+      return;
+    }
+    this.checkoutService.createOrder({
+      billingForm: this.billingForm,
+      shippingForm: this.shippingForm,
+      isShippingDifferent: this.isShippingDifferent,
+    });
+  }
 
+  // -----------------------------------------------------------------
+
+  // ------------------------- Stripe -------------------------
   @ViewChild('cardNumberElement') cardNumberElementRef!: ElementRef;
   @ViewChild('cardExpiryElement') cardExpiryElementRef!: ElementRef;
   @ViewChild('cardCvcElement') cardCvcElementRef!: ElementRef;
@@ -304,47 +297,8 @@ export class CheckoutFormComponent {
   cardExpiry: StripeCardExpiryElement | null = null;
   cardCvc: StripeCardCvcElement | null = null;
 
-  // Google pay
-  paymentRequest: any;
-  prButton!: StripePaymentRequestButtonElement;
-  @ViewChild('googlePayButton', { static: true })
-  googlePayButtonRef!: ElementRef;
-  private stripeService = inject(StripeService);
-
   ngAfterViewInit() {
     this.initStripe();
-    // Google Pay
-    // this.paymentRequest = this.stripe!.paymentRequest({
-    //   country: 'US', // غيّر حسب بلدك
-    //   currency: 'usd', // غيّر حسب العملة
-    //   total: {
-    //     label: 'إجمالي الطلب',
-    //     amount: 1000, // المبلغ بالسنت (مثال: 10 دولار = 1000)
-    //   },
-    //   requestPayerName: true,
-    //   requestPayerEmail: true,
-    //   requestShipping: true,
-    // });
-
-    // const result = await this.paymentRequest.canMakePayment();
-
-    // const result = await paymentRequest.canMakePayment();
-    // console.log(result);
-    // if (result) {
-    //   console.log('PAAAY', result);
-    //   const elements = this.stripe!.elements();
-    //   this.prButton = elements.create('paymentRequestButton', {
-    //     paymentRequest: paymentRequest,
-    //     style: {
-    //       paymentRequestButton: {
-    //         type: 'default',
-    //         theme: 'dark',
-    //         height: '40px',
-    //       },
-    //     },
-    //   });
-    //   this.prButton.mount(this.googlePayButtonRef.nativeElement);
-    // }
   }
 
   async initStripe() {
@@ -391,9 +345,51 @@ export class CheckoutFormComponent {
       console.error('Stripe أو حقل البطاقة غير جاهز');
     }
   }
+  // ##############################################################
 
-  // ------------------------------------------------------------------------------------
-  // TABBBY
+  // ------------------------- Google Pay -------------------------
+  // paymentRequest: any;
+  // prButton!: StripePaymentRequestButtonElement;
+  // @ViewChild('googlePayButton', { static: true })
+  // googlePayButtonRef!: ElementRef;
+  // private stripeService = inject(StripeService);
+
+  // Google Pay
+  // this.paymentRequest = this.stripe!.paymentRequest({
+  //   country: 'US', // غيّر حسب بلدك
+  //   currency: 'usd', // غيّر حسب العملة
+  //   total: {
+  //     label: 'إجمالي الطلب',
+  //     amount: 1000, // المبلغ بالسنت (مثال: 10 دولار = 1000)
+  //   },
+  //   requestPayerName: true,
+  //   requestPayerEmail: true,
+  //   requestShipping: true,
+  // });
+
+  // const result = await this.paymentRequest.canMakePayment();
+
+  // const result = await paymentRequest.canMakePayment();
+  // console.log(result);
+  // if (result) {
+  //   console.log('PAAAY', result);
+  //   const elements = this.stripe!.elements();
+  //   this.prButton = elements.create('paymentRequestButton', {
+  //     paymentRequest: paymentRequest,
+  //     style: {
+  //       paymentRequestButton: {
+  //         type: 'default',
+  //         theme: 'dark',
+  //         height: '40px',
+  //       },
+  //     },
+  //   });
+  //   this.prButton.mount(this.googlePayButtonRef.nativeElement);
+  // }
+
+  // ##############################################################
+
+  // ------------------------- Tabby Installments -------------------------
 
   private httpClient = inject(HttpClient);
   orderId: number | null = null; // Store WooCommerce order ID
@@ -510,4 +506,6 @@ export class CheckoutFormComponent {
         }
       );
   }
+
+  // ##############################################################
 }

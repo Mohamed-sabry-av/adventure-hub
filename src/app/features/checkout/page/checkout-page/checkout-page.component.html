@@ -1,3 +1,21 @@
+@if ((loadedCart$ | async)?.length === 0) {
+<div
+  class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[20px]"
+>
+  <i
+    class="pi pi-shopping-cart text-[100px] md:text-[150px] text-gray-300 font-thin"
+  ></i>
+  <p class="text-3xl md:text-5xl font-semibold">
+    Your cart is currently empty.
+  </p>
+
+  <a
+    [routerLink]="['']"
+    class="block rounded-lg bg-green-500 font-semibold px-5 py-3 text-lg text-white transition duration-150 hover:bg-green-600 cursor-pointer"
+    >Return to shop</a
+  >
+</div>
+}@else {
 <div
   class="max-w-[700px] lg:max-w-[1180px] mx-auto flex flex-col lg:flex-row px-4 lg:px-0 lg:mt-0 mt-6"
 >
@@ -6,3 +24,4 @@
     <app-checkout-form />
   </div>
 </div>
+}

@@ -112,6 +112,7 @@ export class CartEffect {
             image,
             type,
             quantity_limits,
+            stock_status,
           } = product;
 
           image = image.src;
@@ -129,6 +130,7 @@ export class CartEffect {
             images: image,
             type,
             quantity_limits,
+            stock_status,
             totals: {},
           };
 

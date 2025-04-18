@@ -1,72 +1,93 @@
 <app-app-container>
-  @if (schemaData && !isLoading) {
+  @if (schemaData) {
     <ng-container>
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
   }
 
-  <!-- Breadcrumb Skeleton -->
-  @if (isLoading) {
-    <div class="skeleton-breadcrumb"></div>
-  } @else {
-    <app-breadcrumb></app-breadcrumb>
-  }
+  <app-breadcrumb></app-breadcrumb>
 
   <!-- Product Section -->
   <div class="flex flex-col md:flex-row gap-8 mb-8">
     <!-- Product Images - Left side -->
     <div class="md:w-1/2 lg:w-3/5">
-      @if (isLoading) {
-        <div class="skeleton-image"></div>
-      } @else if (productData) {
+      @if (productData) {
         <app-product-images
           [productImages]="productData.images"
           [selectedColor]="selectedColor"
           [variations]="productData.variations"
         />
+      } @else {
+        <!-- Skeleton for product images -->
+        <div class="h-96 bg-gray-200 animate-pulse rounded mb-4"></div>
       }
 
-      <!-- Product Description and Specifications -->
-      <div class="full-width-description">
-        @if (isLoading) {
-          <div class="skeleton-description">
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line short"></div>
+      <!-- Desktop Description -->
+      <div class="full-width-product-description desktop-description">
+        @if (productData) {
+          <app-product-desc
+            [productAdditionlInfo]="{
+              description: productData.description,
+              specifications: productData.specifications
+            }"
+          />
+        } @else {
+          <!-- Skeleton for description -->
+          <div class="space-y-4">
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-2/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
           </div>
-        } @else if (productData) {
-          <app-product-desc [productAdditionlInfo]="productData" />
         }
       </div>
     </div>
 
-    <!-- Product Info - Right side - Sticky on scroll -->
+    <!-- Product Info - Right side -->
     <div class="md:w-1/2 lg:w-2/5 sticky-wrapper">
       <div class="sticky-info">
-        @if (isLoading) {
-          <div class="skeleton-info">
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line short"></div>
-            <div class="skeleton-button"></div>
-          </div>
-        } @else if (productData) {
+        @if (productData) {
           <app-product-info
             [productInfo]="productData"
             (selectedColorChange)="onSelectedColorChange($event)"
           />
+        } @else {
+          <!-- Skeleton for product info -->
+          <div class="space-y-4">
+            <div class="h-6 bg-gray-200 animate-pulse rounded w-1/2"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+            <div class="h-10 bg-gray-200 animate-pulse rounded w-full"></div>
+          </div>
+        }
+      </div>
+
+      <!-- Mobile Description -->
+      <div class="full-width-product-description mobile-description">
+        @if (productData) {
+          <app-product-desc
+            [productAdditionlInfo]="{
+              description: productData.description,
+              specifications: productData.specifications
+            }"
+          />
+        } @else {
+          <!-- Skeleton for mobile description -->
+          <div class="space-y-4 mt-4">
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-2/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
+          </div>
         }
       </div>
     </div>
   </div>
 
   <!-- Related Products -->
-  @if (isLoading) {
-    <div class="skeleton-related">
-      <div class="skeleton-related-item"></div>
-      <div class="skeleton-related-item"></div>
-      <div class="skeleton-related-item"></div>
-    </div>
-  } @else if (productData?.related_ids) {
+  @if (productData?.related_ids) {
     <app-product-related [relatedIds]="productData.related_ids" />
+  } @else {
+    <!-- Skeleton grid for related products -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div *ngFor="let i of [1, 2, 3, 4]" class="h-48 bg-gray-200 animate-pulse rounded"></div>
+    </div>
   }
 </app-app-container>

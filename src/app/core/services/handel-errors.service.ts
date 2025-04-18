@@ -7,6 +7,7 @@ import { Observable, throwError } from 'rxjs';
 })
 export class HandleErrorsService {
   handelError(errorResponse: HttpErrorResponse): Observable<any> {
+    console.log(errorResponse);
     if (errorResponse.status === 0) {
       console.log(`an error occured ${errorResponse.error}`);
     } else {
@@ -19,5 +20,3 @@ export class HandleErrorsService {
     );
   }
 }
-
-

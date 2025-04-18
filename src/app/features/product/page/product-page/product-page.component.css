@@ -99,3 +99,115 @@
   height: 200px;
   width: 200px;
 }
+
+/* Existing styles (unchanged) */
+.sticky-wrapper {
+  position: relative;
+}
+
+.sticky-info {
+  position: sticky;
+  top: 20px;
+}
+
+.full-width-product-description {
+  margin: 40px 0;
+  padding: 20px 0;
+  border-top: 1px solid #eee;
+}
+
+@media (max-width: 767px) {
+  .sticky-info {
+    position: static;
+  }
+}
+
+/* New styles for mobile/desktop descriptions */
+.mobile-description {
+  display: block;
+}
+
+.desktop-description {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-description {
+    display: none;
+  }
+  .desktop-description {
+    display: block;
+  }
+}
+
+/* Existing skeleton styles (unchanged) */
+.skeleton-breadcrumb,
+.skeleton-image,
+.skeleton-description,
+.skeleton-info,
+.skeleton-related,
+.skeleton-line,
+.skeleton-button,
+.skeleton-related-item {
+  background: #e0e0e0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.skeleton-breadcrumb {
+  height: 20px;
+  width: 50%;
+  margin: 16px 0;
+}
+
+.skeleton-image {
+  height: 400px;
+  width: 100%;
+}
+
+.skeleton-description {
+  margin-top: 16px;
+}
+
+.skeleton-line {
+  height: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-info {
+  padding: 16px;
+}
+
+.skeleton-button {
+  height: 40px;
+  width: 120px;
+  margin-top: 16px;
+}
+
+.skeleton-related {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.skeleton-related-item {
+  height: 200px;
+  width: 200px;
+}

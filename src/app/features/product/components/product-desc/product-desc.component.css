@@ -310,6 +310,10 @@
   text-align: center;
   color: #666;
 }
+.content-section {
+  margin-bottom: 50px;
+  scroll-margin-top: 80px; /* Increased to match potential header height */
+}
 
 /* Responsive Styles */
 @media (max-width: 767px) {
@@ -341,4 +345,32 @@
   .info-table td {
     font-size: 13px;
   }
+}
+
+.review-item {
+  border-bottom: 1px solid #eee;
+  padding: 15px 0;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.reviewer {
+  font-weight: bold;
+}
+
+.rating {
+  color: #f39c12;
+}
+
+.review-comment {
+  margin-bottom: 10px;
+}
+
+.review-date {
+  color: #888;
+  font-size: 0.9em;
 }

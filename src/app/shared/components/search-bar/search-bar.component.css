@@ -43,6 +43,19 @@ input:focus {
   z-index: 999; /* Below the search input and results */
 }
 
+.search-results-container .w-16.h-16 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible; /* التأكد من إن الصورة مش هتتقطع */
+}
+
+.search-results-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* الصورة تظهر بالكامل */
+}
+
 /* Search Results Container */
 .search-results-container {
   position: absolute;

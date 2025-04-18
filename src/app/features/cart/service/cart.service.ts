@@ -1,11 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
   fetchUserCartAction,
-  getUserCartAction,
+  updateCartStockStatusAction,
   updateProductOfUserCartAction,
 } from '../../../Store/actions/cart.action';
 import { savedUserCartSelector } from '../../../Store/selectors/cart.selector';
@@ -91,18 +91,6 @@ export class CartService {
 
         const couponData =
           couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
-        // if(couponData){
-
-        //   this.store.dispatch(
-        //     fetchCouponsAction({
-        //       enteredCouponValue: couponData,
-        //       isLoggedIn: false,
-        //     })
-        //   );
-        // }else{
-        //   this.store.dispatch(getUserCartAction({userCart:loadedCart}))
-        // }
-
         this.store.dispatch(
           fetchCouponsAction({
             enteredCouponValue: couponData,
@@ -179,5 +167,14 @@ export class CartService {
         );
       }
     });
+  }
+  // savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
+
+  updateStockStatus() {
+    // let loadedCart: any = localStorage.getItem('Cart');
+    // loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+    // const productIds =
+    //   loadedCart.items?.map((item: any) => item.productId) || [];
+    // console.log(productIds);
   }
 }

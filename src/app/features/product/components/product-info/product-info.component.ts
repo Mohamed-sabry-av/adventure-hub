@@ -18,24 +18,22 @@ export class ProductInfoComponent {
   images: string[] = ['slider/1.webp', 'slider/2.webp'];
   maxLength: number = 10;
   quantity: number = 1;
-  selectedColor: string | null = null;
-  selectedSize: string | null = null;
+  selectedAttributes: { [key: string]: string | null } = {};
 
-  @Output() selectedColorChange = new EventEmitter<string | null>();
+  @Output() selectedAttributeChange = new EventEmitter<{ name: string; value: string | null }>();
 
-  constructor(private cartService:CartService){}
+  constructor(private cartService: CartService) {}
 
   ngOnInit() {
-    if (this.productInfo()) {
-      console.log('Product Info in ngOnInit:', this.productInfo());
-      console.log('Variations:', this.productInfo()?.variations);
-      console.log('Color Options:', this.getColorOptions());
-      if (this.getColorOptions().length > 0) {
-        this.selectedColor = this.getColorOptions()[0].color;
-        this.selectedColorChange.emit(this.selectedColor);
-      }
+    const product = this.productInfo();
+    if (product) {
+      console.log('Product Info:', product);
+      console.log('Variations:', product.variations);
+      console.log('Default Attributes:', product.default_attributes);
 
       this.quantity = 1;
+      this.setDefaultAttributes();
+      console.log('Selected Attributes:', this.selectedAttributes);
       this.updateMaxLength();
     }
   }
@@ -53,201 +51,164 @@ export class ProductInfoComponent {
   }
 
   updateMaxLength() {
-    if (!this.selectedColor || !this.selectedSize) {
-      this.maxLength = this.productInfo()?.stock_quantity || 10;
+    const product = this.productInfo();
+    if (product?.type === 'simple') {
+      this.maxLength = product.stock_quantity || 10;
       return;
     }
 
     const selectedVariation = this.getSelectedVariation();
-    if (selectedVariation) {
-      this.maxLength = selectedVariation.stock_quantity || 0;
-    } else {
-      this.maxLength = 0;
-    }
+    this.maxLength = selectedVariation?.stock_quantity || 0;
   }
 
   get productSku() {
-    const shortTitle =
-      this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
+    const shortTitle = this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
     const sku = this.productInfo()?.sku || '';
     return { shortTitle, sku };
   }
 
   get brandName() {
-    return this.productInfo()?.attributes?.[0]?.options?.[0]?.name || 'brand';
+    return this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.name || 'brand';
   }
 
   get brandSlug() {
-    return this.productInfo()?.attributes?.[0]?.options?.[0]?.slug || 'brand';
+    return this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.slug || 'brand';
   }
 
-  getColorOptions(): { color: string; image: string; inStock: boolean }[] {
+  getVariationAttributes(): string[] {
+    return this.productInfo()?.attributes
+      ?.filter((attr: any) => attr.variation)
+      ?.map((attr: any) => attr.name) || [];
+  }
+
+  getVariationOptions(attributeName: string, dependentAttributeValue: string | null = null): { value: string; image?: string; inStock: boolean }[] {
     const variations = this.productInfo()?.variations || [];
     if (!Array.isArray(variations) || !variations.length) {
       return [];
     }
 
-    const colorMap = new Map<string, { image: string; inStock: boolean }>();
+    const optionMap = new Map<string, { image?: string; inStock: boolean }>();
     variations.forEach((v: any) => {
-      const colorAttr = v.attributes?.find(
-        (attr: any) => attr?.name === 'Color'
-      );
-      if (colorAttr && v.image?.src) {
-        if (!colorMap.has(colorAttr.option)) {
-          const isInStock = variations.some(
-            (variation: any) =>
-              variation.attributes?.some(
-                (attr: any) =>
-                  attr?.name === 'Color' && attr?.option === colorAttr.option
-              ) && variation.stock_status === 'instock'
+      const attr = v.attributes?.find((attr: any) => attr?.name === attributeName);
+      if (!attr) return;
+
+      // For Colors: Consider the color inStock if any variation with this color is in stock
+      if (attributeName === 'Color') {
+        if (!optionMap.has(attr.option)) {
+          const isInStock = variations.some((variation: any) =>
+            variation.attributes?.some(
+              (a: any) => a?.name === 'Color' && a?.option === attr.option
+            ) && variation.stock_status === 'instock'
           );
-          colorMap.set(colorAttr.option, {
-            image: v.image.src,
+          optionMap.set(attr.option, {
+            image: v.image?.src,
             inStock: isInStock,
           });
         }
       }
+      // For Sizes: Include all sizes (in stock or out of stock) that match the selected color (if provided)
+      else if (attributeName === 'Size' && dependentAttributeValue) {
+        if (
+          v.attributes?.some(
+            (a: any) => a?.name === 'Color' && a?.option === dependentAttributeValue
+          )
+        ) {
+          optionMap.set(attr.option, {
+            inStock: v.stock_status === 'instock',
+          });
+        }
+      }
+      // For other attributes: Include all options, marking stock status
+      else {
+        optionMap.set(attr.option, {
+          inStock: v.stock_status === 'instock',
+        });
+      }
     });
 
-    return Array.from(colorMap, ([color, data]) => ({
-      color,
+    return Array.from(optionMap, ([value, data]) => ({
+      value,
       image: data.image,
       inStock: data.inStock,
     }));
   }
 
-  getSizesForColor(color: string | null): { size: string; inStock: boolean }[] {
-    const variations = this.productInfo()?.variations || [];
-    if (!Array.isArray(variations) || !variations.length || !color) {
-      return [];
+  selectAttribute(name: string, value: string): void {
+    this.selectedAttributes[name] = value;
+
+    // If selecting a Color, reset Size and select a default in-stock Size if available
+    if (name === 'Color') {
+      this.selectedAttributes['Size'] = null;
+      const availableSizes = this.getVariationOptions('Size', value).filter(opt => opt.inStock);
+      if (availableSizes.length > 0) {
+        this.selectAttribute('Size', availableSizes[0].value);
+      }
     }
 
-    const sizes = variations
-      .filter((v: any) =>
-        v.attributes?.some(
-          (attr: any) => attr?.name === 'Color' && attr?.option === color
-        )
-      )
-      .map((v: any) => {
-        const sizeAttr = v.attributes?.find(
-          (attr: any) => attr?.name === 'Size'
-        );
-        return {
-          size: sizeAttr?.option || '',
-          inStock: v.stock_status === 'instock',
-        };
-      })
-      .filter((item) => item.size);
-
-    return Array.from(new Map(sizes.map((item) => [item.size, item])).values());
-  }
-
-  selectColor(color: string): void {
-    this.selectedColor = color;
-    this.selectedSize = null;
-    this.selectedColorChange.emit(color);
-    this.updateMaxLength();
-  }
-
-  selectSize(size: string): void {
-    this.selectedSize = size;
+    this.selectedAttributeChange.emit({ name, value });
     this.updateMaxLength();
     this.quantity = 1;
   }
 
   getSelectedVariation() {
     const variations = this.productInfo()?.variations || [];
-    if (!Array.isArray(variations) || !variations.length || !this.selectedColor || !this.selectedSize) {
+    if (!Array.isArray(variations) || !variations.length) {
       return null;
     }
 
-    return variations.find(
-      (v: any) =>
+    const variationAttributes = this.getVariationAttributes();
+    if (!variationAttributes.length) {
+      return null;
+    }
+
+    return variations.find((v: any) =>
+      variationAttributes.every((attrName: string) =>
         v.attributes?.some(
-          (attr: any) =>
-            attr?.name === 'Color' && attr?.option === this.selectedColor
-        ) &&
-        v.attributes?.some(
-          (attr: any) =>
-            attr?.name === 'Size' && attr?.option === this.selectedSize
+          (attr: any) => attr?.name === attrName && attr?.option === this.selectedAttributes[attrName]
         )
+      )
     );
   }
 
   get isProductInStock(): boolean {
-    if (!this.selectedColor || !this.selectedSize) {
-      return this.productInfo()?.stock_status === 'instock';
+    const product = this.productInfo();
+    if (product?.type === 'simple') {
+      return product.stock_status === 'instock' && (product.stock_quantity > 0 || product.backorders_allowed);
+    }
+
+    if (!this.allVariationAttributesSelected) {
+      return false;
     }
 
     const selectedVariation = this.getSelectedVariation();
-    return selectedVariation?.stock_status === 'instock' && this.maxLength > 0;
+    return !!selectedVariation && selectedVariation.stock_status === 'instock' && (selectedVariation.stock_quantity > 0 || selectedVariation.backorders_allowed);
   }
 
-  getSelectedPrice(): string {
-    const variations = this.productInfo()?.variations || [];
-    if (!Array.isArray(variations) || !variations.length || !this.selectedColor) {
-      return this.productInfo()?.price || '';
-    }
-
-    if (this.selectedSize) {
-      const selectedVariation = this.getSelectedVariation();
-      return selectedVariation?.price || this.productInfo()?.price || '';
-    }
-
-    const firstVariationForColor = variations.find((v: any) =>
-      v.attributes?.some(
-        (attr: any) =>
-          attr?.name === 'Color' && attr?.option === this.selectedColor
-      )
-    );
-    return firstVariationForColor?.price || this.productInfo()?.price || '';
-  }
-
-  // New method to determine if the product is on sale
-  isOnSale(): boolean {
+  getPriceInfo(): { price: string; regularPrice: string; isOnSale: boolean } {
     const product = this.productInfo();
-    if (!product) return false;
-
-    // Check base product sale status
-    if (!this.selectedColor && !this.selectedSize) {
-      return (
-        product.onsale === true &&
-        product.price !== product.regular_price &&
-        parseFloat(product.price) < parseFloat(product.regular_price)
-      );
+    if (!product) {
+      return { price: '', regularPrice: '', isOnSale: false };
     }
 
-    // Check variation sale status
-    const variations = product.variations || [];
-    if (!Array.isArray(variations) || !variations.length || !this.selectedColor) {
-      return (
-        product.onsale === true &&
-        product.price !== product.regular_price &&
-        parseFloat(product.price) < parseFloat(product.regular_price)
-      );
+    if (product.type === 'simple' || !this.allVariationAttributesSelected) {
+      const price = product.price || '';
+      const regularPrice = product.regular_price || price;
+      const isOnSale = product.onsale && price !== regularPrice && parseFloat(price) < parseFloat(regularPrice);
+      return { price, regularPrice, isOnSale };
     }
 
-    if (this.selectedSize) {
-      const selectedVariation = this.getSelectedVariation();
-      return (
-        selectedVariation?.onsale === true &&
-        selectedVariation?.price !== selectedVariation?.regular_price &&
-        parseFloat(selectedVariation?.price) < parseFloat(selectedVariation?.regular_price)
-      );
+    const selectedVariation = this.getSelectedVariation();
+    if (selectedVariation) {
+      const price = selectedVariation.price || product.price || '';
+      const regularPrice = selectedVariation.regular_price || price;
+      const isOnSale =
+        selectedVariation.onsale &&
+        price !== regularPrice &&
+        parseFloat(price) < parseFloat(regularPrice);
+      return { price, regularPrice, isOnSale };
     }
 
-    // Check if any variation for the selected color is on sale
-    const firstVariationForColor = variations.find((v: any) =>
-      v.attributes?.some(
-        (attr: any) =>
-          attr?.name === 'Color' && attr?.option === this.selectedColor
-      )
-    );
-    return (
-      firstVariationForColor?.onsale === true &&
-      firstVariationForColor?.price !== firstVariationForColor?.regular_price &&
-      parseFloat(firstVariationForColor?.price) < parseFloat(firstVariationForColor?.regular_price)
-    );
+    return { price: product.price || '', regularPrice: product.regular_price || product.price || '', isOnSale: false };
   }
 
   addToCart(): void {
@@ -256,62 +217,116 @@ export class ProductInfoComponent {
       console.error('No product info available');
       return;
     }
-  
-    // Use the base product like ProductCardComponent
-    let cartProduct: any = { ...product, quantity: this.quantity };
-  
-    // Handle variations for price, stock status, and tracking
+
+    let cartProduct: any;
     let variationId: number | undefined;
-    const selectedVariation = this.getSelectedVariation();
-    if (selectedVariation && this.selectedColor && this.selectedSize) {
+
+    if (product.type === 'simple') {
+      if (product.stock_status !== 'instock') {
+        console.error('Cannot add to cart: Product is out of stock');
+        return;
+      }
+      cartProduct = { ...product, quantity: this.quantity };
+    } else {
+      if (!this.allVariationAttributesSelected) {
+        console.error('Cannot add to cart: Not all variation attributes are selected');
+        return;
+      }
+
+      const selectedVariation = this.getSelectedVariation();
+      if (!selectedVariation) {
+        console.error('Cannot add to cart: No valid variation selected');
+        return;
+      }
+
+      if (selectedVariation.stock_status !== 'instock') {
+        console.error('Cannot add to cart: Selected variation is out of stock');
+        return;
+      }
+
       variationId = selectedVariation.id;
-      cartProduct.price = selectedVariation.price || cartProduct.price;
-      cartProduct.stock_status = selectedVariation.stock_status || cartProduct.stock_status;
+      cartProduct = { ...selectedVariation, quantity: this.quantity };
     }
-  
-    // Validate stock status before adding
-    if (cartProduct.stock_status !== 'instock') {
-      console.error('Cannot add to cart: Product or variation is out of stock');
-      return;
-    }
-  
-    // Call CartService to add the product
-    console.log('addToCart triggered, cartService:', this.cartService);
+
     if (!this.cartService) {
       console.error('CartService is not initialized');
       return;
     }
+
     this.cartService.addProductToCart(cartProduct);
     console.log('Product added to cart:', cartProduct);
-  
-    // Track with Klaviyo
+
     if (typeof _learnq !== 'undefined') {
       _learnq.push([
         'track',
         'Added to Cart',
         {
-          ProductID: cartProduct.id,
-          ProductName: cartProduct.name,
-          Price: cartProduct.price,
+          ProductID: product.id,
+          ProductName: product.name,
+          Price: cartProduct.price || product.price,
           VariationID: variationId || null,
-          Color: this.selectedColor || null,
-          Size: this.selectedSize || null,
-          Brand: this.brandName || '',
+          Attributes: { ...this.selectedAttributes },
+          Brand: this.brandName,
           Categories: product.categories?.map((cat: any) => cat.name) || [],
         },
       ]);
       console.log('Klaviyo: Added to Cart tracked');
     }
   }
-    buyNow(): void {
-    console.log('Buy now with pay clicked');
-  }
 
-  showMoreOptions(): void {
-    console.log('Show more payment options clicked');
+  buyNow(): void {
+    console.log('Buy now with pay clicked');
   }
 
   parseFloatValue(value: any): number {
     return parseFloat(value);
+  }
+
+  private setDefaultAttributes(): void {
+    const product = this.productInfo();
+    if (!product || product.type === 'simple') {
+      return;
+    }
+
+    const variations = product.variations || [];
+    if (!Array.isArray(variations) || !variations.length) {
+      return;
+    }
+
+    const variationAttributes = this.getVariationAttributes();
+    const defaultAttributes = product.default_attributes || [];
+
+    variationAttributes.forEach((attrName: string) => {
+      const defaultAttr = defaultAttributes.find((attr: any) => attr.name === attrName);
+      let selectedOption = null;
+
+      if (defaultAttr) {
+        selectedOption = this.getVariationOptions(attrName, attrName === 'Size' ? this.selectedAttributes['Color'] : null).find(
+          (opt) => opt.value.toLowerCase() === defaultAttr.option.toLowerCase() && opt.inStock
+        );
+      }
+
+      if (!selectedOption) {
+        selectedOption = this.getVariationOptions(attrName, attrName === 'Size' ? this.selectedAttributes['Color'] : null).find((opt) => opt.inStock);
+      }
+
+      if (selectedOption) {
+        this.selectAttribute(attrName, selectedOption.value);
+      }
+    });
+  }
+
+  get isCompletelyOutOfStock(): boolean {
+    const product = this.productInfo();
+    if (!product) return true;
+    if (product.type === 'simple') {
+      return product.stock_status === 'outofstock';
+    }
+    return !product.variations?.some((v: any) => v.stock_status === 'instock');
+  }
+
+  get allVariationAttributesSelected(): boolean {
+    const variationAttributes = this.getVariationAttributes();
+    return variationAttributes.length === 0 || variationAttributes.every((attrName: string) => this.selectedAttributes[attrName] !== null);
   }
 }

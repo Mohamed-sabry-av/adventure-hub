@@ -1,10 +1,20 @@
 import { AfterViewInit, Component, ElementRef, HostListener, input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { KlaviyoService } from '../../services/klaviyo.service';
 
 interface SpecItem {
   key: string;
   value: string;
 }
+
+// interface KlaviyoReview {
+//   id: string;
+//   rating: number;
+//   comment: string;
+//   reviewer: string;
+//   date: string;
+// }
 
 @Component({
   selector: 'app-product-desc',
@@ -19,24 +29,44 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   descriptionSections: { text?: string; image?: string; title?: string; align?: string }[] = [];
   productSpecs: SpecItem[] = [];
   reviewCount: number = 0;
+  // reviews: KlaviyoReview[] = [];
 
-  // Keep track of section positions
   private sectionPositions: { [key: string]: number } = {};
   private scrolling = false;
+  private headerHeight: number = 0;
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(
+    private elementRef: ElementRef,
+    private route: ActivatedRoute,
+    private router: Router,
+    private klaviyoService: KlaviyoService
+  ) {}
 
   ngOnInit() {
     this.parseDescription();
     this.extractSpecifications();
-    // You can set a dummy review count or fetch it from an API
     this.reviewCount = 0;
+    this.fetchReviews();
+  
+    this.route.url.subscribe((segments) => {
+      const section = segments[segments.length - 1]?.path as
+        | 'description'
+        | 'additional-info'
+        | 'reviews';
+      if (section && ['description', 'additional-info', 'reviews'].includes(section)) {
+        this.activeSection = section;
+        setTimeout(() => this.scrollToSection(section), 0);
+      }
+    });
   }
 
   ngAfterViewInit() {
-    // Calculate section positions after the view is initialized
+    // Calculate header height dynamically
+    const stickyHeader = this.elementRef.nativeElement.querySelector('.sticky-tabs');
+    this.headerHeight = stickyHeader ? stickyHeader.offsetHeight : 70;
+
+    // Calculate section positions
     this.calculateSectionPositions();
-    // Initial check for the active section based on scroll position
     this.checkActiveSection();
   }
 
@@ -52,32 +82,32 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     this.calculateSectionPositions();
   }
 
+  
+
   scrollToSection(sectionId: 'description' | 'additional-info' | 'reviews'): void {
+    this.activeSection = sectionId;
+    this.router.navigate([`/product/${this.productAdditionlInfo()?.id}/${sectionId}`]);
+  
     const element = document.getElementById(sectionId);
     if (element) {
       this.scrolling = true;
-      this.activeSection = sectionId;
-
-      // Calculate offset to account for sticky header
-      const offset = 70; // Adjust based on your header height
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - this.headerHeight - 10;
+  
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
-
-      // Reset scrolling flag after animation completes
+  
       setTimeout(() => {
         this.scrolling = false;
-      }, 500);
+      }, 600);
     }
   }
-
   private calculateSectionPositions(): void {
     const sections = ['description', 'additional-info', 'reviews'];
-    sections.forEach(section => {
+    this.sectionPositions = {};
+    sections.forEach((section) => {
       const element = document.getElementById(section);
       if (element) {
         this.sectionPositions[section] = element.offsetTop;
@@ -88,21 +118,32 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   private checkActiveSection(): void {
     if (this.scrolling) return;
 
-    const scrollPosition = window.pageYOffset + 100; // Add offset for better UX
-
-    // Find the section that is currently in view
+    const scrollPosition = window.pageYOffset + this.headerHeight + 50; // Buffer for better UX
     let activeSection: 'description' | 'additional-info' | 'reviews' = 'description';
 
-    if (scrollPosition >= this.sectionPositions['reviews']) {
+    // Determine which section is in view
+    if (
+      this.sectionPositions['reviews'] &&
+      scrollPosition >= this.sectionPositions['reviews'] - 100
+    ) {
       activeSection = 'reviews';
-    } else if (scrollPosition >= this.sectionPositions['additional-info']) {
+    } else if (
+      this.sectionPositions['additional-info'] &&
+      scrollPosition >= this.sectionPositions['additional-info'] - 100
+    ) {
       activeSection = 'additional-info';
-    } else {
+    } else if (this.sectionPositions['description']) {
       activeSection = 'description';
     }
 
     if (this.activeSection !== activeSection) {
       this.activeSection = activeSection;
+      // Update URL fragment silently
+      this.router.navigate([], {
+        relativeTo: this.route,
+        fragment: activeSection,
+        replaceUrl: true,
+      });
     }
   }
 
@@ -111,36 +152,28 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     const parser = new DOMParser();
     const doc = parser.parseFromString(description, 'text/html');
 
-    // Initialize descriptionSections
     this.descriptionSections = [];
 
-    // Extract product blocks
     const productBlocks = Array.from(doc.querySelectorAll('.product-block'));
-
     productBlocks.forEach((block) => {
-      // Handle RTE block (features, intro text, etc.)
       const rte = block.querySelector('.rte');
       if (rte) {
-        // Initial paragraph
         const introText = rte.querySelector('p:not(.medium-4 *)')?.innerHTML;
         if (introText) {
           this.descriptionSections.push({ text: introText });
         }
 
-        // Feature list
         const featureList = rte.querySelector('ul');
         if (featureList) {
           this.descriptionSections.push({ text: featureList.outerHTML });
         }
 
-        // Weight information
         const weight = rte.querySelector('p:not(.medium-4 *) ~ p:not(.medium-4 *)');
         if (weight) {
           this.descriptionSections.push({ text: weight.innerHTML });
         }
       }
 
-      // Handle sizing chart
       const sizingChart = block.querySelector('h1');
       if (sizingChart && sizingChart.textContent?.includes('SIZING CHART')) {
         const image = block.querySelector('img')?.getAttribute('data-src') || '';
@@ -148,31 +181,45 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
         this.descriptionSections.push({
           title,
           image,
-          align: 'center', // As per the align="center" in the HTML
+          align: 'center',
         });
       }
     });
 
-    // Fallback: if no sections were parsed, use raw description
     if (!this.descriptionSections.length) {
       this.descriptionSections.push({ text: description });
     }
   }
 
   extractSpecifications(): void {
-    // This method extracts specifications from the description HTML
-    // Example: dimensions, weight, material, etc.
     const description = this.productAdditionlInfo()?.description || '';
+    const specs: SpecItem[] = [];
 
-    // Try to find specifications in the description
+    // Example: Parse specifications from description (customize as needed)
     if (description.includes('Specifications') || description.includes('specifications')) {
-      // Find common specification patterns
-      const specs: SpecItem[] = [];
-
-      
-     
-
-      this.productSpecs = specs;
+      // Add logic to extract specs (e.g., from a table or list in the description)
+      // Example placeholder:
+      specs.push({ key: 'Material', value: 'Cotton' });
+      specs.push({ key: 'Weight', value: '200g' });
     }
+
+    this.productSpecs = specs;
   }
-}
+
+  fetchReviews() {
+  //   const productId = this.productAdditionlInfo()?.id;
+  //   if (productId) {
+  //     this.klaviyoService.getProductReviews(productId).subscribe({
+  //       next: (reviews) => {
+  //         this.reviews = reviews;
+  //         this.reviewCount = reviews.length;
+  //       },
+  //       error: (error) => {
+  //         console.error('Error fetching reviews:', error);
+  //         this.reviewCount = 0;
+  //         this.reviews = [];
+  //       },
+  //     });
+  //   }
+  // }
+}}

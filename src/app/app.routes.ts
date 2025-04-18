@@ -15,7 +15,7 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'order-received',
+    path: 'order-received/:orderId',
     loadComponent: () =>
       import('./features/order/page/order-page/order-page.component').then(
         (m) => m.OrderPageComponent
@@ -33,9 +33,9 @@ export const routes: Routes = [
   {
     path: 'checkout',
     loadComponent: () =>
-      import('./features/checkout/page/checkout-page/checkout-page.component').then(
-        (m) => m.CheckoutPageComponent
-      ),
+      import(
+        './features/checkout/page/checkout-page/checkout-page.component'
+      ).then((m) => m.CheckoutPageComponent),
     pathMatch: 'full',
   },
   {

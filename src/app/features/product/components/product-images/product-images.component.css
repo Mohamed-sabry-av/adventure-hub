@@ -17,9 +17,12 @@
   overflow-x: hidden;
 }
 
+
 .thumbnail-item {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+
   border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
@@ -34,7 +37,7 @@
 }
 
 .thumbnail-img {
-  width: 100%;
+  width: 90%;
   height: 100%;
   object-fit: cover;
 }

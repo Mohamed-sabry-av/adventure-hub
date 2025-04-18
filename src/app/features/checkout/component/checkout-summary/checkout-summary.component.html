@@ -54,7 +54,7 @@
         [disabled]="(appliedCoupon$ | async).validCoupon !== null"
         #couponInput
         [class]="{
-            'bg-[#d8dfee]': (appliedCoupon$ | async).validCoupon !== null,
+            'bg-[#9fabc4]': (appliedCoupon$ | async).validCoupon !== null,
             'text-black': (appliedCoupon$ | async).validCoupon !== null,
           }"
       />
@@ -88,6 +88,8 @@
       }}</span>
       is invalid
     </p>
+    } @if (isUsed$ | async) {
+    <p class="mt-1 text-red-500 text-xl">coupon usage limit has been reached</p>
     }
   </div>
 
@@ -136,7 +138,7 @@
           isUAE: (selectedCountry$ | async) !== 'United Arab Emirates'
         }"
       >
-        <p class="text-base">
+        <p class="text-sm">
           {{
             (selectedCountry$ | async) !== ""
               ? (selectedCountry$ | async) === "United Arab Emirates"

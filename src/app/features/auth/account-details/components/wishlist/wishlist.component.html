@@ -25,16 +25,16 @@
 
         <!-- Product image -->
         <div class="product-image mb-3">
-          <img [src]="getProductImage(item.product)" alt="{{ item.product?.name }}" class="w-full h-44 object-cover rounded">
+          <img src="{{item.image}}" alt="{{ item.name }}" class="w-full h-44 object-cover rounded">
         </div>
 
         <!-- Product info -->
         <div class="product-info">
-          <h3 class="text-lg font-medium mb-2">{{ item.product?.name }}</h3>
-          <p class="price mb-3" [innerHTML]="getProductPrice(item.product)"></p>
+          <h3 class="text-lg font-medium mb-2">{{ item.name }}</h3>
+          <p class="price mb-3" >{{item.price}}</p>
 
           <div class="flex space-x-2">
-            <a [href]="item.product?.permalink" class="view-btn flex-1 px-3 py-2 text-center bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+            <a  [routerLink]="['/product', item.product_id]" class="view-btn flex-1 px-3 py-2 text-center bg-gray-100 rounded hover:bg-gray-200 transition-colors">
               View
             </a>
             <button

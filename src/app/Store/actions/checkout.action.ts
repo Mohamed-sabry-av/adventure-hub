@@ -21,3 +21,13 @@ export const createOrderAction = createAction(
   '[Checkout] Create Order',
   props<{ orderDetails: any }>()
 );
+
+export const fetchOrderDataAction = createAction(
+  '[Checkout] Fetch Order Data',
+  props<{ orderId: string }>()
+);
+
+export const getOrderDataAction = createAction(
+  '[Checkout] Get Order Data',
+  props<{ orderDetails: any }>()
+);

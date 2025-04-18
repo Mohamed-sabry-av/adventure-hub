@@ -1,4 +1,4 @@
-<form class="my-2 sm:my-0 w-full" [formGroup]="form">
+<form class="my-2 sm:my-0 w-full" [formGroup]="billingForm">
   <div class="flex lg:flex-row flex-col w-full">
     <div class="lg:w-[55%] lg:border-r">
       <div class="flex flex-col gap-y-8 lg:p-10 mb-5 lg:mb-0">
@@ -288,23 +288,23 @@
           </p>
 
           <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
-            <!-- Credit Card -->
+            <!-- Stripe -->
             <div>
               <div
                 class="flex justify-between items-center bg-white rounded-t-lg p-4"
                 [class]="{
-                  paymentOptionActive: paymentRadiosValue === 'creditCard',
-                  'mb-3': paymentRadiosValue === 'creditCard'
+                  paymentOptionActive: paymentRadiosValue === 'stripe',
+                  'mb-3': paymentRadiosValue === 'stripe'
                 }"
               >
                 <div class="flex items-center gap-x-2">
                   <input
                     type="radio"
-                    id="credit-card"
-                    value="creditCard"
+                    id="stripe"
+                    value="stripe"
                     formControlName="paymentMethod"
                   />
-                  <label class="text-sm" for="credit-card">Credit card</label>
+                  <label class="text-sm" for="stripe">Credit card</label>
                 </div>
                 <div class="flex items-center gap-x-2">
                   <img
@@ -322,8 +322,8 @@
               <div
                 class="flex flex-col gap-y-3 px-4 pb-4"
                 [class]="{
-                  block: paymentRadiosValue === 'creditCard',
-                  hidden: paymentRadiosValue !== 'creditCard'
+                  block: paymentRadiosValue === 'stripe',
+                  hidden: paymentRadiosValue !== 'stripe'
                 }"
                 @slideInOut
               >
@@ -461,16 +461,132 @@
             </div>
           </div>
 
+          <!-- NEEEEEEEEEEEEEEEEEEEEEEW -->
+
+          <!-- Shipping -->
+          <div class="mt-4">
+            <h2 class="font-semibold text-xl">Billing address</h2>
+
+            <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
+              <!-- Same Address -->
+              <div class="flex items-center gap-x-2 bg-white rounded-t-lg p-4">
+                <input
+                  type="radio"
+                  id="same"
+                  value="same"
+                  formControlName="shippingMethod"
+                />
+                <label class="text-sm" for="same"
+                  >Same as shipping address
+                </label>
+              </div>
+
+              <!-- Different Address -->
+              <div
+                class="flex items-center gap-x-2 bg-white rounded-b-lg p-4"
+                @slideInOut
+              >
+                <input
+                  type="radio"
+                  id="different"
+                  value="different"
+                  formControlName="shippingMethod"
+                />
+                <label class="text-sm" for="different">
+                  Use a different billing address</label
+                >
+              </div>
+            </div>
+          </div>
+          <!-- Shiiping Form -->
+          @if (isShippingDifferent) {
+          <form class="flex flex-col gap-y-4 mt-4" [formGroup]="shippingForm">
+            <h2 class="font-semibold text-xl">
+              Shipping details
+              <span class="text-red-500 text-base">*</span>
+            </h2>
+
+            <!-- First and Last Name -->
+            <div
+              class="flex sm:flex-row flex-col items-start gap-y-4 sm:gap-y-0 sm:gap-x-2"
+            >
+              <input
+                type="text"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="First name"
+                formControlName="firstName"
+              />
+
+              <input
+                type="text"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="Last name"
+                formControlName="lastName"
+              />
+            </div>
+
+            <!-- Country Select -->
+            <div>
+              <p-select
+                [options]="avaliableCountries()"
+                optionLabel="country"
+                optionValue="country"
+                placeholder="Select a Country"
+                class="bg-white w-full py-[14px] px-3 rounded-lg"
+                formControlName="countrySelect"
+              />
+            </div>
+
+            <!-- Address -->
+            <div>
+              <input
+                type="text"
+                class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                placeholder="Address"
+                formControlName="address"
+              />
+            </div>
+
+            <!-- Apartment -->
+            <input
+              type="text"
+              class="bg-white border w-full py-[14px] px-3 rounded-lg"
+              placeholder="Apartment, suite, etc. (optional)"
+              formControlName="apartment"
+            />
+
+            <!-- City and State -->
+            <div class="flex items-center gap-x-2">
+              <div class="w-full relative">
+                <input
+                  type="text"
+                  class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                  placeholder="City"
+                  formControlName="city"
+                />
+              </div>
+              <div class="w-full relative">
+                <input
+                  type="text"
+                  class="bg-white border w-full py-[14px] px-3 rounded-lg"
+                  placeholder="State"
+                  formControlName="state"
+                />
+              </div>
+            </div>
+          </form>
+          }
+
+          <!-- NEEEEEEEEEEEEEEEEEEEEEEW -->
+
           <!-- Pay Button -->
           <div class="mt-6 mb-12 lg:block hidden">
             <button
-              [disabled]="form.invalid"
-              (click)="
-                paymentRadiosValue === 'creditCard' ? payNow() : onSubmit()
-              "
+              [disabled]="!isFormValid()"
+              (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
               class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
               [ngClass]="
-                form.invalid
+                !isFormValid()
                   ? 'bg-gray-500 hover:bg-gray-500 cursor-default'
                   : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
               "
@@ -499,6 +615,7 @@
       </div>
     </div>
 
+    <!-- Show Button -->
     <div class="flex justify-between items-center mb-4 lg:hidden">
       <p class="text-xl font-semibold">Order summary</p>
 
@@ -513,17 +630,16 @@
       </div>
     </div>
 
+    <!-- Summary -->
     <div class="lg:w-[45%]">
       <app-checkout-summary [isVisible$]="summaryIsVisible$!">
         <div class="mt-6 mb-12 lg:hidden block">
           <button
-            [disabled]="form.invalid"
-            (click)="
-              paymentRadiosValue === 'creditCard' ? payNow() : onSubmit()
-            "
+            [disabled]="!isFormValid()"
+            (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
             class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
             [ngClass]="
-              form.invalid
+              !isFormValid()
                 ? 'bg-gray-500 hover:bg-gray-500 cursor-default'
                 : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
             "
