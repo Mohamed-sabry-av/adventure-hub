@@ -15,7 +15,7 @@
 
 .product-card:hover {
   @apply shadow-lg;
-  z-index: 2000 !important; /* رفع الـ z-index عند الهوفر */
+  z-index: 2 !important;
 }
 
 /* .product-card:hover {
@@ -27,6 +27,7 @@
   border-radius: 0.5rem;
   overflow: hidden;
   position: relative;
+  min-height: 400px;
 }
 
 @keyframes pulse {
@@ -56,10 +57,10 @@
 }
 
 /* Empty state animation */
-@keyframes fadeInUp {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;

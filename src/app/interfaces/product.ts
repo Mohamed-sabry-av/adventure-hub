@@ -4,6 +4,7 @@ export interface Product {
   name: string;
   price: any;
   brand?: string;
+  additional_images?: { src: string; alt?: string;srcset?:string;sizes?:string }[];
   images: { src: string; alt?: string;srcset?:string;sizes?:string }[];
   categories: { id: number; name: string; slug: string }[];
   description: string;
