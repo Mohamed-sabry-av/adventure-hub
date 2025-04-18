@@ -28,5 +28,6 @@ export class CheckoutPageComponent {
 
   ngOnInit() {
     this.cartService.fetchUserCart();
+    this.loadedCart$.subscribe((res) => console.log(res));
   }
 }

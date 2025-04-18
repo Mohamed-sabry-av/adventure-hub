@@ -104,8 +104,10 @@ export class CartEffect {
             )
             .pipe(
               map(() => {
-                this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
                 console.log('ADDEDD');
+                setTimeout(() => {
+                  this.cartService.cartMode(true);
+                }, 3000);
                 return fetchUserCartAction({ isLoggedIn: true });
               }),
               catchError((error: any) => {
@@ -121,13 +123,11 @@ export class CartEffect {
             price,
             sale_price,
             attributes,
-            image,
+            images,
             type,
             quantity_limits,
             stock_status,
           } = product;
-
-          image = image.src;
 
           let selectedProduct = {
             id,
@@ -139,7 +139,10 @@ export class CartEffect {
               sale_price,
             },
             attributes,
-            images: image,
+            images: {
+              imageSrc: images[0].thumbnail,
+              imageAlt: images[0].alt,
+            },
             type,
             quantity_limits,
             stock_status,
@@ -168,6 +171,9 @@ export class CartEffect {
 
           localStorage.setItem('Cart', JSON.stringify(loadedCart));
           this.cartService.fetchUserCart();
+          setTimeout(() => {
+            this.cartService.cartMode(true);
+          }, 3000);
           return of();
         }
       })
@@ -202,7 +208,10 @@ export class CartEffect {
                     return {
                       key: item.key,
                       id: item.id,
-                      images: item.images[0].src,
+                      images: {
+                        imageSrc: item.images[0].thumbnail,
+                        imageAlt: item.images[0].alt,
+                      },
                       name: item.name,
                       permalink: item.permalink,
                       type: item.type,
@@ -425,6 +434,7 @@ export class CartEffect {
     cart = this.cartService.calcCartPrice(cart.items, validCoupon);
 
     localStorage.setItem('Cart', JSON.stringify(cart));
+
     this.store.dispatch(getUserCartAction({ userCart: cart }));
   }
 }

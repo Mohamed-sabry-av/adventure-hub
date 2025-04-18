@@ -24,9 +24,9 @@
     <div class="bg-red-500 p-3 text-center rounded-lg mt-2">
       @for (product of productsOutOfStock$ | async; track $index) {
 
-      <p class="text-white lg:text-xl">
+      <p class="text-white lg:text-lg">
         Cannot create order:
-        <span class="text-black lg:text-2xl">{{
+        <span class="text-black lg:text-lg">{{
           product.name || product.id
         }}</span>
         is out of stock

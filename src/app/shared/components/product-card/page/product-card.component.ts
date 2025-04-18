@@ -288,8 +288,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   private setDefaultVariation(): void {
     if (this.variations.length === 0) {
+      console.log(this.displayedImages);
       this.displayedImages =
         this.product.images?.map((img) => ({ src: img.src })) || [];
+      console.log(this.displayedImages);
       return;
     }
 
@@ -455,7 +457,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.cartService.addProductToCart(this.selectedVariation);
+    this.cartService.addProductToCart(this.product);
+
     if (typeof _learnq !== 'undefined') {
       _learnq.push([
         'track',

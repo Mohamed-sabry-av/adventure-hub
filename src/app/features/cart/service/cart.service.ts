@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable, shareReplay } from 'rxjs';
 import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
@@ -99,7 +99,9 @@ export class CartService {
       }
     });
   }
-  savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
+  savedUserCart$: Observable<any> = this.store
+    .select(savedUserCartSelector)
+    .pipe(shareReplay(1));
 
   updateQuantityOfProductInCart(
     selectedProductQuantity: number,
