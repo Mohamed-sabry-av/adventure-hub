@@ -15,7 +15,11 @@ import {
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { CartService } from '../../features/cart/service/cart.service';
-import { fetchUserCartAction, getUserCartAction } from '../actions/cart.action';
+import {
+  fetchUserCartAction,
+  getUserCartAction,
+  updateCartStockStatusAction,
+} from '../actions/cart.action';
 import { Router } from '@angular/router';
 
 export class CheckoutEffect {
@@ -97,9 +101,7 @@ export class CheckoutEffect {
           return this.wooApiService.postRequest('cart/coupon', body).pipe(
             map((response) => {
               console.log(response);
-              return this.store.dispatch(
-                getUserCartAction({ userCart: response })
-              );
+              return getUserCartAction({ userCart: response });
             }),
             catchError((error: any) => {
               console.log('Coupon Error ', error);
@@ -111,20 +113,15 @@ export class CheckoutEffect {
           let loadedCart: any = localStorage.getItem('Cart');
           loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
 
-          const productIds =
-            loadedCart.items?.map((item: any) => item.productId) || [];
+          const productsIds =
+            loadedCart.items?.map((item: any) => item.id) || [];
 
-          console.log(productIds);
-
-          const cart = this.cartService.calcCartPrice(
-            loadedCart.items,
-            validCoupon
+          return of(
+            updateCartStockStatusAction({
+              productIds: productsIds,
+              coupon: validCoupon,
+            })
           );
-
-          localStorage.setItem('Cart', JSON.stringify(cart));
-          console.log('RESPONSE OF COUPNESS 3');
-
-          return of(getUserCartAction({ userCart: cart }));
         }
       })
     )

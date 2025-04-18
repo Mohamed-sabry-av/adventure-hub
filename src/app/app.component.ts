@@ -4,8 +4,9 @@ import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { SideCartComponent } from './features/cart/components/side-cart/side-cart.component';
 import { NgIf } from '@angular/common';
-import { filter } from 'rxjs/operators'; 
+import { filter } from 'rxjs/operators';
 import { BackToTopComponent } from './shared/components/BackToTop/back-to-top.component';
+import { CartService } from './features/cart/service/cart.service';
 
 declare global {
   interface Window {
@@ -29,8 +30,9 @@ declare global {
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
+  private destroyRef = inject(DestroyRef);
+  private cartService = inject(CartService);
   isCheckoutPage = false;
-  private destroyRef = inject(DestroyRef); 
 
   constructor(private router: Router) {}
 
@@ -49,19 +51,26 @@ export class AppComponent {
         pageTitle: document.title,
       });
 
-      if(window.klaviyo){
-        try{
-          window.klaviyo.push(['track', 'Active on Site', {
-            pagePath:event.urlAfterRedirects,
-            pageTitle: document.title,
-          }])
-        }catch(error){
+      if (window.klaviyo) {
+        try {
+          window.klaviyo.push([
+            'track',
+            'Active on Site',
+            {
+              pagePath: event.urlAfterRedirects,
+              pageTitle: document.title,
+            },
+          ]);
+        } catch (error) {
           console.log('Klaviyo error', error);
         }
       }
-
     });
 
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
+
+  toggle() {
+    this.cartService.cartMode(true);
   }
 }

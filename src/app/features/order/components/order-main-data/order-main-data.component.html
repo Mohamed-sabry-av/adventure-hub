@@ -50,9 +50,9 @@
             <th class="font-medium">Shipping:</th>
             <td class="text-sm">
               {{
-                (loadedOrder$ | async).shipping_total === 0
+                (loadedOrder$ | async).shipping_total === "0"
                   ? "Free shipping"
-                  : (loadedOrder$ | async).shipping_total
+                  : (loadedOrder$ | async).shipping_total| currency :`${(loadedOrder$ | async).currency_symbol}`
               }}
             </td>
           </tr>
@@ -68,7 +68,7 @@
           <tr class="pt-2">
             <th class="text-xl">Total:</th>
             <td class="text-xl font-medium">
-              {{ (loadedOrder$ | async).total }}
+              {{ (loadedOrder$ | async).total | currency :`${(loadedOrder$ | async).currency_symbol}` }}
             </td>
           </tr>
         </tfoot>

@@ -1,0 +1,141 @@
+<div class="card flex justify-center">
+  <p-drawer
+    #drawerRef
+    position="right"
+    [visible]="(sideCartVisible$ | async)!"
+    (onHide)="hideSideCart()"
+    [modal]="false"
+  >
+    <ng-template #headless pTemplate="content">
+      <main class="flex flex-col h-full">
+        <header class="md:p-5 pt-4 px-4 pb-3 shrink-0">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-lg">Your Cart</h2>
+            <i
+              class="pi pi-times font-semibold cursor-pointer"
+              (click)="hideSideCart()"
+            ></i>
+          </div>
+          <!-- Free Shipping Container -->
+          <div class="text-[#4d4f3a] mt-2 md:mt-3">
+            <!-- Progress -->
+            <div class="h-2 rounded-lg w-full bg-gray-200 overflow-hidden">
+              <div
+                class="h-full bg-[#4d4f3a] transition-all duration-500"
+                [style.width.%]="progressValue"
+              ></div>
+            </div>
+            <!-- Words -->
+            <div class="flex items-center justify-center mt-2 gap-x-1">
+              <i class="pi pi-check-circle text-[#4d4f3a] text-xs"></i>
+              <p class="text-xs">
+                @if (progressValue > 100) {
+                <span> Your order is eligible for free shipping! </span>
+                } @else if (progressValue !== 0) {
+                <span>
+                  Spend
+                  <strong>{{
+                    progressValue
+                      | currency
+                        : (loadedCart$ | async)?.totals?.currency_code || "AED"
+                  }}</strong>
+                  more for <strong>free shipping!</strong>
+                </span>
+                } @else {
+                <span>
+                  Spend
+                  <strong>{{
+                    100
+                      | currency
+                        : (loadedCart$ | async)?.totals?.currency_code || "AED"
+                  }}</strong>
+                  for <strong>free shipping!</strong>
+                </span>
+                }
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <hr class="shrink-0" />
+
+        <section class="p-3 flex-1 overflow-y-auto scrollbar-thin">
+          <div class="flex flex-col gap-y-4">
+            <!-- Product Data -->
+            @for (product of (loadedCart$ | async)?.items; track $index) {
+            <div class="flex justify-between items-center border-b pb-2">
+              <!-- Details -->
+              <div class="flex items-center gap-x-2">
+                <div class="w-[55px] h-[55px] border rounded-lg p-1 relative">
+                  <img
+                    [src]="product.images.imageSrc"
+                    [alt]="product.images.imageAlt"
+                    class="w-full h-full object-cover"
+                  />
+                  <div
+                    class="absolute -top-2 left-[45px] cursor-pointer"
+                    (click)="onDeleteProduct(product)"
+                  >
+                    <span
+                      class="bg-gray-400 text-white rounded-full flex items-center justify-center w-4 h-4 text-xs font-medium p-1"
+                    >
+                      <i class="pi pi-times text-[8px]"></i>
+                    </span>
+                  </div>
+                </div>
+                <div class="w-[calc(100%-70px)] flex flex-col justify-center">
+                  <p class="text-[13px]" [innerHTML]="product.name"></p>
+                  <p class="text-xs">
+                    <span>{{ product.quantity }} &#215; </span>
+                    <span class="font-semibold text-black">{{
+                      product.totals.line_total | currency : "AED"
+                    }}</span>
+                  </p>
+                </div>
+              </div>
+              <!-- Price -->
+              <p class="text-sm">
+                {{
+                  product.totals.line_total
+                    | currency : (loadedCart$ | async)?.totals.currency_code
+                }}
+              </p>
+            </div>
+            }
+          </div>
+        </section>
+
+        <hr class="shrink-0" />
+
+        <footer class="p-5 shrink-0">
+          <div class="flex flex-col gap-y-2">
+            <div class="flex justify-between items-center">
+              <p class="font-semibold">Subtotal :</p>
+              <p class="font-semibold">
+                {{
+                  (loadedCart$ | async)?.totals?.total_price
+                    | currency : (loadedCart$ | async)?.totals?.currency_code
+                }}
+              </p>
+            </div>
+            <button
+              class="font-semibold w-full py-2 md:py-3 text-center text-white rounded-lg transition-all duration-150 bg-orange-500 hover:bg-orange-600 cursor-pointer"
+              [routerLink]="['cart']"
+            >
+              <span class="font-semibold text-sm md:text-base">View Cart</span>
+            </button>
+            <button
+              class="font-semibold w-full py-2 md:py-3 text-center text-white rounded-lg transition-all duration-150 bg-green-600 hover:bg-green-700 cursor-pointer"
+              [routerLink]="['checkout']"
+            >
+              <span class="flex justify-center items-center gap-x-1">
+                <i class="pi pi-lock"></i>
+                <span class="font-semibold text-sm md:text-base">Checkout</span>
+              </span>
+            </button>
+          </div>
+        </footer>
+      </main>
+    </ng-template>
+  </p-drawer>
+</div>

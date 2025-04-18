@@ -53,9 +53,9 @@ export class NavbarMainCategoriesComponent {
   @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
 
-  isMobile: boolean = false;
   selectedCategoryId: number | null = null;
 
+  isMobile: boolean = false;
   sideNavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
 
   @HostListener('window:resize')

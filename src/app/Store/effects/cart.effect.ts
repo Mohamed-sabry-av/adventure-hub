@@ -7,16 +7,27 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CartService } from '../../features/cart/service/cart.service';
 import { Product } from '../../interfaces/product';
-import { catchError, EMPTY, map, of, switchMap, take, tap } from 'rxjs';
+import {
+  catchError,
+  EMPTY,
+  forkJoin,
+  map,
+  of,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs';
 import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
   fetchUserCartAction,
   getUserCartAction,
+  updateCartStockStatusAction,
   updateProductOfUserCartAction,
 } from '../actions/cart.action';
 import { json } from 'stream/consumers';
 import { fetchCouponsAction } from '../actions/checkout.action';
+import { ProductService } from '../../core/services/product.service';
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -24,6 +35,7 @@ export class CartEffect {
   private router = inject(Router);
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
+  private productService = inject(ProductService);
   private destroyRef = inject(DestroyRef);
 
   // initUserCart = createEffect(
@@ -92,8 +104,10 @@ export class CartEffect {
             )
             .pipe(
               map(() => {
-                this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
                 console.log('ADDEDD');
+                setTimeout(() => {
+                  this.cartService.cartMode(true);
+                }, 3000);
                 return fetchUserCartAction({ isLoggedIn: true });
               }),
               catchError((error: any) => {
@@ -109,13 +123,11 @@ export class CartEffect {
             price,
             sale_price,
             attributes,
-            image,
+            images,
             type,
             quantity_limits,
             stock_status,
           } = product;
-
-          image = image.src;
 
           let selectedProduct = {
             id,
@@ -127,7 +139,10 @@ export class CartEffect {
               sale_price,
             },
             attributes,
-            images: image,
+            images: {
+              imageSrc: images[0].thumbnail,
+              imageAlt: images[0].alt,
+            },
             type,
             quantity_limits,
             stock_status,
@@ -156,6 +171,9 @@ export class CartEffect {
 
           localStorage.setItem('Cart', JSON.stringify(loadedCart));
           this.cartService.fetchUserCart();
+          setTimeout(() => {
+            this.cartService.cartMode(true);
+          }, 3000);
           return of();
         }
       })
@@ -190,7 +208,10 @@ export class CartEffect {
                     return {
                       key: item.key,
                       id: item.id,
-                      images: item.images[0].src,
+                      images: {
+                        imageSrc: item.images[0].thumbnail,
+                        imageAlt: item.images[0].alt,
+                      },
                       name: item.name,
                       permalink: item.permalink,
                       type: item.type,
@@ -362,11 +383,58 @@ export class CartEffect {
       })
     )
   );
-}
 
-/*
-            const updatedCart = this.cartService.calcCartPrice(
-              loadedCart.items,
-              Object.values(loadedCart.coupons)[0] || null
-            );
-*/
+  updateCartStockStatusEffect = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(updateCartStockStatusAction),
+        switchMap(({ productIds, coupon }) => {
+          const requests = productIds.map((productId) =>
+            this.productService.getProductById(Number(productId)).pipe(
+              map((product) => ({
+                productId,
+                stockStatus: product.stock_status,
+              })),
+              catchError((error) =>
+                of({ productId, stockStatus: 'unknown', error })
+              )
+            )
+          );
+
+          return forkJoin(requests).pipe(
+            map((updatedProducts: any) => {
+              this.updateLocalStorage(coupon, updatedProducts);
+            }),
+            catchError((error) => {
+              console.error('Error updating stock status:', error);
+              return of(error);
+            })
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  private updateLocalStorage(
+    validCoupon: any,
+    updatedProducts: { productId: string; stockStatus: string }[]
+  ) {
+    let cart = JSON.parse(localStorage.getItem('Cart') || '{}');
+    if (cart.items) {
+      cart.items = cart.items.map((item: any) => {
+        const updatedProduct = updatedProducts?.find(
+          (p) => p.productId === item.id
+        );
+        if (updatedProduct) {
+          return { ...item, stock_status: updatedProduct.stockStatus };
+        }
+        return item;
+      });
+    }
+    cart = this.cartService.calcCartPrice(cart.items, validCoupon);
+
+    localStorage.setItem('Cart', JSON.stringify(cart));
+
+    this.store.dispatch(getUserCartAction({ userCart: cart }));
+  }
+}

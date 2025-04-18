@@ -36,10 +36,14 @@
   >
     @for (item of (loadedCart$ | async)?.items; track $index) {
 
-    <div class="flex gap-x-6 border-b pb-4 mb-4 w-full">
+    <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <a class="block md:w-[112px] md:h-[112px] w-[64px] h-[64px]">
-        <img [src]="item.images" alt="" class="w-full h-full bg-cover" />
+      <a class="">
+        <img
+          [src]="item.images.imageSrc"
+          [alt]="item.images.imageAlt"
+          class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover"
+        />
       </a>
 
       <div class="flex-1">

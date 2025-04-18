@@ -6,6 +6,7 @@ import { RelatedCategoriesComponent } from '../../components/related-categories/
 import { NewProductsComponent } from '../../components/new-products/new-products.component';
 import { RecommendedProductsComponent } from '../../components/recommended-products/recommended-products.component';
 import { SaleProductsComponent } from '../../components/sale-products/sale-products.component';
+import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 
 @Component({
   selector: 'app-home-page',
@@ -17,10 +18,11 @@ import { SaleProductsComponent } from '../../components/sale-products/sale-produ
     RelatedCategoriesComponent,
     NewProductsComponent,
     RecommendedProductsComponent,
-    SaleProductsComponent
+    SaleProductsComponent,
+    AppContainerComponent,
   ],
   templateUrl: './home-page.component.html',
-  styleUrls: ['./home-page.component.css']
+  styleUrls: ['./home-page.component.css'],
 })
 export class HomePageComponent {
   constructor() {}

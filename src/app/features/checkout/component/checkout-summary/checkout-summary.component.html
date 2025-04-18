@@ -12,20 +12,18 @@
       <!-- Product Data -->
       @for (product of (loadedCart$ | async)?.items; track $index) {
       <div class="flex justify-between items-center">
-        <div class="flex items-center gap-x-2">
-          <div class="relative">
-            <img
-              [src]="product.images"
-              alt="product-image"
-              class="w-[64px] h-[64px] border rounded-lg"
-            />
-            <div class="absolute -top-2 left-[50px]">
-              <span
-                class="bg-gray-400 text-white rounded-full flex items-center justify-center w-5 h-5 text-xs font-medium p-1"
-              >
-                {{ product.quantity }}
-              </span>
-            </div>
+        <div class="flex items-center gap-x-1 relative">
+          <img
+            [src]="product.images.imageSrc"
+            [alt]="product.images.imageAlt"
+            class="w-[55px] h-[55px] object-cover border rounded-lg p-1"
+          />
+          <div class="absolute -top-2 left-[40px]">
+            <span
+              class="bg-gray-400 text-white rounded-full flex items-center justify-center w-5 h-5 text-xs font-medium p-1"
+            >
+              {{ product.quantity }}
+            </span>
           </div>
           <p class="text-sm" [innerHTML]="product.name"></p>
         </div>

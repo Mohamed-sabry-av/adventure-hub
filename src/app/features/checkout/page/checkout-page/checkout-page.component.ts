@@ -5,6 +5,7 @@ import { CartService } from '../../../cart/service/cart.service';
 import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
+import { CheckoutService } from '../../services/checkout.service';
 
 @Component({
   selector: 'app-checkout-page',
@@ -20,10 +21,13 @@ import { AsyncPipe } from '@angular/common';
 })
 export class CheckoutPageComponent {
   private cartService = inject(CartService);
+  private checkoutService = inject(CheckoutService);
 
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
+  productsOutOfStock$: Observable<any> = this.checkoutService.productsOutStock$;
 
   ngOnInit() {
     this.cartService.fetchUserCart();
+    this.loadedCart$.subscribe((res) => console.log(res));
   }
 }
