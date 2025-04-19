@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular
 import { debounceTime, distinctUntilChanged, Subject, switchMap, of } from 'rxjs';
 import { SearchBarService } from '../../services/search-bar.service';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router'; // أضفت Router هنا
+import { RouterLink, Router } from '@angular/router';
 
 interface Category {
   id: number;
@@ -11,6 +11,7 @@ interface Category {
   children?: Category[];
   parent?: number;
   expanded?: boolean;
+  slug?: any;
 }
 
 @Component({
@@ -35,7 +36,7 @@ export class SearchBarComponent implements OnInit {
 
   constructor(
     private searchService: SearchBarService,
-    private router: Router // أضفت Router هنا
+    private router: Router
   ) {
     const savedSearches = localStorage.getItem('recentSearches');
     if (savedSearches) {
@@ -47,6 +48,22 @@ export class SearchBarComponent implements OnInit {
     this.handleSearch();
   }
 
+  // دالة جديدة لاختيار صورة صغيرة
+  getThumbnail(product: any): string {
+    if (product.images && product.images.length > 0) {
+      const image = product.images[0];
+      // استخدام الصورة الصغيرة (thumbnail أو صورة من srcset)
+      if (image.thumbnail) {
+        return image.thumbnail; // مثل 150x150
+      }
+      // الرجوع إلى صورة صغيرة من srcset إذا كانت موجودة
+      const srcset = image.srcset?.split(',').map((src: string) => src.trim().split(' ')[0]);
+      const smallImage = srcset?.find((src: string) => src.includes('100x100') || src.includes('150x150'));
+      return smallImage || image.src; // الرجوع إلى src إذا لم يكن هناك صورة صغيرة
+    }
+    return ''; // صورة افتراضية إذا لم تكن هناك صور
+  }
+
   handleSearch() {
     this.searchTerm
       .pipe(
@@ -56,7 +73,6 @@ export class SearchBarComponent implements OnInit {
           if (!term.trim()) {
             return of({ products: [], categories: [] });
           }
-          
           this.loading = true;
           this.showResults = true;
           return this.searchService.ComprehensiveSearch(term);
@@ -66,11 +82,8 @@ export class SearchBarComponent implements OnInit {
         (results: any) => {
           this.products = results.products || [];
           this.categories = results.categories || [];
-          
           this.processCategories();
-          
           this.loading = false;
-          
           if (this.products.length > 0 && this.categories.length === 0) {
             this.activeTab = 'products';
           } else if (this.products.length === 0 && this.categories.length > 0) {
@@ -133,20 +146,32 @@ export class SearchBarComponent implements OnInit {
     }
   }
 
-  onBlur(): void {}
-
   selectProduct(product: any): void {
-    console.log('Selected product:', product);
     this.saveToRecentSearches(this.searchInput.nativeElement.value);
     this.showResults = false;
-    // التنقل لصفحة المنتج باستخدام Router
     this.router.navigate([`/product/${product.id}`]);
   }
 
-  selectCategory(category: any): void {
-    console.log('Selected category:', category);
+  selectCategory(category: Category): void {
     this.saveToRecentSearches(this.searchInput.nativeElement.value);
     this.showResults = false;
+    const slugs = this.getCategoryPath(category);
+    const path = slugs.join('/');
+    this.router.navigate([`/category/${path}`]);
+  }
+
+  getCategoryPath(category: Category): string[] {
+    const slugs: string[] = [];
+    let currentCategory: Category | undefined = category;
+    while (currentCategory) {
+      slugs.unshift(currentCategory.slug);
+      if (currentCategory.parent) {
+        currentCategory = this.categories.find(cat => cat.id === currentCategory!.parent);
+      } else {
+        currentCategory = undefined;
+      }
+    }
+    return slugs;
   }
 
   clearSearch(): void {

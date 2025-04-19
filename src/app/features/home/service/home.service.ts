@@ -28,7 +28,7 @@ export class HomeService {
       .getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('after', afterDate)
-          .set('_fields', 'images,permalink,id,price,name')
+          .set('_fields', 'images,permalink,id,price,name,draftdefault_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type')
           .set('page', page.toString())
           .set('per_page', perPage.toString())
           .set('stock_status', 'instock')
@@ -38,6 +38,10 @@ export class HomeService {
       })
       .pipe(
         map((response: HttpResponse<any>) => {
+          const products = response.body.map((product: any) => ({
+            ...product,
+            images: product.images.slice(0, 3) || [],
+          }));
           return response.body;
         }),
         catchError((error) => {
@@ -53,7 +57,7 @@ export class HomeService {
       .getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('featured', true)
-          .set('_fields', 'images,permalink,id,price,name')
+          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type')
           .set('page', page.toString())
           .set('per_page', perPage.toString())
           .set('stock_status', 'instock')
@@ -63,6 +67,10 @@ export class HomeService {
       })
       .pipe(
         map((response: HttpResponse<any>) => {
+          const products = response.body.map((product: any) => ({
+            ...product,
+            images: product.images.slice(0, 3) || [],
+          }));
           return response.body;
         }),
         catchError((error) => {
@@ -78,7 +86,7 @@ export class HomeService {
       .getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('on_sale', true)
-          .set('_fields', 'images,permalink,id,price,name,regular_price')
+          .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type')
           .set('page', page.toString())
           .set('per_page', perPage.toString())
           .set('stock_status', 'instock')
@@ -88,6 +96,10 @@ export class HomeService {
       })
       .pipe(
         map((response: HttpResponse<any>) => {
+          const products = response.body.map((product: any) => ({
+            ...product,
+            images: product.images.slice(0, 3) || [],
+          }));
           return response.body;
         }),
         catchError((error) => {

@@ -10,7 +10,7 @@ import { AccountAuthService } from '../account-auth.service';
   providedIn: 'root',
 })
 export class WooCommerceAccountService {
-  private wishlistBaseUrl = 'https://adventures-hub.com/wp-json/mywishlist/v1/';
+  private wishlistBaseUrl = 'https://adventures-hub.com/wp-json/swc/v1/wishlist'; // Update to your WordPress URL
 
   constructor(
     private apiService: ApiService,
@@ -18,93 +18,105 @@ export class WooCommerceAccountService {
     private accountAuthService: AccountAuthService
   ) {}
 
-  // Get Wishlist using the custom endpoint
+  // Get Wishlist
   getWishlist(): Observable<any> {
-    if (!this.isLoggedIn()) {
-      console.warn('No valid token found, cannot fetch wishlist');
-      return of([]);
+    const userId = this.getCustomerId();
+    // console.log('getWishlist: userId=', userId); // Debug log
+    if (!this.isLoggedIn() || !userId) {
+      console.warn('No valid user ID found, cannot fetch wishlist');
+      return of({ success: false, message: 'User not logged in or invalid user ID' });
     }
 
-    const headers = this.getAuthHeaders();
-    console.log('Fetching wishlist with headers:', headers);
+    const params = new HttpParams().set('user_id', userId.toString());
+    const options = { params }; // Explicitly set options with params only
 
-    return this.apiService.getExternalRequest(`${this.wishlistBaseUrl}get`, { headers }).pipe(
-      tap((response) => console.log('Wishlist response:', response)),
-      catchError((error) => {
-        console.error('Error fetching wishlist:', {
-          message: error.message,
-          status: error.status,
-          statusText: error.statusText,
-          url: error.url || `${this.wishlistBaseUrl}get`,
-          error: error.error,
-        });
-        return of([]);
-      })
-    );
-  }
-
-  // Add Item to Wishlist using the custom endpoint
-  addToWishlist(productId: number): Observable<any> {
-    if (!this.isLoggedIn()) {
-      console.warn('No valid token found, cannot add to wishlist');
-      return of({ success: false, message: 'User not logged in' });
-    }
-
-    const headers = this.getAuthHeaders();
-    console.log('Adding to wishlist with headers:', headers, 'product_id:', productId);
+    // console.log('getWishlist: Sending request with options=', options); // Debug log
 
     return this.apiService
-      .postExternalRequest(
-        `${this.wishlistBaseUrl}add`,
-        { product_id: productId },
-        { headers }
-      )
+      .getExternalRequest(this.wishlistBaseUrl, options)
       .pipe(
-        tap((response) => console.log('Add to wishlist response:', response)),
+        // tap((response) => console.log('Get wishlist response:', response)),
         catchError((error) => {
-          console.error('Error adding to wishlist:', {
+          console.error('Error fetching wishlist:', {
             message: error.message,
             status: error.status,
             statusText: error.statusText,
-            url: error.url || `${this.wishlistBaseUrl}add`,
+            url: error.url || this.wishlistBaseUrl,
             error: error.error,
           });
           return of({
             success: false,
-            message: 'Failed to add product to wishlist',
+            message: error.error?.message || 'Failed to fetch wishlist',
           });
         })
       );
   }
 
-  // Remove item from Wishlist using the custom endpoint
-  removeFromWishlist(productId: number): Observable<any> {
-    if (!this.isLoggedIn()) {
-      console.warn('No valid token found, cannot remove from wishlist');
-      return of({ success: false, message: 'User not logged in' });
+  // Add Item to Wishlist
+  addToWishlist(productId: number): Observable<any> {
+    const userId = this.getCustomerId();
+    // console.log('addToWishlist: userId=', userId, 'productId=', productId); // Debug log
+    if (!this.isLoggedIn() || !userId) {
+      console.warn('No valid user ID found, cannot add to wishlist');
+      return of({ success: false, message: 'User not logged in or invalid user ID' });
     }
 
-    const headers = this.getAuthHeaders();
-    console.log('Removing from wishlist with headers:', headers, 'product_id:', productId);
+    const body = { user_id: userId, product_id: productId };
+    const headers = { 'Content-Type': 'application/json' };
+    const options = { headers };
+
+    // console.log('addToWishlist: Sending request with body=', body, 'options=', options); // Debug log
 
     return this.apiService
-      .deleteExternalRequest(
-        `${this.wishlistBaseUrl}remove/${productId}`,
-        { headers }
-      )
+      .postExternalRequest(`${this.wishlistBaseUrl}/add`, body, options)
       .pipe(
-        tap((response) => console.log('Remove from wishlist response:', response)),
+        // tap((response) => console.log('Add to wishlist response:', response)),
+        catchError((error) => {
+          console.error('Error adding to wishlist:', {
+            message: error.message,
+            status: error.status,
+            statusText: error.statusText,
+            url: error.url || `${this.wishlistBaseUrl}/add`,
+            error: error.error,
+          });
+          return of({
+            success: false,
+            message: error.error?.message || 'Failed to add product to wishlist',
+          });
+        })
+      );
+  }
+
+  // Remove Item from Wishlist
+  removeFromWishlist(productId: number): Observable<any> {
+    const userId = this.getCustomerId();
+    // console.log('removeFromWishlist: userId=', userId, 'productId=', productId); // Debug log
+    if (!this.isLoggedIn() || !userId) {
+      console.warn('No valid user ID found, cannot remove from wishlist');
+      return of({ success: false, message: 'User not logged in or invalid user ID' });
+    }
+
+    const body = { user_id: userId, product_id: productId };
+    const headers = { 'Content-Type': 'application/json' };
+    const options = { headers, body };
+
+    // console.log('removeFromWishlist: Sending request with body=', body, 'options=', options); // Debug log
+
+    return this.apiService
+      .deleteExternalRequest(`${this.wishlistBaseUrl}/remove`, options)
+      .pipe(
+        // tap((response) => console.log('Remove from wishlist response:', response)),
         catchError((error) => {
           console.error('Error removing from wishlist:', {
             message: error.message,
             status: error.status,
             statusText: error.statusText,
-            url: error.url || `${this.wishlistBaseUrl}remove/${productId}`,
+            url: error.url || `${this.wishlistBaseUrl}/remove`,
             error: error.error,
           });
           return of({
             success: false,
-            message: 'Failed to remove product from wishlist',
+            message: error.error?.message || 'Failed to remove product from wishlist',
           });
         })
       );
@@ -112,10 +124,12 @@ export class WooCommerceAccountService {
 
   // Add to Cart
   addToCart(productId: number, quantity: number = 1): Observable<any> {
+    const body = { product_id: productId, quantity };
+    // console.log('addToCart: Sending request with body=', body); // Debug log
     return this.apiService
-      .postRequest('cart/add', { product_id: productId, quantity })
+      .postRequest('cart/add', body)
       .pipe(
-        tap((response) => console.log('Add to cart response:', response)),
+        // tap((response) => console.log('Add to cart response:', response)),
         catchError((error) => {
           console.error('Error adding to cart:', {
             message: error.message,
@@ -134,7 +148,9 @@ export class WooCommerceAccountService {
   // Get Customer ID from AccountAuthService
   getCustomerId(): number | null {
     const customerIdStr = this.accountAuthService.getUserId();
-    return customerIdStr ? parseInt(customerIdStr, 10) : null;
+    const userId = customerIdStr ? parseInt(customerIdStr, 10) : null;
+    // console.log('getCustomerId: customerIdStr=', customerIdStr, 'userId=', userId); // Debug log
+    return userId;
   }
 
   // Get current user data
@@ -144,23 +160,15 @@ export class WooCommerceAccountService {
 
   // Check if user is logged in
   isLoggedIn(): boolean {
-    const token = this.localStorageService.getItem('auth_token');
-    const isValid = !!token;
-    console.log('isLoggedIn:', isValid, 'Token:', token ? 'exists' : 'missing');
+    const userId = this.getCustomerId();
+    const isValid = !!userId;
+    // console.log('isLoggedIn:', isValid, 'User ID:', userId || 'missing'); // Debug log
     return isValid;
   }
 
   // Log out
   logout(): void {
     this.accountAuthService.logout();
-  }
-
-  // Helper method to get JWT headers
-  private getAuthHeaders(): { [key: string]: string } {
-    const token = this.localStorageService.getItem('auth_token');
-    return token
-      ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-      : { 'Content-Type': 'application/json' };
   }
 
   // Other methods (unchanged)

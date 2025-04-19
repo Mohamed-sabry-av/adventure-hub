@@ -10,10 +10,11 @@ import { Observable } from 'rxjs';
 import { AsyncPipe, CurrencyPipe, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../../../interfaces/product';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-cart-products',
-  imports: [AsyncPipe, FormsModule, CurrencyPipe],
+  imports: [AsyncPipe, FormsModule, CurrencyPipe, RouterLink],
   templateUrl: './cart-products.component.html',
   styleUrl: './cart-products.component.css',
 })
@@ -29,6 +30,8 @@ export class CartProductsComponent {
   ngOnInit() {
     const subscribtion = this.cartService.savedUserCart$.subscribe(
       (response: any) => {
+        console.log('HELLLLLLLLLOOO');
+
         this.progressValue = response?.totals?.total_price;
       }
     );

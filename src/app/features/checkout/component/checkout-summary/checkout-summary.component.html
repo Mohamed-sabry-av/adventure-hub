@@ -12,7 +12,7 @@
       <!-- Product Data -->
       @for (product of (loadedCart$ | async)?.items; track $index) {
       <div class="flex justify-between items-center">
-        <div class="flex items-center gap-x-1 relative">
+        <div class="flex items-center gap-x-2 relative">
           <img
             [src]="product.images.imageSrc"
             [alt]="product.images.imageAlt"
@@ -49,24 +49,15 @@
         class="bg-white border w-full py-[14px] px-3 rounded-lg text-lg font-semibold"
         placeholder="Discount code or gift card"
         [(ngModel)]="couponValue"
-        [disabled]="(appliedCoupon$ | async).validCoupon !== null"
         #couponInput
-        [class]="{
-            'bg-[#9fabc4]': (appliedCoupon$ | async).validCoupon !== null,
-            'text-black': (appliedCoupon$ | async).validCoupon !== null,
-          }"
       />
-      @if ((appliedCoupon$ | async).validCoupon === null) {
       <button
         class="px-3 py-[14px] bg-orange-500 rounded-lg text-white font-semibold cursor-pointer"
-        [disabled]="couponValue === ''"
-        [class]="{
-        'bg-gray-600': couponValue === '',
-      }"
         (click)="onApplyCoupon()"
       >
         Apply
       </button>
+      <!-- @if ((appliedCoupon$ | async).validCoupon === null) {
       } @if ((appliedCoupon$ | async).validCoupon !== null) {
       <button
         class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold cursor-pointer"
@@ -74,11 +65,16 @@
       >
         Remove
       </button>
-      }
+      } -->
     </div>
 
-    @if ((appliedCoupon$ | async)?.validCoupon === null && (appliedCoupon$ |
-    async)?.invalidCoupon !== null ) {
+    @if ((appliedCoupon$ | async)?.errorMsg !== '') {
+    <p class="mt-1 text-red-500 text-xl">
+      {{ (appliedCoupon$ | async).errorMsg }}
+    </p>
+
+    }@else if ((appliedCoupon$ | async)?.validCoupon === null && (appliedCoupon$
+    | async)?.invalidCoupon !== null ) {
     <p class="mt-1">
       Copuon
       <span class="text-red-500 text-xl">{{
@@ -107,7 +103,7 @@
     </div>
 
     <!-- Coupon Data -->
-    @if ((loadedCart$ | async)?.totals?.total_discount) {
+    @if ((loadedCart$ | async)?.totals?.total_discount !== (0 || '0')) {
     <div class="flex justify-between">
       <p>
         <span class="font-semibold"> Discount</span>

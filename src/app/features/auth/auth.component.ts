@@ -10,7 +10,12 @@ import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-auth',
-  imports: [CommonModule, LoginComponent, SignupComponent, AccountDetailsComponent],
+  imports: [
+    CommonModule,
+    LoginComponent,
+    SignupComponent,
+    AccountDetailsComponent,
+  ],
   standalone: true,
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',
@@ -36,13 +41,16 @@ export class AuthComponent {
         this.router.navigate(['/user/Useraccount']);
       },
       error: () => {
-        this.route.queryParams.subscribe(params => {
+        this.route.queryParams.subscribe((params) => {
           if (params['tab'] === 'signup') {
             this.activeTab = 'signup';
           }
         });
         this.titleService.setTitle('Login - Adventures HUB Sports Shop');
-        this.metaService.updateTag({ name: 'robots', content: 'noindex, nofollow' });
+        this.metaService.updateTag({
+          name: 'robots',
+          content: 'noindex, nofollow',
+        });
       },
       complete: () => {
         this.isLoading = false; // لما الـ verifyToken يخلّص، نخلّي isLoading = false

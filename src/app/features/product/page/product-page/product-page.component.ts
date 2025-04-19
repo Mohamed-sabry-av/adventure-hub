@@ -33,6 +33,7 @@ export class ProductPageComponent implements OnInit {
   schemaData: any;
   productData: any;
   selectedColor: string | null = null;
+  isLoading: boolean = true;
 
   constructor(
     private productService: ProductService,
@@ -40,10 +41,9 @@ export class ProductPageComponent implements OnInit {
     private destroyRef: DestroyRef
   ) {}
 
-  onSelectedColorChange(color: string | null) {
+  onSelectedColorChange(color: any | null) {
     this.selectedColor = color;
 
-    // تتبع حدث Selected Color (اختياري)
     if (typeof _learnq !== 'undefined' && color && this.productData) {
       _learnq.push(['track', 'Selected Color', {
         ProductID: this.productData.id,
@@ -57,6 +57,7 @@ export class ProductPageComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.isLoading= true;
     const subscription = this.productService
       .getProductById(Number(this.productId()))
       .pipe(
@@ -101,6 +102,7 @@ export class ProductPageComponent implements OnInit {
             description: this.productData?.short_description,
             image: this.productData?.images?.[0]?.src,
           });
+          this.isLoading = false;
 
           // تتبع حدث Viewed Product بعد تحميل بيانات المنتج
           if (typeof _learnq !== 'undefined' && this.productData) {
@@ -120,6 +122,7 @@ export class ProductPageComponent implements OnInit {
           console.error('Error fetching product data:', err);
           this.productData = null;
           this.schemaData = this.seoService.applySeoTags(null, { title: 'Product Page' });
+          this.isLoading = false;
         },
       });
 

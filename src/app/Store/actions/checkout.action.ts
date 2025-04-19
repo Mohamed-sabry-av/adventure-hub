@@ -7,13 +7,18 @@ export const fetchCouponsAction = createAction(
 
 export const getCouponAction = createAction(
   '[Coupon] Get Coupon',
-  props<{ validCoupon: any; isLoggedIn: boolean; invalidCoupon?: any }>()
+  props<{
+    validCoupon: any;
+    isLoggedIn: boolean;
+    invalidCoupon?: any;
+    errorMsg?: string;
+  }>()
 );
 
-export const applyCouponAction = createAction(
-  '[Coupon] Apply Coupon',
-  props<{ coupon: any; isLoggedIn: boolean }>()
-);
+// export const applyCouponAction = createAction(
+//   '[Coupon] Apply Coupon',
+//   props<{ coupon: any; isLoggedIn: boolean }>()
+// );
 
 export const removeCouponAction = createAction('[Coupon] Remove Coupon');
 

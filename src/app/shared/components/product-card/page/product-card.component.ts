@@ -1,14 +1,10 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef,
-  Inject,
   Input,
   OnDestroy,
   OnInit,
-  PLATFORM_ID,
 } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
@@ -19,10 +15,8 @@ import { CartService } from '../../../../features/cart/service/cart.service';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
+import { SizeSelectorComponent } from '../components/size-selector/size-selector.component';
 import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
-import { SeoService } from '../../../../core/services/seo.service';
-
-declare var _learnq: any;
 
 @Component({
   selector: 'app-product-card',
@@ -32,6 +26,7 @@ declare var _learnq: any;
     CardImageSliderComponent,
     CardDetailsComponent,
     ColorSwatchesComponent,
+    SizeSelectorComponent,
     MobileQuickAddComponent,
   ],
   templateUrl: './product-card.component.html',
@@ -85,9 +80,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   displayedImages: { src: string }[] = [];
   modifiedProduct: Product;
   selectedVariation: Variation | any = null;
-  schemaData: any;
-  private observer: IntersectionObserver | null = null;
-  private hasTracked = false;
 
   private resizeSubscription?: Subscription;
   private clickOutsideSubscription?: Subscription;
@@ -95,10 +87,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private cartService: CartService,
-    private cdr: ChangeDetectorRef,
-    private el: ElementRef,
-    private seoService: SeoService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private cdr: ChangeDetectorRef
   ) {
     this.modifiedProduct = {} as Product;
   }
@@ -110,21 +99,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.modifiedProduct = { ...this.product };
     this.setupResizeListener();
     this.setupClickOutsideListener();
-
-    if (typeof _learnq !== 'undefined' && this.product) {
-      _learnq.push([
-        'track',
-        'Viewed Product',
-        {
-          ProductID: this.product.id,
-          ProductName: this.product.name,
-          Price: this.product.price,
-          Categories: this.product.categories?.map((cat) => cat.name) || [],
-          Brand: this.getBrandName() || '',
-        },
-      ]);
-      console.log('Klaviyo: Viewed Product tracked');
-    }
   }
 
   ngOnDestroy(): void {
@@ -133,70 +107,47 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   private setupResizeListener(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.resizeSubscription = fromEvent(window, 'resize')
-        .pipe(debounceTime(200))
-        .subscribe(() => {
-          this.checkIfMobile();
-          this.updateVisibleColors();
-          this.updateVisibleSizes();
-        });
-    }
+    this.resizeSubscription = fromEvent(window, 'resize')
+      .pipe(debounceTime(200))
+      .subscribe(() => {
+        this.checkIfMobile();
+        this.updateVisibleColors();
+        this.updateVisibleSizes();
+      });
   }
 
   private setupClickOutsideListener(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.clickOutsideSubscription = fromEvent(document, 'click').subscribe(
-        (event: Event) => {
-          if (this.mobileQuickAddExpanded) {
-            const target = event.target as HTMLElement;
-            const quickAddEl = document.querySelector(
-              '.mobile-quick-add-section'
-            );
-            const sizeOverlayEl = document.querySelector(
-              '.mobile-size-selector-overlay'
-            );
+    // Close the mobile quick add dropdown when clicking outside
+    this.clickOutsideSubscription = fromEvent(document, 'click').subscribe(
+      (event: Event) => {
+        if (this.mobileQuickAddExpanded) {
+          // Check if the click target is inside the quick add component
+          const target = event.target as HTMLElement;
+          const quickAddEl = document.querySelector(
+            '.mobile-quick-add-section'
+          );
+          const sizeOverlayEl = document.querySelector(
+            '.mobile-size-selector-overlay'
+          );
 
-            if (quickAddEl && sizeOverlayEl) {
-              if (
-                !quickAddEl.contains(target) &&
-                !sizeOverlayEl.contains(target)
-              ) {
-                this.mobileQuickAddExpanded = false;
-              }
+          if (quickAddEl && sizeOverlayEl) {
+            if (
+              !quickAddEl.contains(target) &&
+              !sizeOverlayEl.contains(target)
+            ) {
+              this.mobileQuickAddExpanded = false;
             }
           }
         }
-      );
-    }
-  }
-
-  private setupIntersectionObserver() {
-    this.observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !this.hasTracked) {
-            this.trackProductView();
-            this.hasTracked = true; // منع التكرار
-            this.observer?.unobserve(this.el.nativeElement);
-          }
-        });
-      },
-      { threshold: 0.5 } // المنتج لازم يكون 50% ظاهر عشان يتتبع
+      }
     );
-
-    this.observer.observe(this.el.nativeElement);
   }
 
-  private trackProductView() {
-    console.log('Klaviyo: Viewed Product tracked', this.product);
-  }
-
-  checkIfMobile() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.isMobile = window.innerWidth <= 768;
-    } else {
-      this.isMobile = false;
+  private checkIfMobile(): void {
+    this.isMobile = window.innerWidth < 768;
+    // Reset mobile expand state when switching between mobile and desktop
+    if (!this.isMobile) {
+      this.mobileQuickAddExpanded = false;
     }
   }
 
@@ -226,28 +177,23 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }[] {
     if (!this.variations) return [];
     const colorMap = new Map<string, { image: string; inStock: boolean }>();
-
     this.variations.forEach((v) => {
       const colorAttr = v.attributes?.find(
         (attr: any) => attr.name === 'Color'
       );
       if (colorAttr && v.image?.src) {
-        const current = colorMap.get(colorAttr.option) || {
-          image: v.image.src,
-          inStock: false,
-        };
-        const inStock = current.inStock || v.stock_status === 'instock';
-        colorMap.set(colorAttr.option, { image: v.image.src, inStock });
+        const inStock = v.stock_status === 'instock';
+        if (!colorMap.has(colorAttr.option) || inStock) {
+          colorMap.set(colorAttr.option, { image: v.image.src, inStock });
+        }
       }
     });
-
     const options = Array.from(colorMap, ([color, data]) => ({
       color,
       image: data.image,
       inStock: data.inStock,
     }));
-
-    return options.sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
+    return options.length > 0 ? options : [];
   }
 
   private getSizesForColor(
@@ -288,10 +234,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   private setDefaultVariation(): void {
     if (this.variations.length === 0) {
-      console.log(this.displayedImages);
-      this.displayedImages =
-        this.product.images?.map((img) => ({ src: img.src })) || [];
-      console.log(this.displayedImages);
       return;
     }
 
@@ -299,24 +241,16 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       (attr: any) => attr.name === 'Color'
     )?.option;
 
-    let selectedColorOption = null;
-    if (defaultColor) {
-      selectedColorOption = this.colorOptions.find(
-        (opt) =>
-          opt.color.toLowerCase() === defaultColor.toLowerCase() && opt.inStock
+    if (defaultColor && this.colorOptions.length > 0) {
+      const matchingColor = this.colorOptions.find(
+        (opt) => opt.color.toLowerCase() === defaultColor.toLowerCase()
       );
-    }
-
-    if (!selectedColorOption) {
-      selectedColorOption =
-        this.colorOptions.find((opt) => opt.inStock) || this.colorOptions[0];
-    }
-
-    if (selectedColorOption) {
-      this.selectColor(selectedColorOption.color, selectedColorOption.image);
-    } else {
-      this.displayedImages =
-        this.product.images?.map((img) => ({ src: img.src })) || [];
+      if (matchingColor) {
+        console.log('AMEEN MATCHINGG', matchingColor);
+        this.selectColor(matchingColor.color, matchingColor.image);
+      }
+    } else if (this.colorOptions.length > 0) {
+      this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
     }
 
     this.updateSelectedVariation();
@@ -324,22 +258,32 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
-    const variationImages = this.variations
-      ?.filter((v) =>
-        v.attributes?.some(
-          (attr: any) => attr.name === 'Color' && attr.option === color
-        )
-      )
-      .map((v) => ({
-        src: v.image?.src || image,
-        alt: v.image?.alt || this.product.name,
-      }))
-      .filter((img) => img.src);
 
+    // Update displayedImages based on the selected color
     this.displayedImages =
-      variationImages.length > 0
-        ? variationImages
-        : [{ src: image, alt: this.product.name }];
+      this.variations
+        ?.filter((v) =>
+          v.attributes?.some(
+            (attr: any) => attr.name === 'Color' && attr.option === color
+          )
+        )
+        .map((v) => {
+          return { src: v.image?.src || image };
+        })
+        .filter((img) => img.src) || [];
+
+    // Fallback to the provided image or product images if no variation images
+    if (!this.displayedImages.length) {
+      this.displayedImages = [{ src: image }];
+      if (!image && this.product.images?.length) {
+        this.displayedImages = this.product.images.map((img) => ({
+          src: img.src,
+        }));
+      }
+    }
+
+    // Update modifiedProduct.images
+    this.modifiedProduct.images = [...this.displayedImages];
 
     this.currentSlide = 0;
     this.uniqueSizes = this.getSizesForColor(color);
@@ -353,6 +297,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.selectedSize = size;
     this.updateSelectedVariation();
 
+    // If on desktop with both color and size, auto-add to cart when both are selected
     if (
       !this.isMobile &&
       this.hasColors() &&
@@ -370,7 +315,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   onHover(hovered: boolean): void {
     this.isHovered = hovered;
-    if (this.colorOptions.length === 0 && this.product.images?.length > 1) {
+    // For products with images but no color variations, cycle through images on hover
+    if (this.product.images?.length > 1) {
       this.currentSlide = hovered ? 1 : 0;
     }
   }
@@ -430,58 +376,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     );
   }
 
-  onAddToCartWithOptions(): void {
-    if (this.isAddToCartDisabled()) return;
-    let productToAdd: Product = { ...this.product };
-    let variationId: number | undefined;
-
-    if (this.variations.length > 0) {
-      const selectedVariation = this.variations.find((variation) => {
-        const colorAttr = variation.attributes?.find(
-          (attr: any) => attr.name === 'Color'
-        );
-        const sizeAttr = variation.attributes?.find(
-          (attr: any) => attr.name === 'Size'
-        );
-        const matchColor =
-          !this.hasColors() ||
-          (colorAttr && colorAttr.option === this.selectedColor);
-        const matchSize =
-          !this.hasSizes() ||
-          (sizeAttr && sizeAttr.option === this.selectedSize);
-        return matchColor && matchSize;
-      });
-
-      if (selectedVariation) {
-        variationId = selectedVariation.id;
-      }
-    }
-
-    this.cartService.addProductToCart(this.product);
-
-    if (typeof _learnq !== 'undefined') {
-      _learnq.push([
-        'track',
-        'Added to Cart',
-        {
-          ProductID: productToAdd.id,
-          ProductName: productToAdd.name,
-          Price: productToAdd.price,
-          VariationID: variationId || null,
-          Color: this.selectedColor || null,
-          Size: this.selectedSize || null,
-          Brand: this.getBrandName() || '',
-          Categories: productToAdd.categories?.map((cat) => cat.name) || [],
-        },
-      ]);
-      console.log('Klaviyo: Added to Cart tracked');
-    }
-
-    if (this.isMobile) {
-      this.mobileQuickAddExpanded = false;
-    }
-  }
-
   isAddToCartDisabled(): boolean {
     const needsSize = this.hasSizes() && !this.selectedSize;
     const needsColor = this.hasColors() && !this.selectedColor;
@@ -534,10 +428,19 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         return matchColor && matchSize;
       });
 
-      if (this.selectedVariation && !this.selectedVariation.quantity_limits) {
-        this.selectedVariation.quantity_limits = this.product.quantity_limits;
-      }
-      if (!this.selectedVariation && this.selectedColor) {
+      if (this.selectedVariation) {
+        this.product = {
+          ...this.product,
+          id: this.selectedVariation.id,
+          price: this.selectedVariation.price || this.product.price,
+          images: this.selectedVariation.image || this.product.images[0],
+          attributes: this.selectedVariation.attributes,
+          stock_status: this.selectedVariation.stock_status,
+          quantity_limits:
+            this.selectedVariation.quantity_limits ||
+            this.product.quantity_limits,
+        };
+      } else if (this.selectedColor) {
         this.selectedVariation =
           this.variations.find((variation) =>
             variation.attributes?.some(
@@ -545,7 +448,39 @@ export class ProductCardComponent implements OnInit, OnDestroy {
                 attr.name === 'Color' && attr.option === this.selectedColor
             )
           ) || null;
+        if (this.selectedVariation) {
+          console.log(this.product.images);
+
+          this.product = {
+            ...this.product,
+            id: this.selectedVariation.id,
+            price: this.selectedVariation.price || this.product.price,
+            additional_images:
+              this.selectedVariation.images || this.product.images[0],
+            attributes: this.selectedVariation.attributes,
+            stock_status: this.selectedVariation.stock_status,
+            quantity_limits:
+              this.selectedVariation.quantity_limits ||
+              this.product.quantity_limits,
+          };
+        }
+      } else {
+        this.product = { ...this.product };
       }
+
+      console.log('ابديت المنتج', this.product);
+    } else {
+      this.product = { ...this.product };
+      console.log('No variations, using base product:', this.product);
+    }
+  }
+
+  onAddToCartWithOptions(): void {
+    if (this.isAddToCartDisabled()) return;
+    this.cartService.addProductToCart(this.product);
+
+    if (this.isMobile) {
+      this.mobileQuickAddExpanded = false;
     }
   }
 }

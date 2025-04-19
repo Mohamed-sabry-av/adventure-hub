@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import {
-  applyCouponAction,
+  // applyCouponAction,
   createOrderAction,
   fetchCouponsAction,
   fetchOrderDataAction,
@@ -33,13 +33,7 @@ export class CheckoutEffect {
   fetchCouponsEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(fetchCouponsAction),
-      switchMap(({ enteredCouponValue, isLoggedIn }) => {
-        console.log('COUPON IS HERE 1', enteredCouponValue);
-
-        enteredCouponValue = enteredCouponValue?.code
-          ? enteredCouponValue?.code
-          : enteredCouponValue;
-
+      switchMap(({ enteredCouponValue, isLoggedIn: isLogged }) => {
         const options = {
           params: new HttpParams()
             .set('status', 'publish')
@@ -60,22 +54,11 @@ export class CheckoutEffect {
             })
           ),
           map((response: any) => {
-            console.log('COUPON IS HERE 2', response);
-            console.log('RESPONSE OF COUPONSSSS 1');
-
-            if (response && response?.length === 0) {
-              return getCouponAction({
-                validCoupon: null,
-                isLoggedIn,
-                invalidCoupon: enteredCouponValue,
-              });
-            } else {
-              return getCouponAction({
-                validCoupon: response[0],
-                isLoggedIn,
-                invalidCoupon: null,
-              });
-            }
+            return getCouponAction({
+              validCoupon: response ? response : null,
+              isLoggedIn: isLogged,
+              invalidCoupon: response ? null : enteredCouponValue,
+            });
           }),
           catchError((error: any) => {
             console.log('Error Happened Before Get LS Cart', error);
@@ -89,37 +72,65 @@ export class CheckoutEffect {
   applyCouponEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(getCouponAction),
-      switchMap(({ validCoupon, isLoggedIn }) => {
-        console.log('COUPON IS HERE 3', validCoupon);
+      switchMap(({ validCoupon, isLoggedIn, invalidCoupon }) => {
+        if (validCoupon) {
+          if (isLoggedIn) {
+            let authToken: any = localStorage.getItem('auth_token');
+            authToken = authToken ? JSON.parse(authToken) : '';
 
-        if (isLoggedIn) {
-          const body = {
-            coupon_code: validCoupon.code,
-            action: 'apply',
-          };
+            const headers = new HttpHeaders({
+              Authorization: `Bearer ${authToken.value}`,
+            });
 
-          return this.wooApiService.postRequest('cart/coupon', body).pipe(
-            map((response) => {
-              console.log(response);
-              return getUserCartAction({ userCart: response });
-            }),
-            catchError((error: any) => {
-              console.log('Coupon Error ', error);
-              return of(error);
-            })
-          );
+            const body = {
+              coupon_code: validCoupon,
+              action: 'apply',
+            };
+
+            return this.httpClient
+              .post(
+                'https://adventures-hub.com/wp-json/custom/v1/cart/coupon',
+                body,
+                { headers }
+              )
+              .pipe(
+                map((response) => {
+                  console.log(response);
+                  // return getUserCartAction({ userCart: response });
+                }),
+                catchError((error: any) => {
+                  return of(
+                    getCouponAction({
+                      validCoupon: null,
+                      isLoggedIn: isLoggedIn,
+                      invalidCoupon: error.error.data.data.coupon_code,
+                      errorMsg: error.error.data.data.reason,
+                    })
+                  );
+
+                  return of(error);
+                })
+              );
+          } else {
+            let loadedCart: any = localStorage.getItem('Cart');
+            loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+
+            const productsIds =
+              loadedCart.items?.map((item: any) => item.id) || [];
+
+            return of(
+              updateCartStockStatusAction({
+                productIds: productsIds,
+                coupon: validCoupon,
+              })
+            );
+          }
         } else {
-          console.log('RESPONSE OF COUPNESS 2');
-          let loadedCart: any = localStorage.getItem('Cart');
-          loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-
-          const productsIds =
-            loadedCart.items?.map((item: any) => item.id) || [];
-
           return of(
-            updateCartStockStatusAction({
-              productIds: productsIds,
-              coupon: validCoupon,
+            getCouponAction({
+              isLoggedIn: isLoggedIn,
+              validCoupon: null,
+              invalidCoupon: invalidCoupon,
             })
           );
         }

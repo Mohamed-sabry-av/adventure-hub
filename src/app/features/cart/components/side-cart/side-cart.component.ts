@@ -45,10 +45,14 @@ export class SideCartComponent {
     const subscribtion = this.cartService.savedUserCart$
       .pipe(filter((response: any) => response?.items?.length > 0))
       .subscribe((response: any) => {
+        console.log('HELLLLLLLLLOOO');
+
         this.progressValue = response?.totals?.total_price;
       });
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {
+      console.log('HELLLLLLLLLOOO SIDE CART VISIBLE');
+
       if (visible) {
         document.body.style.overflow = 'hidden';
       } else {

@@ -4,10 +4,10 @@ export interface Product {
   name: string;
   price: any;
   brand?: string;
-  images: { src: string; alt?: string }[];
+  images: { src: string; alt?: string; srcset?: string; sizes?: string }[];
   categories: { id: number; name: string; slug: string }[];
   description: string;
-  attributes?: Attribute[] |any;
+  attributes?: Attribute[] | any;
   slug?: string;
   permalink?: string;
   date_created?: string;
@@ -15,7 +15,7 @@ export interface Product {
   date_modified?: string;
   date_modified_gmt?: string;
   type?: string;
-  yoast_head?:string;
+  yoast_head?: string;
   status?: string;
   featured?: boolean;
   catalog_visibility?: string;
@@ -43,7 +43,14 @@ export interface Product {
   stock_quantity?: number;
   backorders?: string;
   backorders_allowed?: boolean;
-  
+  additional_images?: {
+    src: string;
+    alt?: string;
+    srcset?: string;
+    sizes?: string;
+    thumbnail: string;
+  }[];
+
   backordered?: boolean;
   low_stock_amount?: any;
   sold_individually?: boolean;
@@ -60,7 +67,8 @@ export interface Product {
   parent_id?: number;
   purchase_note?: string;
   tags?: any[];
-  default_attributes?: { name: string; option: string }[];  variations: any[];
+  default_attributes?: { name: string; option: string }[];
+  variations: any[];
   grouped_products?: any[];
   menu_order?: number;
   price_html?: string;
@@ -77,14 +85,19 @@ export interface Product {
     og_description?: string;
     og_url?: string;
     og_site_name?: string;
-    og_image?: Array<{ url: string; width: number; height: number; type: string }>;
+    og_image?: Array<{
+      url: string;
+      width: number;
+      height: number;
+      type: string;
+    }>;
     robots?: { index: string; follow: string };
     twitter_card?: string;
     twitter_site?: string;
     schema?: any;
     [key: string]: any;
   };
-    taxonomy_info?: any[];
+  taxonomy_info?: any[];
   featured_image_src_large?: any[];
   author_info?: any[];
   comment_info?: string;
@@ -97,12 +110,14 @@ export interface Variation {
   id?: number;
   attributes?: VariationAttribute[] | any;
   image?: Image | any;
-  images?: { src: string; alt?: string }[] | any;
+  images?:
+    | { src: string; alt?: string; srcset?: string; sizes?: string }[]
+    | any;
   price?: string;
   regular_price?: string;
   sale_price?: string;
   stock_status?: string;
-  meta_data?: MetaDaum[]
+  meta_data?: MetaDaum[];
   quantity_limits?: QuantityLimits;
 }
 

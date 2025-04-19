@@ -5,4 +5,6 @@ export interface Category {
   parent: number ;
   display?: string;
   children?: Category[]; 
+  count?: number;
+  expanded?: boolean;
 }

@@ -10,8 +10,15 @@
   <div class="slider-container" #sliderContainer (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
     <div class="slide" *ngFor="let image of product?.images; let i = index" [ngClass]="{'active': i === currentSlide}">
       <a routerLink="/product/{{ product.id }}">
-        <img [src]="image.src" loading="lazy" [alt]="product.name" />
-      </a>
+        <img 
+  [src]="image.src" 
+  [srcset]="getImageSrcset(image)" 
+  sizes="(max-width: 768px) 100vw, 300px" 
+  width="300" 
+  height="300" 
+  loading="lazy" 
+  [alt]="product.name" 
+  (load)="onImageLoad($event)" />     </a>
     </div>
   </div>
 

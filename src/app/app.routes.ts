@@ -44,19 +44,19 @@ export const routes: Routes = [
   },
   {
     path: 'blog',
-    children: blogRoutes,
+    children: blogRoutes, 
   },
   {
     path: 'product',
-    children: productsRoutes,
+    children: productsRoutes, 
   },
   {
     path: 'pages',
-    children: pagesRoutes,
+    children: pagesRoutes, 
   },
   {
     path: 'category',
-    children: categoryRoutes,
+    children: categoryRoutes, 
   },
   {
     path: '**',

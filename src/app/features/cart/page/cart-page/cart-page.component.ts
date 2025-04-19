@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { CartProductsComponent } from '../../components/cart-products/cart-products.component';
 import { CartCheckoutComponent } from '../../components/cart-checkout/cart-checkout.component';
@@ -20,13 +20,14 @@ import { RouterLink } from '@angular/router';
   ],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartPageComponent {
   private cartService = inject(CartService);
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
 
   ngOnInit() {
-    // this.cartService.fetchCartFromLS();
     this.cartService.fetchUserCart();
+    console.log('HELLLLLLLLLOOO');
   }
 }

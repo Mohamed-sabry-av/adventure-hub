@@ -1,10 +1,10 @@
 <app-app-container>
-  @if(schemaData){
+  @if (schemaData) {
     <ng-container>
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
   }
-    
+
   <app-breadcrumb></app-breadcrumb>
 
   <!-- Product Section -->
@@ -17,18 +17,32 @@
           [selectedColor]="selectedColor"
           [variations]="productData.variations"
         />
+      } @else {
+        <!-- Skeleton for product images -->
+        <div class="h-96 bg-gray-200 animate-pulse rounded mb-4"></div>
       }
-        <!-- Product Description and Specifications -->
-  <div class="full-width-description">
-    @if (productData) {
-      <app-product-desc
-      [productAdditionlInfo]="productData"
-            />
-    }
-  </div>
+
+      <!-- Desktop Description -->
+      <div class="full-width-product-description desktop-description">
+        @if (productData) {
+          <app-product-desc
+            [productAdditionlInfo]="{
+              description: productData.description,
+              specifications: productData.specifications
+            }"
+          />
+        } @else {
+          <!-- Skeleton for description -->
+          <div class="space-y-4">
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-2/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
+          </div>
+        }
+      </div>
     </div>
 
-    <!-- Product Info - Right side - Sticky on scroll -->
+    <!-- Product Info - Right side -->
     <div class="md:w-1/2 lg:w-2/5 sticky-wrapper">
       <div class="sticky-info">
         @if (productData) {
@@ -36,14 +50,44 @@
             [productInfo]="productData"
             (selectedColorChange)="onSelectedColorChange($event)"
           />
+        } @else {
+          <!-- Skeleton for product info -->
+          <div class="space-y-4">
+            <div class="h-6 bg-gray-200 animate-pulse rounded w-1/2"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+            <div class="h-10 bg-gray-200 animate-pulse rounded w-full"></div>
+          </div>
+        }
+      </div>
+
+      <!-- Mobile Description -->
+      <div class="full-width-product-description mobile-description">
+        @if (productData) {
+          <app-product-desc
+            [productAdditionlInfo]="{
+              description: productData.description,
+              specifications: productData.specifications
+            }"
+          />
+        } @else {
+          <!-- Skeleton for mobile description -->
+          <div class="space-y-4 mt-4">
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-2/4"></div>
+            <div class="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
+          </div>
         }
       </div>
     </div>
   </div>
-  
-  
-  <app-product-related [relatedIds]="productData.related_ids" />  
+
   <!-- Related Products -->
-  @if (productData?.related_products) {
+  @if (productData?.related_ids) {
+    <app-product-related [relatedIds]="productData.related_ids" />
+  } @else {
+    <!-- Skeleton grid for related products -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div *ngFor="let i of [1, 2, 3, 4]" class="h-48 bg-gray-200 animate-pulse rounded"></div>
+    </div>
   }
 </app-app-container>

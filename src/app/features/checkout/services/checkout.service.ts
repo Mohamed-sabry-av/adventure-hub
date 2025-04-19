@@ -96,6 +96,8 @@ export class CheckoutService {
   ): Observable<{ isValid: boolean; coupon: any[] }> {
     return this.appliedCoupon$.pipe(
       map((response: any) => {
+        console.log('HELLLLLLLLLOOO');
+
         if (response?.validCoupon) {
           const coupon = [{ code: response.validCoupon.code }];
           const isUsed = response.validCoupon.used_by?.includes(

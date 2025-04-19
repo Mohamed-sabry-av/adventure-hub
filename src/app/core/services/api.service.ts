@@ -87,13 +87,11 @@ export class ApiService {
     fullUrl: string,
     options: {
       params?: HttpParams;
-      headers?: { [key: string]: string };
       withCredentials?: boolean;
     } = {}
   ): Observable<T> {
     return this.http
       .get<T>(fullUrl, {
-        headers: { ...this.authService.getAuthHeaders(), ...options.headers },
         params: options.params,
         withCredentials: options.withCredentials || false,
       })
@@ -110,7 +108,6 @@ export class ApiService {
   ): Observable<T> {
     return this.http
       .post<T>(fullUrl, body, {
-        headers: { ...this.authService.getAuthHeaders(), ...options.headers },
         withCredentials: options.withCredentials || false,
       })
       .pipe(catchError(this.handelErrorsService.handelError));
@@ -140,14 +137,15 @@ export class ApiService {
       params?: HttpParams;
       headers?: { [key: string]: string };
       withCredentials?: boolean;
+      body?: any;
     } = {}
   ): Observable<T> {
     return this.http
       .delete<T>(fullUrl, {
-        headers: { ...this.authService.getAuthHeaders(), ...options.headers },
         params: options.params,
         withCredentials: options.withCredentials || false,
+        body: options.body,
       })
       .pipe(catchError(this.handelErrorsService.handelError));
-  }  
+  }
 }

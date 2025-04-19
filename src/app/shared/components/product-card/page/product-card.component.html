@@ -1,7 +1,7 @@
 
 
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
- <app-card-image-slider
+  <app-card-image-slider
   [product]="modifiedProduct"
   [currentSlide]="currentSlide"
   [colorOptions]="colorOptions"
@@ -21,16 +21,14 @@
 
   <!-- الألوان (لو موجودة) -->
   <app-color-swatches
-    *ngIf="colorOptions.length > 0"
-    [colorOptions]="colorOptions"
-    [visibleColors]="visibleColors"
-    [selectedColor]="selectedColor"
-    [colorScrollIndex]="colorScrollIndex"
-    [maxColorScrollIndex]="maxColorScrollIndex"
-    (selectColor)="selectColor($event.color, $event.image)"
-    (scrollColors)="scrollColors($event)"
-    class="color-swatches-container">
-  </app-color-swatches>
+  [colorOptions]="colorOptions"
+  [visibleColors]="visibleColors"
+  [selectedColor]="selectedColor"
+  [colorScrollIndex]="colorScrollIndex"
+  [maxColorScrollIndex]="maxColorScrollIndex"
+  (selectColor)="selectColor($event.color, $event.image)"
+  (scrollColors)="scrollColors($event)"
+></app-color-swatches>
 
   <div class="quick-add-wrapper" [ngClass]="{'quick-add-mobile-wrapper': isMobile, 'quick-add-desktop-wrapper': !isMobile}">
     <app-mobile-quick-add

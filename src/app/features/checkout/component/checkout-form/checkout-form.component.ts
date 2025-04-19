@@ -160,6 +160,10 @@ export class CheckoutFormComponent {
       subscribtion2?.unsubscribe();
       subscribtion3?.unsubscribe();
     });
+    const emailValue = this.emailFieldValue;
+    if (emailValue) {
+      this.billingForm.get('email')?.setValue(emailValue);
+    }
   }
 
   avaliableCountries(): any[] {
@@ -218,6 +222,12 @@ export class CheckoutFormComponent {
       this.billingForm,
       'email'
     );
+  }
+
+  get emailFieldValue() {
+    let loadedUserData: any = localStorage.getItem('auth_user');
+    loadedUserData = loadedUserData ? JSON.parse(loadedUserData) : null;
+    return loadedUserData.value.email || '';
   }
 
   get firstNameIsInvalid() {

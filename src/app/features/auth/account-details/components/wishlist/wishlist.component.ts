@@ -1,18 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WooCommerceAccountService } from '../../account-details.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-wishlist',
   templateUrl: './wishlist.component.html',
   styleUrls: ['./wishlist.component.css'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,RouterLink],
 })
 export class WishlistComponent implements OnInit {
   wishlistItems: any[] = [];
   isLoading = true;
   error: string | null = null;
+  product:any;
 
   private accountService = inject(WooCommerceAccountService);
 
@@ -29,6 +31,7 @@ export class WishlistComponent implements OnInit {
         this.wishlistItems = Array.isArray(data) ? data : [];
         this.isLoading = false;
         console.log('Wishlist loaded:', this.wishlistItems);
+        data = this.product
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to load wishlist. Please try again later.';

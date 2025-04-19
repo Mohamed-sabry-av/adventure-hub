@@ -84,6 +84,8 @@ export class CartEffect {
     this.actions$.pipe(
       ofType(addProductToUserCartAction),
       switchMap(({ product, isLoggedIn }) => {
+        console.log('From Effect', product);
+
         if (isLoggedIn) {
           let authToken: any = localStorage.getItem('auth_token');
           authToken = authToken ? JSON.parse(authToken) : '';
@@ -96,6 +98,8 @@ export class CartEffect {
             product_id: product.id,
           };
 
+          console.log('بيضاف من غير ما يقولييييييييييييييييييييي');
+
           return this.httpClient
             .post(
               'https://adventures-hub.com/wp-json/custom/v1/cart/add',
@@ -104,18 +108,19 @@ export class CartEffect {
             )
             .pipe(
               map(() => {
-                console.log('ADDEDD');
+                console.log('Product Added To Online Cart');
                 setTimeout(() => {
                   this.cartService.cartMode(true);
                 }, 3000);
                 return fetchUserCartAction({ isLoggedIn: true });
               }),
               catchError((error: any) => {
-                console.log('ERRR', error);
+                console.log('Error Happened In Online Cart', error);
                 return EMPTY;
               })
             );
         } else {
+          console.log(product);
           let {
             id,
             name,
@@ -127,9 +132,12 @@ export class CartEffect {
             type,
             quantity_limits,
             stock_status,
+            additional_images,
+            permalink,
           } = product;
 
           let selectedProduct = {
+            permalink,
             id,
             name,
             quantity: 1,
@@ -140,8 +148,14 @@ export class CartEffect {
             },
             attributes,
             images: {
-              imageSrc: images[0].thumbnail,
-              imageAlt: images[0].alt,
+              imageSrc:
+                type === 'variable'
+                  ? images.sizes.thumbnail.src
+                  : images[0].thumbnail,
+              imageAlt:
+                type === 'variable'
+                  ? additional_images?.alt || 'product-image'
+                  : images[0].alt,
             },
             type,
             quantity_limits,
@@ -185,6 +199,8 @@ export class CartEffect {
       this.actions$.pipe(
         ofType(fetchUserCartAction),
         switchMap(({ isLoggedIn }) => {
+          console.log('بيلود من غير ما يقولييييييييييييييييييييي');
+
           if (isLoggedIn) {
             let authToken: any = localStorage.getItem('auth_token');
             authToken = authToken ? JSON.parse(authToken) : '';
@@ -394,6 +410,7 @@ export class CartEffect {
               map((product) => ({
                 productId,
                 stockStatus: product.stock_status,
+                permalink: product.permalink,
               })),
               catchError((error) =>
                 of({ productId, stockStatus: 'unknown', error })
@@ -417,7 +434,11 @@ export class CartEffect {
 
   private updateLocalStorage(
     validCoupon: any,
-    updatedProducts: { productId: string; stockStatus: string }[]
+    updatedProducts: {
+      productId: string;
+      stockStatus: string;
+      permalink: string;
+    }[]
   ) {
     let cart = JSON.parse(localStorage.getItem('Cart') || '{}');
     if (cart.items) {
@@ -426,7 +447,11 @@ export class CartEffect {
           (p) => p.productId === item.id
         );
         if (updatedProduct) {
-          return { ...item, stock_status: updatedProduct.stockStatus };
+          return {
+            ...item,
+            stock_status: updatedProduct.stockStatus,
+            permalink: updatedProduct.permalink,
+          };
         }
         return item;
       });
@@ -434,6 +459,7 @@ export class CartEffect {
     cart = this.cartService.calcCartPrice(cart.items, validCoupon);
 
     localStorage.setItem('Cart', JSON.stringify(cart));
+    console.log('بيلود من غير ما يقولييييييييييييييييييييي');
 
     this.store.dispatch(getUserCartAction({ userCart: cart }));
   }

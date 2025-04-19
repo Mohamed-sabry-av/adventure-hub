@@ -1,4 +1,4 @@
-import { Component, input, OnInit, OnDestroy } from '@angular/core';
+import { Component, input, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -13,13 +13,16 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
   productImages = input<any>();
   selectedColor = input<string | null>(null);
   variations = input<any[]>([]);
+  productName = input<string>('Product');
 
   // State variables
   isMobile: boolean = false;
   mediaQuery!: MediaQueryList;
   mediaQueryListener!: (event: MediaQueryListEvent) => void;
   selectedImageIndex: number = 0;
-  animationDirection: 'next' | 'prev' | null = null;
+  
+  // Reference to the main image container for zoom functionality
+  @ViewChild('zoomContainer') zoomContainer!: ElementRef;
 
   // Default images if no data is provided
   defaultImages: string[] = [
@@ -89,31 +92,60 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
       : [];
   }
 
-  // Set the selected image index with animation direction
+  // Select a specific image by index
   selectImage(index: number): void {
-    if (index === this.selectedImageIndex) return;
-
-    const oldIndex = this.selectedImageIndex;
-    this.animationDirection = index > oldIndex ? 'next' : 'prev';
     this.selectedImageIndex = index;
   }
 
   // Navigate to the next image
   nextImage(): void {
     const images = this.getGalleryImages();
-    this.animationDirection = 'next';
     this.selectedImageIndex = (this.selectedImageIndex + 1) % images.length;
   }
 
   // Navigate to the previous image
   prevImage(): void {
     const images = this.getGalleryImages();
-    this.animationDirection = 'prev';
     this.selectedImageIndex = (this.selectedImageIndex - 1 + images.length) % images.length;
   }
 
-  // Reset animation direction after animation completes
-  onAnimationDone(): void {
-    this.animationDirection = null;
+  // Zoom functionality
+  zoom(event: MouseEvent) {
+    if (this.isMobile) return; // Don't enable zoom on mobile
+    
+    const container = this.zoomContainer.nativeElement;
+    const zoomedImage: HTMLElement = container.querySelector('.main-img');
+    if (!container || !zoomedImage) return;
+  
+    const rect = container.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+  
+    const percentX = (x / rect.width) * 100;
+    const percentY = (y / rect.height) * 100;
+  
+    zoomedImage.style.transformOrigin = `${percentX}% ${percentY}%`;
+    zoomedImage.style.transform = `scale(2)`;
+  }
+
+  // Reset zoom when mouse leaves the container
+  resetZoom() {
+    if (this.isMobile) return;
+    
+    const container = this.zoomContainer.nativeElement;
+    const zoomedImage = container.querySelector('.main-img');
+    if (!zoomedImage) return;
+    
+    zoomedImage.style.transform = 'scale(1)';
+  }
+
+  // Track by function for ngFor performance
+  trackByFn(index: number, item: any): string {
+    return item.src || index;
+  }
+
+  // Getter for images array to use in template
+  get images(): { src: string; alt: string }[] {
+    return this.getGalleryImages();
   }
 }

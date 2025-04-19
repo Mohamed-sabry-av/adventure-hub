@@ -5,6 +5,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { SideCartComponent } from './features/cart/components/side-cart/side-cart.component';
 import { NgIf } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { BackToTopComponent } from './shared/components/BackToTop/back-to-top.component';
 import { CartService } from './features/cart/service/cart.service';
 
 declare global {
@@ -22,6 +23,7 @@ declare global {
     HeaderComponent,
     FooterComponent,
     SideCartComponent,
+    BackToTopComponent,
     NgIf,
   ],
   templateUrl: './app.component.html',
