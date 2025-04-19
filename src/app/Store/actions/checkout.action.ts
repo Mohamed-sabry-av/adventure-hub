@@ -6,21 +6,31 @@ export const fetchCouponsAction = createAction(
 );
 
 export const getCouponAction = createAction(
-  '[Coupon] Get Coupon',
+  '[Coupon] Get Coupon Value',
   props<{
     validCoupon: any;
     isLoggedIn: boolean;
-    invalidCoupon?: any;
-    errorMsg?: string;
+    invalidCoupon: any;
   }>()
 );
 
-// export const applyCouponAction = createAction(
-//   '[Coupon] Apply Coupon',
-//   props<{ coupon: any; isLoggedIn: boolean }>()
-// );
+export const getCouponStatusAction = createAction(
+  '[Coupon] Get Coupon Staus',
+  props<{ errorMsg: any; successMsg: any }>()
+);
 
-export const removeCouponAction = createAction('[Coupon] Remove Coupon');
+export const getCouponDataAction = createAction(
+  '[Coupon] Get Coupon Used By List',
+  props<{ coupon: any }>()
+);
+
+export const removeCouponAction = createAction(
+  '[Coupon] Remove Coupon',
+  props<{
+    validCoupon: string;
+    isLoggedIn: boolean;
+  }>()
+);
 
 export const createOrderAction = createAction(
   '[Checkout] Create Order',

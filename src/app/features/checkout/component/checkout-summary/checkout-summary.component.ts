@@ -19,23 +19,33 @@ export class CheckoutSummaryComponent {
 
   selectedCountry$: Observable<string> = this.checkoutService.selectedCountry$;
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
-  appliedCoupon$: Observable<any> = this.checkoutService.appliedCoupon$;
-  isUsed$: Observable<boolean> = this.checkoutService.emailIsUsed$;
+  appliedCouponStatus$: Observable<any> =
+    this.checkoutService.appliedCouponStatus$;
 
   totalItemsLength: number = 0;
   couponValue: string = '';
+  haveCoupon: boolean = false;
 
   ngOnInit() {
-    const subscribtion2 = this.appliedCoupon$.subscribe((res) => {
-      if (res?.validCoupon?.code) {
-        this.couponValue = res.validCoupon.code;
-      }
-    });
-
     const subscribtion = this.loadedCart$
       .pipe(
         filter((response: any) => response?.items?.length > 0),
         map((res: any) => {
+          const coupons = res.coupons || {};
+          const couponKeys = Object.keys(coupons);
+
+          const couponData =
+            couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+
+          console.log(couponData);
+
+          if (couponData !== null) {
+            this.haveCoupon = true;
+          } else {
+            this.haveCoupon = false;
+          }
+
+          this.couponValue = couponData?.code || '';
           this.totalItemsLength = 0;
           return res.items;
         })
@@ -48,16 +58,17 @@ export class CheckoutSummaryComponent {
 
     this.destroyRef.onDestroy(() => {
       subscribtion.unsubscribe();
-      subscribtion2.unsubscribe();
     });
   }
 
   onApplyCoupon() {
     this.checkoutService.applyCoupon(this.couponValue);
   }
-
   onRemoveCoupon() {
-    this.checkoutService.removeCoupon();
-    this.couponValue = '';
+    this.checkoutService.removeCoupon(this.couponValue);
   }
+
+  // --------------------------------------------------------------------
+
+  isUsed$: Observable<boolean> = this.checkoutService.emailIsUsed$;
 }

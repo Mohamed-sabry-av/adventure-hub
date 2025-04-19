@@ -1,5 +1,5 @@
-::ng-deep .p-drawer-right {
-  @apply bg-white text-[#4d4f3a] sm:w-[420px] w-full overflow-auto;
+::ng-deep .sidecart-drawer {
+  @apply text-[#4d4f3a] sm:w-[420px] w-full overflow-auto bg-white;
 }
 
 .scrollbar-thin {

@@ -46,42 +46,34 @@
     <div class="flex gap-x-2 items-center mt-4">
       <input
         type="text"
-        class="bg-white border w-full py-[14px] px-3 rounded-lg text-lg font-semibold"
+        class="bg-white border w-full py-[14px] px-3 rounded-lg text-base font-semibold"
         placeholder="Discount code or gift card"
         [(ngModel)]="couponValue"
         #couponInput
+        [disabled]="haveCoupon === true"
+        [class]="{
+            'bg-[#96a1b9]': haveCoupon ===true ,
+            'text-black': haveCoupon ===true ,
+          }"
       />
-      <button
-        class="px-3 py-[14px] bg-orange-500 rounded-lg text-white font-semibold cursor-pointer"
-        (click)="onApplyCoupon()"
-      >
-        Apply
-      </button>
-      <!-- @if ((appliedCoupon$ | async).validCoupon === null) {
-      } @if ((appliedCoupon$ | async).validCoupon !== null) {
+
       <button
         class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold cursor-pointer"
-        (click)="onRemoveCoupon()"
+        (click)="haveCoupon === true ? onRemoveCoupon() : onApplyCoupon()"
+        [class]="{
+          'bg-red-500': haveCoupon === true,
+          'bg-orange-500': haveCoupon === false
+        }"
       >
-        Remove
+        {{ haveCoupon === true ? "Remove" : "Apply" }}
       </button>
-      } -->
     </div>
 
-    @if ((appliedCoupon$ | async)?.errorMsg !== '') {
-    <p class="mt-1 text-red-500 text-xl">
-      {{ (appliedCoupon$ | async).errorMsg }}
+    @if ((appliedCouponStatus$ | async).error !== null) {
+    <p class="mt-1 text-red-500 text-lg">
+      {{ (appliedCouponStatus$ | async).error }}
     </p>
 
-    }@else if ((appliedCoupon$ | async)?.validCoupon === null && (appliedCoupon$
-    | async)?.invalidCoupon !== null ) {
-    <p class="mt-1">
-      Copuon
-      <span class="text-red-500 text-xl">{{
-        (appliedCoupon$ | async)?.invalidCoupon
-      }}</span>
-      is invalid
-    </p>
     } @if (isUsed$ | async) {
     <p class="mt-1 text-red-500 text-xl">coupon usage limit has been reached</p>
     }
@@ -103,7 +95,7 @@
     </div>
 
     <!-- Coupon Data -->
-    @if ((loadedCart$ | async)?.totals?.total_discount !== (0 || '0')) {
+    @if (haveCoupon === true) {
     <div class="flex justify-between">
       <p>
         <span class="font-semibold"> Discount</span>

@@ -26,7 +26,10 @@ import {
   updateProductOfUserCartAction,
 } from '../actions/cart.action';
 import { json } from 'stream/consumers';
-import { fetchCouponsAction } from '../actions/checkout.action';
+import {
+  fetchCouponsAction,
+  getCouponDataAction,
+} from '../actions/checkout.action';
 import { ProductService } from '../../core/services/product.service';
 
 export class CartEffect {
@@ -199,8 +202,6 @@ export class CartEffect {
       this.actions$.pipe(
         ofType(fetchUserCartAction),
         switchMap(({ isLoggedIn }) => {
-          console.log('بيلود من غير ما يقولييييييييييييييييييييي');
-
           if (isLoggedIn) {
             let authToken: any = localStorage.getItem('auth_token');
             authToken = authToken ? JSON.parse(authToken) : '';
@@ -237,6 +238,7 @@ export class CartEffect {
                       quantity_limits: item.quantity_limits,
                       attributes: item.attributes,
                       totals: item.totals,
+                      stock_status: item.stock_status,
                     };
                   });
 
@@ -246,6 +248,19 @@ export class CartEffect {
                     totals: response.totals,
                     coupons: response.coupons,
                   };
+
+                  const coupons = response.coupons || {};
+                  const couponKeys = Object.keys(coupons);
+
+                  const couponData =
+                    couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+
+                  console.log(couponData);
+
+                  this.store.dispatch(
+                    getCouponDataAction({ coupon: couponData })
+                  );
+
                   this.store.dispatch(
                     getUserCartAction({ userCart: cartData })
                   );
@@ -458,9 +473,9 @@ export class CartEffect {
     }
     cart = this.cartService.calcCartPrice(cart.items, validCoupon);
 
-    localStorage.setItem('Cart', JSON.stringify(cart));
-    console.log('بيلود من غير ما يقولييييييييييييييييييييي');
+    console.log(cart);
 
+    localStorage.setItem('Cart', JSON.stringify(cart));
     this.store.dispatch(getUserCartAction({ userCart: cart }));
   }
 }

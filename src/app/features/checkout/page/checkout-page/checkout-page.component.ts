@@ -29,6 +29,5 @@ export class CheckoutPageComponent {
 
   ngOnInit() {
     this.cartService.fetchUserCart();
-    console.log('HELLLLLLLOOOOOOO');
   }
 }

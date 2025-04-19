@@ -1,11 +1,9 @@
 <p-sidebar
   [(visible)]="isOpen"
   position="right"
-  [showCloseIcon]="false"
   [modal]="true"
-  [dismissible]="false"
-  [closeOnEscape]="false"
-  styleClass="filter-drawer-sidebar w-full max-w-sm"
+  styleClass="filter-drawer-sidebar"
+  [transitionOptions]="'500ms cubic-bezier(0.4, 0, 0.2, 1)'"
   (onHide)="close()"
   ngSkipHydration
 >
@@ -13,10 +11,24 @@
     <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b border-gray-200">
       <h2 class="text-lg font-medium text-gray-900">Filter & Sort</h2>
-      <button type="button" (click)="close()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+      <button
+        type="button"
+        (click)="close()"
+        class="text-gray-400 hover:text-gray-500 focus:outline-none"
+      >
         <span class="sr-only">Close panel</span>
-        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <svg
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
@@ -35,7 +47,9 @@
             (change)="onSortOptionChange('popular')"
             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label for="sort-popular" class="ml-3 text-sm text-gray-700">Most Popular</label>
+          <label for="sort-popular" class="ml-3 text-sm text-gray-700"
+            >Most Popular</label
+          >
         </div>
         <div class="flex items-center">
           <input
@@ -47,7 +61,9 @@
             (change)="onSortOptionChange('rating')"
             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label for="sort-rating" class="ml-3 text-sm text-gray-700">Top Rated</label>
+          <label for="sort-rating" class="ml-3 text-sm text-gray-700"
+            >Top Rated</label
+          >
         </div>
         <div class="flex items-center">
           <input
@@ -59,7 +75,9 @@
             (change)="onSortOptionChange('newest')"
             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label for="sort-newest" class="ml-3 text-sm text-gray-700">Newest</label>
+          <label for="sort-newest" class="ml-3 text-sm text-gray-700"
+            >Newest</label
+          >
         </div>
         <div class="flex items-center">
           <input
@@ -71,7 +89,9 @@
             (change)="onSortOptionChange('price-asc')"
             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label for="sort-price-low" class="ml-3 text-sm text-gray-700">Price: Low to High</label>
+          <label for="sort-price-low" class="ml-3 text-sm text-gray-700"
+            >Price: Low to High</label
+          >
         </div>
         <div class="flex items-center">
           <input
@@ -83,7 +103,9 @@
             (change)="onSortOptionChange('price-desc')"
             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label for="sort-price-high" class="ml-3 text-sm text-gray-700">Price: High to Low</label>
+          <label for="sort-price-high" class="ml-3 text-sm text-gray-700"
+            >Price: High to Low</label
+          >
         </div>
       </div>
     </div>

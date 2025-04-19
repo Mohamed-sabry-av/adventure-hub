@@ -1,15 +1,19 @@
-:host ::ng-deep .filter-drawer-sidebar {
+::ng-deep .filter-drawer-sidebar {
   width: 100% !important;
   max-width: 360px !important;
 }
 
-:host ::ng-deep .p-sidebar {
+::ng-deep .filter-drawer-sidebar {
   display: flex;
   flex-direction: column;
   padding: 0;
 }
 
-:host ::ng-deep .p-sidebar-content {
+::ng-deep .filter-drawer-sidebar .p-drawer-header {
+  display: none;
+}
+
+::ng-deep .filter-drawer-sidebar .p-drawer-content {
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -18,16 +22,7 @@
 }
 
 @media (max-width: 640px) {
-  :host ::ng-deep .filter-drawer-sidebar {
+  ::ng-deep .filter-drawer-sidebar {
     max-width: 100% !important;
   }
-}
-
-/* Ensure the overlay has a higher z-index than other elements */
-:host ::ng-deep .p-sidebar-mask {
-  z-index: 1000;
-}
-
-:host ::ng-deep .p-sidebar {
-  z-index: 1001;
 }

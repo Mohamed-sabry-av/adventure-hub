@@ -4,6 +4,7 @@
     position="right"
     [visible]="(sideCartVisible$ | async)!"
     (onHide)="hideSideCart()"
+    styleClass="sidecart-drawer"
   >
     <ng-template #headless pTemplate="content">
       <main class="flex flex-col h-full">

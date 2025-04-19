@@ -227,7 +227,7 @@ export class CheckoutFormComponent {
   get emailFieldValue() {
     let loadedUserData: any = localStorage.getItem('auth_user');
     loadedUserData = loadedUserData ? JSON.parse(loadedUserData) : null;
-    return loadedUserData.value.email || '';
+    return loadedUserData?.value?.email || '';
   }
 
   get firstNameIsInvalid() {
