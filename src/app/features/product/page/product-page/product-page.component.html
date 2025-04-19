@@ -13,10 +13,10 @@
     <div class="md:w-1/2 lg:w-3/5">
       @if (productData) {
         <app-product-images
-          [productImages]="productData.images"
-          [selectedColor]="selectedColor"
-          [variations]="productData.variations"
-        />
+  [productImages]="productData.images"
+  [selectedColor]="selectedColor"
+  [variations]="productData.variations"
+/>
       } @else {
         <!-- Skeleton for product images -->
         <div class="h-96 bg-gray-200 animate-pulse rounded mb-4"></div>
@@ -47,9 +47,9 @@
       <div class="sticky-info">
         @if (productData) {
           <app-product-info
-            [productInfo]="productData"
-            (selectedColorChange)="onSelectedColorChange($event)"
-          />
+          [productInfo]="productData"
+          (selectedAttributeChange)="onSelectedColorChange($event)"
+        />
         } @else {
           <!-- Skeleton for product info -->
           <div class="space-y-4">

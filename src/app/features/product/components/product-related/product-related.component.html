@@ -1,23 +1,26 @@
-<div class="related-products-container">
-  <h2 class="section-title">You May Also Like</h2>
+<div class="related-products-section full-width-container">
+  <div class="max-w-screen-xl mx-auto px-4">
+    <h2 class="section-title text-2xl font-bold mb-6">You May Also Like</h2>
+  </div>
 
-  <div class="related-products" *ngIf="relatedProducts.length > 0">
-    <p-carousel
+  <div class="related-products-slider" *ngIf="relatedProducts.length > 0">
+    <p-carousel 
       [value]="relatedProducts"
       [numVisible]="4"
       [numScroll]="1"
       [circular]="true"
       [responsiveOptions]="responsiveOptions"
-      [showIndicators]="false">
+      [showIndicators]="false"
+      styleClass="full-width-carousel">
       <ng-template let-product pTemplate="item">
-        <div class="product-item">
+        <div class="product-item p-2">
           <app-product-card [product]="product"></app-product-card>
         </div>
       </ng-template>
     </p-carousel>
   </div>
 
-  <div class="no-products" *ngIf="relatedProducts.length === 0">
+  <div class="no-products flex justify-center py-8" *ngIf="relatedProducts.length === 0">
     <p>No related products available</p>
   </div>
 </div>

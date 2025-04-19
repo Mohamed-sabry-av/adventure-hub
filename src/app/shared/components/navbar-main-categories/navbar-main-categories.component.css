@@ -30,21 +30,21 @@
   }
 }
 @media (min-width: 960px) {
-  ::ng-deep .p-drawer-left {
+  ::ng-deep .sidenav-drawer {
     @apply hidden;
   }
 }
 
-::ng-deep .p-drawer-left {
+::ng-deep .sidenav-drawer {
   @apply !top-[143.2px] md:!top-[102px] w-full;
   z-index: 50 !important;
 }
 
-::ng-deep .p-drawer-left .p-drawer-header {
+::ng-deep .sidenav-drawer .p-drawer-header {
   @apply hidden;
 }
 
-::ng-deep .p-drawer-left .p-drawer-content {
+::ng-deep .sidenav-drawer .p-drawer-content {
   @apply bg-[#2E2E2E];
 }
 

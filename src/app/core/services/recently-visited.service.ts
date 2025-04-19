@@ -7,7 +7,7 @@ import { Product } from '../../interfaces/product';
 })
 export class RecentlyVisitedService {
   private readonly STORAGE_KEY = 'recentlyVisitedProducts';
-  private readonly MAX_PRODUCTS = 20; // Maximum number of products to store
+  private readonly MAX_PRODUCTS = 30; // Maximum number of products to store
 
   private recentlyVisitedProductsSubject = new BehaviorSubject<Product[]>([]);
 

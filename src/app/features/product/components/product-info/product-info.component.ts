@@ -3,6 +3,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../../cart/service/cart.service';
+import { WishlistComponent } from '../../../auth/account-details/components/wishlist/wishlist.component';
+import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
+import { Subscription } from 'rxjs';
 
 declare var _learnq: any;
 
@@ -19,10 +22,15 @@ export class ProductInfoComponent {
   maxLength: number = 10;
   quantity: number = 1;
   selectedAttributes: { [key: string]: string | null } = {};
+  isAddingToWishlist: boolean = false;
+  isInWishlist: boolean = false;
+  wishlistMessage: string | null = null;
+  wishlistSuccess: boolean = true;
+  private wishlistSubscription: Subscription | null = null;
 
   @Output() selectedAttributeChange = new EventEmitter<{ name: string; value: string | null }>();
 
-  constructor(private cartService: CartService) {}
+  constructor(private cartService: CartService,private wishlistService:WooCommerceAccountService) {}
 
   ngOnInit() {
     const product = this.productInfo();
@@ -35,8 +43,16 @@ export class ProductInfoComponent {
       this.setDefaultAttributes();
       console.log('Selected Attributes:', this.selectedAttributes);
       this.updateMaxLength();
+
+      this.checkWishlistStatus(product.id);
     }
   }
+
+  ngOnDestroy() {
+    // Unsubscribe to prevent memory leaks
+    if (this.wishlistSubscription) {
+      this.wishlistSubscription.unsubscribe();
+    }}
 
   onQuantityUp() {
     if (this.quantity < this.maxLength) {
@@ -135,6 +151,7 @@ export class ProductInfoComponent {
 
   selectAttribute(name: string, value: string): void {
     this.selectedAttributes[name] = value;
+    this.selectedAttributeChange.emit({ name, value });
 
     // If selecting a Color, reset Size and select a default in-stock Size if available
     if (name === 'Color') {
@@ -328,5 +345,85 @@ export class ProductInfoComponent {
   get allVariationAttributesSelected(): boolean {
     const variationAttributes = this.getVariationAttributes();
     return variationAttributes.length === 0 || variationAttributes.every((attrName: string) => this.selectedAttributes[attrName] !== null);
+  }
+  
+  addToWishList(productId: number) {
+    if (!productId) {
+      console.error('Invalid product ID');
+      this.showWishlistMessage('Failed to add to wishlist: Invalid product ID', false);
+      return;
+    }
+
+    if (!this.wishlistService.isLoggedIn()) {
+      console.warn('User not logged in, cannot add to wishlist');
+      this.showWishlistMessage('Please log in to add to wishlist', false);
+      return;
+    }
+
+    this.isAddingToWishlist = true;
+    this.wishlistMessage = null;
+
+    this.wishlistSubscription = this.wishlistService.addToWishlist(productId).subscribe({
+      next: (response) => {
+        this.isAddingToWishlist = false;
+        if (response.success) {
+          this.isInWishlist = true;
+          this.showWishlistMessage('Product added to wishlist', true);
+          // Track with Klaviyo (optional)
+          if (typeof _learnq !== 'undefined') {
+            _learnq.push([
+              'track',
+              'Added to Wishlist',
+              {
+                ProductID: productId,
+                ProductName: this.productInfo()?.name,
+                Price: this.getPriceInfo().price,
+                Brand: this.brandName,
+                Categories: this.productInfo()?.categories?.map((cat: any) => cat.name) || [],
+              },
+            ]);
+            console.log('Klaviyo: Added to Wishlist tracked');
+          }
+        } else {
+          this.showWishlistMessage(response.message || 'Failed to add to wishlist', false);
+        }
+      },
+      error: (error) => {
+        this.isAddingToWishlist = false;
+        this.showWishlistMessage('Failed to add to wishlist: ' + (error.message || 'Unknown error'), false);
+      },
+    });
+  }
+
+
+  private checkWishlistStatus(productId: number) {
+    if (!productId || !this.wishlistService.isLoggedIn()) {
+      this.isInWishlist = false;
+      return;
+    }
+
+    this.wishlistSubscription = this.wishlistService.getWishlist().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          // Assuming response.data is an array of wishlist items with product IDs
+          this.isInWishlist = response.data.some((item: any) => item.product_id === productId);
+        } else {
+          this.isInWishlist = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error checking wishlist status:', error);
+        this.isInWishlist = false;
+      },
+    });
+  }
+
+  private showWishlistMessage(message: string, success: boolean) {
+    this.wishlistMessage = message;
+    this.wishlistSuccess = success;
+    // Clear message after 5 seconds
+    setTimeout(() => {
+      this.wishlistMessage = null;
+    }, 5000);
   }
 }

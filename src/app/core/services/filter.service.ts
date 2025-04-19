@@ -140,6 +140,7 @@ export class FilterService {
       .set('orderby', orderby)
       .set('order', order)
       .set('page', page.toString())
+      .set('status', 'publish')
       .set('per_page', perPage.toString())
       .set('_fields', 'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type');
 

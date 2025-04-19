@@ -1,55 +1,46 @@
-.related-products-container {
-  padding: 20px 0;
-  margin-top: 50px;
+.full-width-container {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background-color: #f9f9f9;
+  padding: 2rem 0;
+  overflow: hidden;
 }
 
 .section-title {
-  font-size: 1.8rem;
-  font-weight: 500;
-  margin-bottom: 25px;
-  color: #3e3e30;
-  position: relative;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .product-item {
-  padding: 0 10px;
+  height: 100%;
 }
 
-.no-products {
-  text-align: center;
-  padding: 20px;
-  color: #777;
-  font-style: italic;
+:host ::ng-deep .full-width-carousel .p-carousel-items-container {
+  padding: 0 1rem;
 }
 
-/* Customize the carousel navigation buttons */
 :host ::ng-deep .p-carousel .p-carousel-indicators {
   margin-top: 1rem;
 }
 
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev,
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next {
-  color: #3e3e30;
-  border: 1px solid #ddd;
+:host ::ng-deep .p-carousel-prev,
+:host ::ng-deep .p-carousel-next {
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  margin: 0 4px;
-  background-color: white;
-}
-
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev:hover,
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next:hover {
-  background-color: #f1f1f1;
+  width: 40px;
+  height: 40px;
+  margin: 0 10px;
+  color: #333;
 }
 
 @media (max-width: 768px) {
-  .related-products-container {
-    padding: 15px 0;
-  }
-
-  .section-title {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
+  :host ::ng-deep .p-carousel-prev,
+  :host ::ng-deep .p-carousel-next {
+    width: 32px;
+    height: 32px;
   }
 }

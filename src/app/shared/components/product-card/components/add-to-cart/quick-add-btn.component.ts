@@ -49,6 +49,7 @@ export class MobileQuickAddComponent {
   constructor(private cdr: ChangeDetectorRef) {}
 
   onToggleMobileQuickAdd(): void {
+    this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
     this.toggleMobileQuickAdd.emit();
     this.cdr.markForCheck();
   }

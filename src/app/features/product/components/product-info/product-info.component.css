@@ -159,3 +159,27 @@
   border-radius: 4px;
   text-align: center;
 }
+
+.wishlist-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.wishlist-container:hover .text-sm {
+  text-decoration: underline;
+}
+
+.wishlist-message {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.text-green-500 {
+  color: #10b981;
+}
+
+.text-red-500 {
+  color: #ef4444;
+}

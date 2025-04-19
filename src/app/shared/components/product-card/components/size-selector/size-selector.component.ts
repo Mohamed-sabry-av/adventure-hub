@@ -33,6 +33,7 @@ export class SizeSelectorComponent implements OnChanges {
   @Input() sizesPerPage: number = 5; // عدد المقاسات لكل صفحة
   @Output() selectSize = new EventEmitter<string>();
   @Output() addToCart = new EventEmitter<void>();
+  @Input() isMobile: boolean = false;
 
   sizeScrollIndex: number = 0;
   maxSizeScrollIndex: number = 0;

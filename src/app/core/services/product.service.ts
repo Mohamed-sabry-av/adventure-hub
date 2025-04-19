@@ -35,7 +35,8 @@ export class ProductService {
           )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
-          .set('stock_status', 'instock'),
+          .set('stock_status', 'instock')
+          .set('status', 'publish'),
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
@@ -75,7 +76,8 @@ export class ProductService {
           .set('_fields', 'id')
           .set('per_page', '1')
           .set('page', '1')
-          .set('stock_status', 'instock'),
+          .set('stock_status', 'instock')
+          .set('status', 'publish'),
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
@@ -116,7 +118,8 @@ export class ProductService {
           )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
-          .set('stock_status', 'instock'),
+          .set('stock_status', 'instock')
+          .set('status', 'publish'),
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
@@ -156,7 +159,8 @@ export class ProductService {
           .set('_fields', 'id')
           .set('per_page', '1')
           .set('page', '1')
-          .set('stock_status', 'instock'),
+          .set('stock_status', 'instock')
+          .set('status', 'publish'),
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
