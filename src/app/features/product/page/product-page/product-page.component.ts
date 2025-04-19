@@ -9,6 +9,9 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
 import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
+import { HistoryPageComponent } from '../../../products/pages/History-page/history-page.component';
+import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
+import { CommonModule } from '@angular/common';
 
 declare var _learnq: any; // تعريف متغير Klaviyo العام
 
@@ -17,11 +20,12 @@ declare var _learnq: any; // تعريف متغير Klaviyo العام
   imports: [
     ProductImagesComponent,
     ProductInfoComponent,
-    RouterLink,
     ProductDescComponent,
     ProductRelatedComponent,
     AppContainerComponent,
     BreadcrumbComponent,
+    RecentProductsMiniComponent,
+    CommonModule
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',

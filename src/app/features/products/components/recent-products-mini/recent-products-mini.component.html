@@ -1,0 +1,13 @@
+<div class="recent-products-mini" *ngIf="(recentProducts$ | async)?.length">
+    <div class="header">
+      <h3 class="title">Recently Viewed</h3>
+      <a routerLink="/products/history" class="view-all-link">View All</a>
+    </div>
+  
+    <div class="products-container">
+      <div *ngFor="let product of recentProducts$ | async" class="product-item-wrapper">
+        <app-product-card [product]="product"></app-product-card>
+      </div>
+    </div>
+  </div>
+  

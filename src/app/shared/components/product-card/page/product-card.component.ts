@@ -456,7 +456,7 @@ isAddToCartDisabled(): boolean {
                 ...this.product,
                 id: this.selectedVariation.id,
                 price: this.selectedVariation.price || this.product.price,
-                additional_images: this.selectedVariation.additional_images || this.product.images[0],
+                additional_images: this.selectedVariation.additional_images || this.product.images,
                 attributes: this.selectedVariation.attributes,
                 stock_status: this.selectedVariation.stock_status,
                 quantity_limits: this.selectedVariation.quantity_limits || this.product.quantity_limits

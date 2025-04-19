@@ -201,6 +201,10 @@
   margin-top: 16px;
 }
 
+.relatedProducts{
+  z-index: 1 !important;
+}
+
 .skeleton-related {
   display: flex;
   gap: 16px;
