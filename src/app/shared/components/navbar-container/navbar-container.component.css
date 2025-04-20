@@ -1,0 +1,39 @@
+/* Custom scrollbar styles */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #717261 #262626;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #262626;
+    border-radius: 2px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #717261;
+    border-radius: 2px;
+    border: 2px solid #262626;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #8C8C7A;
+  }
+  
+  /* Animation for dropdown menu */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .subLinks-child {
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  /* تحسينات لمراعاة وضع السكرول */
+  :host-context(.header-scrolled) .subLinks-child {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  }

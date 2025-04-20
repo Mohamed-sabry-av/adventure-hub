@@ -1,24 +1,41 @@
-.sale-products {
-    background-color: #f9f9f9;
+.products-carousel {
+  margin: 0 -0.5rem; /* Offset the padding of carousel items */
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.carousel-item {
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* Override PrimeNG carousel styles for better mobile experience */
+:host ::ng-deep .custom-carousel .p-carousel-indicators {
+  margin-top: 0.5rem;
+}
+
+:host ::ng-deep .custom-carousel .p-carousel-container {
+  padding: 0;
+}
+
+/* Hide arrows on mobile */
+@media (max-width: 767px) {
+  :host ::ng-deep .custom-carousel .p-carousel-prev,
+  :host ::ng-deep .custom-carousel .p-carousel-next {
+    display: none !important;
+  }
+}
+
+/* Ensure carousel fits within mobile screen */
+@media (max-width: 576px) {
+  .products-carousel {
+    margin: 0 -0.25rem;
+    width: 100vw;
+    max-width: calc(100% + 0.5rem);
+    transform: translateX(-0.25rem);
   }
   
-  .section-header h2 {
-    position: relative;
+  .carousel-item {
+    padding: 0 0.25rem;
   }
-  
-  .section-header h2::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -5px;
-    width: 40px;
-    height: 3px;
-    background-color: #ef4444;
-  }
-  
-  @media (max-width: 640px) {
-    .products-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-  }
+}

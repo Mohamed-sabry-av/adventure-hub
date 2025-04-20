@@ -38,11 +38,11 @@
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <a class="">
+      <a [routerLink]="item.permalink">
         <img
           [src]="item.images.imageSrc"
           [alt]="item.images.imageAlt"
-          class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover"
+          class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer"
         />
       </a>
 
@@ -52,7 +52,12 @@
             <p class="font-normal text-[#b2b48d]">
               {{ item.name.split(" ")[0] }}
             </p>
-            <p class="text-base" [innerHTML]="item.name"></p>
+            <a [routerLink]="item.permalink">
+              <p
+                class="text-base cursor-pointer hover:underline"
+                [innerHTML]="item.name"
+              ></p>
+            </a>
             <p class="text-base">
               {{ item.prices.price }}
               @if (item.prices.regular_price !== item.prices.price) {
@@ -62,8 +67,8 @@
               }
             </p>
 
-            @if (item.type ==='variation') { @for (attribute of item.attributes;
-            track $index) {
+            @if (item.type !== '') { @for (attribute of item.attributes; track
+            $index) {
             <p>
               {{ attribute.name }} :
               <span class="font-light">

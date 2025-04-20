@@ -24,12 +24,24 @@
       </div>
     }
     
-    <!-- Products Grid -->
+    <!-- Products Carousel -->
     @if (!loading && !error && products.length > 0) {
-      <div class="products-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        @for (product of products; track product.id) {
-          <app-product-card [product]="product"></app-product-card>
-        }
+      <div class="products-carousel overflow-hidden">
+        <p-carousel 
+          [value]="products" 
+          [numVisible]="getVisibleItemsCount()" 
+          [numScroll]="1"
+          [circular]="true"
+          [autoplayInterval]="5000"
+          [responsiveOptions]="responsiveOptions"
+          styleClass="custom-carousel"
+        >
+          <ng-template let-product pTemplate="item">
+            <div class="carousel-item px-2">
+              <app-product-card [product]="product"></app-product-card>
+            </div>
+          </ng-template>
+        </p-carousel>
       </div>
     }
     

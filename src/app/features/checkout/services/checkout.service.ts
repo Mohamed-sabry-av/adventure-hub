@@ -9,7 +9,10 @@ import {
   createOrderAction,
   removeCouponAction,
 } from '../../../Store/actions/checkout.action';
-import { validCouponSelector } from '../../../Store/selectors/checkout.selector';
+import {
+  copuponDataSelector,
+  copuponStatusSelector,
+} from '../../../Store/selectors/checkout.selector';
 import { AccountAuthService } from '../../auth/account-auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -22,9 +25,13 @@ export class CheckoutService {
   selectedCountry$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   emailIsUsed$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   productsOutStock$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
-  appliedCoupon$: Observable<any> = this.store.select(validCouponSelector);
+  appliedCouponStatus$: Observable<any> = this.store.select(
+    copuponStatusSelector
+  );
 
+  appliedCouponValue$: Observable<any> = this.store.select(copuponDataSelector);
   applyCoupon(couponValue: string) {
+    couponValue = couponValue.trim();
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
         this.store.dispatch(
@@ -44,8 +51,18 @@ export class CheckoutService {
     });
   }
 
-  removeCoupon() {
-    this.store.dispatch(removeCouponAction());
+  removeCoupon(couponValue: string) {
+    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+      if (isLoggedIn) {
+        this.store.dispatch(
+          removeCouponAction({ validCoupon: couponValue, isLoggedIn: true })
+        );
+      } else {
+        this.store.dispatch(
+          removeCouponAction({ validCoupon: couponValue, isLoggedIn: false })
+        );
+      }
+    });
   }
 
   getSelectedCountry(country: string) {
@@ -94,13 +111,14 @@ export class CheckoutService {
   private getCoupons(
     form: FormGroup
   ): Observable<{ isValid: boolean; coupon: any[] }> {
-    return this.appliedCoupon$.pipe(
+    return this.appliedCouponValue$.pipe(
       map((response: any) => {
-        if (response?.validCoupon) {
-          const coupon = [{ code: response.validCoupon.code }];
-          const isUsed = response.validCoupon.used_by?.includes(
-            form.value.email
-          );
+        console.log(response);
+        if (response?.code) {
+          const coupon = [{ code: response.code }];
+          console.log(coupon);
+          const isUsed = response.used_by?.includes(form.value.email);
+          console.log(isUsed);
           this.emailIsUsed$.next(isUsed);
           return { isValid: !isUsed, coupon };
         }
@@ -114,8 +132,8 @@ export class CheckoutService {
     return this.accountAuthService.isLoggedIn$.pipe(
       map((isLoggedIn: boolean) => {
         if (isLoggedIn) {
-          let loadedCustomerId: any = localStorage.getItem('customerid');
-          return loadedCustomerId ? JSON.parse(loadedCustomerId) : 0;
+          let loadedCustomerId: any = localStorage.getItem('customerId');
+          return loadedCustomerId ? JSON.parse(loadedCustomerId).value : 0;
         }
         return 0;
       })
@@ -129,8 +147,9 @@ export class CheckoutService {
   }) {
     const subscription = this.cartService.savedUserCart$.subscribe((cart) => {
       const outOfStockItems =
-        cart?.items?.filter((item: any) => item.stock_status !== 'instock') ||
-        [];
+        cart?.items?.filter((item: any) => {
+          return item.stock_status !== 'instock';
+        }) || [];
 
       if (outOfStockItems.length > 0) {
         const outOfStockProducts = outOfStockItems.map((item: any) => ({
@@ -186,6 +205,7 @@ export class CheckoutService {
             coupon_lines: couponData.coupon || [],
             customer_id: customerId || 0,
           };
+
           if (couponData.isValid || couponData.coupon.length === 0) {
             this.store.dispatch(createOrderAction({ orderDetails: orderData }));
           } else {

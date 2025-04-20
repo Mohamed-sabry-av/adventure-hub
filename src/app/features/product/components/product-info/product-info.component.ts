@@ -210,7 +210,7 @@ export class ProductInfoComponent {
     if (product.type === 'simple' || !this.allVariationAttributesSelected) {
       const price = product.price || '';
       const regularPrice = product.regular_price || price;
-      const isOnSale = product.onsale && price !== regularPrice && parseFloat(price) < parseFloat(regularPrice);
+      const isOnSale = product.on_sale && price !== regularPrice && parseFloat(price) < parseFloat(regularPrice);
       return { price, regularPrice, isOnSale };
     }
 
@@ -219,7 +219,7 @@ export class ProductInfoComponent {
       const price = selectedVariation.price || product.price || '';
       const regularPrice = selectedVariation.regular_price || price;
       const isOnSale =
-        selectedVariation.onsale &&
+        selectedVariation.on_sale &&
         price !== regularPrice &&
         parseFloat(price) < parseFloat(regularPrice);
       return { price, regularPrice, isOnSale };

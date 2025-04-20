@@ -272,19 +272,82 @@
   right: 5px;
 }
 
+/* تحسينات للهواتف المحمولة */
 @media (max-width: 768px) {
+  .image-slider {
+    height: 180px; /* تقليل الارتفاع بشكل أكبر لوضع الكروسيل */
+    max-height: 180px; 
+    min-height: 150px;
+    aspect-ratio: 1 / 1; /* نسبة مربعة للهواتف */
+  }
+
   .slide {
     height: auto;
   }
-}
-
-@media (max-width: 768px) {
-  .image-slider {
-    aspect-ratio: 1 / 1; /* نسبة مربعة للهواتف */
-    max-height: 230px; /* تقليل الارتفاع على الهواتف */
-  }
 
   .slide img {
+    width: 100%;
+    height: 180px;
     object-fit: contain;
   }
+  
+  /* جعل الأيقونات والشارات أصغر */
+  .discount-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    top: 5px;
+    right: 5px;
+  }
+  
+  .tag {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+  }
+  
+  /* تصغير النقاط المؤشرة للشرائح */
+  .slider-dots {
+    bottom: 5px;
+    gap: 3px;
+  }
+  
+  .dot, .slider-dot {
+    width: 4px;
+    height: 4px;
+  }
+  
+  /* تقليل حجم مؤشرات التمرير */
+  .swipe-indicator {
+    width: 15px;
+    height: 30px;
+    font-size: 0.7rem;
+  }
+}
+
+/* تحسينات إضافية لشاشات الهواتف الصغيرة جدًا */
+@media (max-width: 360px) {
+  .image-slider {
+    height: 150px;
+    max-height: 150px; 
+    min-height: 120px;
+  }
+  
+  .slide img {
+    height: 150px;
+  }
+}
+
+/* تعديل لعرض الكروسيل في صفحات المنتجات */
+.p-carousel-container .image-slider {
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: unset;
+  max-height: unset;
+}
+
+/* تخصيص للتوافق مع عناصر بريم إن جي */
+.p-carousel-container .slide img {
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  margin: 0 auto;
 }

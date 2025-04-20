@@ -4,7 +4,7 @@
     position="right"
     [visible]="(sideCartVisible$ | async)!"
     (onHide)="hideSideCart()"
-    [modal]="false"
+    styleClass="sidecart-drawer"
   >
     <ng-template #headless pTemplate="content">
       <main class="flex flex-col h-full">
@@ -67,11 +67,13 @@
               <!-- Details -->
               <div class="flex items-center gap-x-2">
                 <div class="w-[55px] h-[55px] border rounded-lg p-1 relative">
-                  <img
-                    [src]="product.images.imageSrc"
-                    [alt]="product.images.imageAlt"
-                    class="w-full h-full object-cover"
-                  />
+                  <a [routerLink]="product.permalink">
+                    <img
+                      [src]="product.images.imageSrc"
+                      [alt]="product.images.imageAlt"
+                      class="w-full h-full object-cover cursor-pointer"
+                    />
+                  </a>
                   <div
                     class="absolute -top-2 left-[45px] cursor-pointer"
                     (click)="onDeleteProduct(product)"
@@ -84,7 +86,12 @@
                   </div>
                 </div>
                 <div class="w-[calc(100%-70px)] flex flex-col justify-center">
-                  <p class="text-[13px]" [innerHTML]="product.name"></p>
+                  <a [routerLink]="product.permalink">
+                    <p
+                      class="text-[13px] cursor-pointer hover:underline"
+                      [innerHTML]="product.name"
+                    ></p>
+                  </a>
                   <p class="text-xs">
                     <span>{{ product.quantity }} &#215; </span>
                     <span class="font-semibold text-black">{{
@@ -121,12 +128,14 @@
             <button
               class="font-semibold w-full py-2 md:py-3 text-center text-white rounded-lg transition-all duration-150 bg-orange-500 hover:bg-orange-600 cursor-pointer"
               [routerLink]="['cart']"
+              (click)="hideSideCart()"
             >
               <span class="font-semibold text-sm md:text-base">View Cart</span>
             </button>
             <button
               class="font-semibold w-full py-2 md:py-3 text-center text-white rounded-lg transition-all duration-150 bg-green-600 hover:bg-green-700 cursor-pointer"
               [routerLink]="['checkout']"
+              (click)="hideSideCart()"
             >
               <span class="flex justify-center items-center gap-x-1">
                 <i class="pi pi-lock"></i>

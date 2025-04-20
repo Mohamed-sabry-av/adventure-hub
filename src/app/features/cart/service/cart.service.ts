@@ -33,6 +33,7 @@ export class CartService {
     let coupons: any = {};
 
     if (coupon) {
+      coupon = coupon[0];
       const minAmount = parseFloat(coupon.minimum_amount || '0');
       const maxAmount = parseFloat(coupon.maximum_amount || '0');
 
@@ -84,12 +85,12 @@ export class CartService {
       } else {
         let loadedCart: any = localStorage.getItem('Cart');
         loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-        console.log(loadedCart);
         const coupons = loadedCart.coupons || {};
         const couponKeys = Object.keys(coupons);
 
         const couponData =
           couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+
         this.store.dispatch(
           fetchCouponsAction({
             enteredCouponValue: couponData,
@@ -99,9 +100,8 @@ export class CartService {
       }
     });
   }
-  savedUserCart$: Observable<any> = this.store
-    .select(savedUserCartSelector)
-    .pipe(shareReplay(1));
+  savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
+  // .pipe(shareReplay(1));
 
   updateQuantityOfProductInCart(
     selectedProductQuantity: number,

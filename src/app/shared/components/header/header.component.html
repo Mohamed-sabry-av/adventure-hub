@@ -1,76 +1,89 @@
-<header>
-  @if (currentPage ==='checkout') {
-  <div
-    class="h-[135px] w-full bg-white border-b relative flex items-center justify-center"
+<div [class.header-normal-scrolled]="isScrolled">
+  <header 
+    [ngClass]="[
+      isScrolled ? 'sticky-header' : 'header-normal',
+      isScrolled && !isMobile ? '' : (headerVisible ? 'header-visible' : 'header-hidden'),
+      isScrolled ? 'header-scrolled' : ''
+    ]"
   >
-    <a class="block" [routerLink]="''">
-      <img
-        src="header/White-logo-01"
-        alt="Adventures hub logo"
-        routerLink="/home"
-        class="w-[200px] h-10 lg:w-[250px] lg:h-12"
-      />
-    </a>
-
-    <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
-  </div>
-
-  } @else {
-  <!-- معلومات فرعية -->
-  <div class="py-2 text-center px-4 text-white">
-    <p class="text-sm">
-      <strong>Free Delivery</strong> for orders over AED 100
-    </p>
-  </div>
-
-  <!-- معلومات اساسية -->
-  <app-app-container>
-    <div class="py-3 flex items-center justify-between">
-      <!-- Logo -->
-      <a class="block">
+    @if (currentPage ==='checkout') {
+    <div
+      class="h-[135px] w-full bg-white border-b relative flex items-center justify-center"
+    >
+      <a class="block" [routerLink]="''">
         <img
-          src="header/White logo-01.png"
+          src="header/White-logo-01"
+          alt="Adventures hub logo"
           routerLink="/home"
           class="w-[200px] h-10 lg:w-[250px] lg:h-12"
         />
       </a>
 
-      <!-- Search -->
-      <div class="flex-1 md:block hidden">
+      <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
+    </div>
+
+    } @else {
+    <!-- معلومات فرعية -->
+    <div class="py-1 text-center px-2 text-white bg-[#2E2E2E] secondary-info"
+         [class.hidden]="isScrolled && !isMobile">
+      <p class="text-sm">
+        <strong>Free Delivery</strong> for orders over AED 100
+      </p>
+    </div>
+
+    <!-- معلومات اساسية -->
+    <app-app-container class="bg-[#2E2E2E]">
+      <div class="py-3 flex items-center justify-between">
+        <!-- Logo -->
+        <a class="block logo-container">
+          <img
+            src="header/White logo-01.png"
+            routerLink="/home"
+            class="w-[200px] h-10 lg:w-[250px] lg:h-12 transition-all duration-300"
+          />
+        </a>
+
+        <!-- Search -->
+        <div class="flex-1 md:block hidden">
+          <app-search-bar />
+        </div>
+
+        <!-- Icons -->
+        <div
+          class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3"
+        >
+          <a routerLink="/user">
+            <i class="pi pi-user"></i>
+          </a>
+          <a routerLink="/cart">
+            <i class="pi pi-shopping-bag"></i>
+          </a>
+          <i
+            class="pi pi-bars"
+            (click)="onSiwtchSideNav(true)"
+            *ngIf="(sidenavIsVisible$ | async) === false"
+          ></i>
+          <i
+            class="pi pi-times"
+            (click)="onSiwtchSideNav(false)"
+            *ngIf="(sidenavIsVisible$ | async) === true"
+          ></i>
+        </div>
+      </div>
+      <div class="w-full -mt-[10px] md:hidden block z-10">
         <app-search-bar />
       </div>
+    </app-app-container>
 
-      <!-- Icons -->
-      <div
-        class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3"
-      >
-        <a routerLink="/user">
-          <i class="pi pi-user"></i>
-        </a>
-        <a routerLink="/cart">
-          <i class="pi pi-shopping-bag"></i>
-        </a>
-        <i
-          class="pi pi-bars"
-          (click)="onSiwtchSideNav(true)"
-          *ngIf="(sidenavIsVisible$ | async) === false"
-        ></i>
-        <i
-          class="pi pi-times"
-          (click)="onSiwtchSideNav(false)"
-          *ngIf="(sidenavIsVisible$ | async) === true"
-        ></i>
-      </div>
+    <!-- Navbar section -->
+    <div [ngClass]="{ 'hidden': !showNavbar && !isMobile }">
+      @defer (on idle) {
+      <app-navbar-container
+        [mainCategories]="mainCategories"
+        [allCategories]="allCategories"
+      />
+      }
     </div>
-    <div class="w-full -mt-[10px] md:hidden block z-10">
-      <app-search-bar />
-    </div>
-  </app-app-container>
-
-  @defer (on idle) {
-  <app-navbar-container
-    [mainCategories]="mainCategories"
-    [allCategories]="allCategories"
-  />
-  } }
-</header>
+    } 
+  </header>
+</div>

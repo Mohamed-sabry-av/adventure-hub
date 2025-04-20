@@ -1,6 +1,5 @@
-// src/app/components/header/header.component.ts
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { AsyncPipe, CommonModule, DOCUMENT } from '@angular/common';
+import { Component, DestroyRef, HostListener, Inject, inject, OnInit } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../interfaces/category.model';
 import { Carousel } from 'primeng/carousel';
@@ -34,19 +33,59 @@ export class HeaderComponent implements OnInit {
   private categoriesService = inject(CategoriesService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  @Inject(DOCUMENT) private document!: Document;
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
   sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
+  isScrolled: boolean = false;
+  lastScrollPosition: number = 0;
+  headerVisible: boolean = true;
+  isMobile: boolean = false;
+  showNavbar: boolean = true;
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    const scrollPosition = window.scrollY;
+    
+    // Set isScrolled for styling
+    this.isScrolled = scrollPosition > 50;
+    
+    // On mobile, hide entire header when scrolling down
+    if (this.isMobile) {
+      const scrollingDown = scrollPosition > this.lastScrollPosition;
+      
+      if (scrollingDown && scrollPosition > 200) {
+        this.headerVisible = false;
+      } else {
+        this.headerVisible = true;
+      }
+    } else {
+      // On desktop, always keep main header visible, only manage navbar visibility
+      this.headerVisible = true;
+      
+      // Hide/show navbar based on scroll position
+      this.showNavbar = scrollPosition <= 100;
+    }
+    
+    // Update last scroll position
+    this.lastScrollPosition = scrollPosition;
+  }
+  
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.isMobile = window.innerWidth <= 960;
+  }
 
   ngOnInit() {
     this.fetchAllCategories();
+    this.onWindowResize(); // Initialize mobile state
 
     const subscribtion = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
+      .subscribe((event: any) => {
         if (event.url === '/checkout') {
           this.currentPage = 'checkout';
         } else {

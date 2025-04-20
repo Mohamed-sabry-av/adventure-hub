@@ -106,5 +106,5 @@ export class NavbarMainCategoriesComponent {
 
   isCategoryExpanded(categoryId: number): boolean {
     return this.expandedCategories.has(categoryId);
-  }
+  }
 }

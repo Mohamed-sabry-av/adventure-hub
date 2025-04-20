@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CheckoutFormComponent } from '../../component/checkout-form/checkout-form.component';
 import { CheckoutSummaryComponent } from '../../component/checkout-summary/checkout-summary.component';
 import { CartService } from '../../../cart/service/cart.service';
@@ -17,6 +17,7 @@ import { CheckoutService } from '../../services/checkout.service';
   ],
   templateUrl: './checkout-page.component.html',
   styleUrl: './checkout-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { ngSkipHydration: '' },
 })
 export class CheckoutPageComponent {
@@ -28,6 +29,5 @@ export class CheckoutPageComponent {
 
   ngOnInit() {
     this.cartService.fetchUserCart();
-    this.loadedCart$.subscribe((res) => console.log(res));
   }
 }
