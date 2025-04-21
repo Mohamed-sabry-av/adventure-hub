@@ -1,4 +1,4 @@
-@if (loadedOrder$ | async) {
+@if ((loadedOrder$ | async).id) {
 <main>
   <!-- Order Recevied -->
   <div class="mt-12 mb-7">
@@ -25,7 +25,7 @@
       </li>
       <li class="py-3 px-5">
         Email:
-        <strong>test2&#64; {{ (loadedOrder$ | async).billing.email }}</strong>
+        <strong>{{ (loadedOrder$ | async).billing.email }}</strong>
       </li>
       <li class="py-3 px-5">
         Total:

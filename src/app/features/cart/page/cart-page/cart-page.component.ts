@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+} from '@angular/core';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { CartProductsComponent } from '../../components/cart-products/cart-products.component';
 import { CartCheckoutComponent } from '../../components/cart-checkout/cart-checkout.component';
@@ -6,7 +11,8 @@ import { CartService } from '../../service/cart.service';
 import { ServiceHighlightsComponent } from '../../../../shared/components/service-highlights/service-highlights.component';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { UIService } from '../../../../shared/services/ui.service';
+import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 
 @Component({
   selector: 'app-cart-page',
@@ -16,7 +22,7 @@ import { RouterLink } from '@angular/router';
     CartCheckoutComponent,
     ServiceHighlightsComponent,
     AsyncPipe,
-    RouterLink,
+    DialogErrorComponent,
   ],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',
@@ -24,10 +30,20 @@ import { RouterLink } from '@angular/router';
 })
 export class CartPageComponent {
   private cartService = inject(CartService);
+  private uiService = inject(UIService);
+  private destroyRef = inject(DestroyRef);
+
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
+  isLoading$: Observable<boolean> = this.uiService.isLoading$;
+  isError$: Observable<boolean> = this.uiService.uiFailure$;
 
   ngOnInit() {
-    this.cartService.fetchUserCart();
-    console.log('HELLLLLLLLLOOO');
+    const subscription = this.loadedCart$.subscribe((res: any) => {
+      if (res?.length === 0) {
+        this.cartService.fetchUserCart();
+      }
+    });
+
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

@@ -52,7 +52,7 @@
         #couponInput
         [disabled]="haveCoupon === true"
         [class]="{
-            'bg-[#96a1b9]': haveCoupon ===true ,
+            'bg-[#8f97a8]': haveCoupon ===true ,
             'text-black': haveCoupon ===true ,
           }"
       />
@@ -65,7 +65,14 @@
           'bg-orange-500': haveCoupon === false
         }"
       >
+        @if (isCouponLoading$ | async) {
+        <div
+          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+
+        }@else {
         {{ haveCoupon === true ? "Remove" : "Apply" }}
+        }
       </button>
     </div>
 

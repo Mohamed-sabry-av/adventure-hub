@@ -32,6 +32,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { StripeService } from 'ngx-stripe';
 import { HttpClient } from '@angular/common/http';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { UIService } from '../../../../shared/services/ui.service';
 
 declare var TabbyCheckout: any; // Declare TabbyCheckout for TypeScript
 
@@ -70,6 +71,7 @@ export class CheckoutFormComponent {
   private destroyRef = inject(DestroyRef);
   private formValidationService = inject(FormValidationService);
   private checkoutService = inject(CheckoutService);
+  private uiService = inject(UIService);
 
   // -----------------------------------------------------------------
 
@@ -79,6 +81,7 @@ export class CheckoutFormComponent {
   summaryIsVisible$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
     false
   );
+  isOrderLoading$: Observable<boolean> = this.uiService.isOrderLoading$;
   isVisible: boolean = false;
   paymentRadiosValue: string = 'cod';
 
@@ -132,6 +135,8 @@ export class CheckoutFormComponent {
     this.billingForm = this.createAddressForm(true);
     this.shippingForm = this.createAddressForm(false);
 
+    this.resetFormState();
+
     const subscribtion3 = this.billingForm
       .get('shippingMethod')
       ?.valueChanges.subscribe((method) => {
@@ -139,6 +144,9 @@ export class CheckoutFormComponent {
           this.isShippingDifferent = true;
         } else {
           this.isShippingDifferent = false;
+          this.billingForm
+            .get('countrySelect')
+            ?.setValue(this.billingForm.controls?.['countrySelect'].value);
         }
         this.toggleShippingForm();
       });
@@ -152,18 +160,64 @@ export class CheckoutFormComponent {
     const subscribtion2 = this.billingForm
       .get('countrySelect')
       ?.valueChanges.subscribe((value) => {
-        this.onGetSelectedCountry(value);
+        if (!this.isShippingDifferent) {
+          this.onGetSelectedCountry(value);
+        }
+      });
+
+    const subscribtion4 = this.shippingForm
+      ?.get('countrySelect')
+      ?.valueChanges.subscribe((value) => {
+        if (this.isShippingDifferent) {
+          this.onGetSelectedCountry(value);
+        }
       });
 
     this.destroyRef.onDestroy(() => {
       subscribtion?.unsubscribe();
       subscribtion2?.unsubscribe();
       subscribtion3?.unsubscribe();
+      subscribtion4?.unsubscribe();
     });
     const emailValue = this.emailFieldValue;
     if (emailValue) {
       this.billingForm.get('email')?.setValue(emailValue);
     }
+  }
+
+  private resetFormState() {
+    this.billingForm.reset({
+      countrySelect: '',
+      firstName: '',
+      lastName: '',
+      address: '',
+      apartment: '',
+      city: '',
+      state: '',
+      paymentMethod: 'cod',
+      shippingMethod: 'same',
+      email: '',
+      phone: '',
+      postCode: '',
+    });
+
+    this.shippingForm.reset({
+      countrySelect: '',
+      firstName: '',
+      lastName: '',
+      address: '',
+      apartment: '',
+      city: '',
+      state: '',
+    });
+
+    this.paymentRadiosValue = 'cod';
+    this.isShippingDifferent = false;
+    this.isVisible = false;
+    this.summaryIsVisible$.next(false);
+
+    this.toggleCreditCardValidators('cod');
+    this.toggleShippingForm();
   }
 
   avaliableCountries(): any[] {

@@ -1,4 +1,16 @@
-@if ((loadedCart$ | async)?.length === 0) {
+@if ((isLoading$ | async) && !(isError$ | async) ) {
+<div class="flex justify-center my-20">
+  <div
+    class="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-gray-900"
+  ></div>
+</div>
+} @else if (isError$ | async) {
+<p class="w-full sm:text-xl text-center my-20 p-4">
+  Something went wrong fetching the available collections 💥💥. Please try again
+  later.
+</p>
+} @else if((loadedCart$ | async)?.length === 0) {
+
 <div
   class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[20px]"
 >
@@ -15,7 +27,7 @@
     >Return to shop</a
   >
 </div>
-}@else {
+} @else {
 <div
   class="max-w-[700px] lg:max-w-[1180px] mx-auto flex flex-col lg:flex-row px-4 lg:px-0 lg:mt-0 mt-6"
 >
@@ -39,3 +51,5 @@
   </div>
 </div>
 }
+
+<app-dialog-error />
