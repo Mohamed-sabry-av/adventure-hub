@@ -49,8 +49,8 @@
 }
 
 .slide img {
-  width: 300px;
-  height: 300px;
+  width: 100%;
+  height: 100%;
   object-fit: contain; /* Image will be contained within the frame */
   background-color: #ffffff;
   transition: transform 0.3s ease;
@@ -59,16 +59,14 @@
 /* Product tags styling - Positioned at the bottom of the card */
 .product-tags {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width:fit-content;
+  bottom: 8px;
+  left: 8px;
+  width: fit-content;
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
   gap: 5px;
   z-index: 10;
-  /* padding: 10px; */
-  /* background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); */
 }
 
 .tag {
@@ -82,79 +80,37 @@
   border-radius: 0;
 }
 
-/* Tag styles based on geardoor.ae */
+/* Tag styles with improved colors */
 .tag-sale {
-  background-color: #d4513a;
+  background-color: #dc2626; /* Bright red for sales */
 }
 
 .tag-new {
-  background-color: #60a8c5;
+  background-color: #2563eb; /* Bright blue for new */
 }
 
 .tag-sold-out {
-  background-color: #ba1a3a;
+  background-color: #9ca3af; /* Gray for sold out */
 }
 
 .tag-hub {
-  background-color: #434236;
+  background-color: #16a34a; /* Match green color theme */
 }
 
 .tag-limited {
-  background-color: #a9886a;
+  background-color: #f59e0b; /* Amber for limited */
 }
 
 .tag-bestseller {
-  background-color: #ceaa96;
+  background-color: #8b5cf6; /* Purple for bestseller */
 }
 
 .tag-featured {
-  background-color: #d8c4a9;
+  background-color: #0d9488; /* Teal for featured */
 }
 
 .tag-default {
-  background-color: #434236;
-}
-
-/* Discount badge styling */
-.discount-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: #e53e3e;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 4px;
-  z-index: 10;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-/* Hover effect for images */
-.image-slider:hover img {
-  transform: scale(1.03);
-}
-
-/* Image placeholder during loading */
-.image-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
-}
-
-@keyframes shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
-}
-
-/* Fallback image styling */
-.fallback-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background-color: #f5f5f5;
+  background-color: #4b5563; /* Gray for default */
 }
 
 /* Slider dots styling */
@@ -184,119 +140,21 @@
   transform: scale(1.3);
 }
 
-/* Hide image while loading or on error */
-.hidden {
-  display: none;
+/* Hover effect for images */
+.product-card:hover .slide img {
+  transform: scale(1.03);
 }
 
-.slides-container {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.3s ease-in-out;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-}
-
-.slides-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-
-.slides-container .slide {
-  flex: 0 0 100%;
-  position: relative;
-  opacity: 1;
-  display: block;
-  scroll-snap-align: start;
-}
-
-.slider-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-}
-
-.slider-dot.active {
-  background-color: white;
-  transform: scale(1.3);
-}
-
-.card-image-container {
-  position: relative;
-  width: 100%;
-  height: 100%; /* بياخد الارتفاع من الـ parent (image-slider) */
-  max-height: 400px;
-  overflow: hidden;
-  border-top-left-radius: 0.375rem;
-  border-top-right-radius: 0.375rem;
-}
-
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* الصورة هتظهر كاملة بدون قص */
-  object-position: center;
-  background-color: #ffffff;
-}
-
-/* Mobile swipe indicators */
-.swipe-indicator {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0.7;
-  color: white;
-  background: rgba(0,0,0,0.3);
-  width: 20px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  z-index: 5;
-}
-
-.swipe-left {
-  left: 5px;
-}
-
-.swipe-right {
-  right: 5px;
-}
-
-/* تحسينات للهواتف المحمولة */
-@media (max-width: 768px) {
+/* Mobile Optimizations */
+@media (max-width: 767px) {
   .image-slider {
-    height: 180px; /* تقليل الارتفاع بشكل أكبر لوضع الكروسيل */
-    max-height: 180px; 
-    min-height: 150px;
-    aspect-ratio: 1 / 1; /* نسبة مربعة للهواتف */
-  }
-
-  .slide {
-    height: auto;
-  }
-
-  .slide img {
-    width: 100%;
     height: 180px;
-    object-fit: contain;
+    max-height: 180px;
+    min-height: 180px;
   }
   
-  /* جعل الأيقونات والشارات أصغر */
-  .discount-badge {
-    font-size: 9px;
-    padding: 2px 6px;
-    top: 5px;
-    right: 5px;
+  .slide img {
+    height: 180px;
   }
   
   .tag {
@@ -304,50 +162,25 @@
     padding: 2px 6px;
   }
   
-  /* تصغير النقاط المؤشرة للشرائح */
   .slider-dots {
     bottom: 5px;
     gap: 3px;
   }
   
-  .dot, .slider-dot {
+  .dot {
     width: 4px;
     height: 4px;
   }
-  
-  /* تقليل حجم مؤشرات التمرير */
-  .swipe-indicator {
-    width: 15px;
-    height: 30px;
-    font-size: 0.7rem;
-  }
 }
 
-/* تحسينات إضافية لشاشات الهواتف الصغيرة جدًا */
 @media (max-width: 360px) {
   .image-slider {
     height: 150px;
-    max-height: 150px; 
-    min-height: 120px;
+    max-height: 150px;
+    min-height: 150px;
   }
   
   .slide img {
     height: 150px;
   }
-}
-
-/* تعديل لعرض الكروسيل في صفحات المنتجات */
-.p-carousel-container .image-slider {
-  aspect-ratio: 1 / 1;
-  height: auto;
-  min-height: unset;
-  max-height: unset;
-}
-
-/* تخصيص للتوافق مع عناصر بريم إن جي */
-.p-carousel-container .slide img {
-  width: 100%;
-  height: auto;
-  max-height: 180px;
-  margin: 0 auto;
 }
