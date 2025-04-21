@@ -1,3 +1,16 @@
+<!-- @if (isOrderLoading$ | async) {
+<div class="flex justify-center my-20">
+  <div
+    class="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-gray-900"
+  ></div>
+</div>
+}@else if(isError$ | async) {
+<p class="w-full sm:text-xl text-center my-20 p-4">
+  Something went wrong fetching the available collections 💥💥. Please try again
+  later.
+</p>
+<app-dialog-error />
+}@else { -->
 <app-app-container>
   <app-order-meta-data />
 
@@ -7,3 +20,5 @@
 </app-app-container>
 
 <app-service-highlights />
+
+<!-- } -->

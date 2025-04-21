@@ -14,6 +14,7 @@ import {
   copuponStatusSelector,
 } from '../../../Store/selectors/checkout.selector';
 import { AccountAuthService } from '../../auth/account-auth.service';
+import { take } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
@@ -145,76 +146,83 @@ export class CheckoutService {
     shippingForm: FormGroup;
     isShippingDifferent: boolean;
   }) {
-    const subscription = this.cartService.savedUserCart$.subscribe((cart) => {
-      const outOfStockItems =
-        cart?.items?.filter((item: any) => {
-          return item.stock_status !== 'instock';
-        }) || [];
+    const subscription = this.cartService.savedUserCart$
+      .pipe(take(1))
+      .subscribe((cart) => {
+        const outOfStockItems =
+          cart?.items?.filter((item: any) => {
+            return item.stock_status !== 'instock';
+          }) || [];
 
-      if (outOfStockItems.length > 0) {
-        const outOfStockProducts = outOfStockItems.map((item: any) => ({
-          productId: item.id,
-          name: item.name || `Product ${item.id}`,
-        }));
-        this.productsOutStock$.next(outOfStockProducts);
-        console.warn(
-          'Cannot create order: Some products are out of stock:',
-          outOfStockProducts
-        );
-        return;
-      } else {
-        const subscription2 = combineLatest([
-          this.getCartItems(),
-          this.getCoupons(forms.billingForm),
-          this.getCustomerId(),
-        ]).subscribe(([lineItems, couponData, customerId]) => {
-          const billingAddress = {
-            first_name: forms.billingForm.get('firstName')?.value,
-            last_name: forms.billingForm.get('lastName')?.value,
-            address_1: forms.billingForm.get('address')?.value,
-            city: forms.billingForm.get('city')?.value,
-            state: forms.billingForm.get('state')?.value,
-            postcode: `${forms.billingForm.get('postCode')?.value}`,
-            country: forms.billingForm.get('countrySelect')?.value,
-            email: forms.billingForm.get('email')?.value,
-            phone: `${forms.billingForm.get('phone')?.value}`,
-          };
-          const shippingAddress = forms.isShippingDifferent
-            ? {
-                first_name: forms.shippingForm.get('firstName')?.value,
-                last_name: forms.shippingForm.get('lastName')?.value,
-                address_1: forms.shippingForm.get('address')?.value,
-                city: forms.shippingForm.get('city')?.value,
-                state: forms.shippingForm.get('state')?.value,
+        if (outOfStockItems.length > 0) {
+          const outOfStockProducts = outOfStockItems.map((item: any) => ({
+            productId: item.id,
+            name: item.name || `Product ${item.id}`,
+          }));
+          this.productsOutStock$.next(outOfStockProducts);
+          console.warn(
+            'Cannot create order: Some products are out of stock:',
+            outOfStockProducts
+          );
+          return;
+        } else {
+          const subscription2 = combineLatest([
+            this.getCartItems(),
+            this.getCoupons(forms.billingForm),
+            this.getCustomerId(),
+          ])
+            .pipe(take(1))
+            .subscribe(([lineItems, couponData, customerId]) => {
+              const billingAddress = {
+                first_name: forms.billingForm.get('firstName')?.value,
+                last_name: forms.billingForm.get('lastName')?.value,
+                address_1: forms.billingForm.get('address')?.value,
+                city: forms.billingForm.get('city')?.value,
+                state: forms.billingForm.get('state')?.value,
                 postcode: `${forms.billingForm.get('postCode')?.value}`,
-                country: forms.shippingForm.get('countrySelect')?.value,
-              }
-            : { ...billingAddress };
-          const orderData = {
-            payment_method:
-              forms.billingForm.get('paymentMethod')?.value || 'cod',
-            payment_method_title: this.getPaymentMethodTitle(
-              forms.billingForm.get('paymentMethod')?.value || 'cod'
-            ),
-            set_paid: this.getSetPaid(
-              forms.billingForm.get('paymentMethod')?.value || 'cod'
-            ),
-            billing: billingAddress,
-            shipping: shippingAddress,
-            line_items: lineItems || [],
-            coupon_lines: couponData.coupon || [],
-            customer_id: customerId || 0,
-          };
+                country: forms.billingForm.get('countrySelect')?.value,
+                email: forms.billingForm.get('email')?.value,
+                phone: `${forms.billingForm.get('phone')?.value}`,
+              };
+              const shippingAddress = forms.isShippingDifferent
+                ? {
+                    first_name: forms.shippingForm.get('firstName')?.value,
+                    last_name: forms.shippingForm.get('lastName')?.value,
+                    address_1: forms.shippingForm.get('address')?.value,
+                    city: forms.shippingForm.get('city')?.value,
+                    state: forms.shippingForm.get('state')?.value,
+                    postcode: `${forms.billingForm.get('postCode')?.value}`,
+                    country: forms.shippingForm.get('countrySelect')?.value,
+                  }
+                : { ...billingAddress };
+              const orderData = {
+                payment_method:
+                  forms.billingForm.get('paymentMethod')?.value || 'cod',
+                payment_method_title: this.getPaymentMethodTitle(
+                  forms.billingForm.get('paymentMethod')?.value || 'cod'
+                ),
+                set_paid: this.getSetPaid(
+                  forms.billingForm.get('paymentMethod')?.value || 'cod'
+                ),
+                billing: billingAddress,
+                shipping: shippingAddress,
+                line_items: [{ product_id: 132940, quantity: 1 }],
+                coupon_lines: couponData.coupon || [],
+                customer_id: customerId || 0,
+              };
 
-          if (couponData.isValid || couponData.coupon.length === 0) {
-            this.store.dispatch(createOrderAction({ orderDetails: orderData }));
-          } else {
-            alert('Coupon already used. Order not created.');
-          }
-        });
-        this.destroyRef.onDestroy(() => subscription2.unsubscribe());
-      }
-    });
+              if (couponData.isValid || couponData.coupon.length === 0) {
+                console.log(orderData);
+                this.store.dispatch(
+                  createOrderAction({ orderDetails: orderData })
+                );
+              } else {
+                alert('Coupon already used. Order not created.');
+              }
+            });
+          this.destroyRef.onDestroy(() => subscription2.unsubscribe());
+        }
+      });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

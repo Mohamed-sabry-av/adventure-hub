@@ -589,8 +589,12 @@
                   : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
               "
             >
-              @if (paymentRadiosValue === 'cod') { Complete order } @else { Pay
-              now }
+              @if (isOrderLoading$ | async) {
+              <div
+                class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+              ></div>
+              }@else { @if (paymentRadiosValue === 'cod') { Complete order }
+              @else { Pay now }}
             </button>
           </div>
           <hr />
@@ -642,8 +646,12 @@
                 : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
             "
           >
-            @if (paymentRadiosValue === 'cod') { Complete order } @else { Pay
-            now }
+            @if (isOrderLoading$ | async) {
+            <div
+              class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+            ></div>
+            }@else { @if (paymentRadiosValue === 'cod') { Complete order } @else
+            { Pay now }}
           </button>
         </div>
       </app-checkout-summary>

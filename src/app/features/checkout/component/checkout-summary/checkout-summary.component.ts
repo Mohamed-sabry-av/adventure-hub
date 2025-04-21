@@ -4,6 +4,7 @@ import { CartService } from '../../../cart/service/cart.service';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { CheckoutService } from '../../services/checkout.service';
 import { FormsModule } from '@angular/forms';
+import { UIService } from '../../../../shared/services/ui.service';
 
 @Component({
   selector: 'app-checkout-summary',
@@ -15,12 +16,14 @@ export class CheckoutSummaryComponent {
   private cartService = inject(CartService);
   private checkoutService = inject(CheckoutService);
   private destroyRef = inject(DestroyRef);
+  private uiService = inject(UIService);
   @Input({ required: true }) isVisible$!: Observable<boolean>;
 
   selectedCountry$: Observable<string> = this.checkoutService.selectedCountry$;
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
   appliedCouponStatus$: Observable<any> =
     this.checkoutService.appliedCouponStatus$;
+  isCouponLoading$: Observable<boolean> = this.uiService.isCouponLoading$;
 
   totalItemsLength: number = 0;
   couponValue: string = '';

@@ -1,13 +1,26 @@
 <div class="p-3">
   <!-- Categories/Brand -->
   <div class="text-xs text-gray-500 uppercase mb-1 category">
-    <span *ngIf="product.categories && product.categories.length">{{ product.categories[0].name }}</span>
-    <span *ngIf="product.categories && product.categories.length && getBrandName()">, </span>
-    <a *ngIf="getBrandName()" [routerLink]="['/product/brand', getBrandSlug()]" class="hover:underline">{{ getBrandName() }}</a>
+    <span
+      *ngIf="product.categories && product.categories.length"
+      [innerHtml]="product.categories[0].name"
+    ></span>
+    <span
+      *ngIf="product.categories && product.categories.length && getBrandName()"
+      >,
+    </span>
+    <a
+      *ngIf="getBrandName()"
+      [routerLink]="['/product/brand', getBrandSlug()]"
+      class="hover:underline"
+      >{{ getBrandName() }}</a
+    >
   </div>
 
   <!-- Product Name -->
-  <h3 class="text-sm font-medium text-gray-800 mb-1 hover:text-blue-600 transition-colors product-name">
+  <h3
+    class="text-sm font-medium text-gray-800 mb-1 hover:text-blue-600 transition-colors product-name"
+  >
     <a routerLink="/product/{{ product.id }}">{{ product.name }}</a>
   </h3>
 
@@ -23,18 +36,23 @@
     <span class="text-xs text-gray-500 ml-1">({{ product.rating_count || 10 }})</span>
   </div> -->
 
-<!-- Price -->
-<div class="flex items-center price">
-  <span class="text-sm " [ngClass]="{
-    'text-red-600': oldPrice,
-    'text-gray-900': !oldPrice
-  }">
-    {{ displayPrice }}
-  </span>
+  <!-- Price -->
+  <div class="flex items-center price">
+    <span
+      class="text-sm"
+      [ngClass]="{
+        'text-red-600': oldPrice,
+        'text-gray-900': !oldPrice
+      }"
+    >
+      {{ displayPrice }}
+    </span>
 
-  <span *ngIf="oldPrice" class="text-xs text-gray-500 line-through ml-2 old-price">
-    {{ oldPrice }}
-  </span>
-</div>
-
+    <span
+      *ngIf="oldPrice"
+      class="text-xs text-gray-500 line-through ml-2 old-price"
+    >
+      {{ oldPrice }}
+    </span>
+  </div>
 </div>

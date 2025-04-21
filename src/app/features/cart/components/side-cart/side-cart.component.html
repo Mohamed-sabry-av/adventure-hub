@@ -35,7 +35,7 @@
                 <span>
                   Spend
                   <strong>{{
-                    progressValue
+                    100 - progressValue
                       | currency
                         : (loadedCart$ | async)?.totals?.currency_code || "AED"
                   }}</strong>

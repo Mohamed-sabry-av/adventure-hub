@@ -1,69 +1,65 @@
 .subroutes {
-    list-style: none;
-    padding: 0;
-    list-style: none;
-  }
-  
-  .subrouteA .list-group-item {
-    border: none;
-    /* padding: 10px 0; */
-  }
-  .list-group-item {
-    /* padding: 8px 16px; */
-  }
+  list-style: none;
+  padding: 0;
+  list-style: none;
+}
 
-  .subrouteA{
-    font-size: 14px;
-    text-decoration: none;
-    color: #000000;
-    list-style: none;
-  }
-  
-  .subrouteA:hover {
-    text-decoration: underline;
-  }
-  .skeleton-loader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
+.subrouteA .list-group-item {
+  border: none;
+  /* padding: 10px 0; */
+}
+.list-group-item {
+  /* padding: 8px 16px; */
+}
 
-  .skeleton{
-    list-style: none;
-  }
-  
-  .skeleton-name {
-    display: inline-block;
-    width: 120px;
-    height: 16px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 4px;
-    list-style: none;
+.subrouteA {
+  font-size: 14px;
+  text-decoration: none;
+  color: #000000;
+  list-style: none;
+}
 
-  }
-  
-  .skeleton-count {
-    display: inline-block;
-    width: 30px;
-    height: 16px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 4px;
-    list-style: none;
+.subrouteA:hover {
+  text-decoration: underline;
+}
+.skeleton-loader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
 
-  }
-  
-  @keyframes shimmer {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
-  }
+.skeleton {
+  list-style: none;
+}
 
+.skeleton-name {
+  display: inline-block;
+  width: 120px;
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  list-style: none;
+}
 
+.skeleton-count {
+  display: inline-block;
+  width: 30px;
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  list-style: none;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

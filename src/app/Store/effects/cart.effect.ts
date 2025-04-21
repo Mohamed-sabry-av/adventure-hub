@@ -25,22 +25,22 @@ import {
   updateCartStockStatusAction,
   updateProductOfUserCartAction,
 } from '../actions/cart.action';
-import { json } from 'stream/consumers';
-import {
-  fetchCouponsAction,
-  getCouponDataAction,
-} from '../actions/checkout.action';
+import { getCouponDataAction } from '../actions/checkout.action';
 import { ProductService } from '../../core/services/product.service';
+import {
+  startLoadingAction,
+  stopLoadingAction,
+  uiFailureAction,
+} from '../actions/ui.action';
+import { UIService } from '../../shared/services/ui.service';
 
 export class CartEffect {
   private actions$ = inject(Actions);
   private store = inject(Store<StoreInterface>);
-  private router = inject(Router);
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
   private productService = inject(ProductService);
-  private destroyRef = inject(DestroyRef);
-
+  private uiService = inject(UIService);
   // initUserCart = createEffect(
   //   () =>
   //     this.actions$.pipe(
@@ -100,8 +100,6 @@ export class CartEffect {
           const body = {
             product_id: product.id,
           };
-
-          console.log('بيضاف من غير ما يقولييييييييييييييييييييي');
 
           return this.httpClient
             .post(
@@ -201,6 +199,7 @@ export class CartEffect {
     () =>
       this.actions$.pipe(
         ofType(fetchUserCartAction),
+        tap(() => this.store.dispatch(startLoadingAction())),
         switchMap(({ isLoggedIn }) => {
           if (isLoggedIn) {
             let authToken: any = localStorage.getItem('auth_token');
@@ -221,6 +220,9 @@ export class CartEffect {
 
               .pipe(
                 map((response: any) => {
+                  this.store.dispatch(stopLoadingAction());
+                  console.log(response);
+
                   const itemsObj = response.items.map((item: any) => {
                     return {
                       key: item.key,
@@ -266,6 +268,12 @@ export class CartEffect {
                   );
                 }),
                 catchError((error: any) => {
+                  this.store.dispatch(stopLoadingAction());
+                  this.uiService
+                    .showError(`Something went wrong fetching the available data 💥💥. Please try again
+                  later.`);
+                  this.store.dispatch(uiFailureAction({ error: true }));
+
                   console.log('ERRRRRRRR', error);
                   return of();
                 })
@@ -472,8 +480,6 @@ export class CartEffect {
       });
     }
     cart = this.cartService.calcCartPrice(cart.items, validCoupon);
-
-    console.log(cart);
 
     localStorage.setItem('Cart', JSON.stringify(cart));
     this.store.dispatch(getUserCartAction({ userCart: cart }));

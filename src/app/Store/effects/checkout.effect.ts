@@ -4,7 +4,6 @@ import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import {
-  // applyCouponAction,
   createOrderAction,
   fetchCouponsAction,
   fetchOrderDataAction,
@@ -18,11 +17,19 @@ import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { CartService } from '../../features/cart/service/cart.service';
 import {
-  fetchUserCartAction,
   getUserCartAction,
   updateCartStockStatusAction,
 } from '../actions/cart.action';
 import { Router } from '@angular/router';
+import {
+  startLoadingCouponAction,
+  startLoadingOrderAction,
+  stopLoadingCouponAction,
+  stopLoadingOrderAction,
+  uiFailureAction,
+} from '../actions/ui.action';
+import { UIService } from '../../shared/services/ui.service';
+import { HandleErrorsService } from '../../core/services/handel-errors.service';
 
 export class CheckoutEffect {
   private actions$ = inject(Actions);
@@ -31,12 +38,15 @@ export class CheckoutEffect {
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
   private router = inject(Router);
+  private uiService = inject(UIService);
+  private handleError = inject(HandleErrorsService);
 
   fetchCouponsEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(fetchCouponsAction),
+      tap(() => this.store.dispatch(startLoadingCouponAction())),
+
       switchMap(({ enteredCouponValue, isLoggedIn: isLogged }) => {
-        console.log('LOCCCCALLLL 1', enteredCouponValue);
         enteredCouponValue = enteredCouponValue?.code
           ? enteredCouponValue.code
           : enteredCouponValue;
@@ -61,8 +71,6 @@ export class CheckoutEffect {
             })
           ),
           map((response: any) => {
-            console.log('LOCCCCALLLL 2', response);
-
             this.store.dispatch(getCouponDataAction({ coupon: response[0] }));
 
             return getCouponAction({
@@ -72,7 +80,8 @@ export class CheckoutEffect {
             });
           }),
           catchError((error: any) => {
-            console.log('Error Happened Before Get LS Cart', error);
+            this.store.dispatch(stopLoadingCouponAction());
+
             return of(error.message);
           })
         );
@@ -84,9 +93,6 @@ export class CheckoutEffect {
     this.actions$.pipe(
       ofType(getCouponAction),
       switchMap(({ validCoupon, isLoggedIn, invalidCoupon }) => {
-        console.log('LOCCCCALLLL 3', validCoupon);
-        console.log('LOCCCCALLLL 4', invalidCoupon);
-
         if (isLoggedIn) {
           if (validCoupon) {
             let authToken: any = localStorage.getItem('auth_token');
@@ -109,7 +115,6 @@ export class CheckoutEffect {
               )
               .pipe(
                 map((response: any) => {
-                  console.log('اونلاين :الكوبون شغال وجاب الكارت', response);
                   this.store.dispatch(
                     getCouponStatusAction({
                       errorMsg: null,
@@ -134,13 +139,13 @@ export class CheckoutEffect {
                     totals: response.totals,
                   };
 
+                  this.store.dispatch(stopLoadingCouponAction());
+
                   return getUserCartAction({ userCart: updatedCart });
                 }),
                 catchError((error: any) => {
-                  console.log(
-                    'اونلاين : الكوبون شغال ولكن مستخدم قبل كدا',
-                    error
-                  );
+                  this.store.dispatch(stopLoadingCouponAction());
+
                   return of(
                     getCouponStatusAction({
                       errorMsg: error.error.data.data.reason,
@@ -150,6 +155,8 @@ export class CheckoutEffect {
                 })
               );
           } else {
+            this.store.dispatch(stopLoadingCouponAction());
+
             return of(
               getCouponStatusAction({
                 errorMsg: `Coupon ${invalidCoupon} does not exist!`,
@@ -159,6 +166,8 @@ export class CheckoutEffect {
           }
         } else {
           if (invalidCoupon) {
+            this.store.dispatch(stopLoadingCouponAction());
+
             return of(
               getCouponStatusAction({
                 errorMsg: `Coupon ${invalidCoupon} does not exist!`,
@@ -194,6 +203,7 @@ export class CheckoutEffect {
   removeCouponEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(removeCouponAction),
+      tap(() => this.store.dispatch(startLoadingCouponAction())),
       switchMap(({ isLoggedIn, validCoupon }) => {
         if (isLoggedIn) {
           let authToken: any = localStorage.getItem('auth_token');
@@ -216,7 +226,7 @@ export class CheckoutEffect {
             )
             .pipe(
               map((response: any) => {
-                console.log('اونلاين :الكوبون اتمسح', response);
+                this.store.dispatch(stopLoadingCouponAction());
 
                 const updatedItems = response.items.map((item: any) => {
                   return {
@@ -238,6 +248,7 @@ export class CheckoutEffect {
                 return getUserCartAction({ userCart: updatedCart });
               }),
               catchError((error: any) => {
+                this.store.dispatch(stopLoadingCouponAction());
                 console.log('اونلاين : الكوبون متمسحش', error);
                 return of(error);
               })
@@ -257,20 +268,23 @@ export class CheckoutEffect {
   createOrderEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(createOrderAction),
+      tap(() => this.store.dispatch(startLoadingOrderAction())),
+
       switchMap(({ orderDetails }) => {
         return this.wooApiService.postRequest('orders', orderDetails).pipe(
           map((res: any) => {
-            console.log('Order Created Successfully:', res);
             const orderId = res.id;
             const orderKey = res.order_key;
             this.router.navigate([`/order-received/${orderId}`], {
               queryParams: { key: orderKey },
             });
+            this.store.dispatch(stopLoadingOrderAction());
+            return fetchOrderDataAction({ orderId: orderId });
           }),
 
           catchError((error: any) => {
-            console.error('Order Creation Error:', error);
-            return of(error);
+            this.store.dispatch(stopLoadingOrderAction());
+            return this.handleError.handelError(error);
           })
         );
       })
@@ -280,16 +294,18 @@ export class CheckoutEffect {
   getOrderDataEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(fetchOrderDataAction),
+
       switchMap(({ orderId }) => {
         return this.wooApiService.getRequest(`orders/${orderId}`).pipe(
           map((res: any) => {
             console.log('Order Retrived Successfully:', res);
+
             return getOrderDataAction({ orderDetails: res });
           }),
 
           catchError((error: any) => {
-            console.error('Order Retrived Error:', error);
-            return of(error);
+            console.log('ERRRIRIRIRIR', error);
+            return of();
           })
         );
       })
