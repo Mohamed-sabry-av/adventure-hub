@@ -51,7 +51,6 @@ export class HeaderComponent implements OnInit {
   private categoriesService = inject(CategoriesService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-  @Inject(DOCUMENT) private document!: Document;
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
   sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
@@ -63,11 +62,10 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
     this.fetchAllCategories();
-    this.onWindowResize(); // Initialize mobile state
 
     const subscribtion = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
+      .subscribe((event: NavigationEnd) => {
         if (event.url === '/checkout') {
           this.currentPage = 'checkout';
         } else {

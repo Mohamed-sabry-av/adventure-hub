@@ -204,7 +204,7 @@ export class CartEffect {
           if (isLoggedIn) {
             let authToken: any = localStorage.getItem('auth_token');
             authToken = authToken ? JSON.parse(authToken) : '';
-
+  
             const options = {
               headers: new HttpHeaders({
                 Authorization: `Bearer ${authToken.value}`,
@@ -214,22 +214,21 @@ export class CartEffect {
                 'items,totals,payment_methods,coupons'
               ),
             };
-
+  
             return this.httpClient
               .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
-
               .pipe(
                 map((response: any) => {
                   this.store.dispatch(stopLoadingAction());
                   console.log(response);
-
+  
                   const itemsObj = response.items.map((item: any) => {
                     return {
                       key: item.key,
                       id: item.id,
                       images: {
-                        imageSrc: item.images[0].thumbnail,
-                        imageAlt: item.images[0].alt,
+                        imageSrc: item.images?.src || '', // Use the src directly from the image object
+                        imageAlt: item.images?.alt || 'product-image', // Fallback to default if alt is not available
                       },
                       name: item.name,
                       permalink: item.permalink,
@@ -243,37 +242,37 @@ export class CartEffect {
                       stock_status: item.stock_status,
                     };
                   });
-
+  
                   const cartData = {
                     items: itemsObj,
                     payment_methods: response.payment_methods,
                     totals: response.totals,
                     coupons: response.coupons,
                   };
-
+  
                   const coupons = response.coupons || {};
                   const couponKeys = Object.keys(coupons);
-
+  
                   const couponData =
                     couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
-
+  
                   console.log(couponData);
-
+  
                   this.store.dispatch(
                     getCouponDataAction({ coupon: couponData })
                   );
-
+  
                   this.store.dispatch(
                     getUserCartAction({ userCart: cartData })
                   );
                 }),
                 catchError((error: any) => {
                   this.store.dispatch(stopLoadingAction());
-                  this.uiService
-                    .showError(`Something went wrong fetching the available data 💥💥. Please try again
-                  later.`);
+                  this.uiService.showError(
+                    `Something went wrong fetching the available data 💥💥. Please try again later.`
+                  );
                   this.store.dispatch(uiFailureAction({ error: true }));
-
+  
                   console.log('ERRRRRRRR', error);
                   return of();
                 })

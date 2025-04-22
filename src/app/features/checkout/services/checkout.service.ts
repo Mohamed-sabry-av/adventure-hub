@@ -77,7 +77,11 @@ export class CheckoutService {
       case 'stripe':
         return 'Credit Card (Stripe)';
       case 'googlePay':
-        return 'Google Pay (Stripe)';
+        return 'Google Pay';
+      case 'applePay':
+        return 'Apple Pay';
+      case 'walletPayment':
+        return 'Wallet Payment (Stripe)';
       case 'tabby':
         return 'Tabby Installments';
       default:
@@ -91,6 +95,8 @@ export class CheckoutService {
         return false;
       case 'stripe':
       case 'googlePay':
+      case 'applePay':
+      case 'walletPayment':
       case 'tabby':
         return true;
       default:
@@ -145,7 +151,7 @@ export class CheckoutService {
     billingForm: FormGroup;
     shippingForm: FormGroup;
     isShippingDifferent: boolean;
-  }) {
+  }, paymentToken?: string) {
     const subscription = this.cartService.savedUserCart$
       .pipe(take(1))
       .subscribe((cart) => {
@@ -195,21 +201,28 @@ export class CheckoutService {
                     country: forms.shippingForm.get('countrySelect')?.value,
                   }
                 : { ...billingAddress };
-              const orderData = {
-                payment_method:
-                  forms.billingForm.get('paymentMethod')?.value || 'cod',
-                payment_method_title: this.getPaymentMethodTitle(
-                  forms.billingForm.get('paymentMethod')?.value || 'cod'
-                ),
-                set_paid: this.getSetPaid(
-                  forms.billingForm.get('paymentMethod')?.value || 'cod'
-                ),
+
+              const paymentMethod = forms.billingForm.get('paymentMethod')?.value || 'cod';
+
+              const orderData: any = {
+                payment_method: paymentMethod,
+                payment_method_title: this.getPaymentMethodTitle(paymentMethod),
+                set_paid: this.getSetPaid(paymentMethod),
                 billing: billingAddress,
                 shipping: shippingAddress,
                 line_items: [{ product_id: 132940, quantity: 1 }],
                 coupon_lines: couponData.coupon || [],
                 customer_id: customerId || 0,
               };
+
+              // إضافة معلومات الدفع إذا كان هناك token
+              if (paymentToken) {
+                orderData.payment_token = paymentToken;
+                orderData.payment_details = {
+                  method_id: paymentMethod,
+                  token: paymentToken
+                };
+              }
 
               if (couponData.isValid || couponData.coupon.length === 0) {
                 console.log(orderData);

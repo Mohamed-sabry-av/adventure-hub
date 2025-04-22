@@ -128,7 +128,7 @@ export class CartService {
     });
   }
 
-  addProductToCart(selectedProduct: Product):void {
+  addProductToCart(selectedProduct: any) {
     console.log(selectedProduct);
 
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {

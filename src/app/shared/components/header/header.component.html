@@ -17,17 +17,16 @@
       />
     </a>
 
-      <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
-    </div>
+    <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
+  </div>
 
-    } @else {
-    <!-- معلومات فرعية -->
-    <div class="py-1 text-center px-2 text-white bg-[#2E2E2E] secondary-info"
-         [class.hidden]="isScrolled && !isMobile">
-      <p class="text-sm">
-        <strong>Free Delivery</strong> for orders over AED 100
-      </p>
-    </div>
+  } @else {
+  <!-- معلومات فرعية -->
+  <div class="py-2 text-center px-4 text-white">
+    <p class="text-sm">
+      <strong>Free Delivery</strong> for orders over AED 100
+    </p>
+  </div>
 
   <!-- معلومات اساسية -->
   <app-app-container>
@@ -35,44 +34,43 @@
       <!-- Logo -->
       <a class="block">
         <img
-          src="header/White logo-01.png"
           alt="Adventures hub logo"
           routerLink="/home"
           class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
         />
       </a>
 
-        <!-- Search -->
-        <div class="flex-1 md:block hidden">
-          <app-search-bar />
-        </div>
-
-        <!-- Icons -->
-        <div
-          class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3"
-        >
-          <a routerLink="/user">
-            <i class="pi pi-user"></i>
-          </a>
-          <a routerLink="/cart">
-            <i class="pi pi-shopping-bag"></i>
-          </a>
-          <i
-            class="pi pi-bars"
-            (click)="onSiwtchSideNav(true)"
-            *ngIf="(sidenavIsVisible$ | async) === false"
-          ></i>
-          <i
-            class="pi pi-times"
-            (click)="onSiwtchSideNav(false)"
-            *ngIf="(sidenavIsVisible$ | async) === true"
-          ></i>
-        </div>
-      </div>
-      <div class="w-full -mt-[10px] md:hidden block z-10">
+      <!-- Search -->
+      <div class="flex-1 md:block hidden">
         <app-search-bar />
       </div>
-    </app-app-container>
+
+      <!-- Icons -->
+      <div
+        class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3"
+      >
+        <a routerLink="/user">
+          <i class="pi pi-user"></i>
+        </a>
+        <a routerLink="/cart">
+          <i class="pi pi-shopping-bag"></i>
+        </a>
+        <i
+          class="pi pi-bars"
+          (click)="onSiwtchSideNav(true)"
+          *ngIf="(sidenavIsVisible$ | async) === false"
+        ></i>
+        <i
+          class="pi pi-times"
+          (click)="onSiwtchSideNav(false)"
+          *ngIf="(sidenavIsVisible$ | async) === true"
+        ></i>
+      </div>
+    </div>
+    <div class="w-full -mt-[10px] md:hidden block z-10">
+      <app-search-bar />
+    </div>
+  </app-app-container>
 
   @if (showNavbar) {
   <div @navbarAnimation>

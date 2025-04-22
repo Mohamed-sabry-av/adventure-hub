@@ -7,54 +7,11 @@
           <div class="flex flex-col items-center">
             <p class="text-gray-400 text-sm text-center">Express checkout</p>
 
-            <!-- GPay -->
+            <!-- GPay & Apple Pay -->
             <div class="pt-4 w-full text-center">
-              <!-- (click)="initiateTabbyPayment()" -->
-              <span
-                [routerLink]=""
-                class="bg-black block font-semibold w-full xl:w-[262px] lg:mx-auto py-3 text-center text-white rounded-lg cursor-pointer hover:bg-gray-800 transition-all duration-150 tracking-wider"
-              >
-                <!-- TABBY -->
+              <!-- Google Pay Button -->
+              <div #googlePayButtonElement class="mb-4 md:w-[262px] mx-auto"></div>
 
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  preserveAspectRatio="xMidYMid"
-                  viewBox="0 0 126 50"
-                  fill="none"
-                >
-                  <g
-                    clip-path="url(#gpay-light__a)"
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                  >
-                    <path
-                      d="M59.62 7.342v12.636h7.793c1.857 0 3.392-.625 4.605-1.872 1.247-1.244 1.872-2.73 1.872-4.447 0-1.684-.625-3.15-1.872-4.401-1.213-1.278-2.748-1.919-4.605-1.919H59.62v.003Zm0 17.083v14.657h-4.654V2.895h12.348c3.135 0 5.796 1.043 7.99 3.132 2.228 2.089 3.343 4.633 3.343 7.632 0 3.066-1.115 5.629-3.343 7.68-2.157 2.059-4.824 3.083-7.993 3.083h-7.69v.003Zm23.73 7.078c0 1.213.514 2.222 1.545 3.033 1.027.804 2.234 1.21 3.615 1.21 1.959 0 3.7-.724 5.236-2.17 1.538-1.451 2.302-3.153 2.302-5.106-1.451-1.145-3.475-1.718-6.072-1.718-1.887 0-3.466.458-4.728 1.368-1.266.91-1.897 2.034-1.897 3.383Zm6.023-17.996c3.441 0 6.155.92 8.148 2.754 1.987 1.838 2.984 4.358 2.984 7.558v15.263h-4.454v-3.435h-.2c-1.926 2.828-4.488 4.246-7.694 4.246-2.73 0-5.017-.811-6.855-2.427-1.838-1.618-2.758-3.64-2.758-6.065 0-2.563.97-4.6 2.91-6.116 1.94-1.516 4.527-2.274 7.767-2.274 2.76 0 5.042.504 6.827 1.516v-1.064c0-1.616-.64-2.99-1.922-4.116a6.598 6.598 0 0 0-4.502-1.693c-2.6 0-4.655 1.092-6.174 3.287l-4.098-2.581c2.26-3.234 5.602-4.853 10.02-4.853m36.683.81L110.519 50h-4.806l5.769-12.484-10.219-23.198h5.06l7.387 17.791h.099l7.186-17.794 5.06.003Z"
-                      fill="white"
-                    ></path>
-                    <path
-                      d="M40.81 21.267c0-1.464-.123-2.878-.359-4.228H20.818v8.01h11.247a9.623 9.623 0 0 1-4.16 6.319v5.199h6.713c3.93-3.62 6.192-8.975 6.192-15.3"
-                      fill="#4285F4"
-                    ></path>
-                    <path
-                      d="M20.819 41.585c5.62 0 10.348-1.841 13.799-5.016l-6.713-5.203c-1.866 1.257-4.27 1.99-7.087 1.99-5.428 0-10.039-3.658-11.685-8.584H2.219v5.357a20.821 20.821 0 0 0 18.6 11.46"
-                      fill="#34A853"
-                    ></path>
-                    <path
-                      d="M9.133 24.771a12.484 12.484 0 0 1 0-7.96v-5.356H2.219A20.667 20.667 0 0 0 0 20.788c0 3.358.805 6.53 2.219 9.337l6.914-5.357v.003Z"
-                      fill="#FABB05"
-                    ></path>
-                    <path
-                      d="M20.818 8.229c3.07 0 5.818 1.052 7.985 3.12v.002l5.942-5.935C31.142 2.06 26.438 0 20.82 0A20.821 20.821 0 0 0 2.222 11.457l6.914 5.357c1.646-4.927 6.257-8.585 11.685-8.585"
-                      fill="#E94235"
-                    ></path>
-                  </g>
-                  <defs>
-                    <clipPath id="gpay-light__a">
-                      <rect width="126" height="50" fill="#fff"></rect>
-                    </clipPath>
-                  </defs>
-                </svg>
-              </span>
               <div class="flex items-center gap-4 pt-4 pb-7">
                 <span class="flex-grow h-px bg-gray-400"></span>
                 <span class="text-gray-400 text-sm">OR</span>
@@ -271,11 +228,6 @@
               </div>
             </div>
           </div>
-
-          <!-- <div class="w-full flex gap-x-2 items-center">
-            <input type="checkbox" class="w-4 h-6" />
-            <span class="text-sm">Save this information for next time </span>
-          </div> -->
         </section>
 
         <!-- Payment -->
@@ -286,13 +238,62 @@
           </p>
 
           <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
-            <!-- Stripe -->
+            <!-- Google Pay -->
             <div>
               <div
                 class="flex justify-between items-center bg-white rounded-t-lg p-4"
                 [class]="{
+                  paymentOptionActive: paymentRadiosValue === 'googlePay',
+                  'mb-3': paymentRadiosValue === 'googlePay'
+                }"
+              >
+                <div class="flex items-center gap-x-2">
+                  <input
+                    type="radio"
+                    id="googlePay"
+                    value="googlePay"
+                    formControlName="paymentMethod"
+                  />
+                  <label class="text-sm" for="googlePay">Google Pay</label>
+                </div>
+                <div class="flex items-center gap-x-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="xMidYMid"
+                    viewBox="0 0 56 22"
+                    width="56"
+                    height="22"
+                    fill="none"
+                  >
+                    <path d="M18.1 8.512v5.222h-1.65v-13h4.366c.997 0 1.879.368 2.647 1.103.792.735 1.188 1.633 1.188 2.695 0 1.085-.396 1.995-1.188 2.73-.735.75-1.617 1.125-2.647 1.125H18.1v.125Zm0-5.915v4.08h2.77c.552 0 1.028-.206 1.43-.618.419-.412.628-.904.628-1.476 0-.56-.21-1.052-.628-1.477-.402-.412-.878-.618-1.43-.618h-2.77v.11Zm10.65 2.969c1.21 0 2.167.33 2.87.992.703.661 1.054 1.572 1.054 2.733v5.443h-1.576v-1.227h-.071c-.678 1.007-1.582 1.51-2.712 1.51-.963 0-1.77-.287-2.415-.86-.644-.573-.966-1.293-.966-2.16 0-.909.343-1.634 1.028-2.175.686-.54 1.601-.81 2.745-.81.975 0 1.78.179 2.416.537v-.374c0-.544-.228-1.007-.678-1.389-.45-.382-.995-.573-1.633-.573-.943 0-1.685.4-2.226 1.198l-1.454-.926c.796-1.168 1.99-1.751 3.58-1.75h.038Zm-2.116 6.437c0 .389.183.736.547 1.044.365.308.797.463 1.298.463.694 0 1.333-.258 1.917-.772.585-.515.877-1.124.877-1.828-.516-.41-1.245-.617-2.186-.617-.682 0-1.253.16-1.713.478-.46.32-.69.728-.69 1.224l-.05.008Zm15.275-6.188l-5.372 12.334h-1.702l1.994-4.347-3.533-7.987h1.793l2.548 6.158h.035l2.478-6.158h1.759Z" fill="#202124"/>
+                    <path d="M14.465 9.328H7.378v2.86h4.037c-.191 1.815-1.713 2.82-4.037 2.82A4.442 4.442 0 0 1 3.71 12.82a4.442 4.442 0 0 1 3.669-2.186c.965 0 1.828.323 2.513.948l2.053-2.052C10.663 8.242 9.02 7.67 7.378 7.67c-2.995 0-5.524 2.437-5.524 5.15 0 2.711 2.53 5.148 5.524 5.148 4.598 0 5.755-3.207 5.755-5.47 0-1.064-.118-1.975-.118-1.975l-.55-.195Z" fill="#4285F4"/>
+                    <path d="M7.378 17.968c-2.995 0-5.524-2.437-5.524-5.148 0-2.713 2.53-5.15 5.524-5.15 1.642 0 3.286.573 4.567 1.86l-2.054 2.053c-.685-.625-1.548-.948-2.513-.948A4.442 4.442 0 0 0 3.71 12.82a4.442 4.442 0 0 0 3.669 2.186c2.324 0 3.845-1.004 4.037-2.82H7.378v-2.86h7.087s.118.911.118 1.976c0 2.262-1.157 5.469-5.755 5.469l.55.198Z" fill="#34A853"/>
+                    <path d="M3.246 10.635a4.442 4.442 0 0 1 4.132-2.965c1.642 0 3.286.573 4.567 1.86l-2.054 2.053c-.685-.625-1.549-.904-2.513-.904-.965 0-1.828.278-2.548.904l-1.584-.948Z" fill="#FABB05"/>
+                    <path d="M7.378 7.67c1.642 0 3.286.573 4.567 1.86l-2.054 2.053c-.685-.625-1.548-.904-2.513-.904-.965 0-1.828.278-2.548.904l-1.584-.948a4.442 4.442 0 0 1 4.132-2.965Z" fill="#E94235"/>
+                  </svg>
+                </div>
+              </div>
+
+              @if (paymentRadiosValue === 'googlePay') {
+                <div class="px-3 text-center py-4" @slideInOut>
+                  <p class="text-sm mb-2">
+                    Fast, secure checkout with Google Pay.
+                  </p>
+                  <p class="text-xs text-gray-500">
+                    You'll be able to confirm your payment in the Google Pay interface.
+                  </p>
+                </div>
+              }
+            </div>
+
+            <!-- Stripe Card -->
+            <div>
+              <div
+                class="flex justify-between items-center bg-white p-4"
+                [class]="{
                   paymentOptionActive: paymentRadiosValue === 'stripe',
-                  'mb-3': paymentRadiosValue === 'stripe'
+                  'mb-3': paymentRadiosValue === 'stripe',
+                  'border-t': paymentRadiosValue !== 'stripe'
                 }"
               >
                 <div class="flex items-center gap-x-2">
@@ -349,7 +350,7 @@
             <div>
               <!-- Option 2 -->
               <div
-                class="flex justify-between items-center bg-white rounded-b-lg p-4"
+                class="flex justify-between items-center bg-white p-4"
                 [class]="{
                   paymentOptionActive: paymentRadiosValue === 'tabby',
                   'border-t': paymentRadiosValue !== 'tabby'
@@ -458,8 +459,6 @@
               }
             </div>
           </div>
-
-          <!-- NEEEEEEEEEEEEEEEEEEEEEEW -->
 
           <!-- Shipping -->
           <div class="mt-4">
@@ -574,8 +573,6 @@
             </div>
           </form>
           }
-
-          <!-- NEEEEEEEEEEEEEEEEEEEEEEW -->
 
           <!-- Pay Button -->
           <div class="mt-6 mb-12 lg:block hidden">
