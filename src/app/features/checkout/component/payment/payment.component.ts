@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { loadStripe, Stripe, StripeElements, StripePaymentRequestButtonElement } from '@stripe/stripe-js';
 
@@ -19,6 +19,9 @@ export class PaymentComponent implements OnInit {
   googlePaySupported = false;
   applePaySupported = false;
 
+  @Output() paymentTokenGenerated = new EventEmitter<string>();
+  @Output() paymentTypeSelected = new EventEmitter<string>();
+
   @ViewChild('cardElement', { static: true }) cardElementRef!: ElementRef;
   @ViewChild('paymentRequestButtonElement', { static: true }) paymentRequestButtonElementRef!: ElementRef;
 
@@ -26,7 +29,7 @@ export class PaymentComponent implements OnInit {
 
   async ngOnInit() {
     // تحميل Stripe باستخدام أحدث إصدار
-    this.stripe = await loadStripe('pk_test_51RD3yPIPLmPtcaOkAPNrNJV5j2bFeHAdAzwZa2Rif9dG6C8psDSow39N3QE66a0F6gbQONj3bb3IeoPFRHOXxMqX00Aw6qKltl');
+    this.stripe = await loadStripe('pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45');
 
     if (!this.stripe) {
       console.log("stripe is not loaded yet");
@@ -103,14 +106,16 @@ export class PaymentComponent implements OnInit {
       this.paymentRequest.on('paymentmethod', async (event: any) => {
         console.log('Payment method received:', event.paymentMethod);
 
+        // إرسال token الدفع إلى المكون الأب
+        const paymentType = event.paymentMethod.card.wallet?.type || 'walletPayment';
+        this.paymentTypeSelected.emit(paymentType === 'google_pay' ? 'googlePay' :
+                                       paymentType === 'apple_pay' ? 'applePay' :
+                                       'walletPayment');
+        this.paymentTokenGenerated.emit(event.paymentMethod.id);
+
         // في الحالة الطبيعية، ستقوم بإرسال هذا الـtoken إلى الخادم الخلفي
         // وإكمال عملية الدفع هناك
-
-        // هنا نقوم بالتأكيد على الدفع لتجربة الاختبار فقط
         event.complete('success');
-
-        // إشعار المستخدم بنجاح الدفع
-        alert('تم الدفع بنجاح باستخدام ' + (event.paymentMethod.card.wallet?.type || 'wallet payment'));
       });
     } else {
       console.log("No supported payment methods found");
@@ -123,14 +128,19 @@ export class PaymentComponent implements OnInit {
       return;
     }
 
-    this.stripe.createToken(this.card).then((result: any) => {
+    this.stripe.createPaymentMethod({
+      type: 'card',
+      card: this.card
+    }).then((result: any) => {
       if (result.error) {
         this.error = result.error.message;
         console.log('Error:', result.error);
       } else {
         this.error = null;
-        console.log('Token:', result.token);
-        // إرسال token إلى الخادم للتعامل مع الدفع
+        console.log('Payment Method:', result.paymentMethod);
+        // إرسال token إلى المكون الأب
+        this.paymentTypeSelected.emit('stripe');
+        this.paymentTokenGenerated.emit(result.paymentMethod.id);
       }
     });
   }

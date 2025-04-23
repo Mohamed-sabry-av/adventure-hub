@@ -30,7 +30,7 @@
             "styles": [ "src/styles.css"],
             "scripts": [],
             "server": "src/main.server.ts",
-            "prerender": true,
+            "prerender": false,
             "ssr": {
               "entry": "src/server.ts"
             }
@@ -72,7 +72,8 @@
           "options": {
     "ssl": true,
     "sslKey": "src/ssl/localhost.key",
-    "sslCert": "src/ssl/localhost.crt"
+    "sslCert": "src/ssl/localhost.crt",
+    "proxyConfig": "proxy.conf.json"
   },
           "configurations": {
             "production": {

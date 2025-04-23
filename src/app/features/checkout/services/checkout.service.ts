@@ -1,13 +1,14 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { CartService } from '../../cart/service/cart.service';
-import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, map, Observable, of, tap } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../../../Store/store';
 import {
   fetchCouponsAction,
   createOrderAction,
   removeCouponAction,
+  fetchOrderDataAction,
 } from '../../../Store/actions/checkout.action';
 import {
   copuponDataSelector,
@@ -15,13 +16,19 @@ import {
 } from '../../../Store/selectors/checkout.selector';
 import { AccountAuthService } from '../../auth/account-auth.service';
 import { take } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { UIService } from '../../../shared/services/ui.service';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
   private cartService = inject(CartService);
   private destroyRef = inject(DestroyRef);
   private store = inject(Store<StoreInterface>);
+  private http = inject(HttpClient);
   private accountAuthService = inject(AccountAuthService);
+  private router = inject(Router);
+  private uiService = inject(UIService);
 
   selectedCountry$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   emailIsUsed$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -115,6 +122,18 @@ export class CheckoutService {
     );
   }
 
+  private getCartPrice(): Observable<number> {
+    return this.cartService.savedUserCart$.pipe(
+      map((response: any) => {
+        if (response && response.totals && response.totals.total) {
+          // تحويل السعر إلى فلس (مثلًا 10.50 AED يصبح 1050 فلس)
+          return Math.round(parseFloat(response.totals.total) * 100);
+        }
+        return 0;
+      })
+    );
+  }
+
   private getCoupons(
     form: FormGroup
   ): Observable<{ isValid: boolean; coupon: any[] }> {
@@ -152,90 +171,110 @@ export class CheckoutService {
     shippingForm: FormGroup;
     isShippingDifferent: boolean;
   }, paymentToken?: string) {
+    // this.uiService.startOrderLoading();
+
     const subscription = this.cartService.savedUserCart$
       .pipe(take(1))
       .subscribe((cart) => {
-        const outOfStockItems =
-          cart?.items?.filter((item: any) => {
-            return item.stock_status !== 'instock';
-          }) || [];
-
+        const outOfStockItems = cart?.items?.filter((item: any) => item.stock_status !== 'instock') || [];
         if (outOfStockItems.length > 0) {
           const outOfStockProducts = outOfStockItems.map((item: any) => ({
             productId: item.id,
             name: item.name || `Product ${item.id}`,
           }));
           this.productsOutStock$.next(outOfStockProducts);
-          console.warn(
-            'Cannot create order: Some products are out of stock:',
-            outOfStockProducts
-          );
+          console.warn('Cannot create order: Some products are out of stock:', outOfStockProducts);
+          // this.uiService.stopOrderLoading();
           return;
-        } else {
-          const subscription2 = combineLatest([
-            this.getCartItems(),
-            this.getCoupons(forms.billingForm),
-            this.getCustomerId(),
-          ])
-            .pipe(take(1))
-            .subscribe(([lineItems, couponData, customerId]) => {
-              const billingAddress = {
-                first_name: forms.billingForm.get('firstName')?.value,
-                last_name: forms.billingForm.get('lastName')?.value,
-                address_1: forms.billingForm.get('address')?.value,
-                city: forms.billingForm.get('city')?.value,
-                state: forms.billingForm.get('state')?.value,
-                postcode: `${forms.billingForm.get('postCode')?.value}`,
-                country: forms.billingForm.get('countrySelect')?.value,
-                email: forms.billingForm.get('email')?.value,
-                phone: `${forms.billingForm.get('phone')?.value}`,
-              };
-              const shippingAddress = forms.isShippingDifferent
-                ? {
-                    first_name: forms.shippingForm.get('firstName')?.value,
-                    last_name: forms.shippingForm.get('lastName')?.value,
-                    address_1: forms.shippingForm.get('address')?.value,
-                    city: forms.shippingForm.get('city')?.value,
-                    state: forms.shippingForm.get('state')?.value,
-                    postcode: `${forms.billingForm.get('postCode')?.value}`,
-                    country: forms.shippingForm.get('countrySelect')?.value,
-                  }
-                : { ...billingAddress };
-
-              const paymentMethod = forms.billingForm.get('paymentMethod')?.value || 'cod';
-
-              const orderData: any = {
-                payment_method: paymentMethod,
-                payment_method_title: this.getPaymentMethodTitle(paymentMethod),
-                set_paid: this.getSetPaid(paymentMethod),
-                billing: billingAddress,
-                shipping: shippingAddress,
-                line_items: [{ product_id: 132940, quantity: 1 }],
-                coupon_lines: couponData.coupon || [],
-                customer_id: customerId || 0,
-              };
-
-              // إضافة معلومات الدفع إذا كان هناك token
-              if (paymentToken) {
-                orderData.payment_token = paymentToken;
-                orderData.payment_details = {
-                  method_id: paymentMethod,
-                  token: paymentToken
-                };
-              }
-
-              if (couponData.isValid || couponData.coupon.length === 0) {
-                console.log(orderData);
-                this.store.dispatch(
-                  createOrderAction({ orderDetails: orderData })
-                );
-              } else {
-                alert('Coupon already used. Order not created.');
-              }
-            });
-          this.destroyRef.onDestroy(() => subscription2.unsubscribe());
         }
+
+        const subscription2 = combineLatest([
+          this.getCartItems(),
+          this.getCoupons(forms.billingForm),
+          this.getCustomerId(),
+          this.getCartPrice()
+        ])
+          .pipe(take(1))
+          .subscribe(([lineItems, couponData, customerId, totalAmount]) => {
+            const billingAddress = {
+              first_name: forms.billingForm.get('firstName')?.value,
+              last_name: forms.billingForm.get('lastName')?.value,
+              address_1: forms.billingForm.get('address')?.value,
+              city: forms.billingForm.get('city')?.value,
+              state: forms.billingForm.get('state')?.value,
+              postcode: `${forms.billingForm.get('postCode')?.value}`,
+              country: forms.billingForm.get('countrySelect')?.value,
+              email: forms.billingForm.get('email')?.value,
+              phone: `${forms.billingForm.get('phone')?.value}`,
+            };
+            const shippingAddress = forms.isShippingDifferent ? {
+              first_name: forms.shippingForm.get('firstName')?.value,
+              last_name: forms.shippingForm.get('lastName')?.value,
+              address_1: forms.shippingForm.get('address')?.value,
+              city: forms.shippingForm.get('city')?.value,
+              state: forms.shippingForm.get('state')?.value,
+              postcode: `${forms.billingForm.get('postCode')?.value}`,
+              country: forms.shippingForm.get('countrySelect')?.value,
+            } : { ...billingAddress };
+
+            const paymentMethod = forms.billingForm.get('paymentMethod')?.value || 'cod';
+
+            const orderData: any = {
+              payment_method: paymentMethod,
+              payment_method_title: this.getPaymentMethodTitle(paymentMethod),
+              billing: billingAddress,
+              shipping: shippingAddress,
+              line_items: lineItems,
+              coupon_lines: couponData.coupon || [],
+              customer_id: customerId || 0,
+              set_paid: this.getSetPaid(paymentMethod)
+            };
+
+            if (paymentToken && ['stripe', 'googlePay', 'applePay', 'walletPayment'].includes(paymentMethod)) {
+              // العنوان الصحيح للسيرفر: استخدم عنوان السيرفر الحالي بدلًا من localhost:4000
+              const serverUrl = window.location.origin + '/api/create-order';
+
+              this.http.post(serverUrl, {
+                payment_method_id: paymentToken,
+                order_data: {
+                  ...orderData,
+                  amount: totalAmount // إضافة المبلغ الإجمالي للطلب للدفع
+                }
+              }).pipe(
+                tap(response => console.log('Payment API response:', response)),
+                catchError(error => {
+                  console.error('Error creating order:', error);
+                  console.log('Error details:', {
+                    status: error.status,
+                    statusText: error.statusText,
+                    url: error.url,
+                    message: error.message
+                  });
+
+                  // في حالة فشل الدفع عبر الخادم، نجرب إنشاء الطلب مباشرة
+                  if (error.status === 0 || error.status === 404) {
+                    console.log('Falling back to direct order creation');
+                    this.store.dispatch(createOrderAction({ orderDetails: orderData }));
+                  } else {
+                    alert('حدث خطأ أثناء معالجة الدفع: ' + (error.error?.message || error.message));
+                    // this.uiService.stopOrderLoading();
+                  }
+                  return of(null);
+                })
+              ).subscribe((response: any) => {
+                if (response && response.success) {
+                  console.log('Order created successfully through API:', response.order_id);
+                  this.router.navigate([`/order-received/${response.order_id}`]);
+                  // this.uiService.stopOrderLoading();
+                }
+              });
+            } else {
+              // استخدام طريقة نجركس لطرق الدفع الأخرى مثل COD
+              this.store.dispatch(createOrderAction({ orderDetails: orderData }));
+            }
+          });
+        this.destroyRef.onDestroy(() => subscription2?.unsubscribe());
       });
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+    this.destroyRef.onDestroy(() => subscription?.unsubscribe());
   }
 }
