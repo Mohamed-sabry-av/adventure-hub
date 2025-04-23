@@ -49,6 +49,8 @@ export class MobileQuickAddComponent {
   constructor(private cdr: ChangeDetectorRef) {}
 
   onToggleMobileQuickAdd(): void {
+    if (!this.hasSizes()) return;
+    this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
     this.toggleMobileQuickAdd.emit();
     this.cdr.markForCheck();
   }
@@ -81,9 +83,26 @@ export class MobileQuickAddComponent {
   }
 
   isAddToCartDisabled(): boolean {
+    // Check if required selections are missing
     const needsSize = this.hasSizes() && !this.selectedSize;
     const needsColor = this.hasColors() && !this.selectedColor;
-    return needsSize || needsColor;
+      if (needsSize || needsColor) {
+      return true;
+    }
+  
+    if (this.hasSizes() && this.hasColors() && this.selectedSize && this.selectedColor) {
+      const selectedSizeObj = this.uniqueSizes.find(size => size.size === this.selectedSize);
+      return !selectedSizeObj?.inStock;
+    }
+    if (this.hasSizes() && this.selectedSize) {
+      const selectedSizeObj = this.uniqueSizes.find(size => size.size === this.selectedSize);
+      return !selectedSizeObj?.inStock;
+    }
+    if (this.hasColors() && this.selectedColor) {
+      const selectedColorObj = this.colorOptions.find(color => color.color === this.selectedColor);
+      return !selectedColorObj?.inStock;
+    }
+    return false; 
   }
 
   hasSizes(): boolean {
@@ -98,23 +117,18 @@ export class MobileQuickAddComponent {
     return this.hasSizes() || this.hasColors();
   }
 
-  // Desktop: Show Add to Cart when there are no colors or no sizes together
-  // Mobile: Show Add to Cart when there are no variations
+ 
   shouldShowAddToCartButton(): boolean {
     if (this.isMobile) {
-      // On mobile, show direct add to cart if there are no sizes (colors only or no variations)
       return !this.hasSizes() && !this.hasColors();
         } else {
-      // On desktop, show direct add to cart if there are not both colors and sizes
       return !(this.hasColors() && this.hasSizes());
     }
   }
 
-  // Show mobile Quick Add button only when there are both colors and sizes
   shouldShowQuickAddButton(): boolean {
     return this.isMobile && this.hasSizes();  }
 
-  // Show the desktop hover size selector (for products with sizes only, no colors)
   shouldShowDesktopSizeSelector(): boolean {
     return !this.isMobile && this.hasSizes() && this.isHovered && !this.hasColors();
   }

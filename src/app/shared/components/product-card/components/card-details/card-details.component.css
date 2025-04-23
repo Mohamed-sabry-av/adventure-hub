@@ -1,144 +1,111 @@
 /* Card Details Container */
-app-card-details {
-  min-height: 110px; /* ارتفاع ثابت للتفاصيل */
+.p-3 {
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 12px;
 }
 
 /* Category */
 .category {
-  min-height: 16px; /* ارتفاع ثابت للـ category */
   font-size: 0.75rem;
   text-transform: uppercase;
   color: #6b7280;
-  margin-bottom: 4px;
-  transition: all 0.3s ease;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.025em;
 }
 
-:host-context(.product-card:hover) .category {
-  letter-spacing: 0.01em;
+.hover\:underline:hover {
+  text-decoration: underline;
+  color: #16a34a; /* Match green color */
 }
 
 /* Product Name */
 .product-name {
-  min-height: 44px; /* ارتفاع ثابت للعنوان عشان يستوعب سطر أو سطرين */
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* يسمح بـ 2 سطر كحد أقصى */
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 4px;
+  transition: color 0.2s ease;
 }
 
 .product-name a {
-  position: relative;
-  font-size: 0.875rem;
-  line-height: 1.25rem; /* ارتفاع السطر ثابت */
-  color: #1f2937;
-  transition: all 0.3s ease;
+  color: inherit;
+  text-decoration: none;
 }
 
 .product-name a:hover {
-  color: #2563eb;
-}
-
-.product-name a::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 1px;
-  bottom: -2px;
-  left: 0;
-  background-color: currentColor;
-  transition: width 0.3s ease;
-}
-
-.product-name a:hover::after {
-  width: 100%;
-}
-
-/* Star Rating (معلّق حاليًا في الـ HTML) */
-.star-rating {
-  min-height: 20px; /* ارتفاع ثابت للتقييم لو رجع */
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.star {
-  transition: all 0.3s ease;
-  transform-origin: center;
-}
-
-:host-context(.product-card:hover) .star {
-  animation: twinkle 1.5s ease infinite;
-  animation-delay: calc(var(--star-index) * 0.15s);
-}
-
-@keyframes twinkle {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.8; }
+  color: #16a34a; /* Match green color */
 }
 
 /* Price */
 .price {
-  min-height: 24px; /* ارتفاع ثابت للسعر */
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: bold;
-  font-size: 0.875rem;
-  position: relative;
+  gap: 0.5rem;
 }
 
-.price::before {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  width: 0;
-  height: 1px;
-  background-color: #e2e8f0;
-  transition: all 0.3s ease;
-  opacity: 0;
+.text-red-600 {
+  color: #dc2626; /* Red for sale prices */
+  font-weight: 600;
 }
 
-:host-context(.product-card:hover) .price::before {
-  width: 100%;
-  left: 0;
-  opacity: 1;
+.text-gray-900 {
+  color: #111827;
+  font-weight: 600;
 }
 
-/* Sale Price */
-.sale-price {
-  position: relative;
-  display: inline-block;
-  color: #dc2626;
-}
-
-.sale-price::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 8px;
-  bottom: 0;
-  left: 0;
-  background-color: rgba(239, 68, 68, 0.1);
-  z-index: -1;
-  transform: scaleX(0);
-  transform-origin: bottom right;
-  transition: transform 0.3s ease;
-}
-
-:host-context(.product-card:hover) .sale-price::after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
-}
-
-.old-price {
+.text-xs {
   font-size: 0.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-gray-500 {
   color: #6b7280;
+}
+
+.line-through {
   text-decoration: line-through;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .p-3 {
+    padding: 0.5rem;
+  }
+  
+  .category {
+    font-size: 0.7rem;
+  }
+  
+  .product-name {
+    font-size: 0.8rem;
+    line-height: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .text-sm {
+    font-size: 0.8rem;
+  }
+  
+  .text-xs {
+    font-size: 0.7rem;
+  }
+}
+
+/* Hover effects on product card hover */
+.product-card:hover .product-name {
+  color: #16a34a; /* Match green color */
 }

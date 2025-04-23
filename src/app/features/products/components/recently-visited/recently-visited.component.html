@@ -1,0 +1,27 @@
+<div class="recently-visited-container">
+  <div class="header-section">
+    <h2 class="section-title">Recently Viewed Products</h2>
+    <button 
+      *ngIf="(recentlyVisitedProducts$ | async)?.length" 
+      class="clear-history-btn" 
+      (click)="clearHistory()">
+      Clear History
+    </button>
+  </div>
+
+  <div class="no-products" *ngIf="!(recentlyVisitedProducts$ | async)?.length">
+    <p>You haven't viewed any products yet.</p>
+    <a routerLink="/products" class="browse-products-btn">Browse Products</a>
+  </div>
+
+  <div class="products-grid" *ngIf="(recentlyVisitedProducts$ | async)?.length">
+    <div class="product-card-wrapper" *ngFor="let product of recentlyVisitedProducts$ | async">
+      <div class="remove-btn-wrapper">
+        <button class="remove-btn" (click)="removeProduct(product.id)" title="Remove from history">
+          <span>×</span>
+        </button>
+      </div>
+      <app-product-card [product]="product"></app-product-card>
+    </div>
+  </div>
+</div>

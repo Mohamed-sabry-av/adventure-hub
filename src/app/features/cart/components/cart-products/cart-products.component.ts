@@ -11,6 +11,8 @@ import { AsyncPipe, CurrencyPipe, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../../../interfaces/product';
 import { RouterLink } from '@angular/router';
+import { UIService } from '../../../../shared/services/ui.service';
+import { CartStatus } from '../../model/cart.model';
 
 @Component({
   selector: 'app-cart-products',
@@ -20,10 +22,12 @@ import { RouterLink } from '@angular/router';
 })
 export class CartProductsComponent {
   private cartService = inject(CartService);
+  private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
   productCount = viewChild<ElementRef<HTMLParagraphElement>>('productCount');
 
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
+  cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
   progressValue: number = 0;
 

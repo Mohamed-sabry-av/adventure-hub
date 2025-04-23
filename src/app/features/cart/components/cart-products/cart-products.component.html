@@ -32,11 +32,13 @@
   <div
     class="p-2"
     [class]="{
-      'h-[800px]': (loadedCart$ | async)?.items?.length > 4,
-      'overflow-auto': (loadedCart$ | async)?.items?.length > 4
+      'h-[800px]': (loadedCart$ | async)?.userCart?.items?.length > 4,
+      'overflow-auto': (loadedCart$ | async)?.userCart?.items?.length > 4,
+      'bg-gray-200': ((cartStatus$ | async)?.sideCartLoading),
+      'animate-pulse': ((cartStatus$ | async)?.sideCartLoading),
     }"
   >
-    @for (item of (loadedCart$ | async)?.items; track $index) {
+    @for (item of (loadedCart$ | async)?.userCart.items; track $index) {
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
@@ -61,8 +63,9 @@
               ></p>
             </a>
             <p class="text-base">
-              {{ item.prices.price }}
-              @if (item.prices.regular_price !== item.prices.price) {
+              {{ item.prices.price | currency : "AED" }}
+              @if (item.prices.regular_price !== item.prices.price &&
+              item.prices.sale_price !== null) {
               <del class="ml-1 text-gray-400 font-light text-sm">{{
                 item.prices.regular_price | currency : "AED"
               }}</del>

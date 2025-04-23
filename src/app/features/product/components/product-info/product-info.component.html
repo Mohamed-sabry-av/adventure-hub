@@ -99,10 +99,22 @@
     <span class="text-red-500 font-medium">This variation is out of stock</span>
   </div>
 
-  <div class="mt-4 flex items-center gap-x-2 cursor-pointer" [routerLink]="">
-    <i class="pi pi-heart text-sm"></i>
-    <span class="text-sm font-semibold hover:underline">Add to wishlist</span>
-  </div>
+  <div
+  class="mt-4 flex items-center gap-x-2 cursor-pointer"
+  (click)="addToWishList(productInfo()?.id)"
+  [class.opacity-50]="isAddingToWishlist"
+  [class.pointer-events-none]="isAddingToWishlist"
+>
+  <i class="pi pi-heart text-sm" [class.text-red-500]="isInWishlist"></i>
+  <span class="text-sm font-semibold hover:underline">
+    {{ isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}
+  </span>
+</div>
+
+<!-- Optional: Display success/error message -->
+<div *ngIf="wishlistMessage" class="mt-2 text-sm" [class.text-green-500]="wishlistSuccess" [class.text-red-500]="!wishlistSuccess">
+  {{ wishlistMessage }}
+</div>
 
   <div *ngIf="isProductInStock" class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
     <div>

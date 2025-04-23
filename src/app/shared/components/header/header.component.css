@@ -10,7 +10,7 @@
   @apply hidden;
 }
 
-.pi-times {
+.pi-sidenav {
   @apply hidden;
 }
 
@@ -19,11 +19,56 @@
     @apply block;
   }
 
-  .pi-times {
+  .pi-sidenav {
     @apply block;
   }
 }
 
 .is-scroll {
-  @apply fixed top-0 z-[500] bg-[#2E2E2E];
+  @apply fixed top-0 z-[50] bg-[#2E2E2E];
+}
+
+@keyframes slide-first {
+  0%,
+  40% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  51%,
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-second {
+  0%,
+  40% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  90% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slide-first {
+  animation: slide-first 6s infinite;
+}
+
+.animate-slide-second {
+  animation: slide-second 6s infinite;
 }

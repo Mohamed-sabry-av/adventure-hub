@@ -2,7 +2,12 @@ import { createAction, props } from '@ngrx/store';
 
 export const fetchCouponsAction = createAction(
   '[Coupon] Fetch Coupons',
-  props<{ enteredCouponValue: any; isLoggedIn: boolean }>()
+  props<{
+    enteredCouponValue: any;
+    isLoggedIn: boolean;
+    mainPageLoading?: boolean;
+    sideCartLoading?: boolean;
+  }>()
 );
 
 export const getCouponAction = createAction(

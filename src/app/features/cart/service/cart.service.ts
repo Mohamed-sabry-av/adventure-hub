@@ -1,6 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, map, Observable, shareReplay } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  map,
+  Observable,
+  shareReplay,
+} from 'rxjs';
 import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
@@ -12,6 +18,7 @@ import { savedUserCartSelector } from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
 import { fetchCouponsAction } from '../../../Store/actions/checkout.action';
+import { cartStatusSelector } from '../../../Store/selectors/ui.selector';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
@@ -78,10 +85,19 @@ export class CartService {
     };
   }
 
-  fetchUserCart() {
+  fetchUserCart(cartMode: {
+    mainPageLoading: boolean;
+    sideCartLoading: boolean;
+  }) {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
-        this.store.dispatch(fetchUserCartAction({ isLoggedIn: true }));
+        this.store.dispatch(
+          fetchUserCartAction({
+            isLoggedIn: true,
+            sideCartLoading: cartMode.sideCartLoading,
+            mainPageLoading: cartMode.mainPageLoading,
+          })
+        );
       } else {
         let loadedCart: any = localStorage.getItem('Cart');
         loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
@@ -95,6 +111,8 @@ export class CartService {
           fetchCouponsAction({
             enteredCouponValue: couponData,
             isLoggedIn: false,
+            sideCartLoading: cartMode.sideCartLoading,
+            mainPageLoading: cartMode.mainPageLoading,
           })
         );
       }

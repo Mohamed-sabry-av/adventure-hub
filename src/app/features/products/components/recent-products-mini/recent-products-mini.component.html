@@ -1,0 +1,27 @@
+<div class="recent-products-section full-width-container" *ngIf="(recentProducts$ | async)?.length">
+  <div class="max-w-screen-xl mx-auto px-4">
+    <div class="header flex justify-between items-center mb-6">
+      <h3 class="title text-2xl font-bold">Recently Viewed</h3>
+      <a routerLink="/history" class="view-all-link text-blue-600 hover:underline">View All</a>
+    </div>
+  </div>
+
+  <div class="products-slider">
+    <ng-container *ngIf="recentProducts$ | async as recentProducts">
+      <p-carousel 
+        [value]="recentProducts"
+        [numVisible]="4"
+        [numScroll]="1"
+        [circular]="true"
+        [responsiveOptions]="responsiveOptions"
+        [showIndicators]="false"
+        styleClass="full-width-carousel">
+        <ng-template let-product pTemplate="item">
+          <div class="product-item p-2">
+            <app-product-card [product]="product"></app-product-card>
+          </div>
+        </ng-template>
+      </p-carousel>
+    </ng-container>
+  </div>
+</div>

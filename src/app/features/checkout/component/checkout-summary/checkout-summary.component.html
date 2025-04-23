@@ -1,16 +1,17 @@
 <div class="lg:p-4">
   <!-- items -->
-  @if ( !(isVisible$ |async) && (loadedCart$ | async)?.items?.length > 0 ) {
+  @if ( !(isVisible$ |async) && (loadedCart$ | async)?.userCart?.items?.length >
+  0 ) {
   <div
     class="border p-4 rounded-lg"
     [class]="{
-  'h-[440px]': (loadedCart$ | async)?.items?.length>6,
-  'overflow-auto': (loadedCart$ | async)?.items?.length>6,
+  'h-[440px]': (loadedCart$ | async)?.userCart.items?.length>6,
+  'overflow-auto': (loadedCart$ | async)?.userCart.items?.length>6,
 }"
   >
     <div class="flex flex-col gap-y-4">
       <!-- Product Data -->
-      @for (product of (loadedCart$ | async)?.items; track $index) {
+      @for (product of (loadedCart$ | async)?.userCart.items; track $index) {
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-x-2 relative">
           <img
@@ -32,7 +33,7 @@
         <p class="text-sm">
           {{
             product.totals.line_total
-              | currency : (loadedCart$ | async)?.totals.currency_code
+              | currency : (loadedCart$ | async)?.userCart.totals.currency_code
           }}
         </p>
       </div>
@@ -52,17 +53,20 @@
         #couponInput
         [disabled]="haveCoupon === true"
         [class]="{
-            'bg-[#8f97a8]': haveCoupon ===true ,
+            'bg-[#9ca4b6]': haveCoupon ===true ,
             'text-black': haveCoupon ===true ,
           }"
       />
 
       <button
-        class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold cursor-pointer"
+        class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold"
         (click)="haveCoupon === true ? onRemoveCoupon() : onApplyCoupon()"
+        [disabled]="couponValue === ''"
         [class]="{
           'bg-red-500': haveCoupon === true,
-          'bg-orange-500': haveCoupon === false
+          'bg-gray-500': couponValue === '',
+          'cursor-pointer': couponValue !== '',
+          'bg-orange-500': haveCoupon === false && couponValue !=='',
         }"
       >
         @if (isCouponLoading$ | async) {
@@ -95,8 +99,8 @@
       </p>
       <p>
         {{
-          (loadedCart$ | async)?.totals?.sub_total
-            | currency : (loadedCart$ | async)?.totals?.currency_code
+          (loadedCart$ | async)?.userCart.totals?.sub_total
+            | currency : (loadedCart$ | async)?.userCart.totals?.currency_code
         }}
       </p>
     </div>
@@ -110,8 +114,8 @@
       <p>
         -
         {{
-          (loadedCart$ | async)?.totals?.total_discount
-            | currency : (loadedCart$ | async)?.totals?.currency_code
+          (loadedCart$ | async)?.userCart.totals?.total_discount
+            | currency : (loadedCart$ | async)?.userCart.totals?.currency_code
         }}
       </p>
     </div>
@@ -135,7 +139,7 @@
           {{
             (selectedCountry$ | async) !== ""
               ? (selectedCountry$ | async) === "United Arab Emirates"
-                ? (loadedCart$ | async)?.totals?.total_price > 100
+                ? (loadedCart$ | async)?.userCart.totals?.total_price > 100
                   ? "FREE"
                   : "AED " + 20
                 : "Our representative will send shipping fees separately "
@@ -148,13 +152,13 @@
     <!-- Total -->
     <div class="flex justify-between text-xl text-black/80 font-semibold">
       <p>Total</p>
-      @if ((loadedCart$ | async)?.totals?.total_price) {
+      @if ((loadedCart$ | async)?.userCart.totals?.total_price) {
       <p class="uppercase">
         {{
-          ((loadedCart$ | async)?.totals?.total_price > 100
-            ? (loadedCart$ | async)?.totals?.total_price
-            : (loadedCart$ | async)?.totals?.total_price + 20
-          ) | currency : (loadedCart$ | async)?.totals?.currency_code
+          ((loadedCart$ | async)?.userCart.totals?.total_price > 100
+            ? (loadedCart$ | async)?.userCart.totals?.total_price
+            : (loadedCart$ | async)?.userCart.totals?.total_price + 20
+          ) | currency : (loadedCart$ | async)?.userCart.totals?.currency_code
         }}
       </p>
       }

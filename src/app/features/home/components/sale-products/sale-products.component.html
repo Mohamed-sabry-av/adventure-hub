@@ -9,30 +9,42 @@
         </svg>
       </a>
     </div>
-    
+
     <!-- Loading Indicator -->
     @if (loading) {
       <div class="flex justify-center py-8">
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     }
-    
+
     <!-- Error Message -->
     @if (error) {
       <div class="bg-red-100 text-red-700 p-4 mb-4 rounded">
         {{ error }}
       </div>
     }
-    
-    <!-- Products Grid -->
+
+    <!-- Products Carousel -->
     @if (!loading && !error && products.length > 0) {
-      <div class="products-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        @for (product of products; track product.id) {
-          <app-product-card [product]="product"></app-product-card>
-        }
+      <div class="products-carousel overflow-hidden">
+        <p-carousel
+          [value]="products"
+          [numVisible]="getVisibleItemsCount()"
+          [numScroll]="2"
+          [circular]="true"
+          [autoplayInterval]="5000"
+          [responsiveOptions]="responsiveOptions"
+          styleClass="custom-carousel"
+        >
+          <ng-template let-product pTemplate="item">
+            <div class="carousel-item px-2">
+              <app-product-card [product]="product"></app-product-card>
+            </div>
+          </ng-template>
+        </p-carousel>
       </div>
     }
-    
+
     <!-- No Products Found -->
     @if (!loading && !error && products.length === 0) {
       <div class="text-center py-8 bg-gray-100 rounded-lg">

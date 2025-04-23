@@ -38,14 +38,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
   currentCategoryId: number | null = null;
   currentPage = 1;
   currentCategory: any = null;
-  itemsPerPage = 12; // تقليل العدد عشان نقلل الضغط على السيرفر
+  itemsPerPage = 16;
   totalProducts = 0;
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
   schemaData: any;
   private scrollSubject = new Subject<void>();
-  private maxProducts = 60; // حد أقصى لعدد المنتجات عشان نتحكم في الضغط على السيرفر
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
@@ -64,12 +63,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
       if (
-        scrollTop + windowHeight >= documentHeight - 500 &&
+        scrollTop + windowHeight >= documentHeight - 900 &&
         !this.isLoading &&
         !this.isLoadingMore &&
         !this.isFetching &&
-        this.currentPage * this.itemsPerPage < this.totalProducts &&
-        this.products.length < this.maxProducts
+        this.currentPage * this.itemsPerPage < this.totalProducts 
       ) {
         this.loadMoreProducts();
       }

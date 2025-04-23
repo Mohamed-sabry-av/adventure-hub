@@ -15,6 +15,7 @@ import {
 } from '../../../Store/selectors/checkout.selector';
 import { AccountAuthService } from '../../auth/account-auth.service';
 import { take } from 'rxjs';
+import { UIService } from '../../../shared/services/ui.service';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
@@ -22,6 +23,7 @@ export class CheckoutService {
   private destroyRef = inject(DestroyRef);
   private store = inject(Store<StoreInterface>);
   private accountAuthService = inject(AccountAuthService);
+  private uiService = inject(UIService);
 
   selectedCountry$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   emailIsUsed$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -31,6 +33,7 @@ export class CheckoutService {
   );
 
   appliedCouponValue$: Observable<any> = this.store.select(copuponDataSelector);
+
   applyCoupon(couponValue: string) {
     couponValue = couponValue.trim();
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
@@ -77,7 +80,11 @@ export class CheckoutService {
       case 'stripe':
         return 'Credit Card (Stripe)';
       case 'googlePay':
-        return 'Google Pay (Stripe)';
+        return 'Google Pay';
+      case 'applePay':
+        return 'Apple Pay';
+      case 'walletPayment':
+        return 'Wallet Payment (Stripe)';
       case 'tabby':
         return 'Tabby Installments';
       default:
@@ -91,6 +98,8 @@ export class CheckoutService {
         return false;
       case 'stripe':
       case 'googlePay':
+      case 'applePay':
+      case 'walletPayment':
       case 'tabby':
         return true;
       default:
@@ -101,7 +110,7 @@ export class CheckoutService {
   private getCartItems(): Observable<any[]> {
     return this.cartService.savedUserCart$.pipe(
       map((response: any) =>
-        response.items.map((item: any) => ({
+        response?.userCart?.items.map((item: any) => ({
           product_id: item.id,
           quantity: item.quantity,
         }))
@@ -141,11 +150,14 @@ export class CheckoutService {
     );
   }
 
-  createOrder(forms: {
-    billingForm: FormGroup;
-    shippingForm: FormGroup;
-    isShippingDifferent: boolean;
-  }) {
+  createOrder(
+    forms: {
+      billingForm: FormGroup;
+      shippingForm: FormGroup;
+      isShippingDifferent: boolean;
+    },
+    paymentToken?: string
+  ) {
     const subscription = this.cartService.savedUserCart$
       .pipe(take(1))
       .subscribe((cart) => {
@@ -160,10 +172,10 @@ export class CheckoutService {
             name: item.name || `Product ${item.id}`,
           }));
           this.productsOutStock$.next(outOfStockProducts);
-          console.warn(
-            'Cannot create order: Some products are out of stock:',
-            outOfStockProducts
+          this.uiService.showError(
+            'Cannot create order: Some products are out of stock '
           );
+
           return;
         } else {
           const subscription2 = combineLatest([
@@ -195,15 +207,14 @@ export class CheckoutService {
                     country: forms.shippingForm.get('countrySelect')?.value,
                   }
                 : { ...billingAddress };
-              const orderData = {
-                payment_method:
-                  forms.billingForm.get('paymentMethod')?.value || 'cod',
-                payment_method_title: this.getPaymentMethodTitle(
-                  forms.billingForm.get('paymentMethod')?.value || 'cod'
-                ),
-                set_paid: this.getSetPaid(
-                  forms.billingForm.get('paymentMethod')?.value || 'cod'
-                ),
+
+              const paymentMethod =
+                forms.billingForm.get('paymentMethod')?.value || 'cod';
+
+              const orderData: any = {
+                payment_method: paymentMethod,
+                payment_method_title: this.getPaymentMethodTitle(paymentMethod),
+                set_paid: this.getSetPaid(paymentMethod),
                 billing: billingAddress,
                 shipping: shippingAddress,
                 line_items: [{ product_id: 132940, quantity: 1 }],
@@ -211,13 +222,24 @@ export class CheckoutService {
                 customer_id: customerId || 0,
               };
 
+              // إضافة معلومات الدفع إذا كان هناك token
+              if (paymentToken) {
+                orderData.payment_token = paymentToken;
+                orderData.payment_details = {
+                  method_id: paymentMethod,
+                  token: paymentToken,
+                };
+              }
+
               if (couponData.isValid || couponData.coupon.length === 0) {
                 console.log(orderData);
                 this.store.dispatch(
                   createOrderAction({ orderDetails: orderData })
                 );
               } else {
-                alert('Coupon already used. Order not created.');
+                this.uiService.showError(
+                  'Coupon already used. Order not created.'
+                );
               }
             });
           this.destroyRef.onDestroy(() => subscription2.unsubscribe());

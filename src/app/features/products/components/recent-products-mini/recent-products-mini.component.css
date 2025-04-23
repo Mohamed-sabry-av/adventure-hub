@@ -1,0 +1,47 @@
+.full-width-container {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background-color: #f5f5f5;
+  padding: 2rem 0;
+  overflow: hidden;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.header {
+  padding: 0 1rem;
+}
+
+.product-item {
+  height: 100%;
+}
+
+:host ::ng-deep .full-width-carousel .p-carousel-items-container {
+  padding: 0 1rem;
+}
+
+:host ::ng-deep .p-carousel .p-carousel-indicators {
+  margin-top: 1rem;
+}
+
+:host ::ng-deep .p-carousel-prev,
+:host ::ng-deep .p-carousel-next {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin: 0 10px;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  :host ::ng-deep .p-carousel-prev,
+  :host ::ng-deep .p-carousel-next {
+    width: 32px;
+    height: 32px;
+  }
+}

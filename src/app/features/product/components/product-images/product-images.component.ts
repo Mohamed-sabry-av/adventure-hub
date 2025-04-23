@@ -51,25 +51,28 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
 
   // Function to get images for the gallery based on selected color
   getGalleryImages(): { src: string; alt: string }[] {
-    // If no color selected or no variations, return default images
-    if (!this.selectedColor() || !this.variations() || !this.variations().length) {
+ 
+    if (!this.selectedColor() || !this.variations()?.length) {
       const images = this.productImages() || this.defaultImages;
       return Array.isArray(images)
         ? images.map((img: any) => ({
             src: img.src || img,
-            alt: img.alt || ''
+            alt: img.alt || 'صورة المنتج'
           }))
         : [];
     }
-
-    // Find the variation matching the selected color
-    const selectedVariation = this.variations().find((v: any) =>
-      v.attributes?.some(
-        (attr: any) => attr.name === 'Color' && attr.option === this.selectedColor()
-      )
-    );
-
-    // If found and has an image, return it along with any additional images
+  
+    // ابحث عن variation باللون المختار
+    const selectedVariation = this.variations().find((v: any) => {
+      const match = v.attributes?.some(
+        (attr: any) => 
+          attr.name === 'Color' && 
+          attr.option.toLowerCase() === this.selectedColor()?.toLowerCase()
+      );
+      return match;
+    });
+  
+    // لو لقيت variation، ارجع صورها
     if (selectedVariation) {
       const mainImage = selectedVariation.image?.src
         ? [{ src: selectedVariation.image.src, alt: 'صورة المنتج' }]
@@ -78,11 +81,9 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
         src: url,
         alt: 'صورة المنتج'
       })) || [];
-
       return [...mainImage, ...additionalImages];
     }
-
-    // If no matching variation, return default images
+  
     const images = this.productImages() || this.defaultImages;
     return Array.isArray(images)
       ? images.map((img: any) => ({

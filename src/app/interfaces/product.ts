@@ -4,7 +4,7 @@ export interface Product {
   name: string;
   price: any;
   brand?: string;
-  images: { src: string; alt?: string; srcset?: string; sizes?: string }[];
+  images: { src: string; alt?: string;srcset?:string;sizes?:string }[];
   categories: { id: number; name: string; slug: string }[];
   description: string;
   attributes?: Attribute[] | any;
@@ -110,9 +110,7 @@ export interface Variation {
   id?: number;
   attributes?: VariationAttribute[] | any;
   image?: Image | any;
-  images?:
-    | { src: string; alt?: string; srcset?: string; sizes?: string }[]
-    | any;
+  images?: { src: string; alt?: string;srcset?:string ;sizes?:string }[] | any;
   price?: string;
   regular_price?: string;
   sale_price?: string;

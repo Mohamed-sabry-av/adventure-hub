@@ -44,5 +44,5 @@ export class OrderPageComponent {
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
-  isError$: Observable<boolean> = this.uiService.uiFailure$;
+  isError$: Observable<any> = this.uiService.isLoading$;
 }

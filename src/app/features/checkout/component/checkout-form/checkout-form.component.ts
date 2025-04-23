@@ -73,8 +73,6 @@ export class CheckoutFormComponent {
   private checkoutService = inject(CheckoutService);
   private uiService = inject(UIService);
 
-  // -----------------------------------------------------------------
-
   billingForm!: FormGroup;
   shippingForm!: FormGroup;
   isShippingDifferent = false;
@@ -250,6 +248,14 @@ export class CheckoutFormComponent {
         this.paymentRadiosValue = 'tabby';
         break;
 
+      case 'googlePay':
+        this.paymentRadiosValue = 'googlePay';
+        break;
+
+      case 'applePay':
+        this.paymentRadiosValue = 'applePay';
+        break;
+
       default:
         this.paymentRadiosValue = 'cod';
         break;
@@ -337,29 +343,21 @@ export class CheckoutFormComponent {
     this.checkoutService.getSelectedCountry(selectedCountry);
   }
 
-  onSubmit(stripeToken?: string) {
-    if (!this.isFormValid()) {
-      return;
-    }
-    this.checkoutService.createOrder({
-      billingForm: this.billingForm,
-      shippingForm: this.shippingForm,
-      isShippingDifferent: this.isShippingDifferent,
-    });
-  }
-
-  // -----------------------------------------------------------------
-
-  // ------------------------- Stripe -------------------------
+  // ------------------------- Stripe & Wallet Payments -------------------------
   @ViewChild('cardNumberElement') cardNumberElementRef!: ElementRef;
   @ViewChild('cardExpiryElement') cardExpiryElementRef!: ElementRef;
   @ViewChild('cardCvcElement') cardCvcElementRef!: ElementRef;
+  @ViewChild('googlePayButtonElement') googlePayButtonRef!: ElementRef;
 
   stripe: Stripe | null = null;
   elements: StripeElements | null = null;
   cardNumber: StripeCardNumberElement | null = null;
   cardExpiry: StripeCardExpiryElement | null = null;
   cardCvc: StripeCardCvcElement | null = null;
+  paymentRequest: any;
+  prButton: StripePaymentRequestButtonElement | null = null;
+  googlePaySupported = false;
+  applePaySupported = false;
 
   ngAfterViewInit() {
     this.initStripe();
@@ -367,7 +365,7 @@ export class CheckoutFormComponent {
 
   async initStripe() {
     this.stripe = await loadStripe(
-      'pk_test_51RD3yPIPLmPtcaOkAPNrNJV5j2bFeHAdAzwZa2Rif9dG6C8psDSow39N3QE66a0F6gbQONj3bb3IeoPFRHOXxMqX00Aw6qKltl'
+      'pk_live_51QIucCEaH7ud4cFjcc3wunqaKKEC8LQd45RLJu1GWpDsnmCGHaDmSUYzNp9lfLpkW77Sl5B2NBFW1rjcIdDlFPrM00nCKMENoU'
     );
     if (this.stripe) {
       this.elements = this.stripe.elements();
@@ -389,69 +387,139 @@ export class CheckoutFormComponent {
       this.cardNumber.mount(this.cardNumberElementRef.nativeElement);
       this.cardExpiry.mount(this.cardExpiryElementRef.nativeElement);
       this.cardCvc.mount(this.cardCvcElementRef.nativeElement);
+
+      // تهيئة Google Pay و Apple Pay
+      this.initWalletPayments();
+    }
+  }
+
+  async initWalletPayments() {
+    if (!this.stripe || !this.elements || !this.googlePayButtonRef) return;
+
+    try {
+      // تهيئة payment request
+      this.paymentRequest = this.stripe.paymentRequest({
+        country: 'AE', // تغيير حسب البلد المطلوب
+        currency: 'aed', // تغيير حسب العملة المطلوبة
+        total: {
+          label: 'إجمالي الطلب',
+          amount: 1000, // سيتم استبداله بقيمة الطلب الفعلية
+        },
+        requestPayerName: true,
+        requestPayerEmail: true,
+        requestPayerPhone: true,
+      });
+
+      // التحقق مما إذا كان المتصفح يدعم Google Pay أو Apple Pay
+      const result = await this.paymentRequest.canMakePayment();
+
+      if (result) {
+        // تحديد طرق الدفع المدعومة
+        if (result.applePay) {
+          this.applePaySupported = true;
+          console.log("Apple Pay is supported");
+        }
+
+        if (result.googlePay) {
+          this.googlePaySupported = true;
+          console.log("Google Pay is supported");
+
+          // إضافة Google Pay كخيار في قائمة طرق الدفع
+          const paymentMethodControl = this.billingForm.get('paymentMethod');
+          if (paymentMethodControl) {
+            paymentMethodControl.patchValue('googlePay');
+          }
+        }
+
+        // إنشاء زر الدفع
+        this.prButton = this.elements.create('paymentRequestButton', {
+          paymentRequest: this.paymentRequest,
+          style: {
+            paymentRequestButton: {
+              type: 'default',
+              theme: 'dark',
+              height: '40px',
+            },
+          },
+        });
+
+        // تثبيت زر الدفع في واجهة المستخدم
+        this.prButton.mount(this.googlePayButtonRef.nativeElement);
+
+        // معالجة أحداث الدفع
+        this.paymentRequest.on('paymentmethod', async (event: any) => {
+          console.log('Payment method received:', event.paymentMethod);
+
+          const paymentType = event.paymentMethod.card.wallet?.type || 'walletPayment';
+
+          // تحديث طريقة الدفع في النموذج
+          const paymentMethodControl = this.billingForm.get('paymentMethod');
+          if (paymentMethodControl) {
+            paymentMethodControl.patchValue(paymentType === 'google_pay' ? 'googlePay' :
+                                            paymentType === 'apple_pay' ? 'applePay' :
+                                            'walletPayment');
+          }
+
+          // إرسال الطلب مع رمز الدفع
+          this.onSubmit(event.paymentMethod.id);
+
+          // إكمال عملية الدفع
+          event.complete('success');
+        });
+      } else {
+        console.log("No supported wallet payment methods found");
+      }
+    } catch (error) {
+      console.error('Error initializing wallet payments:', error);
     }
   }
 
   async payNow() {
     if (this.stripe && this.cardNumber) {
-      // نستخدم cardNumber كمثال للتحقق
-      const result = await this.stripe.createToken(this.cardNumber);
-      if (result.error) {
-        console.error(result.error.message);
-        alert('فشل الدفع: ' + result.error.message);
-      } else if (result.token) {
-        console.log('الـ Token: ', result.token.id);
+      try {
+        const result = await this.stripe.createPaymentMethod({
+          type: 'card',
+          card: this.cardNumber,
+          billing_details: {
+            name: `${this.billingForm.get('firstName')?.value} ${this.billingForm.get('lastName')?.value}`,
+            email: this.billingForm.get('email')?.value,
+            phone: this.billingForm.get('phone')?.value,
+            address: {
+              line1: this.billingForm.get('address')?.value,
+              city: this.billingForm.get('city')?.value,
+              state: this.billingForm.get('state')?.value,
+              postal_code: this.billingForm.get('postCode')?.value,
+              country: this.billingForm.get('countrySelect')?.value,
+            }
+          }
+        });
 
-        this.onSubmit(result.token.id);
-        // هنا هنضيف منطق إرسال الـ Token لـ WooCommerce لاحقًا
+        if (result.error) {
+          console.error(result.error.message);
+          alert('فشل الدفع: ' + result.error.message);
+        } else if (result.paymentMethod) {
+          console.log('Payment Method:', result.paymentMethod.id);
+          this.onSubmit(result.paymentMethod.id);
+        }
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        alert('حدث خطأ أثناء معالجة الدفع. يرجى المحاولة مرة أخرى.');
       }
     } else {
       console.error('Stripe أو حقل البطاقة غير جاهز');
     }
   }
-  // ##############################################################
 
-  // ------------------------- Google Pay -------------------------
-  // paymentRequest: any;
-  // prButton!: StripePaymentRequestButtonElement;
-  // @ViewChild('googlePayButton', { static: true })
-  // googlePayButtonRef!: ElementRef;
-  // private stripeService = inject(StripeService);
-
-  // Google Pay
-  // this.paymentRequest = this.stripe!.paymentRequest({
-  //   country: 'US', // غيّر حسب بلدك
-  //   currency: 'usd', // غيّر حسب العملة
-  //   total: {
-  //     label: 'إجمالي الطلب',
-  //     amount: 1000, // المبلغ بالسنت (مثال: 10 دولار = 1000)
-  //   },
-  //   requestPayerName: true,
-  //   requestPayerEmail: true,
-  //   requestShipping: true,
-  // });
-
-  // const result = await this.paymentRequest.canMakePayment();
-
-  // const result = await paymentRequest.canMakePayment();
-  // console.log(result);
-  // if (result) {
-  //   console.log('PAAAY', result);
-  //   const elements = this.stripe!.elements();
-  //   this.prButton = elements.create('paymentRequestButton', {
-  //     paymentRequest: paymentRequest,
-  //     style: {
-  //       paymentRequestButton: {
-  //         type: 'default',
-  //         theme: 'dark',
-  //         height: '40px',
-  //       },
-  //     },
-  //   });
-  //   this.prButton.mount(this.googlePayButtonRef.nativeElement);
-  // }
-
-  // ##############################################################
+  onSubmit(paymentToken?: string) {
+    if (!this.isFormValid()) {
+      return;
+    }
+    this.checkoutService.createOrder({
+      billingForm: this.billingForm,
+      shippingForm: this.shippingForm,
+      isShippingDifferent: this.isShippingDifferent,
+    }, paymentToken);
+  }
 
   // ------------------------- Tabby Installments -------------------------
 
@@ -570,6 +638,4 @@ export class CheckoutFormComponent {
         }
       );
   }
-
-  // ##############################################################
 }

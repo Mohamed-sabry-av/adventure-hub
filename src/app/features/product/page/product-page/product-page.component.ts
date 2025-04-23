@@ -9,6 +9,9 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
 import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
+import { HistoryPageComponent } from '../../../products/pages/History-page/history-page.component';
+import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
+import { CommonModule } from '@angular/common';
 
 declare var _learnq: any; // تعريف متغير Klaviyo العام
 
@@ -17,11 +20,12 @@ declare var _learnq: any; // تعريف متغير Klaviyo العام
   imports: [
     ProductImagesComponent,
     ProductInfoComponent,
-    RouterLink,
     ProductDescComponent,
     ProductRelatedComponent,
     AppContainerComponent,
     BreadcrumbComponent,
+    RecentProductsMiniComponent,
+    CommonModule
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
@@ -41,34 +45,34 @@ export class ProductPageComponent implements OnInit {
     private destroyRef: DestroyRef
   ) {}
 
-  onSelectedColorChange(color: any | null) {
-    this.selectedColor = color;
-
-    if (typeof _learnq !== 'undefined' && color && this.productData) {
-      _learnq.push(['track', 'Selected Color', {
-        ProductID: this.productData.id,
-        ProductName: this.productData.name,
-        Color: color,
-        Brand: this.productData.brand || 'Unknown',
-        Categories: this.productData.categories?.map((cat: any) => cat.name) || []
-      }]);
-      console.log('Klaviyo: Selected Color tracked');
+  onSelectedColorChange(event: { name: string; value: string | null }) {
+    if (event.name === 'Color') {
+      this.selectedColor = event.value;
+      // تتبع Klaviyo
+      if (typeof _learnq !== 'undefined' && event.value && this.productData) {
+        _learnq.push(['track', 'Selected Color', {
+          ProductID: this.productData.id,
+          ProductName: this.productData.name,
+          Color: event.value,
+          Brand: this.productData.brand || 'Unknown',
+          Categories: this.productData.categories?.map((cat: any) => cat.name) || []
+        }]);
+        console.log('Klaviyo: Selected Color tracked');
+      }
     }
   }
 
   ngOnInit() {
-    this.isLoading= true;
+    this.isLoading = true;
     const subscription = this.productService
       .getProductById(Number(this.productId()))
       .pipe(
         switchMap((product: any) => {
-          console.log('Product fetched:', product);
           return this.productService
             .getProductVariations(Number(this.productId()))
             .pipe(
               map((variations) => {
-                console.log('Variations fetched:', variations);
-                // Normalize product data
+                console.log('Raw Variations from API:', variations); // Debug raw API response
                 const normalizedProduct = {
                   ...product,
                   variations: variations || [],
@@ -88,6 +92,7 @@ export class ProductPageComponent implements OnInit {
                     )
                   ]
                 };
+                console.log('Normalized Product:', normalizedProduct); // Debug normalized data
                 return normalizedProduct;
               })
             );
@@ -96,15 +101,14 @@ export class ProductPageComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
           this.productData = response;
-          console.log('Final Product Data:', this.productData);
+          console.log('Product Data Variations:', this.productData.variations); // Debug final variations
           this.schemaData = this.seoService.applySeoTags(this.productData, {
             title: this.productData?.name,
             description: this.productData?.short_description,
             image: this.productData?.images?.[0]?.src,
           });
           this.isLoading = false;
-
-          // تتبع حدث Viewed Product بعد تحميل بيانات المنتج
+  
           if (typeof _learnq !== 'undefined' && this.productData) {
             _learnq.push(['track', 'Viewed Product', {
               ProductID: this.productData.id,
@@ -125,7 +129,7 @@ export class ProductPageComponent implements OnInit {
           this.isLoading = false;
         },
       });
-
+  
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

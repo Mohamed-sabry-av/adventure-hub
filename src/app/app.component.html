@@ -1,5 +1,5 @@
 <div class="min-h-screen flex flex-col bg-[#2E2E2E]">
-  <div class="w-full pb-3 md:pb-0">
+  <div class="w-full md:pb-0">
     <app-header />
   </div>
 
@@ -8,6 +8,7 @@
     <router-outlet />
   </div>
 
+  <app-side-cart />
   <app-back-to-top></app-back-to-top>
 
   <app-footer *ngIf="!isCheckoutPage" />

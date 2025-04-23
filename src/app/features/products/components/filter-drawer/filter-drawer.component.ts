@@ -4,6 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { FilterSidebarComponent } from '../filter-sidebar/filter-sidebar.component';
 import { SidebarModule } from 'primeng/sidebar';
 
+interface SortOption {
+  id: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-filter-drawer',
   standalone: true,
@@ -24,6 +29,14 @@ export class FilterDrawerComponent {
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
 
   selectedSortOption: string = 'newest'; // Default to match desktop default
+
+  sortOptions: SortOption[] = [
+    { id: 'popular', label: 'Most Popular' },
+    { id: 'rating', label: 'Top Rated' },
+    { id: 'newest', label: 'Newest First' },
+    { id: 'price-asc', label: 'Price: Low-High' },
+    { id: 'price-desc', label: 'Price: High-Low' }
+  ];
 
   constructor(private cdr: ChangeDetectorRef) {}
 

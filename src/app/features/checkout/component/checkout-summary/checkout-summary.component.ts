@@ -32,15 +32,13 @@ export class CheckoutSummaryComponent {
   ngOnInit() {
     const subscribtion = this.loadedCart$
       .pipe(
-        filter((response: any) => response?.items?.length > 0),
+        filter((response: any) => response?.userCart?.items?.length > 0),
         map((res: any) => {
-          const coupons = res.coupons || {};
+          const coupons = res.userCart.coupons || {};
           const couponKeys = Object.keys(coupons);
 
           const couponData =
             couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
-
-          console.log(couponData);
 
           if (couponData !== null) {
             this.haveCoupon = true;
@@ -50,11 +48,12 @@ export class CheckoutSummaryComponent {
 
           this.couponValue = couponData?.code || '';
           this.totalItemsLength = 0;
-          return res.items;
+          return res.userCart;
         })
       )
       .subscribe((response: any) => {
-        response.map((item: any) => {
+        console.log(response);
+        response.items.map((item: any) => {
           this.totalItemsLength += item.quantity;
         });
       });

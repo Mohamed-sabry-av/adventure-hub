@@ -4,6 +4,7 @@ import { productsRoutes } from './features/products/products.routes';
 import { pagesRoutes } from './features/terms,about,contactUs/pages.routes';
 import { categoryRoutes } from './features/products/categories.routes';
 import { authroutes } from './features/auth/auth.route';
+import { HistoryPageComponent } from './features/products/pages/History-page/history-page.component';
 
 export const routes: Routes = [
   {
@@ -57,6 +58,11 @@ export const routes: Routes = [
   {
     path: 'category',
     children: categoryRoutes, 
+  },
+  {
+    path: 'history',
+    component: HistoryPageComponent,
+    title: 'Browsing History'
   },
   {
     path: '**',

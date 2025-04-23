@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
+import { CarouselModule } from 'primeng/carousel';
 
 @Component({
   selector: 'app-sale-products',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent],
+  imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
   templateUrl: './sale-products.component.html',
   styleUrls: ['./sale-products.component.css']
 })
@@ -15,11 +16,36 @@ export class SaleProductsComponent implements OnInit {
   products: any[] = [];
   loading: boolean = true;
   error: string | null = null;
+  screenWidth: number = window.innerWidth;
+  
+  responsiveOptions = [
+    {
+      breakpoint: '1199px',
+      numVisible: 4,
+      numScroll: 1
+    },
+    {
+      breakpoint: '991px',
+      numVisible: 3,
+      numScroll: 1
+    },
+    {
+      breakpoint: '767px',
+      numVisible: 2.5,
+      numScroll: 1
+    },
+    {
+      breakpoint: '575px',
+      numVisible: 2,
+      numScroll: 1
+    }
+  ];
   
   constructor(private homeService: HomeService) {}
   
   ngOnInit(): void {
     this.loadSaleProducts();
+    this.screenWidth = window.innerWidth;
   }
   
   loadSaleProducts(): void {
@@ -35,5 +61,22 @@ export class SaleProductsComponent implements OnInit {
         console.error('Error loading sale products:', err);
       }
     });
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.screenWidth = window.innerWidth;
+  }
+
+  getVisibleItemsCount(): number {
+    if (this.screenWidth < 576) {
+      return 2; // Mobile
+    } else if (this.screenWidth < 768) {
+      return 2.5; // Small tablet
+    } else if (this.screenWidth < 992) {
+      return 3; // Tablet
+    } else {
+      return 4; // Desktop
+    }
   }
 }

@@ -1,0 +1,53 @@
+/* PrimeNG Carousel Custom Styles */
+.p-carousel .p-carousel-content .p-carousel-prev,
+.p-carousel .p-carousel-content .p-carousel-next {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  margin: 0.5rem;
+  color: #333;
+  width: 2.5rem;
+  height: 2.5rem;
+  transition: all 0.2s ease;
+}
+
+.p-carousel .p-carousel-content .p-carousel-prev:hover,
+.p-carousel .p-carousel-content .p-carousel-next:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #000;
+}
+
+.p-carousel .p-carousel-indicators {
+  margin-top: 1rem;
+}
+
+.p-carousel .p-carousel-indicators .p-carousel-indicator button {
+  background-color: #e2e8f0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.p-carousel .p-carousel-indicators .p-carousel-indicator.p-highlight button {
+  background-color: #4f46e5;
+}
+
+/* Custom Mobile Styles for Carousel */
+@media (max-width: 767px) {
+  .p-carousel .p-carousel-content {
+    padding: 0;
+  }
+  
+  .p-carousel .p-carousel-container {
+    padding: 0;
+  }
+
+  .p-carousel .p-carousel-items-container {
+    margin: 0 auto;
+  }
+}
+
+/* Ensure all carousel items have the same height */
+.p-carousel-item {
+  height: 100%;
+}
