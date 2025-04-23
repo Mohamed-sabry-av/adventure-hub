@@ -37,7 +37,8 @@
                   <strong>{{
                     100 - progressValue
                       | currency
-                        : (loadedCart$ | async)?.totals?.currency_code || "AED"
+                        : (loadedCart$ | async)?.userCart?.totals
+                            ?.currency_code || "AED"
                   }}</strong>
                   more for <strong>free shipping!</strong>
                 </span>
@@ -47,7 +48,8 @@
                   <strong>{{
                     100
                       | currency
-                        : (loadedCart$ | async)?.totals?.currency_code || "AED"
+                        : (loadedCart$ | async)?.userCart?.totals
+                            ?.currency_code || "AED"
                   }}</strong>
                   for <strong>free shipping!</strong>
                 </span>
@@ -62,7 +64,8 @@
         <section class="p-3 flex-1 overflow-y-auto scrollbar-thin">
           <div class="flex flex-col gap-y-4">
             <!-- Product Data -->
-            @for (product of (loadedCart$ | async)?.items; track $index) {
+            @for (product of (loadedCart$ | async)?.userCart?.items; track
+            $index) {
             <div class="flex justify-between items-center border-b pb-2">
               <!-- Details -->
               <div class="flex items-center gap-x-2">
@@ -104,7 +107,8 @@
               <p class="text-sm">
                 {{
                   product.totals.line_total
-                    | currency : (loadedCart$ | async)?.totals.currency_code
+                    | currency
+                      : (loadedCart$ | async)?.userCart?.totals.currency_code
                 }}
               </p>
             </div>
@@ -120,8 +124,9 @@
               <p class="font-semibold">Subtotal :</p>
               <p class="font-semibold">
                 {{
-                  (loadedCart$ | async)?.totals?.total_price
-                    | currency : (loadedCart$ | async)?.totals?.currency_code
+                  (loadedCart$ | async)?.userCart?.totals?.total_price
+                    | currency
+                      : (loadedCart$ | async)?.userCart?.totals?.currency_code
                 }}
               </p>
             </div>

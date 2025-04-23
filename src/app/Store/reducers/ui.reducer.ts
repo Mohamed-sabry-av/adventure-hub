@@ -1,26 +1,37 @@
 import { createReducer, on } from '@ngrx/store';
 import {
-  uiFailureAction,
+  dialogFailureAction,
   startLoadingAction,
   stopLoadingAction,
   startLoadingCouponAction,
   stopLoadingCouponAction,
   stopLoadingOrderAction,
   startLoadingOrderAction,
+  stopLoadingCartAction,
+  startLoadingCartAction,
+  cartErrorAction,
+  cartStatusAction,
 } from '../actions/ui.action';
+import { CartStatus } from '../../features/cart/model/cart.model';
 
 export interface State {
   isLoading: boolean;
-  error: boolean;
+  dialogError: string;
   isCouponLoading: boolean;
   isOrderLoading: boolean;
+  cartStatus: CartStatus;
 }
 
 const initialState: State = {
-  isLoading: true,
-  error: false,
+  isLoading: false,
+  dialogError: '',
   isCouponLoading: false,
   isOrderLoading: false,
+  cartStatus: {
+    mainPageLoading: false,
+    sideCartLoading: false,
+    error: null,
+  },
 };
 
 export const uiReducer = createReducer(
@@ -34,9 +45,6 @@ export const uiReducer = createReducer(
     return { ...state, isLoading: false };
   }),
 
-  on(uiFailureAction, (state, action) => {
-    return { ...state, error: action.error };
-  }),
   // -------------------------------------------------
   on(startLoadingCouponAction, (state) => {
     return { ...state, isCouponLoading: true };
@@ -52,5 +60,21 @@ export const uiReducer = createReducer(
   }),
   on(startLoadingOrderAction, (state) => {
     return { ...state, isOrderLoading: true };
+  }),
+
+  // ------------------------------------------------ Done
+  on(cartStatusAction, (state, action) => {
+    return {
+      ...state,
+      cartStatus: {
+        mainPageLoading: action.mainPageLoading,
+        sideCartLoading: action.sideCartLoading,
+        error: action.error,
+      },
+    };
+  }),
+  on(dialogFailureAction, (state, action) => {
+    // console.log(action.error);
+    return { ...state, error: action.error };
   })
 );

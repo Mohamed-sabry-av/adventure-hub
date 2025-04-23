@@ -4,9 +4,9 @@
   <!-- أزرار Google Pay و Apple Pay -->
   <div class="wallet-payment-methods mb-6" *ngIf="googlePaySupported || applePaySupported">
     <h4 class="text-gray-400 text-sm mb-3">Express checkout</h4>
-
+    
     <div #paymentRequestButtonElement class="payment-request-button mb-5"></div>
-
+    
     <div class="flex items-center gap-4">
       <span class="flex-grow h-px bg-gray-400"></span>
       <span class="text-gray-400 text-sm">OR</span>
@@ -18,16 +18,16 @@
   <div class="card-payment-form">
     <h4 class="text-base font-medium mb-3">Pay with card</h4>
     <div #cardElement class="bg-white border rounded-lg p-4 mb-4"></div>
-
-    <button
-      type="button"
-      (click)="pay(1000)"
+    
+    <button 
+      type="button" 
+      (click)="pay(1000)" 
       class="bg-blue-600 text-white py-3 px-4 rounded-lg w-full hover:bg-blue-700 transition-colors"
       [disabled]="!card"
     >
-      تأكيد بطاقة الائتمان
+      ادفع 10 دولار
     </button>
-
+    
     <div *ngIf="error" class="mt-4 p-3 bg-red-100 text-red-600 rounded-md">{{ error }}</div>
   </div>
 </div>

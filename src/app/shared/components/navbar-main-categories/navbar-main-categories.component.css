@@ -35,9 +35,15 @@
   }
 }
 
+@media (min-width: 768px) and (max-width: 959px) {
+  ::ng-deep .sidenav-drawer {
+    @apply !top-[96px];
+  }
+}
+
 ::ng-deep .sidenav-drawer {
-  @apply !top-[143.2px] md:!top-[102px] w-full;
-  z-index: 50 !important;
+  @apply w-full;
+  z-index: 500000 !important;
 }
 
 ::ng-deep .sidenav-drawer .p-drawer-header {

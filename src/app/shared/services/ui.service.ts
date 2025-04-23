@@ -1,19 +1,21 @@
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
-  errorOfUiSelector,
+  cartStatusSelector,
+  dialogErrorSelector,
   spinnerOfCouponSelector,
   spinnerOfOrderSelector,
   spinnerOfUiSelector,
 } from '../../Store/selectors/ui.selector';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { CartStatus } from '../../features/cart/model/cart.model';
 
 @Injectable({ providedIn: 'root' })
 export class UIService {
   private store = inject(Store);
 
   isLoading$ = this.store.select(spinnerOfUiSelector);
-  uiFailure$ = this.store.select(errorOfUiSelector);
+
   private errorState = new BehaviorSubject<{
     isVisible: boolean;
     message: string;
@@ -33,7 +35,13 @@ export class UIService {
 
   // ------------------------------------------------------
   isCouponLoading$ = this.store.select(spinnerOfCouponSelector);
-  // ------------------------------------------------------
 
+  // ------------------------------------------------------
   isOrderLoading$ = this.store.select(spinnerOfOrderSelector);
+
+  // ------------------------------------------------------ Done
+
+  cartStatus$: Observable<CartStatus> = this.store.select(cartStatusSelector);
+
+  isError$: Observable<any> = this.store.select(dialogErrorSelector);
 }

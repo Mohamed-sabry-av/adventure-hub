@@ -13,6 +13,8 @@ import { AsyncPipe } from '@angular/common';
 import { CheckoutService } from '../../services/checkout.service';
 import { UIService } from '../../../../shared/services/ui.service';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
+import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
+import { CartStatus } from '../../../cart/model/cart.model';
 
 @Component({
   selector: 'app-checkout-page',
@@ -22,6 +24,7 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
     RouterLink,
     AsyncPipe,
     DialogErrorComponent,
+    SkeletonLoaderComponent,
   ],
   templateUrl: './checkout-page.component.html',
   styleUrl: './checkout-page.component.css',
@@ -34,16 +37,17 @@ export class CheckoutPageComponent {
   private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
 
-  isLoading$: Observable<boolean> = this.uiService.isLoading$;
-  isError$: Observable<boolean> = this.uiService.uiFailure$;
-
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
   productsOutOfStock$: Observable<any> = this.checkoutService.productsOutStock$;
+  cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
   ngOnInit() {
     const subscription = this.loadedCart$.subscribe((res: any) => {
-      if (res?.length === 0) {
-        this.cartService.fetchUserCart();
+      if (!res?.cartIsLoaded) {
+        this.cartService.fetchUserCart({
+          mainPageLoading: true,
+          sideCartLoading: false,
+        });
       }
     });
 

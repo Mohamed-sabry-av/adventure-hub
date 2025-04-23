@@ -3,6 +3,7 @@
   [class]="{
   'is-scroll':lastScrollY !==0,
 }"
+  #headerEl
 >
   @if (currentPage ==='checkout') {
   <div
@@ -10,7 +11,7 @@
   >
     <a class="block" [routerLink]="''">
       <img
-        src="header/adv-hub-logo-n.png"
+        src="header/White-logo-01"
         alt="Adventures hub logo"
         routerLink="/home"
         class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
@@ -22,11 +23,19 @@
 
   } @else {
   <!-- معلومات فرعية -->
-  <div class="py-2 text-center px-4 text-white">
-    <p class="text-sm">
+  @if (showNavbar) {
+  <div
+    class="relative mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6"
+    @navbarAnimation
+  >
+    <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
       <strong>Free Delivery</strong> for orders over AED 100
     </p>
+    <p class="absolute top-0 w-full text-center text-sm animate-slide-second">
+      Buy Now & Pay Later with <strong>Tabby</strong>
+    </p>
   </div>
+  }
 
   <!-- معلومات اساسية -->
   <app-app-container>
@@ -34,6 +43,7 @@
       <!-- Logo -->
       <a class="block">
         <img
+          src="header/White logo-01.png"
           alt="Adventures hub logo"
           routerLink="/home"
           class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
@@ -49,6 +59,18 @@
       <div
         class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3"
       >
+        <i
+          class="pi pi-times md:hidden block"
+          (click)="onShowSearchbar()"
+          *ngIf="showSearchbar"
+        ></i>
+
+        <i
+          class="pi pi-search md:hidden block"
+          (click)="onShowSearchbar()"
+          *ngIf="!showSearchbar"
+        ></i>
+
         <a routerLink="/user">
           <i class="pi pi-user"></i>
         </a>
@@ -61,18 +83,20 @@
           *ngIf="(sidenavIsVisible$ | async) === false"
         ></i>
         <i
-          class="pi pi-times"
+          class="pi pi-times pi-sidenav"
           (click)="onSiwtchSideNav(false)"
           *ngIf="(sidenavIsVisible$ | async) === true"
         ></i>
       </div>
     </div>
-    <div class="w-full -mt-[10px] md:hidden block z-10">
+    @if (showSearchbar) {
+    <div class="w-full -mt-[10px] md:hidden block z-10 pb-2" @navbarAnimation>
       <app-search-bar />
     </div>
+    }
   </app-app-container>
 
-  @if (showNavbar) {
+  <!-- @if (showNavbar) { -->
   <div @navbarAnimation>
     @defer (on idle) {
     <app-navbar-container
@@ -81,5 +105,6 @@
     />
     }
   </div>
-  } }
+  }
+  <!-- } -->
 </header>

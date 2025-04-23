@@ -10,9 +10,11 @@ import { CartCheckoutComponent } from '../../components/cart-checkout/cart-check
 import { CartService } from '../../service/cart.service';
 import { ServiceHighlightsComponent } from '../../../../shared/components/service-highlights/service-highlights.component';
 import { Observable } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { UIService } from '../../../../shared/services/ui.service';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
+import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
+import { CartStatus } from '../../model/cart.model';
 
 @Component({
   selector: 'app-cart-page',
@@ -23,6 +25,8 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
     ServiceHighlightsComponent,
     AsyncPipe,
     DialogErrorComponent,
+    SkeletonLoaderComponent,
+    NgIf,
   ],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',
@@ -34,13 +38,15 @@ export class CartPageComponent {
   private destroyRef = inject(DestroyRef);
 
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
-  isLoading$: Observable<boolean> = this.uiService.isLoading$;
-  isError$: Observable<boolean> = this.uiService.uiFailure$;
+  cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
   ngOnInit() {
     const subscription = this.loadedCart$.subscribe((res: any) => {
-      if (res?.length === 0) {
-        this.cartService.fetchUserCart();
+      if (!res?.cartIsLoaded) {
+        this.cartService.fetchUserCart({
+          mainPageLoading: true,
+          sideCartLoading: false,
+        });
       }
     });
 

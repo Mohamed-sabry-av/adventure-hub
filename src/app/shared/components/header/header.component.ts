@@ -1,5 +1,12 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../interfaces/category.model';
 import { ButtonModule } from 'primeng/button';
@@ -9,7 +16,7 @@ import { NavbarService } from '../../services/navbar.service';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
-import { filter, Observable } from 'rxjs';
+import { debounceTime, filter, fromEvent, Observable, take } from 'rxjs';
 import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
@@ -54,11 +61,14 @@ export class HeaderComponent implements OnInit {
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
   sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
+  @ViewChild('headerEl') headerElement!: ElementRef;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
   showNavbar: boolean = true;
+  showSearchbar: boolean = false;
   lastScrollY: number = 0;
+  headerHeight: any;
 
   ngOnInit() {
     this.fetchAllCategories();
@@ -77,13 +87,14 @@ export class HeaderComponent implements OnInit {
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
-    // Handle scroll events
-    window.addEventListener('scroll', this.handleScroll.bind(this));
+    const subscriptio3 = fromEvent(window, 'scroll')
+      .pipe(debounceTime(10))
+      .subscribe(() => this.handleScroll());
 
     this.destroyRef.onDestroy(() => {
       subscribtion.unsubscribe();
       subscribtion2.unsubscribe();
-      window.removeEventListener('scroll', this.handleScroll.bind(this));
+      subscriptio3.unsubscribe();
     });
   }
 
@@ -98,7 +109,13 @@ export class HeaderComponent implements OnInit {
       this.showNavbar = true;
     }
 
+    if (this.headerElement) {
+      this.headerHeight = this.headerElement.nativeElement.offsetHeight;
+    }
+
     this.lastScrollY = currentScrollY;
+    this.navbarService.showNavbar(this.showNavbar);
+    this.navbarService.handleScroll(this.headerHeight);
   }
 
   onSiwtchSideNav(visible: boolean) {
@@ -112,5 +129,10 @@ export class HeaderComponent implements OnInit {
         this.allCategories = categories;
         this.mainCategories = categories.filter((cat) => cat.parent === 0);
       });
+  }
+
+  onShowSearchbar() {
+    this.showSearchbar = !this.showSearchbar;
+    this.navbarService.showSearchBar(this.showSearchbar);
   }
 }

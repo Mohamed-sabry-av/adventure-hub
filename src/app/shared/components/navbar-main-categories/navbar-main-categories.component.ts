@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   EventEmitter,
   HostListener,
   inject,
@@ -12,7 +13,7 @@ import { RouterLink } from '@angular/router';
 import { Category } from '../../../interfaces/category.model';
 import { NavbarService } from '../../services/navbar.service';
 import { Observable } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
 import { AppContainerComponent } from '../app-container/app-container.component';
 import { StyleClass } from 'primeng/styleclass';
@@ -25,10 +26,12 @@ import { trigger, transition, style, animate } from '@angular/animations';
     AsyncPipe,
     AppContainerComponent,
     DrawerModule,
+    NgClass,
   ],
   templateUrl: './navbar-main-categories.component.html',
   styleUrl: './navbar-main-categories.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('slideInOut', [
       transition(':enter', [
@@ -49,6 +52,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class NavbarMainCategoriesComponent {
   private navbarService = inject(NavbarService);
+  private destroyRef = inject(DestroyRef);
   @Input({ required: true }) categories: Category[] = [];
   @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
@@ -57,10 +61,22 @@ export class NavbarMainCategoriesComponent {
 
   isMobile: boolean = false;
   sideNavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
+  showNavbar$: Observable<boolean> = this.navbarService.navbarIsVisible$;
+  drawerTop: number = 100;
 
   @HostListener('window:resize')
   checkIfMobile() {
     this.isMobile = window.innerWidth <= 960;
+  }
+
+  ngOnInit() {
+    const subscription = this.navbarService.headerHeight$.subscribe(
+      (response: any) => {
+        this.drawerTop = response;
+      }
+    );
+
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   hideSideNav() {
@@ -106,5 +122,5 @@ export class NavbarMainCategoriesComponent {
 
   isCategoryExpanded(categoryId: number): boolean {
     return this.expandedCategories.has(categoryId);
-  }
+  }
 }

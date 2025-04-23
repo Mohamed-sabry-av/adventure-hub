@@ -4,10 +4,6 @@ export const spinnerOfUiSelector = (state: StoreInterface) => {
   return state.ui.isLoading;
 };
 
-export const errorOfUiSelector = (state: StoreInterface) => {
-  return state.ui.error;
-};
-
 // ------------------------------------------------
 
 export const spinnerOfCouponSelector = (state: StoreInterface) => {
@@ -18,4 +14,14 @@ export const spinnerOfCouponSelector = (state: StoreInterface) => {
 
 export const spinnerOfOrderSelector = (state: StoreInterface) => {
   return state.ui.isOrderLoading;
+};
+
+// ------------------------------------------------ Done
+
+export const cartStatusSelector = (state: StoreInterface) => {
+  return state.ui.cartStatus;
+};
+
+export const dialogErrorSelector = (state: StoreInterface) => {
+  return state.ui.dialogError;
 };

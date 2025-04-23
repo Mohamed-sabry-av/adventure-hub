@@ -5,5 +5,11 @@ export const cartStateSelector = (state: StoreInterface) => state.cart;
 
 export const savedUserCartSelector = createSelector(
   cartStateSelector,
-  (cartState) => cartState.userCart
+  (cartState) => {
+    const cartData = {
+      userCart: cartState.userCart,
+      cartIsLoaded: cartState.isCartLoaded,
+    };
+    return cartData;
+  }
 );

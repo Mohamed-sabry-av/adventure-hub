@@ -28,11 +28,15 @@ import {
 import { getCouponDataAction } from '../actions/checkout.action';
 import { ProductService } from '../../core/services/product.service';
 import {
+  cartStatusAction,
   startLoadingAction,
+  startLoadingCartAction,
   stopLoadingAction,
-  uiFailureAction,
+  stopLoadingCartAction,
+  dialogFailureAction,
 } from '../actions/ui.action';
 import { UIService } from '../../shared/services/ui.service';
+import { at } from 'lodash';
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -41,6 +45,7 @@ export class CartEffect {
   private cartService = inject(CartService);
   private productService = inject(ProductService);
   private uiService = inject(UIService);
+
   // initUserCart = createEffect(
   //   () =>
   //     this.actions$.pipe(
@@ -108,20 +113,41 @@ export class CartEffect {
               { headers }
             )
             .pipe(
-              map(() => {
+              map((response: any) => {
                 console.log('Product Added To Online Cart');
-                setTimeout(() => {
-                  this.cartService.cartMode(true);
-                }, 3000);
-                return fetchUserCartAction({ isLoggedIn: true });
+                const updatedItems = response.items.map((item: any) => {
+                  return {
+                    ...item,
+                    images: {
+                      imageSrc: item.images[0].thumbnail,
+                      imageAlt: item.images[0].alt,
+                    },
+                  };
+                });
+
+                const updatedCart = {
+                  items: updatedItems,
+                  coupons: response.coupons,
+                  payment_methods: response.payment_methods,
+                  totals: response.totals,
+                };
+                this.cartService.cartMode(true);
+                return getUserCartAction({ userCart: updatedCart });
               }),
               catchError((error: any) => {
-                console.log('Error Happened In Online Cart', error);
-                return EMPTY;
+                console.log('Error in adding product to online cart:', error);
+                this.uiService.showError('Failed to Add Product');
+                return of(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: error.message || 'Failed to Add Product',
+                  })
+                );
               })
             );
         } else {
-          console.log(product);
+          console.log('Adding product to local cart:', product);
           let {
             id,
             name,
@@ -129,6 +155,7 @@ export class CartEffect {
             price,
             sale_price,
             attributes,
+            image,
             images,
             type,
             quantity_limits,
@@ -136,6 +163,16 @@ export class CartEffect {
             additional_images,
             permalink,
           } = product;
+
+          const updatedAttributes =
+            type === 'variation'
+              ? attributes
+              : attributes.map((attribute: any) => {
+                  return {
+                    name: attribute.name,
+                    option: attribute.options[0].name,
+                  };
+                });
 
           let selectedProduct = {
             permalink,
@@ -147,14 +184,14 @@ export class CartEffect {
               price,
               sale_price,
             },
-            attributes,
+            attributes: updatedAttributes,
             images: {
               imageSrc:
-                type === 'variable'
-                  ? images.sizes.thumbnail.src
+                type === 'variation'
+                  ? image.sizes.thumbnail.src
                   : images[0].thumbnail,
               imageAlt:
-                type === 'variable'
+                type === 'variation'
                   ? additional_images?.alt || 'product-image'
                   : images[0].alt,
             },
@@ -175,7 +212,7 @@ export class CartEffect {
             : { items: [], coupons: {}, totals: {} };
 
           const productIndex = loadedCart.items.findIndex(
-            (p: Product) => p.id === selectedProduct.id
+            (p: any) => p.id === selectedProduct.id
           );
 
           if (productIndex !== -1) {
@@ -185,176 +222,227 @@ export class CartEffect {
           }
 
           localStorage.setItem('Cart', JSON.stringify(loadedCart));
-          this.cartService.fetchUserCart();
-          setTimeout(() => {
-            this.cartService.cartMode(true);
-          }, 3000);
-          return of();
+          this.cartService.cartMode(true);
+          this.cartService.fetchUserCart({
+            mainPageLoading: false,
+            sideCartLoading: true,
+          });
+
+          return of(
+            getUserCartAction({
+              userCart: loadedCart,
+            })
+          );
         }
       })
     )
   );
+  loadUserCart = createEffect(() =>
+    this.actions$.pipe(
+      ofType(fetchUserCartAction),
+      tap(() =>
+        this.store.dispatch(
+          cartStatusAction({
+            mainPageLoading: true,
+            sideCartLoading: false,
+            error: null,
+          })
+        )
+      ),
+      switchMap(() => {
+        let authToken: any = localStorage.getItem('auth_token');
+        authToken = authToken ? JSON.parse(authToken) : '';
 
-  loadUserCart = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(fetchUserCartAction),
-        tap(() => this.store.dispatch(startLoadingAction())),
-        switchMap(({ isLoggedIn }) => {
+        const options = {
+          headers: new HttpHeaders({
+            Authorization: `Bearer ${authToken.value}`,
+          }),
+          params: new HttpParams().set(
+            '_fields',
+            'items,totals,payment_methods,coupons'
+          ),
+        };
+
+        return this.httpClient
+          .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
+          .pipe(
+            map((response: any) => {
+              console.log(response);
+
+              const itemsObj = response.items.map((item: any) => {
+                return {
+                  key: item.key,
+                  id: item.id,
+                  images: {
+                    imageSrc: item.images[0]?.thumbnail || '',
+                    imageAlt: item.images[0]?.alt || 'product-image',
+                  },
+                  name: item.name,
+                  permalink: item.permalink,
+                  type: item.type,
+                  variation: item.variation,
+                  prices: item.prices,
+                  quantity: item.quantity,
+                  quantity_limits: item.quantity_limits,
+                  attributes: item.attributes,
+                  totals: item.totals,
+                  stock_status: item.stock_status,
+                };
+              });
+
+              const cartData = {
+                items: itemsObj,
+                payment_methods: response.payment_methods,
+                totals: response.totals,
+                coupons: response.coupons,
+              };
+
+              const coupons = response.coupons || {};
+              const couponKeys = Object.keys(coupons);
+
+              const couponData =
+                couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+
+              this.store.dispatch(getCouponDataAction({ coupon: couponData }));
+              this.store.dispatch(
+                cartStatusAction({
+                  mainPageLoading: false,
+                  sideCartLoading: false,
+                  error: null,
+                })
+              );
+
+              return getUserCartAction({ userCart: cartData });
+            }),
+            catchError((error: any) => {
+              console.log(error);
+
+              this.uiService.showError(
+                `Something went wrong fetching the available data 💥💥. Please try again later.`
+              );
+
+              return of(
+                cartStatusAction({
+                  mainPageLoading: false,
+                  sideCartLoading: false,
+                  error:
+                    error.message ||
+                    'Something went wrong fetching the available data 💥💥. Please try again later.',
+                })
+              );
+            })
+          );
+      })
+    )
+  );
+
+  updateProductQuantityOfUserCart = createEffect(() =>
+    this.actions$.pipe(
+      ofType(updateProductOfUserCartAction),
+      switchMap(
+        ({
+          product: selectedProduct,
+          productQuantity: quantity,
+          isLoggedIn,
+        }) => {
           if (isLoggedIn) {
+            this.store.dispatch(
+              cartStatusAction({
+                mainPageLoading: false,
+                sideCartLoading: true,
+                error: null,
+              })
+            );
             let authToken: any = localStorage.getItem('auth_token');
             authToken = authToken ? JSON.parse(authToken) : '';
-  
-            const options = {
-              headers: new HttpHeaders({
-                Authorization: `Bearer ${authToken.value}`,
-              }),
-              params: new HttpParams().set(
-                '_fields',
-                'items,totals,payment_methods,coupons'
-              ),
+
+            const headers = new HttpHeaders({
+              Authorization: `Bearer ${authToken.value}`,
+            });
+
+            const body = {
+              product_id: selectedProduct.id,
+              quantity: quantity,
             };
-  
+
+            console.log(body);
+
             return this.httpClient
-              .get('https://adventures-hub.com/wp-json/custom/v1/cart', options)
+              .put(
+                'https://adventures-hub.com/wp-json/custom/v1/cart/update',
+                body,
+                { headers }
+              )
               .pipe(
                 map((response: any) => {
-                  this.store.dispatch(stopLoadingAction());
-                  console.log(response);
-  
-                  const itemsObj = response.items.map((item: any) => {
+                  console.log('Update Success:', response);
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
+                  );
+
+                  const updatedItems = response.items.map((item: any) => {
                     return {
-                      key: item.key,
-                      id: item.id,
+                      ...item,
                       images: {
-                        imageSrc: item.images?.src || '', // Use the src directly from the image object
-                        imageAlt: item.images?.alt || 'product-image', // Fallback to default if alt is not available
+                        imageSrc: item.images[0].thumbnail,
+                        imageAlt: item.images[0].alt,
                       },
-                      name: item.name,
-                      permalink: item.permalink,
-                      type: item.type,
-                      variation: item.variation,
-                      prices: item.prices,
-                      quantity: item.quantity,
-                      quantity_limits: item.quantity_limits,
-                      attributes: item.attributes,
-                      totals: item.totals,
-                      stock_status: item.stock_status,
                     };
                   });
-  
-                  const cartData = {
-                    items: itemsObj,
+
+                  const updatedCart = {
+                    items: updatedItems,
+                    coupons: response.coupons,
                     payment_methods: response.payment_methods,
                     totals: response.totals,
-                    coupons: response.coupons,
                   };
-  
-                  const coupons = response.coupons || {};
-                  const couponKeys = Object.keys(coupons);
-  
-                  const couponData =
-                    couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
-  
-                  console.log(couponData);
-  
-                  this.store.dispatch(
-                    getCouponDataAction({ coupon: couponData })
-                  );
-  
-                  this.store.dispatch(
-                    getUserCartAction({ userCart: cartData })
-                  );
+                  return getUserCartAction({ userCart: updatedCart });
                 }),
-                catchError((error: any) => {
-                  this.store.dispatch(stopLoadingAction());
-                  this.uiService.showError(
-                    `Something went wrong fetching the available data 💥💥. Please try again later.`
+                catchError((error) => {
+                  this.uiService.showError('Failed to Update Product');
+                  return of(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: error.message || 'Failed to Update Product',
+                    })
                   );
-                  this.store.dispatch(uiFailureAction({ error: true }));
-  
-                  console.log('ERRRRRRRR', error);
-                  return of();
                 })
               );
           }
-          return of();
-        })
-      ),
-    { dispatch: false }
-  );
 
-  updateProductQuantityOfUserCart = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(updateProductOfUserCartAction),
-        switchMap(
-          ({
-            product: selectedProduct,
-            productQuantity: quantity,
-            isLoggedIn,
-          }) => {
-            if (isLoggedIn) {
-              let authToken: any = localStorage.getItem('auth_token');
-              authToken = authToken ? JSON.parse(authToken) : '';
+          if (!isLoggedIn) {
+            let loadedCart: any = localStorage.getItem('Cart');
+            loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
 
-              const headers = new HttpHeaders({
-                Authorization: `Bearer ${authToken.value}`,
-              });
+            const updatedCart = loadedCart.items.map((product: any) =>
+              product.id === selectedProduct.id
+                ? {
+                    ...product,
+                    quantity,
+                    totals: {
+                      line_total: quantity * selectedProduct.prices.price,
+                    },
+                  }
+                : product
+            );
 
-              const body = {
-                product_id: selectedProduct.id,
-                quantity: quantity,
-              };
+            loadedCart.items = updatedCart;
+            localStorage.setItem('Cart', JSON.stringify(loadedCart));
 
-              console.log(body);
-
-              return this.httpClient
-                .put(
-                  'https://adventures-hub.com/wp-json/custom/v1/cart/update',
-                  body,
-                  { headers }
-                )
-                .pipe(
-                  map((response: any) => {
-                    console.log('Update Success:', response);
-                    this.store.dispatch(
-                      fetchUserCartAction({ isLoggedIn: true })
-                    );
-                  }),
-                  catchError((error) => {
-                    console.error('Update Error:', error);
-                    return of();
-                  })
-                );
-            }
-
-            if (!isLoggedIn) {
-              let loadedCart: any = localStorage.getItem('Cart');
-              loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-
-              const updatedCart = loadedCart.items.map((product: any) =>
-                product.id === selectedProduct.id
-                  ? {
-                      ...product,
-                      quantity,
-                      totals: {
-                        line_total: quantity * selectedProduct.prices.price,
-                      },
-                    }
-                  : product
-              );
-
-              loadedCart.items = updatedCart;
-              localStorage.setItem('Cart', JSON.stringify(loadedCart));
-
-              this.cartService.fetchUserCart();
-            }
-            return of();
+            this.cartService.fetchUserCart({
+              mainPageLoading: false,
+              sideCartLoading: true,
+            });
           }
-        )
-      ),
-    { dispatch: false }
+          return of();
+        }
+      )
+    )
   );
 
   deleteProductOfUserCart = createEffect(() =>
@@ -362,6 +450,13 @@ export class CartEffect {
       ofType(deleteProductOfUserCarAction),
       switchMap(({ product: selectedProduct, isLoggedIn }) => {
         if (isLoggedIn) {
+          this.store.dispatch(
+            cartStatusAction({
+              mainPageLoading: false,
+              sideCartLoading: true,
+              error: null,
+            })
+          );
           let authToken: any = localStorage.getItem('auth_token');
           authToken = authToken ? JSON.parse(authToken) : '';
 
@@ -380,13 +475,43 @@ export class CartEffect {
               { headers }
             )
             .pipe(
-              map(() => {
+              map((response: any) => {
                 console.log('DELETED');
-                return fetchUserCartAction({ isLoggedIn: true });
+                const updatedItems = response.items.map((item: any) => {
+                  return {
+                    ...item,
+                    images: {
+                      imageSrc: item.images[0].thumbnail,
+                      imageAlt: item.images[0].alt,
+                    },
+                  };
+                });
+
+                const updatedCart = {
+                  items: updatedItems,
+                  coupons: response.coupons,
+                  payment_methods: response.payment_methods,
+                  totals: response.totals,
+                };
+                this.store.dispatch(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: null,
+                  })
+                );
+                return getUserCartAction({ userCart: updatedCart });
               }),
               catchError((error: any) => {
-                console.log('ERRR', error);
-                return EMPTY;
+                this.uiService.showError('Failed to Delete Product');
+
+                return of(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: error.message || 'Failed to Delete Product',
+                  })
+                );
               })
             );
         } else {
@@ -414,7 +539,10 @@ export class CartEffect {
             );
           } else {
             localStorage.setItem('Cart', JSON.stringify(loadedCart));
-            this.cartService.fetchUserCart();
+            this.cartService.fetchUserCart({
+              mainPageLoading: false,
+              sideCartLoading: true,
+            });
           }
           return of();
         }
@@ -422,36 +550,59 @@ export class CartEffect {
     )
   );
 
-  updateCartStockStatusEffect = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(updateCartStockStatusAction),
-        switchMap(({ productIds, coupon }) => {
-          const requests = productIds.map((productId) =>
-            this.productService.getProductById(Number(productId)).pipe(
-              map((product) => ({
-                productId,
-                stockStatus: product.stock_status,
-                permalink: product.permalink,
-              })),
-              catchError((error) =>
-                of({ productId, stockStatus: 'unknown', error })
-              )
-            )
-          );
-
-          return forkJoin(requests).pipe(
-            map((updatedProducts: any) => {
-              this.updateLocalStorage(coupon, updatedProducts);
-            }),
+  updateCartStockStatusEffect = createEffect(() =>
+    this.actions$.pipe(
+      ofType(updateCartStockStatusAction),
+      switchMap(({ productIds, coupon }) => {
+        const requests = productIds.map((productId) =>
+          this.productService.getProductById(Number(productId)).pipe(
+            map((product) => ({
+              productId,
+              stockStatus: product.stock_status,
+              permalink: product.permalink,
+            })),
             catchError((error) => {
-              console.error('Error updating stock status:', error);
-              return of(error);
+              this.uiService.showError('Failed to Update Product Stock');
+
+              return of({ productId, stockStatus: 'unknown', error });
+            })
+          )
+        );
+
+        if (requests.length === 0) {
+          this.updateLocalStorage(coupon, []);
+          return of(
+            cartStatusAction({
+              mainPageLoading: false,
+              sideCartLoading: false,
+              error: null,
             })
           );
-        })
-      ),
-    { dispatch: false }
+        }
+
+        return forkJoin(requests).pipe(
+          map((updatedProducts: any) => {
+            this.updateLocalStorage(coupon, updatedProducts);
+            return cartStatusAction({
+              mainPageLoading: false,
+              sideCartLoading: false,
+              error: null,
+            });
+          }),
+          catchError((error) => {
+            this.uiService.showError('Failed to Update Product Stock');
+
+            return of(
+              cartStatusAction({
+                mainPageLoading: false,
+                sideCartLoading: false,
+                error: error.message || 'Failed to update stock status',
+              })
+            );
+          })
+        );
+      })
+    )
   );
 
   private updateLocalStorage(
@@ -462,7 +613,7 @@ export class CartEffect {
       permalink: string;
     }[]
   ) {
-    let cart = JSON.parse(localStorage.getItem('Cart') || '{}');
+    let cart = JSON.parse(localStorage.getItem('Cart') || '[]');
     if (cart.items) {
       cart.items = cart.items.map((item: any) => {
         const updatedProduct = updatedProducts?.find(
@@ -478,9 +629,14 @@ export class CartEffect {
         return item;
       });
     }
-    cart = this.cartService.calcCartPrice(cart.items, validCoupon);
 
-    localStorage.setItem('Cart', JSON.stringify(cart));
+    console.log('7- سابع خطوه', cart);
+
+    if (cart?.items?.length > 0) {
+      cart = this.cartService.calcCartPrice(cart.items, validCoupon);
+      localStorage.setItem('Cart', JSON.stringify(cart));
+    }
+
     this.store.dispatch(getUserCartAction({ userCart: cart }));
   }
 }

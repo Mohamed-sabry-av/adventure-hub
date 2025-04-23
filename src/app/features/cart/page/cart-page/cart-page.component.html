@@ -1,17 +1,13 @@
-@if (isLoading$ | async) {
-<div class="flex justify-center my-20">
-  <div
-    class="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-gray-900"
-  ></div>
-</div>
-} @else if (isError$ | async) {
+@if ((cartStatus$ | async)?.mainPageLoading ) {
+<app-skeleton-loader [showCheckoutSection]="false"></app-skeleton-loader>
+}@else if ((cartStatus$ | async)?.error && !((loadedCart$ | async).cartIsLoaded)
+) {
 <p class="w-full sm:text-xl text-center my-20 p-4">
   Something went wrong fetching the available data 💥💥. Please try again later.
 </p>
 
-<app-dialog-error />
-
-} @else if ((loadedCart$ | async)?.length === 0) {
+} @else if ( (loadedCart$ | async).cartIsLoaded) { @if ((loadedCart$ |
+async).userCart?.length === 0 ) {
 <app-app-container>
   <div
     class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[20px]"
@@ -40,4 +36,4 @@
   </div>
 </app-app-container>
 <app-service-highlights />
-}
+} } <app-dialog-error />
