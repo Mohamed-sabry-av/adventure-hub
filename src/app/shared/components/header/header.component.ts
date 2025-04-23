@@ -114,6 +114,7 @@ export class HeaderComponent implements OnInit {
     }
 
     this.lastScrollY = currentScrollY;
+    this.navbarService.showNavbar(this.showNavbar);
     this.navbarService.handleScroll(this.headerHeight);
   }
 

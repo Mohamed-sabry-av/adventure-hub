@@ -5,7 +5,7 @@ import { BehaviorSubject } from 'rxjs';
 export class NavbarService {
   sideNavIsVisible$ = new BehaviorSubject<boolean>(false);
   searcBarIsVisible$ = new BehaviorSubject<boolean>(false);
-  navbarIsVisible$ = new BehaviorSubject<boolean>(false);
+  navbarIsVisible$ = new BehaviorSubject<boolean>(true);
   headerHeight$ = new BehaviorSubject<number>(88);
 
   siwtchSideNav(visible: boolean) {
@@ -18,5 +18,9 @@ export class NavbarService {
 
   showSearchBar(isVisible: boolean) {
     this.searcBarIsVisible$.next(isVisible);
+  }
+
+  showNavbar(isVisible: boolean) {
+    this.navbarIsVisible$.next(isVisible);
   }
 }

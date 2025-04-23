@@ -76,9 +76,7 @@
             $index) {
             <p>
               {{ attribute.name }} :
-              <span class="font-light">
-                {{ attribute.option }}
-              </span>
+              <span class="font-light" [innerHTML]="attribute.option"> </span>
             </p>
             } }
             <div class="flex mt-4 items-center gap-x-4">
