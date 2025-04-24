@@ -16,6 +16,10 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'user',
+    children: authroutes,
+  },
+  {
     path: 'order-received/:orderId',
     loadComponent: () =>
       import('./features/order/page/order-page/order-page.component').then(
@@ -40,29 +44,25 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'user',
-    children: authroutes,
-  },
-  {
     path: 'blog',
-    children: blogRoutes, 
+    children: blogRoutes,
   },
   {
     path: 'product',
-    children: productsRoutes, 
+    children: productsRoutes,
   },
   {
     path: 'pages',
-    children: pagesRoutes, 
+    children: pagesRoutes,
   },
   {
     path: 'category',
-    children: categoryRoutes, 
+    children: categoryRoutes,
   },
   {
     path: 'history',
     component: HistoryPageComponent,
-    title: 'Browsing History'
+    title: 'Browsing History',
   },
   {
     path: '**',

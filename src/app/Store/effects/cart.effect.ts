@@ -22,6 +22,7 @@ import {
   deleteProductOfUserCarAction,
   fetchUserCartAction,
   getUserCartAction,
+  syncCartAction,
   updateCartStockStatusAction,
   updateProductOfUserCartAction,
 } from '../actions/cart.action';
@@ -46,47 +47,41 @@ export class CartEffect {
   private productService = inject(ProductService);
   private uiService = inject(UIService);
 
-  // initUserCart = createEffect(
-  //   () =>
-  //     this.actions$.pipe(
-  //       ofType(initUserCartAction),
-  //       switchMap(() =>
-  //         this.cartService.savedCartOfLS$.pipe(
-  //           map((cart) => cart.products || []),
-  //           filter((products) => products.length !== 0),
-  //           concatMap((products: Product[]) =>
-  //             from(products).pipe(
-  //               concatMap((product: Product) =>
-  //                 this.httpClient
-  //                   .post('https://ecommerce.routemisr.com/api/v1/cart', {
-  //                     productId: product.id,
-  //                   })
-  //                   .pipe(
-  //                     tap(() =>
-  //                       console.log(`✅ ADDED Product ID: ${product.id}`)
-  //                     ),
-  //                     filter(() => product.count! > 1),
-  //                     concatMap(() =>
-  //                       this.httpClient.put(
-  //                         `https://ecommerce.routemisr.com/api/v1/cart/${product.id}`,
-  //                         {
-  //                           count: product.count,
-  //                         }
-  //                       )
-  //                     )
-  //                   )
-  //               ),
-  //               toArray(),
-  //               tap(() => {
-  //                 localStorage.removeItem('Cart');
-  //               })
-  //             )
-  //           )
-  //         )
-  //       )
-  //     ),
-  //   { dispatch: false }
-  // );
+  syncOfflineCartToLive = createEffect(() =>
+    this.actions$.pipe(
+      ofType(syncCartAction),
+      switchMap(({ authToken, items }) => {
+        const body = { products: items };
+        console.log(body);
+        const headers = new HttpHeaders({
+          Authorization: `Bearer ${authToken}`,
+        });
+        return this.httpClient
+          .post(
+            'https://adventures-hub.com/wp-json/custom/v1/cart/add_multiple',
+            body,
+            { headers }
+          )
+          .pipe(
+            map((response: any) => {
+              console.log(response.cart.items);
+              localStorage.removeItem('Cart');
+              return fetchUserCartAction({
+                isLoggedIn: true,
+                mainPageLoading: true,
+                sideCartLoading: false,
+              });
+            }),
+            catchError((error: any) => {
+              this.uiService.showError(
+                'Failed To Sync Cart Offline To Cart Online'
+              );
+              return of(error);
+            })
+          );
+      })
+    )
+  );
 
   addProductToUserCart = createEffect(() =>
     this.actions$.pipe(
@@ -187,9 +182,7 @@ export class CartEffect {
             attributes: updatedAttributes,
             images: {
               imageSrc:
-                type === 'variation'
-                  ? image.sizes.thumbnail.src
-                  : images[0].thumbnail,
+                type === 'variation' ? image.thumbnail : images[0].thumbnail,
               imageAlt:
                 type === 'variation'
                   ? additional_images?.alt || 'product-image'
@@ -222,11 +215,11 @@ export class CartEffect {
           }
 
           localStorage.setItem('Cart', JSON.stringify(loadedCart));
-          this.cartService.cartMode(true);
           this.cartService.fetchUserCart({
             mainPageLoading: false,
-            sideCartLoading: true,
+            sideCartLoading: false,
           });
+          this.cartService.cartMode(true);
 
           return of(
             getUserCartAction({
@@ -237,6 +230,7 @@ export class CartEffect {
       })
     )
   );
+
   loadUserCart = createEffect(() =>
     this.actions$.pipe(
       ofType(fetchUserCartAction),
@@ -318,7 +312,7 @@ export class CartEffect {
               console.log(error);
 
               this.uiService.showError(
-                `Something went wrong fetching the available data 💥💥. Please try again later.`
+                `Something went wrong fetching the available data. Please try again later.`
               );
 
               return of(
@@ -327,7 +321,7 @@ export class CartEffect {
                   sideCartLoading: false,
                   error:
                     error.message ||
-                    'Something went wrong fetching the available data 💥💥. Please try again later.',
+                    'Something went wrong fetching the available data. Please try again later.',
                 })
               );
             })
@@ -629,8 +623,6 @@ export class CartEffect {
         return item;
       });
     }
-
-    console.log('7- سابع خطوه', cart);
 
     if (cart?.items?.length > 0) {
       cart = this.cartService.calcCartPrice(cart.items, validCoupon);

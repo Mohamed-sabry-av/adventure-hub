@@ -11,6 +11,7 @@ import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
   fetchUserCartAction,
+  syncCartAction,
   updateCartStockStatusAction,
   updateProductOfUserCartAction,
 } from '../../../Store/actions/cart.action';
@@ -184,6 +185,35 @@ export class CartService {
             isLoggedIn: false,
           })
         );
+      }
+    });
+  }
+
+  syncUserCart() {
+    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+      if (isLoggedIn) {
+        let authToken: any = localStorage.getItem('auth_token');
+        authToken = authToken ? JSON.parse(authToken) : '';
+
+        let loadedCart: any = localStorage.getItem('Cart');
+        loadedCart = loadedCart
+          ? JSON.parse(loadedCart)
+          : { items: [], coupons: {}, totals: {} };
+
+        if (loadedCart.items.length > 0) {
+          const cartItems = loadedCart.items.map((item: any) => {
+            return { product_id: item.id, quantity: item.quantity };
+          });
+
+          this.store.dispatch(
+            syncCartAction({
+              authToken: authToken.value,
+              items: cartItems,
+            })
+          );
+        } else {
+          console.warn('No Loaded Items In Offline Cart');
+        }
       }
     });
   }

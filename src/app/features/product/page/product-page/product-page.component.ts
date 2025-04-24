@@ -8,10 +8,11 @@ import { ProductRelatedComponent } from '../../components/product-related/produc
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, switchMap } from 'rxjs';
-import { BreadcrumbComponent } from "../../../products/components/breadcrumb/breadcrumb.component";
+import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { HistoryPageComponent } from '../../../products/pages/History-page/history-page.component';
 import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
 import { CommonModule } from '@angular/common';
+import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 
 declare var _learnq: any; // تعريف متغير Klaviyo العام
 
@@ -25,7 +26,8 @@ declare var _learnq: any; // تعريف متغير Klaviyo العام
     AppContainerComponent,
     BreadcrumbComponent,
     RecentProductsMiniComponent,
-    CommonModule
+    CommonModule,
+    DialogErrorComponent,
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
@@ -50,13 +52,18 @@ export class ProductPageComponent implements OnInit {
       this.selectedColor = event.value;
       // تتبع Klaviyo
       if (typeof _learnq !== 'undefined' && event.value && this.productData) {
-        _learnq.push(['track', 'Selected Color', {
-          ProductID: this.productData.id,
-          ProductName: this.productData.name,
-          Color: event.value,
-          Brand: this.productData.brand || 'Unknown',
-          Categories: this.productData.categories?.map((cat: any) => cat.name) || []
-        }]);
+        _learnq.push([
+          'track',
+          'Selected Color',
+          {
+            ProductID: this.productData.id,
+            ProductName: this.productData.name,
+            Color: event.value,
+            Brand: this.productData.brand || 'Unknown',
+            Categories:
+              this.productData.categories?.map((cat: any) => cat.name) || [],
+          },
+        ]);
         console.log('Klaviyo: Selected Color tracked');
       }
     }
@@ -76,21 +83,36 @@ export class ProductPageComponent implements OnInit {
                 const normalizedProduct = {
                   ...product,
                   variations: variations || [],
-                  brand: product.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.name || product.brand || 'Unknown',
+                  brand:
+                    product.attributes?.find(
+                      (attr: any) => attr.name === 'Brand'
+                    )?.options?.[0]?.name ||
+                    product.brand ||
+                    'Unknown',
                   available_colors: [
                     ...new Set(
-                      (variations || []).map((v: any) =>
-                        v.attributes?.find((attr: any) => attr.name === 'Color')?.option
-                      ).filter(Boolean)
-                    )
+                      (variations || [])
+                        .map(
+                          (v: any) =>
+                            v.attributes?.find(
+                              (attr: any) => attr.name === 'Color'
+                            )?.option
+                        )
+                        .filter(Boolean)
+                    ),
                   ],
                   available_sizes: [
                     ...new Set(
-                      (variations || []).map((v: any) =>
-                        v.attributes?.find((attr: any) => attr.name === 'Size')?.option
-                      ).filter(Boolean)
-                    )
-                  ]
+                      (variations || [])
+                        .map(
+                          (v: any) =>
+                            v.attributes?.find(
+                              (attr: any) => attr.name === 'Size'
+                            )?.option
+                        )
+                        .filter(Boolean)
+                    ),
+                  ],
                 };
                 console.log('Normalized Product:', normalizedProduct); // Debug normalized data
                 return normalizedProduct;
@@ -108,28 +130,36 @@ export class ProductPageComponent implements OnInit {
             image: this.productData?.images?.[0]?.src,
           });
           this.isLoading = false;
-  
+
           if (typeof _learnq !== 'undefined' && this.productData) {
-            _learnq.push(['track', 'Viewed Product', {
-              ProductID: this.productData.id,
-              ProductName: this.productData.name,
-              Price: this.productData.price,
-              Brand: this.productData.brand || 'Unknown',
-              Categories: this.productData.categories?.map((cat: any) => cat.name) || [],
-              AvailableColors: this.productData.available_colors || [],
-              AvailableSizes: this.productData.available_sizes || []
-            }]);
+            _learnq.push([
+              'track',
+              'Viewed Product',
+              {
+                ProductID: this.productData.id,
+                ProductName: this.productData.name,
+                Price: this.productData.price,
+                Brand: this.productData.brand || 'Unknown',
+                Categories:
+                  this.productData.categories?.map((cat: any) => cat.name) ||
+                  [],
+                AvailableColors: this.productData.available_colors || [],
+                AvailableSizes: this.productData.available_sizes || [],
+              },
+            ]);
             console.log('Klaviyo: Viewed Product tracked');
           }
         },
         error: (err) => {
           console.error('Error fetching product data:', err);
           this.productData = null;
-          this.schemaData = this.seoService.applySeoTags(null, { title: 'Product Page' });
+          this.schemaData = this.seoService.applySeoTags(null, {
+            title: 'Product Page',
+          });
           this.isLoading = false;
         },
       });
-  
+
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

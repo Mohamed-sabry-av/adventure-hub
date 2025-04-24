@@ -5,8 +5,8 @@
       w
       class="breadcrumb-item"
     >
-      <a *ngIf="!last" [routerLink]="item.url">{{ item.label }}</a>
-      <span *ngIf="last">{{ item.label }}</span>
+      <a *ngIf="!last" [routerLink]="item.url" [innerHtml]="item.label"></a>
+      <span *ngIf="last" [innerHtml]="item.label"></span>
       <span *ngIf="!last" class="separator">/</span>
     </li>
   </ol>

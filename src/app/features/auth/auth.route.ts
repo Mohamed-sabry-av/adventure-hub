@@ -9,48 +9,48 @@ import { WishlistComponent } from './account-details/components/wishlist/wishlis
 import { DashboardComponent } from './account-details/components/dashboard/dashboard.component';
 
 export const authroutes: Routes = [
-    {
-      path: 'myaccount',
-      loadComponent: () =>
-        import('./auth.component').then((m) => m.AuthComponent),
-    },
-    {
-      path: 'Useraccount',
-      loadComponent: () =>
-        import('./account-details/account-details.component').then(
-          (m) => m.AccountDetailsComponent
-        ),
-      canActivate: [AuthGuard],
-      children: [
-        {
-          path: '',
-          component: DashboardComponent, // Default tab (Dashboard)
-        },
-        {
-          path: 'orders',
-          component: OrdersComponent,
-        },
-        {
-          path: 'downloads',
-          component: DownloadsComponent,
-        },
-        {
-          path: 'addresses',
-          component: AddressesComponent,
-        },
-        {
-          path: 'payment-methods',
-          component: PaymentMethodsComponent,
-        },
-        {
-          path: 'wishlist',
-          component: WishlistComponent,
-        }
-      ]
-    },
-    {
-      path: '',
-      redirectTo: 'myaccount',
-      pathMatch: 'full'
-    }
-  ];
+  {
+    path: 'myaccount',
+    loadComponent: () =>
+      import('./auth.component').then((m) => m.AuthComponent),
+  },
+  {
+    path: 'Useraccount',
+    loadComponent: () =>
+      import('./account-details/account-details.component').then(
+        (m) => m.AccountDetailsComponent
+      ),
+    // canActivate: [AuthGuard],
+    children: [
+      {
+        path: '',
+        component: DashboardComponent, // Default tab (Dashboard)
+      },
+      {
+        path: 'orders',
+        component: OrdersComponent,
+      },
+      {
+        path: 'downloads',
+        component: DownloadsComponent,
+      },
+      {
+        path: 'addresses',
+        component: AddressesComponent,
+      },
+      {
+        path: 'payment-methods',
+        component: PaymentMethodsComponent,
+      },
+      {
+        path: 'wishlist',
+        component: WishlistComponent,
+      },
+    ],
+  },
+  {
+    path: '',
+    redirectTo: 'myaccount',
+    pathMatch: 'full',
+  },
+];
