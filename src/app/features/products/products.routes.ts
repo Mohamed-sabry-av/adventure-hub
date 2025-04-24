@@ -17,6 +17,14 @@ export const productsRoutes: Routes = [
       ),
   },
   {
+    path: 'search',
+    loadComponent: () =>
+      import('../products/pages/search-results/search-results.component').then(
+        (m) => m.SearchResultsComponent
+      ),
+    data: { breadcrumb: 'Search Results' },
+  },
+  {
     path: ':productId',
     loadComponent: () =>
       import('../product/page/product-page/product-page.component').then(

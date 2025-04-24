@@ -1,0 +1,90 @@
+<div class="container mx-auto px-4 py-8">
+    <app-breadcrumb ></app-breadcrumb>
+  
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold">Search Results for "{{ searchQuery }}"</h1>
+      <p *ngIf="!loading && totalResults > 0" class="text-gray-600">{{ totalResults }} results found</p>
+      <p *ngIf="!loading && totalResults === 0" class="text-gray-600">No results found for "{{ searchQuery }}"</p>
+      <p *ngIf="error" class="text-red-500 mt-2">{{ error }}</p>
+    </div>
+  
+    <!-- Initial Loading State -->
+    <div *ngIf="loading && currentPage === 1" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+  
+    <!-- No results -->
+    <div *ngIf="!loading && totalResults === 0 && !error" class="py-12 text-center">
+      <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100">
+        <i class="pi pi-search text-gray-400 text-2xl"></i>
+      </div>
+      <p class="mt-4 text-xl text-gray-700">No results found matching "{{ searchQuery }}"</p>
+      <p class="text-gray-500 mt-2">Try using different keywords or browse our categories</p>
+      <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition" routerLink="/">
+        Go to Homepage
+      </button>
+    </div>
+  
+    <!-- Search Results Content -->
+    <div *ngIf="(products.length > 0 || categories.length > 0) && !error" class="flex flex-col md:flex-row gap-6">
+      <!-- Filters for desktop -->
+      <div class="hidden md:block w-64 flex-shrink-0">
+        <app-filter-sidebar></app-filter-sidebar>
+      </div>
+  
+      <div class="flex-1">
+        <!-- Mobile Filter and Sort Menu -->
+        <div class="flex justify-between items-center mb-6">
+          <div class="md:hidden">
+            <app-filter-drawer></app-filter-drawer>
+          </div>
+          <div class="ml-auto">
+            <app-sort-menu></app-sort-menu>
+          </div>
+        </div>
+  
+        <!-- Categories Section (if found) -->
+        <div *ngIf="categories.length > 0" class="mb-8">
+          <h2 class="text-lg font-semibold mb-4 border-b pb-2">
+            Categories ({{ categories.length }})
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div *ngFor="let category of categories"
+                 class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
+                 [routerLink]="['/category', category.slug]">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                  <i class="pi pi-folder"></i>
+                </div>
+                <div>
+                  <h3 class="font-medium">{{ category.name }}</h3>
+                  <p class="text-sm text-gray-500">{{ category.count || 0 }} Products</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Products Section -->
+        <div *ngIf="products.length > 0">
+          <h2 class="text-lg font-semibold mb-4 border-b pb-2">
+            Products ({{ products.length }})
+          </h2>
+          <app-products-grid [products]="products"></app-products-grid>
+        </div>
+  
+        <!-- Loading More Indicator -->
+        <div *ngIf="loadingMore" class="flex justify-center py-8">
+          <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+          <span class="ml-3 text-gray-600">Loading more results...</span>
+        </div>
+  
+        <!-- End of Results Message -->
+        <div *ngIf="(allProductsLoaded && allCategoriesLoaded) && products.length + categories.length > 0" class="py-8 text-center text-gray-500">
+          <i class="pi pi-check-circle text-green-500 mr-2"></i>
+          All results loaded
+        </div>
+      </div>
+    </div>
+  </div>
+  

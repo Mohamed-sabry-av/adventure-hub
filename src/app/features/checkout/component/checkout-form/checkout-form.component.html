@@ -9,7 +9,11 @@
 
             <!-- GPay & Apple Pay -->
             <div class="pt-4 w-full text-center">
-
+              <!-- Google Pay Button -->
+              <div
+                #googlePayButtonElement
+                class="mb-4 md:w-[262px] mx-auto"
+              ></div>
 
               <div class="flex items-center gap-4 pt-4 pb-7">
                 <span class="flex-grow h-px bg-gray-400"></span>
@@ -239,7 +243,8 @@
           </p>
 
           <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
-
+            <!-- Google Pay -->
+            <div>
               <div
                 class="flex justify-between items-center bg-white rounded-t-lg p-4"
                 [class]="{
@@ -300,12 +305,13 @@
                 </p>
               </div>
               }
-            </div> --
+            </div>
+
             <!-- Stripe Card -->
             <div>
               <div
-              class="flex justify-between items-center bg-white rounded-t-lg p-4"
-                              [class]="{
+                class="flex justify-between items-center bg-white p-4"
+                [class]="{
                   paymentOptionActive: paymentRadiosValue === 'stripe',
                   'mb-3': paymentRadiosValue === 'stripe',
                   'border-t': paymentRadiosValue !== 'stripe'
@@ -473,6 +479,7 @@
               </div>
               }
             </div>
+          </div>
 
           <!-- Shipping -->
           <div class="mt-4">

@@ -48,6 +48,39 @@ export class SearchBarComponent implements OnInit {
     this.handleSearch();
   }
 
+  // Handle Enter key press for search
+  @HostListener('keydown.enter')
+  onKeydownEnter(): void {
+    const term = this.searchInput.nativeElement.value.trim();
+    if (term) {
+      this.saveToRecentSearches(term);
+      this.showResults = false;
+      this.navigateToSearchResults(term);
+    }
+  }
+
+  // Handle form submission
+  onEnterKey(event: Event): void {
+    const term = this.searchInput.nativeElement.value.trim();
+    if (term) {
+      this.saveToRecentSearches(term);
+      this.showResults = false;
+      this.navigateToSearchResults(term);
+    }
+  }
+
+  // Navigate to search results page
+  navigateToSearchResults(query: string): void {
+    if (!query.trim()) return;
+
+    this.showResults = false;
+    this.saveToRecentSearches(query);
+
+    this.router.navigate(['/product/search'], {
+      queryParams: { query: query }
+    });
+  }
+
   // دالة جديدة لاختيار صورة صغيرة
   getThumbnail(product: any): string {
     if (product.images && product.images.length > 0) {
@@ -102,9 +135,9 @@ export class SearchBarComponent implements OnInit {
     this.categories.forEach(cat => {
       categoryMap.set(cat.id, { ...cat, children: [], expanded: false });
     });
-    
+
     this.processedCategories = [];
-    
+
     this.categories.forEach(cat => {
       const category = categoryMap.get(cat.id);
       if (category) {

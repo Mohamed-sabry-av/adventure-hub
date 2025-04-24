@@ -1,22 +1,32 @@
 <div class="relative">
   <!-- Search Input with Icon -->
   <div class="search-input-container w-full md:w-[80%] mx-auto">
-    <input
-      #searchInput
-      type="text"
-      class="w-full bg-[#f5f5dc] p-2 pl-14 rounded-xl outline-none border border-transparent transition-all duration-300 focus:border-white shadow-sm text-gray-700 placeholder:text-[#4b5563] placeholder:text-sm"
-      placeholder="Search for products, categories, and more..."
-      (input)="onSearch($event)"
-      (focus)="onFocus()"
-    />
-    <i class="search-icon pi pi-search text-gray-400 text-lg"></i>
-    <button
-      *ngIf="searchInput.value"
-      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg transition-colors duration-200"
-      (click)="clearSearch()"
-    >
-      <i class="pi pi-times"></i>
-    </button>
+    <form (submit)="$event.preventDefault(); onEnterKey($event);">
+      <input
+        #searchInput
+        type="text"
+        class="w-full bg-[#f5f5dc] p-2 pl-14 rounded-xl outline-none border border-transparent transition-all duration-300 focus:border-white shadow-sm text-gray-700 placeholder:text-[#4b5563] placeholder:text-sm"
+        placeholder="Search for products, categories, and more..."
+        (input)="onSearch($event)"
+        (focus)="onFocus()"
+      />
+      <i class="search-icon pi pi-search text-gray-400 text-lg"></i>
+      <button
+        *ngIf="searchInput.value"
+        type="button"
+        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg transition-colors duration-200"
+        (click)="clearSearch()"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+      <button
+        *ngIf="searchInput.value"
+        type="submit"
+        class="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg transition-colors duration-200"
+      >
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </form>
   </div>
 
   <!-- Dark Overlay - Shown when search is active -->
@@ -124,82 +134,83 @@
         </nav>
       </div>
 
-     <!-- Products Results -->
-<div
-*ngIf="activeTab === 'products' && products.length > 0"
-class="overflow-y-auto max-h-[400px] custom-scrollbar"
->
-<ul class="py-1">
-  <li
-    *ngFor="let product of products"
-    class="py-3 px-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
-    (click)="selectProduct(product)"
-  >
-    <div class="flex items-center gap-4">
+      <!-- Products Results -->
       <div
-        class="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-md border border-gray-200 shadow-sm flex items-center justify-center"
+        *ngIf="activeTab === 'products' && products.length > 0"
+        class="overflow-y-auto max-h-[400px] custom-scrollbar"
       >
-        <img
-          [src]="getThumbnail(product)"
-          [alt]="product.name"
-          class="max-w-full max-h-full object-contain"
-          loading="lazy"
-          *ngIf="product.images && product.images.length > 0"
-        />
-        <div
-          *ngIf="!product.images || product.images.length === 0"
-          class="w-full h-full flex items-center justify-center bg-gray-50"
-        >
-          <i class="pi pi-image text-gray-300 text-lg"></i>
-        </div>
+        <ul class="py-1">
+          <li
+            *ngFor="let product of products"
+            class="py-3 px-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
+            (click)="selectProduct(product)"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-md border border-gray-200 shadow-sm flex items-center justify-center"
+              >
+                <img
+                  [src]="getThumbnail(product)"
+                  [alt]="product.name"
+                  class="max-w-full max-h-full object-contain"
+                  loading="lazy"
+                  *ngIf="product.images && product.images.length > 0"
+                />
+                <div
+                  *ngIf="!product.images || product.images.length === 0"
+                  class="w-full h-full flex items-center justify-center bg-gray-50"
+                >
+                  <i class="pi pi-image text-gray-300 text-lg"></i>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3
+                    class="text-sm font-medium text-gray-800 truncate max-w-full"
+                  >
+                    {{ product.name }}
+                  </h3>
+                  <span
+                    *ngIf="product.onSale"
+                    class="sale-badge rounded-full text-xs font-semibold px-2 py-0.5 bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm"
+                  >
+                    {{ product.discountPercentage }}% off
+                  </span>
+                </div>
+                <div
+                  class="flex flex-wrap gap-1 mt-1"
+                  *ngIf="product.categories && product.categories.length"
+                >
+                  <span
+                    *ngFor="let cat of product.categories"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700"
+                  >
+                    {{ cat.name }}
+                  </span>
+                </div>
+                <div class="mt-1 flex items-center">
+                  <span
+                    *ngIf="product.onSale"
+                    class="line-through text-xs text-gray-400 mr-2"
+                  >
+                    {{ product.regular_price }} AED
+                  </span>
+                  <span
+                    [class]="product.onSale ? 'text-sm font-medium text-red-600' : 'text-sm text-gray-700'"
+                  >
+                    {{ product.onSale ? product.sale_price : product.price }}
+                    AED
+                  </span>
+                </div>
+              </div>
+              <div class="text-gray-400">
+                <i class="pi pi-angle-right"></i>
+              </div>
+            </div>
+          </li>
+        </ul>
       </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex flex-wrap items-center gap-2">
-          <h3
-            class="text-sm font-medium text-gray-800 truncate max-w-full"
-          >
-            {{ product.name }}
-          </h3>
-          <span
-            *ngIf="product.onSale"
-            class="sale-badge rounded-full text-xs font-semibold px-2 py-0.5 bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm"
-          >
-            {{ product.discountPercentage }}% off
-          </span>
-        </div>
-        <div
-          class="flex flex-wrap gap-1 mt-1"
-          *ngIf="product.categories && product.categories.length"
-        >
-          <span
-            *ngFor="let cat of product.categories"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700"
-          >
-            {{ cat.name }}
-          </span>
-        </div>
-        <div class="mt-1 flex items-center">
-          <span
-            *ngIf="product.onSale"
-            class="line-through text-xs text-gray-400 mr-2"
-          >
-            {{ product.regular_price }} AED
-          </span>
-          <span
-            [class]="product.onSale ? 'text-sm font-medium text-red-600' : 'text-sm text-gray-700'"
-          >
-            {{ product.onSale ? product.sale_price : product.price }}
-            AED
-          </span>
-        </div>
-      </div>
-      <div class="text-gray-400">
-        <i class="pi pi-angle-right"></i>
-      </div>
-    </div>
-  </li>
-</ul>
-</div>
+
       <!-- Categories Results -->
       <div
         *ngIf="activeTab === 'categories' && processedCategories.length > 0"

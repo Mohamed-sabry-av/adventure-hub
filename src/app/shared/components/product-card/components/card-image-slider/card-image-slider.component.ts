@@ -158,20 +158,16 @@ export class CardImageSliderComponent implements OnInit {
     }
 
     // Check stock status
-    if (this.product.type === 'variable') {
-      // For variable products, check variations stock status
-      if (this.variations.length > 0) {
-        const anyVariationInStock = this.variations.some(
-          (v) => v.stock_status === 'instock'
-        );
-        if (!anyVariationInStock) {
-          tags.push('SOLD OUT');
-        }
-      } else {
-        // If no variations provided, assume out of stock
+    if (this.product.type === 'variable' && this.variations.length > 0) {
+      const anyVariationInStock = this.variations.some(
+        (v) => v.stock_status === 'instock'
+      );
+      if (!anyVariationInStock) {
         tags.push('SOLD OUT');
       }
-    } 
+    } else if (this.product.type === 'simple' && this.product.stock_status !== 'instock') {
+      tags.push('SOLD OUT');
+    }
 
     // Check for best seller
     const isBestSeller =
