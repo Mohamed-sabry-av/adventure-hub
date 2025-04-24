@@ -3,11 +3,12 @@
 }@else if ((cartStatus$ | async)?.error && !((loadedCart$ | async).cartIsLoaded)
 ) {
 <p class="w-full sm:text-xl text-center my-20 p-4">
-  Something went wrong fetching the available data 💥💥. Please try again later.
+  Something went wrong fetching the available data. Please try again later.
 </p>
 
-} @else if ( (loadedCart$ | async).cartIsLoaded) { @if ((loadedCart$ |
-async).userCart?.length === 0 ) {
+} @else if ( (loadedCart$ | async).cartIsLoaded) { @if ( (loadedCart$ |
+async).userCart?.items.length === 0 ||(loadedCart$ | async).userCart?.length ===
+0 ) {
 <app-app-container>
   <div
     class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[20px]"

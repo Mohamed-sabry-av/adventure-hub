@@ -3,7 +3,7 @@
 } @else if ((cartStatus$ | async)?.error && !((loadedCart$ |
 async).cartIsLoaded)) {
 <p class="w-full sm:text-xl text-center my-20 p-4">
-  Something went wrong fetching the available collections 💥💥. Please try again
+  Something went wrong fetching the available collections. Please try again
   later.
 </p>
 } @else if( (loadedCart$ | async)?.cartIsLoaded) { @if ((loadedCart$ |

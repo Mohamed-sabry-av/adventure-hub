@@ -43,13 +43,6 @@ input:focus {
   z-index: 999; /* Below the search input and results */
 }
 
-.search-results-container .w-16.h-16 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible; /* التأكد من إن الصورة مش هتتقطع */
-}
-
 .search-results-container img {
   max-width: 100%;
   max-height: 100%;
@@ -59,7 +52,7 @@ input:focus {
 /* Search Results Container */
 .search-results-container {
   position: absolute;
-  top: 100%;
+  top: 110%;
   left: 0;
   right: 0;
   max-width: 80%;
@@ -126,7 +119,8 @@ li:hover {
 
 /* Animation for loading dots */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.5;
     transform: scale(0.8);
   }
@@ -163,9 +157,9 @@ li:hover {
 }
 
 /* Responsive adjustments */
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .search-results-container {
-    max-width: 95%;
+    max-width: 100%;
   }
 }
 

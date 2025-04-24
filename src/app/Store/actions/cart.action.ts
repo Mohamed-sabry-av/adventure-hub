@@ -33,3 +33,8 @@ export const updateCartStockStatusAction = createAction(
   '[Cart] Update Products Stock In Cart',
   props<{ productIds: string[]; coupon: any }>()
 );
+
+export const syncCartAction = createAction(
+  '[Cart] Add Multiple Products To User Cart',
+  props<{ authToken: string; items: any[] }>()
+);

@@ -42,6 +42,4 @@ export class UIService {
   // ------------------------------------------------------ Done
 
   cartStatus$: Observable<CartStatus> = this.store.select(cartStatusSelector);
-
-  isError$: Observable<any> = this.store.select(dialogErrorSelector);
 }

@@ -42,7 +42,7 @@
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <a [routerLink]="item.permalink">
+      <a [routerLink]="[`/${item.permalink}`]">
         <img
           [src]="item.images.imageSrc"
           [alt]="item.images.imageAlt"
@@ -56,7 +56,7 @@
             <p class="font-normal text-[#b2b48d]">
               {{ item.name.split(" ")[0] }}
             </p>
-            <a [routerLink]="item.permalink">
+            <a [routerLink]="[`/${item.permalink}`]">
               <p
                 class="text-base cursor-pointer hover:underline"
                 [innerHTML]="item.name"

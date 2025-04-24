@@ -6,7 +6,11 @@
   <div class="px-1">
     <div class="flex items-center justify-between mb-3 px-3">
       <h3 class="text-base font-medium text-gray-900">Filters</h3>
-      <button *ngIf="hasSelectedFilters" (click)="resetFilters()" class="text-sm text-indigo-600 hover:text-indigo-800">
+      <button
+        *ngIf="hasSelectedFilters"
+        (click)="resetFilters()"
+        class="text-sm text-indigo-600 hover:text-indigo-800"
+      >
         Reset All
       </button>
     </div>
@@ -17,9 +21,12 @@
 
     <ng-container *ngIf="isLoadingAttributes; else filtersContent">
       <div class="space-y-6 px-2">
-        <div class="skeleton-filter" *ngFor="let item of [1,2,3,4]">
+        <div class="skeleton-filter" *ngFor="let item of [1, 2, 3, 4]">
           <div class="skeleton-header h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div class="skeleton-term flex items-center gap-2 mb-2" *ngFor="let term of [1,2,3,4,5]">
+          <div
+            class="skeleton-term flex items-center gap-2 mb-2"
+            *ngFor="let term of [1, 2, 3, 4, 5]"
+          >
             <div class="h-4 w-4 bg-gray-200 rounded"></div>
             <div class="h-3 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -29,55 +36,104 @@
 
     <ng-template #filtersContent>
       <ng-container *ngFor="let attr of attributes; trackBy: trackByAttr">
-        @if (attr.terms.length > 0) { <!-- عدلنا الشرط هنا -->
-          <div class="filter-group mb-3 border border-gray-100 rounded-lg shadow-sm">
-            <button
-              type="button"
-              (click)="toggleSection(attr.slug)"
-              class="flex w-full items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-lg"
-              [class.bg-gray-50]="sectionStates[attr.slug]?.isOpen"
-            >
-              <span class="font-medium text-sm">{{ attr.name }}</span>
-              <span class="ml-6 flex items-center text-gray-400">
-                <svg *ngIf="!sectionStates[attr.slug]?.isOpen" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <svg *ngIf="sectionStates[attr.slug]?.isOpen" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
-                </svg>
-              </span>
-            </button>
+        @if (attr.terms.length > 0) {
+        <!-- عدلنا الشرط هنا -->
+        <div
+          class="filter-group mb-3 border border-gray-100 rounded-lg shadow-sm"
+        >
+          <button
+            type="button"
+            (click)="toggleSection(attr.slug)"
+            class="flex w-full items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-lg"
+            [class.bg-gray-50]="sectionStates[attr.slug]?.isOpen"
+          >
+            <span class="font-medium text-sm" [innerHTML]="attr.name"></span>
+            <span class="ml-6 flex items-center text-gray-400">
+              <svg
+                *ngIf="!sectionStates[attr.slug]?.isOpen"
+                class="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              <svg
+                *ngIf="sectionStates[attr.slug]?.isOpen"
+                class="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M18 12H6"
+                />
+              </svg>
+            </span>
+          </button>
 
-            <div [@expandCollapse]="sectionStates[attr.slug]?.animationState" class="filter-options-container">
-              <div class="px-4 py-3 max-h-60 overflow-y-auto space-y-2">
-                <ng-container *ngFor="let term of getVisibleTerms(attr); trackBy: trackByTerm">
-                  <div class="flex items-center gap-2 py-1 hover:translate-x-1">
-                    <input
-                      [id]="'attr-' + attr.slug + '-' + term.id"
-                      type="checkbox"
-                      class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      [checked]="isSelected(attr.slug, term.id)"
-                      (change)="onFilterChange(attr.slug, term.id)"
-                    />
-                    <label [for]="'attr-' + attr.slug + '-' + term.id" class="ml-1 text-sm text-gray-700">
-                      {{ term.name }}
-                    </label>
-                  </div>
-                </ng-container>
-                <div *ngIf="hasMoreTerms(attr)" class="text-center mt-2">
-                  <button (click)="toggleShowAll(attr.slug, $event)" class="text-sm text-indigo-600 hover:text-indigo-800">
-                    {{ getShowMoreText(attr) }}
-                  </button>
+          <div
+            [@expandCollapse]="sectionStates[attr.slug]?.animationState"
+            class="filter-options-container"
+          >
+            <div class="px-4 py-3 max-h-60 overflow-y-auto space-y-2">
+              <ng-container
+                *ngFor="let term of getVisibleTerms(attr); trackBy: trackByTerm"
+              >
+                <div class="flex items-center gap-2 py-1 hover:translate-x-1">
+                  <input
+                    [id]="'attr-' + attr.slug + '-' + term.id"
+                    type="checkbox"
+                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    [checked]="isSelected(attr.slug, term.id)"
+                    (change)="onFilterChange(attr.slug, term.id)"
+                  />
+                  <label
+                    [for]="'attr-' + attr.slug + '-' + term.id"
+                    class="ml-1 text-sm text-gray-700"
+                    [innerHTML]="term.name"
+                  >
+                  </label>
                 </div>
+              </ng-container>
+              <div *ngIf="hasMoreTerms(attr)" class="text-center mt-2">
+                <button
+                  (click)="toggleShowAll(attr.slug, $event)"
+                  class="text-sm text-indigo-600 hover:text-indigo-800"
+                >
+                  {{ getShowMoreText(attr) }}
+                </button>
               </div>
             </div>
           </div>
+        </div>
         }
       </ng-container>
 
-      <div *ngIf="attributes.length === 0 && !errorMessage" class="text-center py-6 text-gray-500">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.586a1 1 0 01-.293.707l-2 2a1 1 0 01-1.414 0l-4-4a1 1 0 01-.293-.707V7.293a1 1 0 00-.293-.707L3.293 4.293A1 1 0 013 3.586V4z" />
+      <div
+        *ngIf="attributes.length === 0 && !errorMessage"
+        class="text-center py-6 text-gray-500"
+      >
+        <svg
+          class="mx-auto h-12 w-12 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.586a1 1 0 01-.293.707l-2 2a1 1 0 01-1.414 0l-4-4a1 1 0 01-.293-.707V7.293a1 1 0 00-.293-.707L3.293 4.293A1 1 0 013 3.586V4z"
+          />
         </svg>
         <p class="mt-2 text-sm">No filters available</p>
       </div>

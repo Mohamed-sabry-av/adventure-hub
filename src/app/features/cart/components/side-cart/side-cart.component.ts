@@ -15,6 +15,8 @@ import { ButtonModule } from 'primeng/button';
 import { RouterLink } from '@angular/router';
 import { Select } from 'primeng/select';
 import { Product } from '../../../../interfaces/product';
+import { UIService } from '../../../../shared/services/ui.service';
+import { CartStatus } from '../../model/cart.model';
 
 @Component({
   selector: 'app-side-cart',
@@ -32,7 +34,10 @@ import { Product } from '../../../../interfaces/product';
 })
 export class SideCartComponent {
   private cartService = inject(CartService);
+  private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
+
+  cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
   productCount = viewChild<ElementRef<HTMLParagraphElement>>('productCount');
 
@@ -43,16 +48,12 @@ export class SideCartComponent {
 
   ngOnInit() {
     const subscribtion = this.cartService.savedUserCart$
-      .pipe(filter((response: any) => response?.items?.length > 0))
+      .pipe(filter((response: any) => response?.userCart?.items?.length > 0))
       .subscribe((response: any) => {
-        console.log('HELLLLLLLLLOOO');
-
-        this.progressValue = response?.totals?.total_price;
+        this.progressValue = response?.userCart.totals?.total_price;
       });
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {
-      console.log('HELLLLLLLLLOOO SIDE CART VISIBLE');
-
       if (visible) {
         document.body.style.overflow = 'hidden';
       } else {

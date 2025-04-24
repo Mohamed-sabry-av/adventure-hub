@@ -1,14 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { AccountAuthService } from '../account-auth.service';
 import { FacebookAuthComponent } from '../Facebook-auth/facebook-auth.component';
 import { GoogleAuthComponent } from '../google-auth/google-auth.component';
+import { CartService } from '../../cart/service/cart.service';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, ReactiveFormsModule, GoogleAuthComponent,FacebookAuthComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    GoogleAuthComponent,
+    FacebookAuthComponent,
+  ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
@@ -20,7 +31,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private accountService: AccountAuthService
+    private accountService: AccountAuthService,
+    private cartService: CartService
   ) {}
 
   ngOnInit() {
@@ -43,6 +55,7 @@ export class LoginComponent {
     const credentials = this.loginForm.value;
     this.accountService.login(credentials).subscribe({
       next: () => {
+        this.cartService.syncUserCart();
         this.loginError = '';
         this.router.navigate(['/']);
       },

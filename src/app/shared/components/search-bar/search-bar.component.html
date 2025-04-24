@@ -46,9 +46,7 @@
     <!-- Loading State -->
     <div *ngIf="loading" class="p-4 text-center">
       <div class="flex justify-center items-center space-x-2">
-        <div
-          class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"
-        ></div>
+        <div class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"></div>
         <div
           class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"
           style="animation-delay: 0.2s"
@@ -63,7 +61,12 @@
 
     <!-- No Results -->
     <div
-      *ngIf="!loading && searchInput.value && products.length === 0 && categories.length === 0"
+      *ngIf="
+        !loading &&
+        searchInput.value &&
+        products.length === 0 &&
+        categories.length === 0
+      "
       class="p-6 text-center"
     >
       <div
@@ -85,9 +88,7 @@
       class="py-2 border-b border-gray-100"
     >
       <div class="px-4 py-2 flex justify-between items-center">
-        <h3 class="text-sm font-medium text-gray-600">
-          Recent Searches
-        </h3>
+        <h3 class="text-sm font-medium text-gray-600">Recent Searches</h3>
         <button
           class="text-xs text-blue-500 hover:text-blue-700"
           (click)="clearRecentSearches()"
@@ -108,9 +109,7 @@
     </div>
 
     <!-- Results with Tabs -->
-    <div
-      *ngIf="!loading && (products.length > 0 || categories.length > 0)"
-    >
+    <div *ngIf="!loading && (products.length > 0 || categories.length > 0)">
       <!-- Tabs -->
       <div
         *ngIf="products.length > 0 && categories.length > 0"
@@ -118,14 +117,22 @@
       >
         <nav class="flex gap-4 px-4">
           <button
-            [class]="activeTab === 'products' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+            [class]="
+              activeTab === 'products'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+            "
             class="py-3 px-1 text-sm font-medium focus:outline-none"
             (click)="switchTab('products')"
           >
             Products ({{ products.length }})
           </button>
           <button
-            [class]="activeTab === 'categories' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+            [class]="
+              activeTab === 'categories'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+            "
             class="py-3 px-1 text-sm font-medium focus:outline-none"
             (click)="switchTab('categories')"
           >
@@ -210,7 +217,6 @@
           </li>
         </ul>
       </div>
-
       <!-- Categories Results -->
       <div
         *ngIf="activeTab === 'categories' && processedCategories.length > 0"
@@ -218,7 +224,10 @@
       >
         <ul class="py-1">
           <ng-container
-            *ngTemplateOutlet="categoryTemplate; context: { categories: processedCategories, level: 0 }"
+            *ngTemplateOutlet="
+              categoryTemplate;
+              context: { categories: processedCategories, level: 0 }
+            "
           ></ng-container>
         </ul>
       </div>
@@ -227,11 +236,7 @@
 </div>
 
 <!-- Category Template for Recursion -->
-<ng-template
-  #categoryTemplate
-  let-categories="categories"
-  let-level="level"
->
+<ng-template #categoryTemplate let-categories="categories" let-level="level">
   <li
     *ngFor="let category of categories"
     class="category-item border-b last:border-b-0"
@@ -243,20 +248,22 @@
       <div class="flex items-center gap-3">
         <div
           class="w-10 h-10 flex items-center justify-center rounded-full"
-          [ngClass]="{'bg-blue-50 text-blue-500': level === 0, 'bg-indigo-50 text-indigo-500': level === 1, 'bg-purple-50 text-purple-500': level > 1}"
+          [ngClass]="{
+            'bg-blue-50 text-blue-500': level === 0,
+            'bg-indigo-50 text-indigo-500': level === 1,
+            'bg-purple-50 text-purple-500': level > 1
+          }"
         >
           <i
             class="pi"
-            [ngClass]="{'pi-folder': level === 0, 'pi-tag': level > 0}"
+            [ngClass]="{ 'pi-folder': level === 0, 'pi-tag': level > 0 }"
           ></i>
         </div>
         <div>
           <h3 class="text-sm font-medium text-gray-800">
             {{ category.name }}
           </h3>
-          <p class="text-xs text-gray-500">
-            {{ category.count || 0 }} Product
-          </p>
+          <p class="text-xs text-gray-500">{{ category.count || 0 }} Product</p>
         </div>
       </div>
       <div>
@@ -267,7 +274,7 @@
         >
           <i
             class="pi pi-angle-right rotate-icon"
-            [ngClass]="{'expanded': category.expanded}"
+            [ngClass]="{ expanded: category.expanded }"
           ></i>
         </button>
         <i
@@ -282,7 +289,10 @@
     >
       <ul>
         <ng-container
-          *ngTemplateOutlet="categoryTemplate; context: { categories: category.children, level: level + 1 }"
+          *ngTemplateOutlet="
+            categoryTemplate;
+            context: { categories: category.children, level: level + 1 }
+          "
         ></ng-container>
       </ul>
     </div>

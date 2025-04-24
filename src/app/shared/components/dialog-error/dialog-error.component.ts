@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import {
   trigger,
   state,
@@ -8,6 +8,7 @@ import {
 } from '@angular/animations';
 import { UIService } from '../../services/ui.service';
 import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-dialog-error',

@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+} from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -13,6 +21,7 @@ import { SeoService } from '../../../../core/services/seo.service';
 import { catchError, finalize, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
+import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 
 @Component({
   selector: 'app-products',
@@ -24,6 +33,7 @@ import { isEqual } from 'lodash';
     FilterDrawerComponent,
     SortMenuComponent,
     ProductsGridComponent,
+    DialogErrorComponent,
   ],
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css'],
@@ -85,7 +95,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
       const deepestSlug = slugs[slugs.length - 1];
 
       if (deepestSlug) {
-        this.currentCategory = await this.categoriesService.getCategoryBySlug(deepestSlug).toPromise();
+        this.currentCategory = await this.categoriesService
+          .getCategoryBySlug(deepestSlug)
+          .toPromise();
         this.currentCategoryId = this.currentCategory?.id ?? null;
         this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
           title: this.currentCategory?.name,
@@ -94,14 +106,18 @@ export class ProductsComponent implements OnInit, OnDestroy {
       } else {
         this.currentCategory = null;
         this.currentCategoryId = null;
-        this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
+        this.schemaData = this.seoService.applySeoTags(null, {
+          title: 'All Products',
+        });
       }
 
       await this.loadProducts(true);
       await this.loadTotalProducts();
     } catch (error) {
       console.error('Error in ngOnInit:', error);
-      this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
+      this.schemaData = this.seoService.applySeoTags(null, {
+        title: 'All Products',
+      });
     } finally {
       this.isLoading = false;
       this.cdr.markForCheck();
@@ -150,7 +166,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.isLoadingMore = !isInitialLoad;
     this.cdr.markForCheck();
 
-    const effectiveFilters = filters ?? this.filterSidebar?.selectedFilters ?? {};
+    const effectiveFilters =
+      filters ?? this.filterSidebar?.selectedFilters ?? {};
     this.filterService
       .getFilteredProductsByCategory(
         this.currentCategoryId,
@@ -177,7 +194,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((products) => {
-        this.products = isInitialLoad ? products : [...this.products, ...products];
+        this.products = isInitialLoad
+          ? products
+          : [...this.products, ...products];
         if (isInitialLoad) this.currentPage = 1;
         this.cdr.markForCheck();
       });
@@ -191,7 +210,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
   private async loadTotalProducts() {
     try {
       const total = this.currentCategoryId
-        ? await this.productService.getTotalProductsByCategoryId(this.currentCategoryId).toPromise()
+        ? await this.productService
+            .getTotalProductsByCategoryId(this.currentCategoryId)
+            .toPromise()
         : await this.productService.getTotalProducts().toPromise();
       this.totalProducts = total ?? 0;
       this.cdr.markForCheck();
@@ -220,14 +241,18 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     try {
       if (categoryId) {
-        this.currentCategory = await this.categoriesService.getCategoryById(categoryId).toPromise();
+        this.currentCategory = await this.categoriesService
+          .getCategoryById(categoryId)
+          .toPromise();
         this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
           title: this.currentCategory?.name,
           description: this.currentCategory?.description,
         });
       } else {
         this.currentCategory = null;
-        this.schemaData = this.seoService.applySeoTags(null, { title: 'All Products' });
+        this.schemaData = this.seoService.applySeoTags(null, {
+          title: 'All Products',
+        });
       }
 
       await this.loadProducts(true);

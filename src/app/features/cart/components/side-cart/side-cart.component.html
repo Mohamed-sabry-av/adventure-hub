@@ -4,6 +4,7 @@
     position="right"
     [visible]="(sideCartVisible$ | async)!"
     (onHide)="hideSideCart()"
+    [transitionOptions]="'500ms cubic-bezier(0.4, 0, 0.2, 1)'"
     styleClass="sidecart-drawer"
   >
     <ng-template #headless pTemplate="content">
@@ -61,7 +62,12 @@
 
         <hr class="shrink-0" />
 
-        <section class="p-3 flex-1 overflow-y-auto scrollbar-thin">
+        <section
+          class="p-3 flex-1 overflow-y-auto scrollbar-thin"
+          [class]="{
+      'bg-gray-200': ((cartStatus$ | async)?.sideCartLoading),
+      'animate-pulse': ((cartStatus$ | async)?.sideCartLoading),          }"
+        >
           <div class="flex flex-col gap-y-4">
             <!-- Product Data -->
             @for (product of (loadedCart$ | async)?.userCart?.items; track
@@ -70,7 +76,7 @@
               <!-- Details -->
               <div class="flex items-center gap-x-2">
                 <div class="w-[55px] h-[55px] border rounded-lg p-1 relative">
-                  <a [routerLink]="product.permalink">
+                  <a [routerLink]="[`/${product.permalink}`]">
                     <img
                       [src]="product.images.imageSrc"
                       [alt]="product.images.imageAlt"
@@ -89,7 +95,7 @@
                   </div>
                 </div>
                 <div class="w-[calc(100%-70px)] flex flex-col justify-center">
-                  <a [routerLink]="product.permalink">
+                  <a [routerLink]="[`/${product.permalink}`]">
                     <p
                       class="text-[13px] cursor-pointer hover:underline"
                       [innerHTML]="product.name"
