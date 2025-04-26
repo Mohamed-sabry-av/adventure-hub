@@ -11,7 +11,7 @@
   >
     <a class="block" [routerLink]="''">
       <img
-        src="header/White-logo-01"
+        src="header/adv-hub-logo-n.png"
         alt="Adventures hub logo"
         routerLink="/home"
         class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
@@ -40,6 +40,19 @@
   <!-- معلومات اساسية -->
   <app-app-container>
     <div class="py-3 flex items-center justify-between">
+      <div>
+        <i
+          class="pi pi-bars"
+          (click)="onSiwtchSideNav(true)"
+          *ngIf="(sidenavIsVisible$ | async) === false"
+        ></i>
+        <i
+          class="pi pi-times pi-sidenav"
+          (click)="onSiwtchSideNav(false)"
+          *ngIf="(sidenavIsVisible$ | async) === true"
+        ></i>
+      </div>
+
       <!-- Logo -->
       <a class="block">
         <img
@@ -77,16 +90,6 @@
         <a routerLink="/cart">
           <i class="pi pi-shopping-bag"></i>
         </a>
-        <i
-          class="pi pi-bars"
-          (click)="onSiwtchSideNav(true)"
-          *ngIf="(sidenavIsVisible$ | async) === false"
-        ></i>
-        <i
-          class="pi pi-times pi-sidenav"
-          (click)="onSiwtchSideNav(false)"
-          *ngIf="(sidenavIsVisible$ | async) === true"
-        ></i>
       </div>
     </div>
     @if (showSearchbar) {

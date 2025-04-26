@@ -130,7 +130,6 @@ export class ProductPageComponent implements OnInit {
             image: this.productData?.images?.[0]?.src,
           });
           this.isLoading = false;
-
           if (typeof _learnq !== 'undefined' && this.productData) {
             _learnq.push([
               'track',
@@ -159,7 +158,7 @@ export class ProductPageComponent implements OnInit {
           this.isLoading = false;
         },
       });
-
+  
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }

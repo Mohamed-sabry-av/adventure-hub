@@ -365,7 +365,7 @@ export class CheckoutFormComponent {
 
   async initStripe() {
     this.stripe = await loadStripe(
-      'pk_live_51QIucCEaH7ud4cFjcc3wunqaKKEC8LQd45RLJu1GWpDsnmCGHaDmSUYzNp9lfLpkW77Sl5B2NBFW1rjcIdDlFPrM00nCKMENoU'
+      'pk_test_51QIucCEaH7ud4cFjFPe9sl0NUpZYwDtXyvIrjUnnBruvMwYQKxbpi5Zy8OXowEqV9iHQVe5sx3yudPeRzu0hLeoq00Ym0bx962'
     );
     if (this.stripe) {
       this.elements = this.stripe.elements();

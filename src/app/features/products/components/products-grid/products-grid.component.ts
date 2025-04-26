@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
@@ -32,26 +32,37 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     ])
   ]
 })
-export class ProductsGridComponent {
+export class ProductsGridComponent implements OnChanges {
   @Input() products: any[] = [];
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
   
-  skeletonCount = 12; // Number of skeleton cards to show while loading
+  skeletonCount = 8; 
+  showEmptyState: boolean = false;
   
   constructor(private cdr: ChangeDetectorRef) {}
   
-  // Create an array for skeleton loading items
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['isLoading'] || changes['products'] || changes['isLoadingMore']) {
+      if (!this.isLoading && !this.isLoadingMore && this.products.length === 0) {
+        setTimeout(() => {
+          this.showEmptyState = true;
+          this.cdr.markForCheck();
+        }, 1000); 
+      } else {
+        this.showEmptyState = false;
+      }
+    }
+  }
+  
   get skeletonArray() {
     return Array(this.skeletonCount).fill(0).map((_, i) => i);
   }
   
-  // Track products by their ID for better performance
   trackByProductId(index: number, product: any): number {
     return product?.id || index;
   }
   
-  // Track skeleton items by index
   trackByIndex(index: number): number {
     return index;
   }

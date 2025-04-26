@@ -5,8 +5,6 @@ export const fetchCouponsAction = createAction(
   props<{
     enteredCouponValue: any;
     isLoggedIn: boolean;
-    mainPageLoading?: boolean;
-    sideCartLoading?: boolean;
   }>()
 );
 

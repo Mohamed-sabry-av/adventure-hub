@@ -6,8 +6,9 @@ async).cartIsLoaded)) {
   Something went wrong fetching the available collections. Please try again
   later.
 </p>
-} @else if( (loadedCart$ | async)?.cartIsLoaded) { @if ((loadedCart$ |
-async)?.userCart?.length === 0 ){
+} @else if( (loadedCart$ | async)?.cartIsLoaded) { @if ( (loadedCart$ |
+async).userCart?.items?.length === 0 || (loadedCart$ | async).userCart?.length
+=== 0 ){
 
 <div
   class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[20px]"

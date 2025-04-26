@@ -1,8 +1,9 @@
 .products-carousel {
   margin: 0 -0.5rem; /* Offset the padding of carousel items */
   max-width: 100%;
-  overflow: hidden;
+  overflow:visible;
 }
+
 
 .carousel-item {
   box-sizing: border-box;

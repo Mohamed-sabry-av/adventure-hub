@@ -17,7 +17,7 @@ export class SearchBarService {
     if (!searchTerm.trim()) {
       return of([]);
     }
-  
+
     return this.wooApi
       .getRequest<any[]>(`products?search=${searchTerm}&_embed=true&status=publish`)
       .pipe(
@@ -40,6 +40,46 @@ export class SearchBarService {
         })
       );
   }
+
+  /**
+   * Search for products with pagination
+   * @param searchTerm Search query
+   * @param page Page number (starts at 1)
+   * @param perPage Number of items per page
+   * @returns Observable with product data
+   */
+  SearchProductsPage(
+    searchTerm: string,
+    page: number = 1,
+    perPage: number = 16
+  ): Observable<any[]> {
+    if (!searchTerm.trim()) {
+      return of([]);
+    }
+
+    return this.wooApi
+      .getRequest<any[]>(`products?search=${searchTerm}&_embed=true&status=publish&page=${page}&per_page=${perPage}`)
+      .pipe(
+        map((products: any[]) => {
+          return products.map((product) => ({
+            ...product,
+            onSale:
+              product.sale_price &&
+              parseFloat(product.sale_price) < parseFloat(product.regular_price),
+            discountPercentage:
+              product.sale_price && product.regular_price
+                ? Math.round(
+                    ((parseFloat(product.regular_price) -
+                      parseFloat(product.sale_price)) /
+                      parseFloat(product.regular_price)) *
+                      100
+                  )
+                : 0,
+          }));
+        })
+      );
+  }
+
   /**
    * Search for categories
    * @param searchTerm Search query
@@ -51,6 +91,25 @@ export class SearchBarService {
     }
 
     return this.wooApi.getRequest(`products/categories?search=${searchTerm}`);
+  }
+
+  /**
+   * Search for categories with pagination
+   * @param searchTerm Search query
+   * @param page Page number (starts at 1)
+   * @param perPage Number of items per page
+   * @returns Observable with categories data
+   */
+  SearchCategoriesPage(
+    searchTerm: string,
+    page: number = 1,
+    perPage: number = 16
+  ): Observable<any[]> {
+    if (!searchTerm.trim()) {
+      return of([]);
+    }
+
+    return this.wooApi.getRequest(`products/categories?search=${searchTerm}&page=${page}&per_page=${perPage}`);
   }
 
   /**
@@ -66,6 +125,34 @@ export class SearchBarService {
     return forkJoin({
       products: this.SearchProducts(searchTerm),
       categories: this.SearchCategories(searchTerm),
+    });
+  }
+
+  /**
+   * Comprehensive search with pagination
+   * @param searchTerm Search query
+   * @param page Page number for both products and categories
+   * @param perPage Number of items per page
+   * @returns Combined results with pagination
+   */
+  ComprehensiveSearchPage(
+    searchTerm: string,
+    page: number = 1,
+    perPage: number = 16
+  ): Observable<{
+    products: any[],
+    categories: any[]
+  }> {
+    if (!searchTerm.trim()) {
+      return of({
+        products: [],
+        categories: []
+      });
+    }
+
+    return forkJoin({
+      products: this.SearchProductsPage(searchTerm, page, perPage),
+      categories: this.SearchCategoriesPage(searchTerm, page, perPage)
     });
   }
 

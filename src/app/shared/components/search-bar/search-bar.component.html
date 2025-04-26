@@ -1,22 +1,32 @@
 <div class="relative">
   <!-- Search Input with Icon -->
   <div class="search-input-container w-full md:w-[80%] mx-auto">
-    <input
-      #searchInput
-      type="text"
-      class="w-full bg-[#f5f5dc] p-2 pl-14 rounded-xl outline-none border border-transparent transition-all duration-300 focus:border-white shadow-sm text-gray-700 placeholder:text-[#4b5563] placeholder:text-sm"
-      placeholder="Search for products, categories, and more..."
-      (input)="onSearch($event)"
-      (focus)="onFocus()"
-    />
-    <i class="search-icon pi pi-search text-gray-400 text-lg"></i>
-    <button
-      *ngIf="searchInput.value"
-      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg transition-colors duration-200"
-      (click)="clearSearch()"
-    >
-      <i class="pi pi-times"></i>
-    </button>
+    <form (submit)="$event.preventDefault(); onEnterKey($event);">
+      <input
+        #searchInput
+        type="text"
+        class="w-full bg-[#f5f5dc] p-2 pl-14 rounded-xl outline-none border border-transparent transition-all duration-300 focus:border-white shadow-sm text-gray-700 placeholder:text-[#4b5563] placeholder:text-sm"
+        placeholder="Search for products, categories, and more..."
+        (input)="onSearch($event)"
+        (focus)="onFocus()"
+      />
+      <i class="search-icon pi pi-search text-gray-400 text-lg"></i>
+      <button
+        *ngIf="searchInput.value"
+        type="button"
+        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg transition-colors duration-200"
+        (click)="clearSearch()"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+      <button
+        *ngIf="searchInput.value"
+        type="submit"
+        class="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg transition-colors duration-200"
+      >
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </form>
   </div>
 
   <!-- Dark Overlay - Shown when search is active -->
@@ -193,11 +203,7 @@
                     {{ product.regular_price }} AED
                   </span>
                   <span
-                    [class]="
-                      product.onSale
-                        ? 'text-sm font-medium text-red-600'
-                        : 'text-sm text-gray-700'
-                    "
+                    [class]="product.onSale ? 'text-sm font-medium text-red-600' : 'text-sm text-gray-700'"
                   >
                     {{ product.onSale ? product.sale_price : product.price }}
                     AED

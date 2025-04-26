@@ -65,6 +65,11 @@ export const routes: Routes = [
     title: 'Browsing History',
   },
   {
+    path: 'history',
+    component: HistoryPageComponent,
+    title: 'Browsing History'
+  },
+  {
     path: '**',
     redirectTo: '',
     pathMatch: 'full',

@@ -120,7 +120,7 @@ export class MobileQuickAddComponent {
  
   shouldShowAddToCartButton(): boolean {
     if (this.isMobile) {
-      return !this.hasSizes() && !this.hasColors();
+      return !this.hasSizes() 
         } else {
       return !(this.hasColors() && this.hasSizes());
     }
