@@ -1,234 +1,378 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
+import { APP_BASE_HREF } from '@angular/common';
+import { CommonEngine, isMainModule } from '@angular/ssr/node';
+import express from 'express';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Stripe from 'stripe';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import bootstrap from './main.server';
 
-// Initialize Express app
-const app = express();
+// Extend Express Request to include rawBody (مش ضروري دلوقتي لأننا هنستخدم req.body كـ Buffer مباشرة)
+declare module 'express' {
+  interface Request {
+    rawBody?: Buffer;
+  }
+}
 
-// Initialize Stripe with secret key
-const stripe = new Stripe('sk_test_51RGe88QGs0QbDBZ8kPNscx2fpIbg7m7poHhpU4KmRie4FSirvfUoq42Fp0mps66nJOM298M8Oatr7lmngYyCSc3J00C4NgXJfU', {
-});
-
-// WooCommerce API configuration
-const wooCommerceApiUrl = 'https://adventures-hub.com/wp-json/wc/v3/orders';
-const tabbyApiUrl = 'https://adventures-hub.com/wp-json/tabby/v1/create-payment';
-const wooCommerceAuth = {
-  auth: {
-    username: 'ck_74222275d064648b8c9f21284e42ed37f8595da5',
-    password: 'cs_4c9f3b5fd41a135d862e973fc65d5c049e05fee4',
-  },
-};
-
-// Middleware
-app.use(express.json());
-
-// CORS configuration to support Angular SSR and development
-app.use(
-  cors({
-    origin: [
-      'https://adventures-hub.com', // Production domain
-      'http://localhost:4200', // Angular development (HTTP)
-      'https://localhost:4200', // Angular development (HTTPS)
-      'http://localhost:4000', // SSR server (HTTP)
-      'https://localhost:4000', // SSR server (HTTPS)
-    ],
-    methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
-
-// Interface for Order Data to ensure type safety
+// Interfaces for request bodies
 interface OrderData {
-  payment_method: string;
-  payment_method_title: string;
   billing: any;
   shipping: any;
   line_items: any[];
-  coupon_lines?: any[];
-  customer_id: number;
-  status: string;
-  set_paid: boolean;
 }
 
-// Create Order Endpoint
-/**
- * Creates an order in WooCommerce and processes payment based on the payment method
- * @route POST /api/create-order
- * @param payment_method_id - Optional Stripe payment method ID
- * @param order_data - Order details (payment method, billing, shipping, etc.)
- */
-app.post('/api/create-order', async (req: Request, res: Response) => {
-  const { payment_method_id, order_data }: { payment_method_id?: string; order_data?: OrderData } = req.body;
+interface PaymentIntentRequest {
+  amount: number;
+  currency: string;
+  orderData: OrderData;
+}
 
-  // Validate request body
-  if (!order_data) {
-    console.warn('Missing order data');
-    return res.status(400).json({ success: false, message: 'Order data is missing' });
+interface PaymentConfirmationRequest {
+  paymentIntentId: string;
+  orderData: OrderData;
+}
+
+// Load environment variables from .env file
+dotenv.config();
+
+// Validate required environment variables
+const requiredEnvVars = [
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+  'WOOCOMMERCE_URL',
+  'WOOCOMMERCE_CONSUMER_KEY',
+  'WOOCOMMERCE_CONSUMER_SECRET',
+  'CLIENT_URL',
+  'STRIPE_PUBLISHABLE_KEY',
+];
+
+const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+if (missingEnvVars.length > 0) {
+  throw new Error(
+    `Missing required environment variables: ${missingEnvVars.join(', ')}`
+  );
+}
+
+// Initialize Stripe
+const stripe = new Stripe(process.env['STRIPE_SECRET_KEY']!, {
+  // apiVersion: '2020-08-27', // Specify API version for compatibility
+});
+
+// WooCommerce API configuration
+const WOOCOMMERCE_API_URL = `${process.env['WOOCOMMERCE_URL']!}/wp-json/wc/v3`;
+const WOOCOMMERCE_AUTH = {
+  auth: {
+    username: process.env['WOOCOMMERCE_CONSUMER_KEY']!,
+    password: process.env['WOOCOMMERCE_CONSUMER_SECRET']!,
+  },
+};
+
+const serverDistFolder = dirname(fileURLToPath(import.meta.url));
+const browserDistFolder = resolve(serverDistFolder, '../browser');
+const indexHtml = join(serverDistFolder, 'index.server.html');
+
+const app = express();
+const commonEngine = new CommonEngine();
+
+// Middleware setup
+app.use(cors({ origin: process.env['CLIENT_URL']!, credentials: true }));
+
+// Webhook endpoint to handle Stripe events
+app.post(
+  '/stripe-webhook',
+  bodyParser.raw({ type: 'application/json' }), // Raw body parser بس للـ webhook
+  async (req: express.Request, res: express.Response) => {
+    const sig = req.headers['stripe-signature'] as string;
+
+    try {
+      // Verify webhook signature
+      const event = stripe.webhooks.constructEvent(
+        req.body, // req.body هنا هيبقى Buffer لأننا بنستخدم bodyParser.raw()
+        sig,
+        process.env['STRIPE_WEBHOOK_SECRET']!
+      );
+
+      // Handle specific events
+      switch (event.type) {
+        case 'payment_intent.succeeded': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          console.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
+
+          // Check if order already exists to ensure idempotency
+          const existingOrderId = paymentIntent.metadata['orderId'];
+          if (existingOrderId && existingOrderId !== 'pending') {
+            console.log(`Order ${existingOrderId} already processed`);
+            return res.json({ received: true });
+          }
+
+          // Extract order data from metadata
+          let orderData;
+          try {
+            orderData = {
+              billing: JSON.parse(paymentIntent.metadata['billing'] || '{}'),
+              shipping: JSON.parse(paymentIntent.metadata['shipping'] || '{}'),
+              line_items: JSON.parse(
+                paymentIntent.metadata['line_items'] || '[]'
+              ),
+            };
+          } catch (parseError: any) {
+            console.error(`Error parsing metadata: ${parseError.message}`);
+            return res
+              .status(400)
+              .json({ success: false, error: 'Invalid metadata format' });
+          }
+
+          // Handle country-specific logic for shipping and payment
+          const isUAE = orderData.billing.country?.toLowerCase() === 'united arab emirates';
+
+          // Create order in WooCommerce
+          try {
+            const orderResponse = await axios.post(
+              `${WOOCOMMERCE_API_URL}/orders`,
+              {
+                payment_method: 'stripe',
+                payment_method_title: 'Credit Card / Digital Wallet',
+                set_paid: true,
+                billing: orderData.billing,
+                shipping: orderData.shipping,
+                line_items: orderData.line_items,
+                total: (paymentIntent.amount / 100).toString(),
+                transaction_id: paymentIntent.id,
+                status: isUAE ? 'processing' : 'on-hold', // Set on-hold for non-UAE countries
+                date_paid: new Date().toISOString(),
+                customer_note: !isUAE ? 'Our representative will call you to arrange international shipping.' : '',
+              },
+              WOOCOMMERCE_AUTH
+            );
+
+            // Update Payment Intent metadata with order ID
+            await stripe.paymentIntents.update(paymentIntent.id, {
+              metadata: { orderId: orderResponse.data.id },
+            });
+
+            console.log(`Order created: ${orderResponse.data.id}`);
+            return res.json({ received: true });
+          } catch (wooError: any) {
+            console.error(
+              `WooCommerce error: ${wooError.message}`,
+              wooError.response?.data
+            );
+            return res
+              .status(500)
+              .json({ success: false, error: 'Failed to create order in WooCommerce' });
+          }
+        }
+
+        case 'payment_intent.payment_failed': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          console.log(`PaymentIntent failed: ${paymentIntent.id}`);
+          // Notify customer or log failure (e.g., send email)
+          return res.json({ received: true });
+        }
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+          return res.json({ received: true });
+      }
+    } catch (err: any) {
+      console.error(`Webhook Error: ${err.message}`);
+      return res
+        .status(400)
+        .json({ success: false, error: `Webhook Error: ${err.message}` });
+    }
   }
+);
 
-  if (!['cod', 'stripe', 'googlePay', 'applePay', 'walletPayment', 'tabby'].includes(order_data.payment_method)) {
-    console.warn(`Invalid payment method: ${order_data.payment_method}`);
-    return res.status(400).json({ success: false, message: 'Invalid payment method' });
-  }
+// JSON body parser for other routes (بعد الـ webhook)
+app.use(bodyParser.json());
 
-  try {
-    console.log('Creating order in WooCommerce', { order_data });
+// API endpoint to create a Payment Intent for credit cards and wallets
+app.post(
+  '/api/payment/create-intent',
+  async (
+    req: express.Request<{}, {}, PaymentIntentRequest>,
+    res: express.Response
+  ) => {
+    try {
+      const { amount, currency, orderData } = req.body;
 
-    // Create order in WooCommerce
-    const wooResponse: AxiosResponse = await axios.post(
-      wooCommerceApiUrl,
-      {
-        ...order_data,
-        status: 'pending',
-        set_paid: false,
-      },
-      wooCommerceAuth
-    );
+      // Validate input
+      if (!amount) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Amount is required' });
+      }
+      if (!currency) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Currency is required' });
+      }
+      if (!orderData) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Order data is required' });
+      }
 
-    const orderId = wooResponse.data.id;
-    const totalAmount = Math.round(parseFloat(wooResponse.data.total) * 100); // Convert to cents
+      if (!orderData.billing) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Billing data is required' });
+      }
 
-    console.log(`Order created successfully: ${orderId}`, { totalAmount });
+      if (!orderData.shipping) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Shipping data is required' });
+      }
 
-    if (payment_method_id && ['stripe', 'googlePay', 'applePay', 'walletPayment'].includes(order_data.payment_method)) {
-      // Process payment with Stripe
-      console.log('Processing Stripe payment', { payment_method_id });
+      if (!orderData.line_items || orderData.line_items.length === 0) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Line items are required' });
+      }
+
+      // Create a Payment Intent
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: totalAmount,
-        currency: 'aed',
-        payment_method: payment_method_id,
-        confirm: true,
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'never',
+        amount: Math.round(amount * 100), // Convert to cents
+        currency,
+        payment_method_types: ['card', 'wallet'], // Support cards and electronic wallets
+        metadata: {
+          orderId: 'pending',
+          billing: JSON.stringify(orderData.billing),
+          shipping: JSON.stringify(orderData.shipping),
+          line_items: JSON.stringify(orderData.line_items),
         },
       });
 
-      if (paymentIntent.status === 'succeeded') {
-        // Update WooCommerce order status
-        await axios.put(
-          `${wooCommerceApiUrl}/${orderId}`,
-          {
-            status: 'processing',
-            set_paid: true,
-            transaction_id: paymentIntent.id,
-          },
-          wooCommerceAuth
-        );
+      return res.json({
+        success: true,
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id, // Return the PaymentIntent ID
+      });
+    } catch (error: any) {
+      console.error('Create Intent Error:', error);
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+);
 
-        console.log(`Stripe payment succeeded for order: ${orderId}`, { paymentIntentId: paymentIntent.id });
-        return res.json({ success: true, order_id: orderId });
-      } else {
-        console.warn(`Stripe payment failed for order: ${orderId}`, { status: paymentIntent.status });
-        return res.status(400).json({ success: false, message: `Payment failed: status ${paymentIntent.status}` });
+// API endpoint to confirm payment and create WooCommerce order (fallback)
+app.post(
+  '/api/payment/confirm',
+  async (
+    req: express.Request<{}, {}, PaymentConfirmationRequest>,
+    res: express.Response
+  ) => {
+    try {
+      const { paymentIntentId, orderData } = req.body;
+
+      // Validate input
+      if (!paymentIntentId || !orderData) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Missing required fields' });
       }
-    } else if (order_data.payment_method === 'tabby') {
-      // Process payment with Tabby
-      console.log('Processing Tabby payment', { orderId });
-      const tabbyResponse: AxiosResponse = await axios.post(tabbyApiUrl, { order_id: orderId });
-      console.log(`Tabby checkout created for order: ${orderId}`, { tabbyData: tabbyResponse.data });
-      return res.json({ success: true, order_id: orderId, tabby_checkout: tabbyResponse.data });
-    } else {
-      // For COD (Cash on Delivery)
-      await axios.put(
-        `${wooCommerceApiUrl}/${orderId}`,
+
+      // Validate PaymentIntent ID format
+      if (paymentIntentId.includes('_secret_')) {
+        return res.status(400).json({
+          success: false,
+          error:
+            'You passed a string that looks like a client secret as the PaymentIntent ID, but you must provide a valid PaymentIntent ID. Please use the value in the `id` field of the PaymentIntent.',
+        });
+      }
+
+      // Retrieve Payment Intent to confirm payment status
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      );
+      if (paymentIntent.status !== 'succeeded') {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Payment not completed' });
+      }
+
+      // Check if order already exists to ensure idempotency
+      const existingOrderId = paymentIntent.metadata['orderId'];
+      if (existingOrderId && existingOrderId !== 'pending') {
+        return res
+          .status(200)
+          .json({ success: true, orderId: existingOrderId });
+      }
+
+      // Handle country-specific logic for shipping and payment
+      const isUAE = orderData.billing.country?.toLowerCase() === 'united arab emirates';
+
+      // Create order in WooCommerce
+      const orderResponse = await axios.post(
+        `${WOOCOMMERCE_API_URL}/orders`,
         {
-          status: 'processing',
-          set_paid: order_data.payment_method === 'cod' ? false : true,
+          payment_method: 'stripe',
+          payment_method_title: 'Credit Card / Digital Wallet',
+          set_paid: true,
+          billing: orderData.billing,
+          shipping: orderData.shipping,
+          line_items: orderData.line_items,
+          total: (paymentIntent.amount / 100).toString(),
+          transaction_id: paymentIntent.id,
+          status: isUAE ? 'processing' : 'on-hold', // Set on-hold for non-UAE countries
+          date_paid: new Date().toISOString(),
+          customer_note: !isUAE ? 'Our representative will call you to arrange international shipping.' : '',
         },
-        wooCommerceAuth
+        WOOCOMMERCE_AUTH
       );
 
-      console.log(`COD order processed: ${orderId}`);
-      return res.json({ success: true, order_id: orderId });
+      // Update Payment Intent metadata with order ID
+      await stripe.paymentIntents.update(paymentIntentId, {
+        metadata: { orderId: orderResponse.data.id },
+      });
+
+      return res.json({ success: true, orderId: orderResponse.data.id });
+    } catch (error: any) {
+      console.error('Confirmation Error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.response?.data?.message || error.message,
+      });
     }
-  } catch (error: any) {
-    console.error('Error processing order:', error.message, { stack: error.stack });
-    return res.status(500).json({ success: false, message: `Error processing order: ${error.message}` });
   }
-});
+);
 
-// Get Tabby payment session for an order
-/**
- * Creates a Tabby payment session for a specific order
- * @route POST /api/tabby-checkout
- * @param order_id - WooCommerce order ID
- */
-app.post('/api/tabby-checkout', async (req: Request, res: Response) => {
-  const { order_id } = req.body;
+// Serve static files from /browser
+app.get(
+  '**',
+  express.static(browserDistFolder, {
+    maxAge: '1y',
+    index: 'index.html',
+  })
+);
 
-  // Validate request body
-  if (!order_id || !Number.isInteger(order_id)) {
-    console.warn('Invalid or missing order ID', { order_id });
-    return res.status(400).json({ success: false, message: 'Order ID is missing or invalid' });
+// Render Angular application for all other requests
+app.get(
+  '**',
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const { protocol, originalUrl, baseUrl, headers } = req;
+
+    commonEngine
+      .render({
+        bootstrap,
+        documentFilePath: indexHtml,
+        url: `${protocol}://${headers.host}${originalUrl}`,
+        publicPath: browserDistFolder,
+        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+      })
+      .then((html) => res.send(html))
+      .catch((err) => next(err));
   }
-
-  try {
-    console.log('Creating Tabby payment session', { order_id });
-    const tabbyResponse: AxiosResponse = await axios.post(tabbyApiUrl, { order_id });
-    console.log(`Tabby payment session created for order: ${order_id}`, { tabbyData: tabbyResponse.data });
-    return res.json({ success: true, tabby_checkout: tabbyResponse.data });
-  } catch (error: any) {
-    console.error('Error creating Tabby payment:', error.message, { stack: error.stack });
-    return res.status(500).json({ success: false, message: `Error creating Tabby payment: ${error.message}` });
-  }
-});
-
-// Update order status endpoint
-/**
- * Updates the status of a WooCommerce order
- * @route PUT /api/update-order/:orderId
- * @param orderId - WooCommerce order ID
- * @param status - New order status (pending, processing, completed, failed)
- * @param transaction_id - Optional transaction ID
- */
-app.put('/api/update-order/:orderId', async (req: Request, res: Response) => {
-  const { orderId } = req.params;
-  const { status, transaction_id } = req.body;
-
-  // Validate request body
-  if (!orderId || !status) {
-    console.warn('Missing order ID or status', { orderId, status });
-    return res.status(400).json({ success: false, message: 'Order ID and status are required' });
-  }
-
-  if (!['pending', 'processing', 'completed', 'failed'].includes(status)) {
-    console.warn('Invalid status', { status });
-    return res.status(400).json({ success: false, message: 'Invalid order status' });
-  }
-
-  if (transaction_id && typeof transaction_id !== 'string') {
-    console.warn('Invalid transaction ID', { transaction_id });
-    return res.status(400).json({ success: false, message: 'Transaction ID must be a string' });
-  }
-
-  try {
-    console.log('Updating order status', { orderId, status });
-    const updateData: any = {
-      status,
-      set_paid: status === 'processing' || status === 'completed',
-    };
-
-    if (transaction_id) {
-      updateData.transaction_id = transaction_id;
-    }
-
-    await axios.put(`${wooCommerceApiUrl}/${orderId}`, updateData, wooCommerceAuth);
-    console.log(`Order status updated: ${orderId}`, { status });
-    return res.json({ success: true, message: 'Order status updated' });
-  } catch (error: any) {
-    console.error('Error updating order:', error.message, { stack: error.stack });
-    return res.status(500).json({ success: false, message: `Error updating order: ${error.message}` });
-  }
-});
+);
 
 // Start the server
-const PORT = 4000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// Export for testing or SSR integration
-export default app;
+if (isMainModule(import.meta.url)) {
+  const port = process.env['PORT'] || 4000;
+  app.listen(port, () => {
+    console.log(`Node Express server listening on http://localhost:${port}`);
+  });
+}

@@ -73,6 +73,63 @@ export class CheckoutService {
     this.selectedCountry$.next(country);
   }
 
+   prepareOrderData(
+    forms: { billingForm: FormGroup; shippingForm: FormGroup; isShippingDifferent: boolean },
+    paymentMethod: string,
+    lineItems: any[],
+    couponData: { isValid: boolean; coupon: any[] },
+    customerId: number
+  ): any {
+    const billingAddress = {
+      first_name: forms.billingForm.get('firstName')?.value,
+      last_name: forms.billingForm.get('lastName')?.value,
+      address_1: forms.billingForm.get('address')?.value,
+      city: forms.billingForm.get('city')?.value,
+      state: forms.billingForm.get('state')?.value,
+      postcode: forms.billingForm.get('postCode')?.value,
+      country: forms.billingForm.get('countrySelect')?.value,
+      email: forms.billingForm.get('email')?.value,
+      phone: forms.billingForm.get('phone')?.value,
+    };
+  
+    const shippingAddress = forms.isShippingDifferent
+      ? {
+          first_name: forms.shippingForm.get('firstName')?.value,
+          last_name: forms.shippingForm.get('lastName')?.value,
+          address_1: forms.shippingForm.get('address')?.value,
+          city: forms.shippingForm.get('city')?.value,
+          state: forms.shippingForm.get('state')?.value,
+          postcode: forms.billingForm.get('postCode')?.value,
+          country: forms.shippingForm.get('countrySelect')?.value,
+        }
+      : { ...billingAddress };
+  
+    return {
+      payment_method: paymentMethod,
+      payment_method_title: this.getPaymentMethodTitle(paymentMethod),
+      set_paid: this.getSetPaid(paymentMethod),
+      billing: billingAddress,
+      shipping: shippingAddress,
+      line_items: lineItems,
+      coupon_lines: couponData.coupon || [],
+      customer_id: customerId || 0,
+    };
+  }
+  
+  private validateOrder(cart: any): boolean {
+    const outOfStockItems = cart?.items?.filter((item: any) => item.stock_status !== 'instock') || [];
+    if (outOfStockItems.length > 0) {
+      const outOfStockProducts = outOfStockItems.map((item: any) => ({
+        productId: item.id,
+        name: item.name || `Product ${item.id}`,
+      }));
+      this.productsOutStock$.next(outOfStockProducts);
+      this.uiService.showError('Cannot create order: Some products are out of stock');
+      return false;
+    }
+    return true;
+  }
+
   private getPaymentMethodTitle(paymentMethod: string): string {
     switch (paymentMethod) {
       case 'cod':
@@ -107,7 +164,7 @@ export class CheckoutService {
     }
   }
 
-  private getCartItems(): Observable<any[]> {
+   getCartItems(): Observable<any[]> {
     return this.cartService.savedUserCart$.pipe(
       map((response: any) =>
         response?.userCart?.items.map((item: any) => ({
@@ -118,7 +175,7 @@ export class CheckoutService {
     );
   }
 
-  private getCoupons(
+   getCoupons(
     form: FormGroup
   ): Observable<{ isValid: boolean; coupon: any[] }> {
     return this.appliedCouponValue$.pipe(
