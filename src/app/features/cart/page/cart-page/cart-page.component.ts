@@ -10,11 +10,12 @@ import { CartCheckoutComponent } from '../../components/cart-checkout/cart-check
 import { CartService } from '../../service/cart.service';
 import { ServiceHighlightsComponent } from '../../../../shared/components/service-highlights/service-highlights.component';
 import { Observable } from 'rxjs';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { UIService } from '../../../../shared/services/ui.service';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { CartStatus } from '../../model/cart.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-cart-page',
@@ -26,7 +27,7 @@ import { CartStatus } from '../../model/cart.model';
     AsyncPipe,
     DialogErrorComponent,
     SkeletonLoaderComponent,
-    NgIf,
+    RouterLink,
   ],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',
@@ -43,7 +44,7 @@ export class CartPageComponent {
   ngOnInit() {
     const subscription = this.loadedCart$.subscribe((res: any) => {
       console.log(res);
-      console.log(res.userCart?.length === 0);
+
       if (!res?.cartIsLoaded) {
         this.cartService.fetchUserCart({
           mainPageLoading: true,

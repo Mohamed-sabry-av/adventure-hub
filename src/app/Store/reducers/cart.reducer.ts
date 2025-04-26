@@ -14,7 +14,6 @@ const initialState: State = {
 export const cartReducer = createReducer(
   initialState,
   on(getUserCartAction, (state, action) => {
-    console.log(action.userCart);
     return { ...state, userCart: action.userCart, isCartLoaded: true };
   })
 );

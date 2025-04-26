@@ -20,6 +20,7 @@ import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
 import { fetchCouponsAction } from '../../../Store/actions/checkout.action';
 import { cartStatusSelector } from '../../../Store/selectors/ui.selector';
+import { HttpHeaders, HttpParams } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
@@ -86,6 +87,31 @@ export class CartService {
     };
   }
 
+  loadedDataFromLS(isLoggedIn: boolean) {
+    const params = new HttpParams().set(
+      '_fields',
+      'items,totals,payment_methods,coupons,errors,items_count'
+    );
+
+    if (isLoggedIn) {
+      let authToken: any = localStorage.getItem('auth_token');
+      authToken = authToken ? JSON.parse(authToken) : '';
+
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${authToken?.value}`,
+      });
+
+      return { headers, params };
+    } else {
+      let loadedCart: any = localStorage.getItem('Cart');
+      loadedCart = loadedCart
+        ? JSON.parse(loadedCart)
+        : { items: [], coupons: [] };
+
+      return { loadedCart, params };
+    }
+  }
+
   fetchUserCart(cartMode: {
     mainPageLoading: boolean;
     sideCartLoading: boolean;
@@ -109,8 +135,7 @@ export class CartService {
           couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
 
         this.store.dispatch(
-          fetchCouponsAction({
-            enteredCouponValue: couponData,
+          fetchUserCartAction({
             isLoggedIn: false,
             sideCartLoading: cartMode.sideCartLoading,
             mainPageLoading: cartMode.mainPageLoading,
@@ -148,8 +173,6 @@ export class CartService {
   }
 
   addProductToCart(selectedProduct: any) {
-    console.log(selectedProduct);
-
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
         this.store.dispatch(
@@ -192,13 +215,12 @@ export class CartService {
   syncUserCart() {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
+        const loadedCart = this.loadedDataFromLS(false).loadedCart;
+
         let authToken: any = localStorage.getItem('auth_token');
         authToken = authToken ? JSON.parse(authToken) : '';
 
-        let loadedCart: any = localStorage.getItem('Cart');
-        loadedCart = loadedCart
-          ? JSON.parse(loadedCart)
-          : { items: [], coupons: {}, totals: {} };
+        console.log(loadedCart);
 
         if (loadedCart.items.length > 0) {
           const cartItems = loadedCart.items.map((item: any) => {

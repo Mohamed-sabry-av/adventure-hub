@@ -20,9 +20,10 @@
       </svg>
       <h3 class="text-lg font-semibold text-gray-800">error</h3>
     </div>
-    <p class="mt-2 text-gray-600">
-      {{ (errorState$ | async)?.message }}
-    </p>
+    <p
+      class="mt-2 text-gray-600"
+      [innerHTML]="(errorState$ | async)?.message"
+    ></p>
     <button
       (click)="closeDialog()"
       class="mt-4 w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"

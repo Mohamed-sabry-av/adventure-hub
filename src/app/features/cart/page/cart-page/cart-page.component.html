@@ -7,11 +7,11 @@
 </p>
 
 } @else if ( (loadedCart$ | async).cartIsLoaded) { @if ( (loadedCart$ |
-async).userCart?.items.length === 0 ||(loadedCart$ | async).userCart?.length ===
-0 ) {
+async).userCart?.items?.length === 0 || (loadedCart$ | async).userCart?.length
+=== 0 ) {
 <app-app-container>
   <div
-    class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[20px]"
+    class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[200px] text-center"
   >
     <i
       class="pi pi-shopping-cart text-[100px] md:text-[150px] text-gray-300 font-thin"
@@ -21,6 +21,7 @@ async).userCart?.items.length === 0 ||(loadedCart$ | async).userCart?.length ===
     </p>
     <a
       class="block rounded-lg bg-green-500 font-semibold px-5 py-3 text-lg text-white transition duration-150 hover:bg-green-600 cursor-pointer"
+      routerLink="/"
       >Return to shop</a
     >
   </div>

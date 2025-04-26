@@ -17,6 +17,7 @@ import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { CartService } from '../../features/cart/service/cart.service';
 import {
+  fetchUserCartAction,
   getUserCartAction,
   updateCartStockStatusAction,
 } from '../actions/cart.action';
@@ -49,69 +50,55 @@ export class CheckoutEffect {
       ofType(fetchCouponsAction),
       tap(() => this.store.dispatch(startLoadingCouponAction())),
 
-      switchMap(
-        ({
-          enteredCouponValue,
-          isLoggedIn: isLogged,
-          mainPageLoading,
-          sideCartLoading,
-        }) => {
-          this.store.dispatch(
-            cartStatusAction({
-              mainPageLoading: mainPageLoading!,
-              sideCartLoading: sideCartLoading!,
-              error: null,
-            })
-          );
-          enteredCouponValue = enteredCouponValue?.code
-            ? enteredCouponValue.code
-            : enteredCouponValue;
+      switchMap(({ enteredCouponValue, isLoggedIn }) => {
+        enteredCouponValue = enteredCouponValue?.code
+          ? enteredCouponValue.code
+          : enteredCouponValue;
 
-          const options = {
-            params: new HttpParams()
-              .set('status', 'publish')
-              .set('per_page', '100'),
-          };
-          return this.wooApiService.getRequest('coupons', options).pipe(
-            map((response: any) =>
-              response.filter((item: any) => {
-                const currentDate = new Date();
-                const couponExpiry = item.date_expires
-                  ? new Date(item.date_expires)
-                  : null;
+        const options = {
+          params: new HttpParams()
+            .set('status', 'publish')
+            .set('per_page', '100'),
+        };
+        return this.wooApiService.getRequest('coupons', options).pipe(
+          map((response: any) =>
+            response.filter((item: any) => {
+              const currentDate = new Date();
+              const couponExpiry = item.date_expires
+                ? new Date(item.date_expires)
+                : null;
 
-                return (
-                  item.code === enteredCouponValue &&
-                  (couponExpiry === null || couponExpiry > currentDate)
-                );
-              })
-            ),
-            map((response: any) => {
-              if (response?.length === 0) {
-                this.store.dispatch(stopLoadingCouponAction());
-              }
-              this.store.dispatch(getCouponDataAction({ coupon: response[0] }));
-              return getCouponAction({
-                validCoupon: response.length !== 0 ? response : null,
-                isLoggedIn: isLogged,
-                invalidCoupon:
-                  response.length === 0 ? enteredCouponValue : null,
-              });
-            }),
-            catchError((error: any) => {
-              this.store.dispatch(stopLoadingCouponAction());
-              this.uiService.showError('Failed To Fetch Coupons');
-
-              return of(
-                cartStatusAction({
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                })
+              return (
+                item.code === enteredCouponValue &&
+                (couponExpiry === null || couponExpiry > currentDate)
               );
             })
-          );
-        }
-      )
+          ),
+          map((response: any) => {
+            console.log('Coupon Is Loaded', response);
+            if (response?.length === 0) {
+              this.store.dispatch(stopLoadingCouponAction());
+            }
+            this.store.dispatch(getCouponDataAction({ coupon: response[0] }));
+            return getCouponAction({
+              validCoupon: response.length !== 0 ? response : null,
+              isLoggedIn,
+              invalidCoupon: response.length === 0 ? enteredCouponValue : null,
+            });
+          }),
+          catchError((error: any) => {
+            this.store.dispatch(stopLoadingCouponAction());
+            this.uiService.showError('Failed To Fetch Coupons');
+
+            return of(
+              cartStatusAction({
+                mainPageLoading: false,
+                sideCartLoading: false,
+              })
+            );
+          })
+        );
+      })
     )
   );
 
@@ -119,15 +106,10 @@ export class CheckoutEffect {
     this.actions$.pipe(
       ofType(getCouponAction),
       switchMap(({ validCoupon, isLoggedIn, invalidCoupon }) => {
+        const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
         if (isLoggedIn) {
+          console.log('LOGGGEDD');
           if (validCoupon) {
-            let authToken: any = localStorage.getItem('auth_token');
-            authToken = authToken ? JSON.parse(authToken) : '';
-
-            const headers = new HttpHeaders({
-              Authorization: `Bearer ${authToken.value}`,
-            });
-
             const body = {
               coupon_code: validCoupon[0].code,
               action: 'apply',
@@ -137,7 +119,7 @@ export class CheckoutEffect {
               .post(
                 'https://adventures-hub.com/wp-json/custom/v1/cart/coupon',
                 body,
-                { headers }
+                { headers: loadedData.headers, params: loadedData.params }
               )
               .pipe(
                 map((response: any) => {
@@ -148,7 +130,7 @@ export class CheckoutEffect {
                     })
                   );
 
-                  const updatedItems = response.items.map((item: any) => {
+                  response.items = response.items.map((item: any) => {
                     return {
                       ...item,
                       images: {
@@ -158,20 +140,15 @@ export class CheckoutEffect {
                     };
                   });
 
-                  const updatedCart = {
-                    items: updatedItems,
-                    coupons: response.coupons,
-                    payment_methods: response.payment_methods,
-                    totals: response.totals,
-                  };
-
                   this.store.dispatch(stopLoadingCouponAction());
 
-                  return getUserCartAction({ userCart: updatedCart });
+                  return getUserCartAction({ userCart: response });
                 }),
                 catchError((error: any) => {
                   this.store.dispatch(stopLoadingCouponAction());
-                  this.uiService.showError('Failed To Apply Coupon');
+                  this.uiService.showError(
+                    error.error.data.data.reason || 'Failed To Apply Coupon'
+                  );
 
                   return of(
                     getCouponStatusAction({
@@ -185,6 +162,7 @@ export class CheckoutEffect {
               );
           } else {
             this.store.dispatch(stopLoadingCouponAction());
+            this.uiService.showError(`Coupon ${invalidCoupon} does not exist!`);
 
             return of(
               getCouponStatusAction({
@@ -211,16 +189,22 @@ export class CheckoutEffect {
             })
           );
 
-          let loadedCart: any = localStorage.getItem('Cart');
-          loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+          const coupon = { coupon_code: validCoupon[0].code };
 
-          const productsIds =
-            loadedCart.items?.map((item: any) => item.id) || [];
+          const isCouponExists = loadedData.loadedCart.coupons.some(
+            (c: any) => c.code === coupon.coupon_code
+          );
+
+          if (!isCouponExists) {
+            loadedData.loadedCart.coupons.push(coupon);
+            localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
+          }
 
           return of(
-            updateCartStockStatusAction({
-              productIds: productsIds,
-              coupon: validCoupon,
+            fetchUserCartAction({
+              isLoggedIn: false,
+              mainPageLoading: false,
+              sideCartLoading: true,
             })
           );
         }
@@ -233,14 +217,8 @@ export class CheckoutEffect {
       ofType(removeCouponAction),
       tap(() => this.store.dispatch(startLoadingCouponAction())),
       switchMap(({ isLoggedIn, validCoupon }) => {
+        const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
         if (isLoggedIn) {
-          let authToken: any = localStorage.getItem('auth_token');
-          authToken = authToken ? JSON.parse(authToken) : '';
-
-          const headers = new HttpHeaders({
-            Authorization: `Bearer ${authToken.value}`,
-          });
-
           const body = {
             coupon_code: validCoupon,
             action: 'remove',
@@ -250,13 +228,13 @@ export class CheckoutEffect {
             .post(
               'https://adventures-hub.com/wp-json/custom/v1/cart/coupon',
               body,
-              { headers }
+              { headers: loadedData.headers, params: loadedData.params }
             )
             .pipe(
               map((response: any) => {
                 this.store.dispatch(stopLoadingCouponAction());
 
-                const updatedItems = response.items.map((item: any) => {
+                response.items = response.items.map((item: any) => {
                   return {
                     ...item,
                     images: {
@@ -266,14 +244,7 @@ export class CheckoutEffect {
                   };
                 });
 
-                const updatedCart = {
-                  items: updatedItems,
-                  coupons: response.coupons,
-                  payment_method: response.payment_method,
-                  totals: response.totals,
-                };
-
-                return getUserCartAction({ userCart: updatedCart });
+                return getUserCartAction({ userCart: response });
               }),
               catchError((error: any) => {
                 this.store.dispatch(stopLoadingCouponAction());
@@ -285,15 +256,16 @@ export class CheckoutEffect {
         } else {
           this.store.dispatch(stopLoadingCouponAction());
 
-          let loadedCart: any = localStorage.getItem('Cart');
-          loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
-          loadedCart.coupons = {};
-          localStorage.setItem('Cart', JSON.stringify(loadedCart));
-          this.cartService.fetchUserCart({
-            mainPageLoading: false,
-            sideCartLoading: true,
-          });
-          return of();
+          loadedData.loadedCart.coupons = [];
+          localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
+
+          return of(
+            fetchUserCartAction({
+              mainPageLoading: false,
+              sideCartLoading: true,
+              isLoggedIn: false,
+            })
+          );
         }
       })
     )
