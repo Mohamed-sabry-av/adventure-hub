@@ -5,7 +5,7 @@ import { SizeSelectorComponent } from '../size-selector/size-selector.component'
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProductService } from '../../../../../core/services/product.service';
-import { Product } from '../../../../../interfaces/product';
+import { Product, Variation } from '../../../../../interfaces/product';
 import { SideOptionsService } from '../../../../../core/services/side-options.service';
 
 @Component({
@@ -38,7 +38,9 @@ export class MobileQuickAddComponent implements OnInit {
   @Input() visibleColors: { color: string; image: string; inStock: boolean }[] = [];
   @Input() product: Product | null = null;
   @Input() selectedVariation: any | null = null;
+  @Input() variations: Variation[] = [];
 
+  
   @Output() toggleMobileQuickAdd = new EventEmitter<void>();
   @Output() selectSize = new EventEmitter<string>();
   @Output() selectColor = new EventEmitter<{ color: string; image: string }>();
@@ -57,9 +59,9 @@ export class MobileQuickAddComponent implements OnInit {
   ngOnInit() {}
 
   onToggleOptionsPanel() {
-    // Instead of showing the panel in the card, open the side options
     this.sideOptionsService.openSideOptions({
       product: this.product,
+      variations: this.variations,
       selectedVariation: this.selectedVariation,
       uniqueSizes: this.uniqueSizes,
       selectedSize: this.selectedSize,

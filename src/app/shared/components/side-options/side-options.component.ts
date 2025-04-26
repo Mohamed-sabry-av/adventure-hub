@@ -53,7 +53,8 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     colorOptions: [],
     selectedColor: null,
     visibleColors: [],
-    isMobile: false
+    isMobile: false,
+    variations: []
   };
 
   quantity: number = 1;

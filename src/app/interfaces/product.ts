@@ -27,6 +27,7 @@ export interface Product {
   date_on_sale_from_gmt?: any;
   date_on_sale_to?: any;
   date_on_sale_to_gmt?: any;
+  
   on_sale?: boolean;
   purchasable?: boolean;
   total_sales?: number;
@@ -68,8 +69,8 @@ export interface Product {
   purchase_note?: string;
   tags?: any[];
   default_attributes?: { name: string; option: string }[];
-  variations: any[];
-  grouped_products?: any[];
+  variations: Variation[];
+    grouped_products?: any[];
   menu_order?: number;
   price_html?: string;
   related_ids?: number[];
@@ -118,6 +119,13 @@ export interface Variation {
   meta_data?: MetaDaum[];
   quantity_limits?: QuantityLimits;
   on_sale?: boolean;
+  additional_images?: {
+    src: string;  
+  alt?: string;
+    srcset?: string;
+    sizes?: string;
+    thumbnail: string;  
+  }[]
 }
 
 export interface CardState {

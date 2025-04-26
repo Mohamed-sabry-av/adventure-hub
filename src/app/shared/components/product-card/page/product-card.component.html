@@ -28,20 +28,21 @@
 
   <!-- Add to cart with options panel -->
   <app-mobile-quick-add
-    [uniqueSizes]="uniqueSizes"
-    [selectedSize]="selectedSize"
-    [mobileQuickAddExpanded]="mobileQuickAddExpanded"
-    [colorOptions]="colorOptions"
-    [selectedColor]="selectedColor"
-    [visibleColors]="visibleColors"
-    [isMobile]="isMobile"
-    [isHovered]="isHovered"
-    [product]="product"
-    [selectedVariation]="selectedVariation"
-    (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
-    (selectSize)="onSelectSize($event)"
-    (selectColor)="selectColor($event.color, $event.image)"
-    (addToCart)="onAddToCartWithOptions($event)">
-  </app-mobile-quick-add>
+  [product]="product"
+  [variations]="variations"
+  [uniqueSizes]="uniqueSizes"
+  [selectedSize]="selectedSize"
+  [colorOptions]="colorOptions"
+  [selectedColor]="selectedColor"
+  [visibleColors]="visibleColors"
+  [mobileQuickAddExpanded]="mobileQuickAddExpanded"
+  [isMobile]="isMobile"
+  [isHovered]="isHovered"
+  [selectedVariation]="selectedVariation"
+  (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
+  (selectSize)="onSelectSize($event)"
+  (selectColor)="selectColor($event.color, $event.image)"
+  (addToCart)="onAddToCartWithOptions($event)">
+</app-mobile-quick-add>
 
 </div>

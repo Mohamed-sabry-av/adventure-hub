@@ -46,18 +46,13 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['categoryId']) {
-      // Reset filters when category changes
-      if (!changes['selectedFilters']) {
-        this.selectedFilters = {};
-      }
+      // Reset filters unconditionally when category changes
+      this.selectedFilters = {};
       localStorage.removeItem(`filters_${changes['categoryId'].previousValue}`);
-
       this.filtersSubject.next({ ...this.selectedFilters });
       this.loadAttributes();
-    }
-
-    if (changes['selectedFilters'] && !changes['categoryId']) {
-      // console.log('selectedFilters changed:', this.selectedFilters);
+    } else if (changes['selectedFilters']) {
+      // Handle selectedFilters changes only if categoryId didn't change
       this.filtersSubject.next({ ...this.selectedFilters });
       this.updateAvailableAttributes();
     }
