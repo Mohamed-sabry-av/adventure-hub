@@ -1,10 +1,13 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
   Input,
   OnDestroy,
   OnInit,
+  PLATFORM_ID,
+  Inject,
+  HostListener
 } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
@@ -79,15 +82,16 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   mobileQuickAddExpanded: boolean = false;
   displayedImages: { src: string }[] = [];
   modifiedProduct: Product;
-  selectedVariation: Variation | any = null;
+  selectedVariation: Variation | null = null;
+  isCardHovered: boolean = false;
 
   private resizeSubscription?: Subscription;
-  private clickOutsideSubscription?: Subscription;
 
   constructor(
     private productService: ProductService,
     private cartService: CartService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.modifiedProduct = {} as Product;
   }
@@ -98,56 +102,40 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.checkIfMobile();
     this.modifiedProduct = { ...this.product };
     this.setupResizeListener();
-    this.setupClickOutsideListener();
   }
 
   ngOnDestroy(): void {
     this.resizeSubscription?.unsubscribe();
-    this.clickOutsideSubscription?.unsubscribe();
   }
 
+
+  @HostListener('mouseenter')
+  onMouseEnter() {
+    this.isCardHovered = true;
+  }
+  @HostListener('mouseleave')
+  onMouseLeave() {
+    this.isCardHovered = false;
+  }
+  
   private setupResizeListener(): void {
-    this.resizeSubscription = fromEvent(window, 'resize')
-      .pipe(debounceTime(200))
-      .subscribe(() => {
-        this.checkIfMobile();
-        this.updateVisibleColors();
-        this.updateVisibleSizes();
-      });
-  }
-
-  private setupClickOutsideListener(): void {
-    // Close the mobile quick add dropdown when clicking outside
-    this.clickOutsideSubscription = fromEvent(document, 'click').subscribe(
-      (event: Event) => {
-        if (this.mobileQuickAddExpanded) {
-          // Check if the click target is inside the quick add component
-          const target = event.target as HTMLElement;
-          const quickAddEl = document.querySelector(
-            '.mobile-quick-add-section'
-          );
-          const sizeOverlayEl = document.querySelector(
-            '.mobile-size-selector-overlay'
-          );
-
-          if (quickAddEl && sizeOverlayEl) {
-            if (
-              !quickAddEl.contains(target) &&
-              !sizeOverlayEl.contains(target)
-            ) {
-              this.mobileQuickAddExpanded = false;
-            }
-          }
-        }
-      }
-    );
+    if (isPlatformBrowser(this.platformId)) {
+      this.resizeSubscription = fromEvent(window, 'resize')
+        .pipe(debounceTime(200))
+        .subscribe(() => {
+          this.checkIfMobile();
+          this.updateVisibleColors();
+          this.updateVisibleSizes();
+        });
+    }
   }
 
   private checkIfMobile(): void {
-    this.isMobile = window.innerWidth < 768;
-    // Reset mobile expand state when switching between mobile and desktop
-    if (!this.isMobile) {
-      this.mobileQuickAddExpanded = false;
+    if (isPlatformBrowser(this.platformId)) {
+      this.isMobile = window.innerWidth < 768;
+      if (!this.isMobile) {
+        this.mobileQuickAddExpanded = false;
+      }
     }
   }
 
@@ -161,7 +149,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.updateVisibleColors();
         this.updateVisibleSizes();
         this.variationsLoaded = true;
-        this.setDefaultVariation();
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);
@@ -247,163 +234,229 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       );
       if (matchingColor) {
         this.selectColor(matchingColor.color, matchingColor.image);
+      } else if (this.colorOptions.length > 0) {
+        this.selectColor(
+          this.colorOptions[0].color,
+          this.colorOptions[0].image
+        );
       }
     } else if (this.colorOptions.length > 0) {
       this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
     }
 
-    this.updateSelectedVariation();
+    const defaultSize = this.product.default_attributes?.find(
+      (attr: any) => attr.name === 'Size'
+    )?.option;
+
+    if (defaultSize && this.uniqueSizes.length > 0) {
+      const matchingSize = this.uniqueSizes.find(
+        (size) => size.size.toLowerCase() === defaultSize.toLowerCase()
+      );
+      if (matchingSize) {
+        this.selectedSize = matchingSize.size;
+      } else if (this.uniqueSizes.length > 0) {
+        this.selectedSize = this.uniqueSizes[0].size;
+      }
+    } else if (this.uniqueSizes.length > 0) {
+      const firstInStockSize = this.uniqueSizes.find(size => size.inStock);
+      if (firstInStockSize) {
+        this.selectedSize = firstInStockSize.size;
+      }
+    }
+
+    this.findAndSetSelectedVariation();
   }
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
 
-    // Update displayedImages based on the selected color
-    this.displayedImages =
-      this.variations
-        ?.filter((v) =>
-          v.attributes?.some((attr: any) => attr.name === 'Color' && attr.option === color)
-        )
-        .map((v) => ({ src: v.image?.src || image }))
-        .filter((img) => img.src) || [];
+    this.uniqueSizes = this.getSizesForColor(color);
 
-    // Fallback to the provided image or product images if no variation images
-    if (!this.displayedImages.length) {
-      this.displayedImages = [{ src: image }];
-      if (!image && this.product.images?.length) {
-        this.displayedImages = this.product.images.map((img) => ({ src: img.src }));
+    if (this.selectedSize) {
+      const sizeStillAvailable = this.uniqueSizes.find(
+        (s) => s.size === this.selectedSize
+      );
+      if (!sizeStillAvailable || !sizeStillAvailable.inStock) {
+        const firstInStockSize = this.uniqueSizes.find((s) => s.inStock);
+        this.selectedSize = firstInStockSize ? firstInStockSize.size : null;
       }
     }
 
-    // Update modifiedProduct.images
-    this.modifiedProduct.images = [...this.displayedImages];
-
-    this.currentSlide = 0;
-    this.uniqueSizes = this.getSizesForColor(color);
-    this.selectedSize = null;
     this.updateVisibleSizes();
-    this.updateSelectedVariation();
-    this.cdr.detectChanges();
-  }
-  
+    this.findAndSetSelectedVariation();
 
+    // Update modifiedProduct with images from the selected color variation
+    if (this.modifiedProduct) {
+      // Find all variations with this color
+      const variationsWithThisColor = this.variations.filter(
+        (v) => v.attributes?.some(
+          (attr: any) => attr.name === 'Color' && attr.option === color
+        )
+      );
 
-  selectSize(size: string): void {
-    this.selectedSize = size;
-    this.updateSelectedVariation();
+      // If we found variations with this color and they have images
+      if (variationsWithThisColor.length > 0) {
+        const imagesForThisColor: {src: string}[] = [];
 
-    // If on desktop with both color and size, auto-add to cart when both are selected
-    if (
-      !this.isMobile &&
-      this.hasColors() &&
-      this.hasSizes() &&
-      this.selectedColor &&
-      size
-    ) {
-      this.onAddToCartWithOptions();
+        // Collect up to 2 images
+        variationsWithThisColor.forEach(v => {
+          if (v.image?.src && imagesForThisColor.length < 2) {
+            // Make sure we don't add duplicate images
+            if (!imagesForThisColor.some(img => img.src === v.image.src)) {
+              imagesForThisColor.push({ src: v.image.src });
+            }
+          }
+        });
+
+        // If we found at least one image, update the product's images
+        if (imagesForThisColor.length > 0) {
+          this.modifiedProduct = {
+            ...this.modifiedProduct,
+            images: imagesForThisColor
+          };
+          this.currentSlide = 0;
+        }
+      }
     }
+
+    this.cdr.markForCheck();
+  }
+
+  findAndSetSelectedVariation(): void {
+    if (!this.selectedColor && !this.selectedSize) {
+      this.selectedVariation = null;
+      return;
+    }
+
+    const matchingVariation = this.variations.find((v) => {
+      const matchesColor =
+        !this.selectedColor ||
+        v.attributes?.some(
+          (attr: any) =>
+            attr.name === 'Color' && attr.option === this.selectedColor
+        );
+      const matchesSize =
+        !this.selectedSize ||
+        v.attributes?.some(
+          (attr: any) =>
+            attr.name === 'Size' && attr.option === this.selectedSize
+        );
+      return matchesColor && matchesSize;
+    });
+
+    this.selectedVariation = matchingVariation || null;
+
+    // Update modifiedProduct with the selected variation's details
+    if (this.selectedVariation && this.selectedVariation.image?.src) {
+      // Get images for this variation
+      const variationImages = Array.isArray(this.selectedVariation.image.src) ?
+        this.selectedVariation.image.src.map((src:any) => ({ src })) :
+        [{ src: this.selectedVariation.image.src }];
+
+      // Update modified product with variation images
+      this.modifiedProduct = {
+        ...this.modifiedProduct,
+        images: variationImages
+      };
+      this.currentSlide = 0;
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  updateVisibleColors(): void {
+    if (!this.colorOptions || this.colorOptions.length === 0) {
+      this.visibleColors = [];
+      return;
+    }
+
+    const startIndex = this.colorScrollIndex;
+    const endIndex = Math.min(
+      startIndex + this.colorsPerPage,
+      this.colorOptions.length
+    );
+    this.visibleColors = this.colorOptions.slice(startIndex, endIndex);
+    this.maxColorScrollIndex = Math.max(
+      0,
+      this.colorOptions.length - this.colorsPerPage
+    );
+  }
+
+  updateVisibleSizes(): void {
+    if (!this.uniqueSizes || this.uniqueSizes.length === 0) {
+      this.visibleSizes = [];
+      return;
+    }
+
+    const startIndex = this.sizeScrollIndex;
+    const endIndex = Math.min(
+      startIndex + this.sizesPerPage,
+      this.uniqueSizes.length
+    );
+    this.visibleSizes = this.uniqueSizes.slice(startIndex, endIndex);
+    this.maxSizeScrollIndex = Math.max(
+      0,
+      this.uniqueSizes.length - this.sizesPerPage
+    );
+  }
+
+  scrollColors(direction: number): void {
+    const newIndex = this.colorScrollIndex + direction;
+    if (newIndex >= 0 && newIndex <= this.maxColorScrollIndex) {
+      this.colorScrollIndex = newIndex;
+      this.updateVisibleColors();
+    }
+  }
+
+  scrollSizes(direction: number): void {
+    const newIndex = this.sizeScrollIndex + direction;
+    if (newIndex >= 0 && newIndex <= this.maxSizeScrollIndex) {
+      this.sizeScrollIndex = newIndex;
+      this.updateVisibleSizes();
+    }
+  }
+
+  onHover(isHovered: boolean): void {
+    this.isHovered = isHovered;
+    this.cdr.markForCheck();
+  }
+
+  goToSlide(index: number): void {
+    this.currentSlide = index;
   }
 
   onSelectSize(size: string): void {
-    this.selectSize(size);
-  }
-
-  onHover(hovered: boolean): void {
-    this.isHovered = hovered;
-    // For products with images but no color variations, cycle through images on hover
-    if (this.product.images?.length > 1) {
-      this.currentSlide = hovered ? 1 : 0;
-    }
+    this.selectedSize = size;
+    this.findAndSetSelectedVariation();
+    this.cdr.markForCheck();
   }
 
   toggleMobileQuickAdd(): void {
     this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
-    if (!this.mobileQuickAddExpanded) this.selectedSize = null;
+    this.cdr.markForCheck();
   }
 
-  goToSlide(index: number): void {
-    if (this.product.images?.length) this.currentSlide = index;
-  }
-
-  getDotCount(): number[] {
-    return this.product.images?.length
-      ? Array.from({ length: this.product.images.length }, (_, i) => i)
-      : [];
-  }
-
-  scrollColors(direction: number): void {
-    this.colorScrollIndex = Math.max(
-      0,
-      Math.min(this.colorScrollIndex + direction, this.maxColorScrollIndex)
-    );
-    this.updateVisibleColors();
-  }
-
-  scrollSizes(direction: number): void {
-    this.sizeScrollIndex = Math.max(
-      0,
-      Math.min(this.sizeScrollIndex + direction, this.maxSizeScrollIndex)
-    );
-    this.updateVisibleSizes();
-  }
-
-  private updateVisibleColors(): void {
-    this.maxColorScrollIndex = Math.max(
-      0,
-      Math.ceil(this.colorOptions.length / this.colorsPerPage) - 1
-    );
-    const start = this.colorScrollIndex * this.colorsPerPage;
-    this.visibleColors = this.colorOptions.slice(
-      start,
-      start + this.colorsPerPage
-    );
-  }
-
-  private updateVisibleSizes(): void {
-    this.maxSizeScrollIndex = Math.max(
-      0,
-      Math.ceil(this.uniqueSizes.length / this.sizesPerPage) - 1
-    );
-    const start = this.sizeScrollIndex * this.sizesPerPage;
-    this.visibleSizes = this.uniqueSizes.slice(
-      start,
-      start + this.sizesPerPage
-    );
-  }
-
-  onAddToCartWithOptions(): void {
-    if (this.isAddToCartDisabled()) return;
-
-    if (this.variations.length > 0 && this.selectedVariation) {
-        this.cartService.addProductToCart(this.selectedVariation);
-    } else {
-        this.cartService.addProductToCart(this.product);
+  onAddToCartWithOptions(options: { quantity: number } = { quantity: 1 }): void {
+    if (!this.selectedVariation && this.variations.length > 0) {
+      return;
     }
 
-    if (this.isMobile) {
-        this.mobileQuickAddExpanded = false;
-    }
-}
+    const productToAdd = {
+      id: this.selectedVariation ? this.selectedVariation.id : this.product.id,
+      name: this.product.name,
+      quantity: options.quantity,
+      price: this.selectedVariation
+        ? this.selectedVariation.price
+        : this.product.price,
+      image: this.selectedVariation?.image?.src ?? this.product.images?.[0]?.src,
+    };
 
-isAddToCartDisabled(): boolean {
-  // Check if required selections are missing
-  const needsSize = this.hasSizes() && !this.selectedSize;
-  const needsColor = this.hasColors() && !this.selectedColor;
+    // Call addProductToCart without subscribing, as it doesn't return an Observable
+    this.cartService.addProductToCart(productToAdd);
 
-  // If a size or color is required but not selected, disable the button
-  if (needsSize || needsColor) {
-    return true;
+    // Show the side cart using cartMode
+    this.cartService.cartMode(true);
   }
-
-  // Check stock status
-  if (this.variations.length > 0 && this.selectedVariation) {
-    // For products with variations, check the selected variation's stock status
-    return this.selectedVariation.stock_status !== 'instock';
-  } else {
-    // For products without variations, check the product's stock status
-    return this.product.stock_status !== 'instock';
-  }
-}
 
   hasColors(): boolean {
     return this.colorOptions.length > 0;
@@ -413,75 +466,23 @@ isAddToCartDisabled(): boolean {
     return this.uniqueSizes.length > 0;
   }
 
-  getBrandName(): string | null {
-    const brandAttr = this.product?.attributes?.find(
-      (attr: any) => attr.name === 'Brand'
+  getBrandName(): any | null {
+    if (!this.product.meta_data) return null;
+
+    const brandMeta = this.product.meta_data.find(
+      (meta: any) => meta.key === '_brand' || meta.key === 'brand'
     );
-    const option = brandAttr?.options?.[0];
-    return option
-      ? typeof option === 'string'
-        ? option
-        : option.name || option.value || null
-      : null;
+
+    return brandMeta ? brandMeta.value : null;
   }
 
   getBrandSlug(): string | null {
-    const brandAttr = this.product?.attributes?.find(
-      (attr: any) => attr.name === 'Brand'
+    if (!this.product.meta_data) return null;
+
+    const brandMeta = this.product.meta_data.find(
+      (meta: any) => meta.key === '_brand_slug' || meta.key === 'brand_slug'
     );
-    const option = brandAttr?.options?.[0];
-    return option && typeof option !== 'string' ? option.slug || null : null;
+
+    return brandMeta ? brandMeta.value : this.getBrandName()?.toLowerCase().replace(/\s+/g, '-');
   }
-
-  private updateSelectedVariation(): void {
-    if (this.variations.length > 0) {
-        this.selectedVariation = this.variations.find((variation) => {
-            const colorAttr = variation.attributes?.find(
-                (attr: any) => attr.name === 'Color'
-            );
-            const sizeAttr = variation.attributes?.find(
-                (attr: any) => attr.name === 'Size'
-            );
-            const matchColor =
-                !this.hasColors() ||
-                (colorAttr && colorAttr.option === this.selectedColor);
-            const matchSize =
-                !this.hasSizes() ||
-                (sizeAttr && sizeAttr.option === this.selectedSize);
-            return matchColor && matchSize;
-        });
-
-        if (this.selectedVariation) {
-            this.product = {
-                ...this.product,
-                id: this.selectedVariation.id,
-                price: this.selectedVariation.price || this.product.price,
-                additional_images: this.selectedVariation.additional_images || this.product.images,
-                attributes: this.selectedVariation.attributes,
-                stock_status: this.selectedVariation.stock_status,
-                quantity_limits: this.selectedVariation.quantity_limits || this.product.quantity_limits
-            };
-        } else if (this.selectedColor) {
-            this.selectedVariation =
-                this.variations.find((variation) =>
-                    variation.attributes?.some(
-                        (attr: any) =>
-                            attr.name === 'Color' && attr.option === this.selectedColor
-                    )
-                ) || null;
-           
-        } else {
-            this.product = { ...this.product };
-        }
-
-        console.log('ابديت المنتج', this.product);
-    } else {
-        this.product = { ...this.product };
-        console.log('No variations, using base product:', this.product);
-    }
-}
-
-
-
-
 }

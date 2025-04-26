@@ -1,4 +1,4 @@
-/* تعديلات عامة للبطاقة */
+/* Product card styles */
 .product-card {
   position: relative;
   display: flex;
@@ -6,68 +6,85 @@
   height: 100%;
   min-height: 400px;
   transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.product-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .quick-add-wrapper {
-  margin-top: auto; /* يضمن إن الزر دايمًا في الأسفل */
+  margin-top: auto;
 }
 
-/* أنماط الهاتف */
+/* Yalla tag styling (similar to mumzworld) */
+.yalla-tag {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  background-color: #ffd700;
+  color: #333;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  z-index: 10;
+}
+
+/* Responsive styles */
 @media (max-width: 767px) {
   .product-card {
-    min-height: 320px; /* تقليص ارتفاع البطاقة على الهاتف */
-    font-size: 0.9rem; /* تقليل حجم الخط */
+    min-height: 320px;
+    font-size: 0.9rem;
   }
-  
-  /* تصغير الصورة في البطاقة */
+
+  /* Smaller images on mobile */
   .product-card img {
-    max-height: 140px;
-    object-fit: cover;
+    max-height: 180px;
+    object-fit: contain;
   }
-  
-  /* تعديلات لأزرار الإضافة للسلة */
+
+  /* Adjust card details spacing */
+  .product-card .card-details {
+    padding: 0.5rem;
+  }
+
   .mobile-quick-add-button {
     padding: 0.5rem;
     font-size: 0.8rem;
   }
-  
-  /* تصغير حجم خطوط العناوين والأسعار */
+
   .product-card h3 {
     font-size: 0.9rem;
     margin-bottom: 0.25rem;
   }
-  
+
   .product-card .price {
     font-size: 0.9rem;
   }
-  
-  /* تقليل المسافات الداخلية */
-  .product-card .card-details {
-    padding: 0.5rem;
+
+  .product-card .color-swatch {
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+  }
+
+  .product-card .size-btn {
+    padding: 2px 5px;
+    font-size: 0.7rem;
+    margin-right: 3px;
   }
 }
 
-/* أنماط الجهاز اللوحي والكومبيوتر */
 @media (min-width: 768px) {
   .quick-add-desktop-wrapper {
     display: block;
   }
   .quick-add-mobile-wrapper {
     display: none;
-  }
-}
-
-/* تعديلات خاصة بحجم خيارات الألوان في الهاتف */
-@media (max-width: 767px) {
-  .product-card .color-swatch {
-    width: 12px;
-    height: 12px;
-    margin-right: 4px;
-  }
-  
-  .product-card .size-btn {
-    padding: 2px 5px;
-    font-size: 0.7rem;
-    margin-right: 3px;
   }
 }

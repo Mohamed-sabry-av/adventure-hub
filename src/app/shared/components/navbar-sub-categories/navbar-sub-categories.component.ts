@@ -30,25 +30,22 @@ import { RouterLink } from '@angular/router';
 })
 export class NavbarSubCategoriesComponent {
   private destroyRef = inject(DestroyRef);
-
   @Input() allCategoriesData: Category[] = [];
-  @Input({ required: true }) subCategories$!: Observable<any[]>;
+  @Input({ required: true }) subCategories$!: Observable<Category[]>;
 
-  categoriesData: any[] = [];
+  categoriesData: Category[] = [];
   keepOpen: boolean = false;
   selectedCategoryId: number | null = null;
 
   ngOnInit() {
-    const subscription = this.subCategories$
-      .pipe(map((response: any) => response || []))
-      .subscribe((data) => {
-        if (data.length > 0) {
-          this.categoriesData = data;
-          this.keepOpen = true;
-        } else {
-          this.keepOpen = false;
-        }
-      });
+    const subscription = this.subCategories$.subscribe((data) => {
+      if (data.length > 0) {
+        this.categoriesData = data;
+        this.keepOpen = true;
+      } else {
+        this.keepOpen = false;
+      }
+    });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
@@ -61,23 +58,22 @@ export class NavbarSubCategoriesComponent {
     this.keepOpen = true;
   }
 
-  getSubCategories(categoryId: number | null) {
+  getSubCategories(categoryId: number | null): Category[] {
     return this.allCategoriesData.filter((cat) => cat.parent === categoryId);
   }
 
-  getCategoryRoute(category:Category):string[]{
-    const pathSegments:string[] = ['category'];
-    this.buildFullPath(category, pathSegments)
-    return pathSegments
+  getCategoryRoute(category: Category): string[] {
+    const pathSegments: string[] = ['category'];
+    this.buildFullPath(category, pathSegments);
+    return pathSegments;
   }
 
   private buildFullPath(category: Category, path: string[]): void {
-    if(category.parent !== 0){
-      const parentCategory = this.allCategoriesData.find(c=> c.id=== category.parent)
-      if(parentCategory){
-        this.buildFullPath(parentCategory, path)
+    if (category.parent !== 0) {
+      const parentCategory = this.allCategoriesData.find((c) => c.id === category.parent);
+      if (parentCategory) {
+        this.buildFullPath(parentCategory, path);
       }
     }
-    path.push(category.slug)
-  }
-}
+    path.push(category.slug);
+  }}

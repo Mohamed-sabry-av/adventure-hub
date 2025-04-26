@@ -52,13 +52,12 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class NavbarMainCategoriesComponent {
   private navbarService = inject(NavbarService);
-  private destroyRef = inject(DestroyRef);
+  
   @Input({ required: true }) categories: Category[] = [];
   @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
 
   selectedCategoryId: number | null = null;
-
   isMobile: boolean = false;
   sideNavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
   showNavbar$: Observable<boolean> = this.navbarService.navbarIsVisible$;
@@ -69,48 +68,14 @@ export class NavbarMainCategoriesComponent {
     this.isMobile = window.innerWidth <= 960;
   }
 
-  ngOnInit() {
-    const subscription = this.navbarService.headerHeight$.subscribe(
-      (response: any) => {
-        this.drawerTop = response;
-      }
-    );
-
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
-  }
-
-  hideSideNav() {
-    this.navbarService.siwtchSideNav(false);
+  getSubCategories(categoryId: number): Category[] {
+    return this.allCategories.filter((cat) => cat.parent === categoryId);
   }
 
   selectedCategory(id: number | null) {
     this.selectedCategoryId = id;
     this.select.emit(id);
   }
-
-  getCategoryRoute(category: Category): string[] {
-    const pathSegments: string[] = ['category'];
-    this.buildFullPath(category, pathSegments);
-    return pathSegments;
-  }
-
-  private buildFullPath(category: Category, path: string[]): void {
-    if (category.parent !== 0) {
-      const parentCategory = this.allCategories.find(
-        (c) => c.id === category.parent
-      );
-      if (parentCategory) {
-        this.buildFullPath(parentCategory, path);
-      }
-    }
-    path.push(category.slug);
-  }
-
-  getSubCategories(categoryId: number): Category[] {
-    return this.allCategories.filter((cat) => cat.parent === categoryId);
-  }
-
-  expandedCategories = new Set<number>();
 
   toggleCategory(categoryId: number): void {
     if (this.expandedCategories.has(categoryId)) {
@@ -123,4 +88,22 @@ export class NavbarMainCategoriesComponent {
   isCategoryExpanded(categoryId: number): boolean {
     return this.expandedCategories.has(categoryId);
   }
+
+  getCategoryRoute(category: Category): string[] {
+    const pathSegments: string[] = ['category'];
+    this.buildFullPath(category, pathSegments);
+    return pathSegments;
+  }
+
+  private buildFullPath(category: Category, path: string[]): void {
+    if (category.parent !== 0) {
+      const parentCategory = this.allCategories.find((c) => c.id === category.parent);
+      if (parentCategory) {
+        this.buildFullPath(parentCategory, path);
+      }
+    }
+    path.push(category.slug);
+  }
+
+  expandedCategories = new Set<number>();
 }

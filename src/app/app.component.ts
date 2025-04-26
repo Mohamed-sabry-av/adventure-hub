@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { SideCartComponent } from './features/cart/components/side-cart/side-cart.component';
+import { SideOptionsComponent } from './shared/components/side-options/side-options.component';
 import { NgIf } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { BackToTopComponent } from './shared/components/BackToTop/back-to-top.component';
@@ -23,6 +24,7 @@ declare global {
     HeaderComponent,
     FooterComponent,
     SideCartComponent,
+    SideOptionsComponent,
     BackToTopComponent,
     NgIf,
   ],

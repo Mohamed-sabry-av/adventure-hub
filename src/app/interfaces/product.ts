@@ -117,6 +117,7 @@ export interface Variation {
   stock_status?: string;
   meta_data?: MetaDaum[];
   quantity_limits?: QuantityLimits;
+  on_sale?: boolean;
 }
 
 export interface CardState {
