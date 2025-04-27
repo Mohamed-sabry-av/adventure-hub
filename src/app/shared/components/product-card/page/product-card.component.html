@@ -1,49 +1,48 @@
-
-
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
   <app-card-image-slider
-  [product]="modifiedProduct"
-  [currentSlide]="currentSlide"
-  [colorOptions]="colorOptions"
-  [variations]="variations"
-  (goToSlide)="goToSlide($event)"
+  [product]="product"
+  [isHovered]="isCardHovered"
+  [variations]="product.variations || []"
 ></app-card-image-slider>
 
-  <!-- تفاصيل المنتج (العنوان، السعر، إلخ) -->
+  <!-- Product details (title, price, etc) -->
   <app-card-details
-  [product]="product"
-  [colorOptions]="colorOptions"
-  [uniqueSizes]="uniqueSizes"
-  [getBrandName]="getBrandName.bind(this)"
-  [getBrandSlug]="getBrandSlug.bind(this)"
-  [selectedVariation]="selectedVariation"
-></app-card-details>
-
-  <!-- الألوان (لو موجودة) -->
-  <app-color-swatches
-  [colorOptions]="colorOptions"
-  [visibleColors]="visibleColors"
-  [selectedColor]="selectedColor"
-  [colorScrollIndex]="colorScrollIndex"
-  [maxColorScrollIndex]="maxColorScrollIndex"
-  (selectColor)="selectColor($event.color, $event.image)"
-  (scrollColors)="scrollColors($event)"
-></app-color-swatches>
-
-  <div class="quick-add-wrapper" [ngClass]="{'quick-add-mobile-wrapper': isMobile, 'quick-add-desktop-wrapper': !isMobile}">
-    <app-mobile-quick-add
-    [uniqueSizes]="uniqueSizes"
-    [selectedSize]="selectedSize"
-    [mobileQuickAddExpanded]="mobileQuickAddExpanded"
+    [product]="product"
     [colorOptions]="colorOptions"
-    [selectedColor]="selectedColor"
+    [uniqueSizes]="uniqueSizes"
+    [getBrandName]="getBrandName.bind(this)"
+    [getBrandSlug]="getBrandSlug.bind(this)"
+    [selectedVariation]="selectedVariation"
+  ></app-card-details>
+
+  <!-- Color swatches (if available) -->
+  <app-color-swatches
+    [colorOptions]="colorOptions"
     [visibleColors]="visibleColors"
-    [isMobile]="isMobile"
-    [isHovered]="isHovered"
-    (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
-    (selectSize)="onSelectSize($event)"
+    [selectedColor]="selectedColor"
+    [colorScrollIndex]="colorScrollIndex"
+    [maxColorScrollIndex]="maxColorScrollIndex"
     (selectColor)="selectColor($event.color, $event.image)"
-    (addToCart)="onAddToCartWithOptions()">
-  </app-mobile-quick-add>
-  </div>
+    (scrollColors)="scrollColors($event)"
+  ></app-color-swatches>
+
+  <!-- Add to cart with options panel -->
+  <app-mobile-quick-add
+  [product]="product"
+  [variations]="variations"
+  [uniqueSizes]="uniqueSizes"
+  [selectedSize]="selectedSize"
+  [colorOptions]="colorOptions"
+  [selectedColor]="selectedColor"
+  [visibleColors]="visibleColors"
+  [mobileQuickAddExpanded]="mobileQuickAddExpanded"
+  [isMobile]="isMobile"
+  [isHovered]="isHovered"
+  [selectedVariation]="selectedVariation"
+  (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
+  (selectSize)="onSelectSize($event)"
+  (selectColor)="selectColor($event.color, $event.image)"
+  (addToCart)="onAddToCartWithOptions($event)">
+</app-mobile-quick-add>
+
 </div>

@@ -1,5 +1,6 @@
 <div class="image-slider">
-  <div class="product-tags">
+  <!-- Product status tags - moved to bottom left -->
+  <div class="product-tags product-tags-bottom-left">
     <div *ngFor="let tag of getProductTags()"
          class="tag"
          [ngClass]="getTagClass(tag)">
@@ -7,26 +8,25 @@
     </div>
   </div>
 
-  <div class="slider-container" #sliderContainer (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
-    <div class="slide" *ngFor="let image of product?.images; let i = index" [ngClass]="{'active': i === currentSlide}">
-      <a routerLink="/product/{{ product.id }}">
-        <img 
-  [src]="image.src" 
-  [srcset]="getImageSrcset(image)" 
-  sizes="(max-width: 768px) 100vw, 300px" 
-  width="300" 
-  height="300" 
-  loading="lazy" 
-  [alt]="product.name" 
-  (load)="onImageLoad($event)" />     </a>
+  <!-- Image slider -->
+  <div class="slider-container"
+       #sliderContainer
+       [ngClass]="{'hovered': isHovered && product.images.length > 1}">
+    <!-- Images -->
+    <div class="slide"
+         *ngFor="let image of product?.images; let i = index"
+         [ngClass]="{'active': i === 0, 'second-image': i === 1 && isHovered && product.images.length > 1}">
+      <a [routerLink]="['/product', product.id]">
+        <img
+          [src]="getOptimizedImageUrl(image.src)"
+          [srcset]="getImageSrcset(image)"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
+          width="400"
+          height="400"
+          loading="lazy"
+          [alt]="product.name"
+          (load)="onImageLoad($event)" />
+      </a>
     </div>
   </div>
-
-  <div class="slider-dots" *ngIf="product?.images && product.images.length > 1">
-    <span *ngFor="let i of getDotCount(); let index = index"
-          class="dot"
-          [class.active]="index === currentSlide"
-          (click)="onGoToSlide(index)"></span>
-  </div>
-  
 </div>

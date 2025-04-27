@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ElementRef, Output, EventEmitter, OnInit, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef, OnInit, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Product, Variation } from '../../../../../interfaces/product';
@@ -21,24 +21,18 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class CardImageSliderComponent implements OnInit {
   @Input() product!: Product;
-  @Input() currentSlide: number = 0;
-  @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
-  @Input() variations: Variation[] = [];
-  @Output() goToSlide = new EventEmitter<number>();
+  @Input() isHovered: boolean = false;
+  @Input() variations: Variation[] = []; // Ensure variations is defined
   @ViewChild('sliderContainer') sliderContainer!: ElementRef;
 
-  touchStartX: number = 0;
-  touchEndX: number = 0;
   isMobile: boolean = false;
-  isSwiping: boolean = false;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {} // أضفنا platformId
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   ngOnInit() {
     this.checkIfMobile();
   }
 
-  // تعديل HostListener عشان يشتغل بس في المتصفح
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     if (isPlatformBrowser(this.platformId)) {
@@ -50,7 +44,7 @@ export class CardImageSliderComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.isMobile = window.innerWidth <= 768;
     } else {
-      this.isMobile = false; // قيمة افتراضية على السيرفر
+      this.isMobile = false;
     }
   }
 
@@ -58,64 +52,16 @@ export class CardImageSliderComponent implements OnInit {
     const imgElement = event.target as HTMLImageElement;
   }
 
-
   getImageSrcset(image: any): string {
     if (!image.srcset) {
       return `${image.src} 1000w`;
     }
     const maxWidth = 780;
-    const srcsetEntries = image.srcset.split(',').filter((entry:any) => {
+    const srcsetEntries = image.srcset.split(',').filter((entry: any) => {
       const width = parseInt(entry.match(/(\d+)w/)?.[1] || '0');
       return width <= maxWidth;
     });
     return srcsetEntries.length > 0 ? srcsetEntries.join(',') : `${image.src} ${maxWidth}w`;
-  }
-
-
-  onTouchStart(e: TouchEvent) {
-    this.touchStartX = e.touches[0].clientX;
-    this.isSwiping = true;
-  }
-
-  onTouchMove(e: TouchEvent) {
-    if (!this.isSwiping) return;
-    this.touchEndX = e.touches[0].clientX;
-  }
-
-  onTouchEnd(e: TouchEvent) {
-    if (!this.isSwiping) return;
-    this.isSwiping = false;
-    const swipeThreshold = 50;
-    const swipeDistance = this.touchEndX - this.touchStartX;
-    if (Math.abs(swipeDistance) < swipeThreshold) return;
-    if (this.product.images && this.product.images.length > 1) {
-      if (swipeDistance > 0) {
-        this.navigateSlide(-1);
-      } else {
-        this.navigateSlide(1);
-      }
-    }
-  }
-
-  navigateSlide(direction: number) {
-    if (!this.product.images) return;
-    const totalSlides = this.product.images.length;
-    let newSlide = this.currentSlide + direction;
-    if (newSlide < 0) newSlide = totalSlides - 1;
-    if (newSlide >= totalSlides) newSlide = 0;
-    this.onGoToSlide(newSlide);
-  }
-
-  onGoToSlide(index: number): void {
-    this.goToSlide.emit(index);
-    this.currentSlide = index;
-  }
-
-  getDotCount(): number[] {
-    if (!this.product || !this.product.images) return [];
-    return Array(this.product.images.length)
-      .fill(0)
-      .map((_, i) => i);
   }
 
   getProductTags(): string[] {
@@ -126,7 +72,6 @@ export class CardImageSliderComponent implements OnInit {
 
     const tags: string[] = [];
 
-    // Check if product is new (within 14 days)
     if (this.product.date_created) {
       const createdDate = new Date(this.product.date_created);
       const now = new Date();
@@ -138,7 +83,6 @@ export class CardImageSliderComponent implements OnInit {
       }
     }
 
-    // Check if product is on sale
     if (this.product.on_sale) {
       const salePercentage = this.getSalePercentage();
       if (salePercentage > 0) {
@@ -146,18 +90,15 @@ export class CardImageSliderComponent implements OnInit {
       }
     }
 
-    // Check for HUB tag
     if (this.product.tags && this.product.tags.length > 0) {
       const hubTag = this.product.tags.find(
-        (tag) =>
-          tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
+        (tag) => tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
       );
       if (hubTag) {
         tags.push('HUB');
       }
     }
 
-    // Check stock status
     if (this.product.type === 'variable' && this.variations.length > 0) {
       const anyVariationInStock = this.variations.some(
         (v) => v.stock_status === 'instock'
@@ -169,7 +110,6 @@ export class CardImageSliderComponent implements OnInit {
       tags.push('SOLD OUT');
     }
 
-    // Check for best seller
     const isBestSeller =
       (this.product.rating_count && this.product.rating_count > 20) ||
       (this.product.meta_data &&
@@ -180,12 +120,10 @@ export class CardImageSliderComponent implements OnInit {
       tags.push('BESTSELLER');
     }
 
-    // Check if product is featured
     if (this.product.featured) {
       tags.push('FEATURED');
     }
 
-    // Apply priority order (max 2 tags for bottom, HUB separate)
     const bottomTags = tags.filter((tag) => tag !== 'HUB');
     const priorityOrder = [
       bottomTags.find((tag) => tag === 'SOLD OUT'),
@@ -199,15 +137,37 @@ export class CardImageSliderComponent implements OnInit {
     return [...finalBottomTags, ...(tags.includes('HUB') ? ['HUB'] : [])];
   }
 
-  private getSalePercentage(): number {
-    if (!this.product.regular_price || !this.product.sale_price) {
+  getOptimizedImageUrl(originalUrl: string): string {
+    if (!originalUrl) return '';
+
+    if (originalUrl.includes('?')) {
+      return originalUrl;
+    }
+
+    const screenWidth = isPlatformBrowser(this.platformId) ? window.innerWidth : 1024;
+    let imageWidth = 400;
+
+    if (screenWidth < 768) {
+      imageWidth = 300;
+    } else if (screenWidth < 1024) {
+      imageWidth = 350;
+    }
+
+    return `${originalUrl}?width=${imageWidth}&quality=80`;
+  }
+
+  getSalePercentage(): number {
+    if (!this.product || !this.product.regular_price || !this.product.sale_price) {
       return 0;
     }
+
     const regularPrice = parseFloat(this.product.regular_price);
     const salePrice = parseFloat(this.product.sale_price);
+
     if (isNaN(regularPrice) || isNaN(salePrice) || regularPrice === 0) {
       return 0;
     }
+
     return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
   }
 

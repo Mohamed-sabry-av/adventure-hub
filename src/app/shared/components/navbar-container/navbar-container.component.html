@@ -1,12 +1,9 @@
 <nav class="relative">
-  <!-- Main Categories -->
   <app-navbar-main-categories
     [categories]="mainCategories"
-    (select)="getSubCategories($event)"
     [allCategories]="allCategories"
+    (select)="getSubCategories($event)"
   />
-
-  <!-- Sub Categories -->
   <div class="absolute top-full left-0 w-full shadow-lg z-50 group-hover:block">
     <app-navbar-sub-categories
       [subCategories$]="filterdCategories$"

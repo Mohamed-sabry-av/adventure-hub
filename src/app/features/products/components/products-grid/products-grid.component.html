@@ -2,7 +2,7 @@
   <!-- Skeleton Loading State -->
   @if (isLoading) {
     <div 
-      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3"
       @fadeIn
     >
       <div 
@@ -24,7 +24,7 @@
   <!-- Products Grid -->
   @if (!isLoading && products.length > 0) {
     <div 
-      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3"
       @staggerFadeIn
     >
       <app-product-card

@@ -1,15 +1,13 @@
 <ng-container>
-  @if(schemaData){
-  <ng-container>
+  @if (schemaData) {
     <script type="application/ld+json" [innerHTML]="schemaData"></script>
-  </ng-container>
   }
 
   <app-breadcrumb
     (categoryIdChange)="onCategoryIdChange($event)"
   ></app-breadcrumb>
   <div class="bg-white">
-    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <main class="mx-auto w-full px-4 sm:px-6 lg:px-8">
       <!-- Category Header Section -->
       <div class="py-2 border-b border-gray-200">
         <div class="mb-4">
@@ -21,10 +19,10 @@
           </div>
         </div>
 
-        @if(currentCategory?.description) {
-        <div class="mt-2 text-sm text-gray-700 max-w-3xl">
-          {{ currentCategory.description }}
-        </div>
+        @if (currentCategory?.description) {
+          <div class="mt-2 text-sm text-gray-700 max-w-3xl">
+            {{ currentCategory.description }}
+          </div>
         }
       </div>
 
@@ -53,7 +51,6 @@
           <!-- Desktop Filter and Sort -->
           <div class="hidden lg:flex lg:items-center">
             <div class="mr-4">
-              <!-- <span class="mr-2 font-medium text-gray-900">Sort by</span> -->
               <app-sort-menu
                 (sortChange)="onSortChange($event)"
               ></app-sort-menu>
@@ -63,7 +60,7 @@
           <div class="flex items-center">
             <div class="hidden lg:flex lg:items-center mr-4"></div>
 
-            <!-- View as Grid/List toggle (visible on all screen sizes) -->
+            <!-- View as Grid/List toggle -->
             <div class="flex items-center">
               <button
                 type="button"
@@ -72,7 +69,9 @@
                 <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fill-rule="evenodd"
-                    d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                    d="M3 5a1 1 
+
+0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
                     clip-rule="evenodd"
                   ></path>
                 </svg>
@@ -130,14 +129,4 @@
     (sortChange)="onSortChange($event)"
     class="drawer"
   ></app-filter-drawer>
-
-<!-- Filter Drawer (mobile) -->
-<app-filter-drawer
-  [categoryId]="currentCategoryId"
-  [isOpen]="filterDrawerOpen"
-  [selectedFilters]="filterSidebar?.selectedFilters || {}"
-  (closed)="closeFilterDrawer()"
-  (filtersChanged)="onFiltersChange($event)"
-  (sortChange)="onSortChange($event)"
-  class="drawer"
-></app-filter-drawer>
+</ng-container>

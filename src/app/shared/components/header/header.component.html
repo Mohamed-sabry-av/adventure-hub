@@ -1,7 +1,9 @@
+<div *ngIf="isFixed" [style.height.px]="headerHeight"></div>
+
 <header
   class="w-full"
   [class]="{
-  'is-scroll':lastScrollY !==0,
+  'is-scroll':lastScrollY !==0 && currentPage !== 'checkout',
 }"
   #headerEl
 >
@@ -23,10 +25,9 @@
 
   } @else {
   <!-- معلومات فرعية -->
-  @if (showNavbar) {
+  <!-- @if (lastScrollY ===0) {
   <div
     class="relative mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6"
-    @navbarAnimation
   >
     <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
       <strong>Free Delivery</strong> for orders over AED 100
@@ -35,7 +36,7 @@
       Buy Now & Pay Later with <strong>Tabby</strong>
     </p>
   </div>
-  }
+  } -->
 
   <!-- معلومات اساسية -->
   <app-app-container>

@@ -20,19 +20,15 @@ import { FilterSidebarComponent } from '../../../features/products/components/fi
 export class NavbarContainerComponent {
   @Input() mainCategories: Category[] = [];
   @Input() allCategories: Category[] = [];
-  @Input() isMobile: boolean = false;
 
   private subCategoriesSubject = new BehaviorSubject<Category[]>([]);
-
-  filterdCategories$: Observable<Category[]> =
-    this.subCategoriesSubject.asObservable();
+  filterdCategories$: Observable<Category[]> = this.subCategoriesSubject.asObservable();
 
   getSubCategories(categoryId: number | null) {
     const filteredCategories =
       categoryId !== null
         ? this.allCategories.filter((cat) => cat.parent === categoryId)
         : [];
-
     this.subCategoriesSubject.next(filteredCategories);
   }
 }
