@@ -36,37 +36,41 @@ export class CheckoutService {
 
   applyCoupon(couponValue: string) {
     couponValue = couponValue.trim();
-    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
-      if (isLoggedIn) {
-        this.store.dispatch(
-          fetchCouponsAction({
-            enteredCouponValue: couponValue,
-            isLoggedIn: true,
-          })
-        );
-      } else {
-        this.store.dispatch(
-          fetchCouponsAction({
-            enteredCouponValue: couponValue,
-            isLoggedIn: false,
-          })
-        );
-      }
-    });
+    this.accountAuthService.isLoggedIn$
+      .pipe(take(1))
+      .subscribe((isLoggedIn: boolean) => {
+        if (isLoggedIn) {
+          this.store.dispatch(
+            fetchCouponsAction({
+              enteredCouponValue: couponValue,
+              isLoggedIn: true,
+            })
+          );
+        } else {
+          this.store.dispatch(
+            fetchCouponsAction({
+              enteredCouponValue: couponValue,
+              isLoggedIn: false,
+            })
+          );
+        }
+      });
   }
 
   removeCoupon(couponValue: string) {
-    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
-      if (isLoggedIn) {
-        this.store.dispatch(
-          removeCouponAction({ validCoupon: couponValue, isLoggedIn: true })
-        );
-      } else {
-        this.store.dispatch(
-          removeCouponAction({ validCoupon: couponValue, isLoggedIn: false })
-        );
-      }
-    });
+    this.accountAuthService.isLoggedIn$
+      .pipe(take(1))
+      .subscribe((isLoggedIn: boolean) => {
+        if (isLoggedIn) {
+          this.store.dispatch(
+            removeCouponAction({ validCoupon: couponValue, isLoggedIn: true })
+          );
+        } else {
+          this.store.dispatch(
+            removeCouponAction({ validCoupon: couponValue, isLoggedIn: false })
+          );
+        }
+      });
   }
 
   getSelectedCountry(country: string) {
@@ -175,10 +179,23 @@ export class CheckoutService {
     );
   }
 
-   getCoupons(
+  private getCartTotalPrice() {
+    return this.cartService.savedUserCart$.pipe(
+      map((response: any) => {
+        console.log(response);
+        return {
+          total: response.userCart.totals.total_price,
+          currency: response.userCart.totals.currency_code,
+        };
+      })
+    );
+  }
+
+  private getCoupons(
     form: FormGroup
   ): Observable<{ isValid: boolean; coupon: any[] }> {
     return this.appliedCouponValue$.pipe(
+      take(1),
       map((response: any) => {
         console.log(response);
         if (response?.code) {
@@ -197,6 +214,7 @@ export class CheckoutService {
 
   private getCustomerId(): Observable<number> {
     return this.accountAuthService.isLoggedIn$.pipe(
+      take(1),
       map((isLoggedIn: boolean) => {
         if (isLoggedIn) {
           let loadedCustomerId: any = localStorage.getItem('customerId');
@@ -239,9 +257,10 @@ export class CheckoutService {
             this.getCartItems(),
             this.getCoupons(forms.billingForm),
             this.getCustomerId(),
+            this.getCartTotalPrice(),
           ])
             .pipe(take(1))
-            .subscribe(([lineItems, couponData, customerId]) => {
+            .subscribe(([lineItems, couponData, customerId, cartTotals]) => {
               const billingAddress = {
                 first_name: forms.billingForm.get('firstName')?.value,
                 last_name: forms.billingForm.get('lastName')?.value,
@@ -279,19 +298,19 @@ export class CheckoutService {
                 customer_id: customerId || 0,
               };
 
-              // إضافة معلومات الدفع إذا كان هناك token
-              if (paymentToken) {
-                orderData.payment_token = paymentToken;
-                orderData.payment_details = {
-                  method_id: paymentMethod,
-                  token: paymentToken,
-                };
-              }
+              const orderDetailsByPayment = {
+                amount: Number(cartTotals.total),
+                currency: cartTotals.currency,
+                orderData: {
+                  billing: billingAddress,
+                  shipping: shippingAddress,
+                  line_items: [{ product_id: 132940, quantity: 1 }],
+                },
+              };
 
               if (couponData.isValid || couponData.coupon.length === 0) {
-                console.log(orderData);
                 this.store.dispatch(
-                  createOrderAction({ orderDetails: orderData })
+                  createOrderAction({ orderDetails: orderDetailsByPayment })
                 );
               } else {
                 this.uiService.showError(

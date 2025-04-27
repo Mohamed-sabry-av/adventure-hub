@@ -70,7 +70,7 @@
             <p-select
               [options]="avaliableCountries()"
               optionLabel="country"
-              optionValue="country"
+              optionValue="code"
               placeholder="Select a Country"
               class="bg-white w-full py-[6px] px-3 rounded-lg"
               formControlName="countrySelect"
@@ -243,12 +243,11 @@
           </p>
 
           <div class="bg-[#F4F4F4] mt-2 border rounded-lg">
-
             <!-- Stripe Card -->
             <div>
               <div
-              class="flex justify-between items-center bg-white rounded-t-lg p-4"
-                              [class]="{
+                class="flex justify-between items-center bg-white rounded-t-lg p-4"
+                [class]="{
                   paymentOptionActive: paymentRadiosValue === 'stripe',
                   'mb-3': paymentRadiosValue === 'stripe',
                   'border-t': paymentRadiosValue !== 'stripe'
@@ -536,7 +535,7 @@
           <div class="mt-6 mb-12 lg:block hidden">
             <button
               [disabled]="!isFormValid()"
-              (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
+              (click)="onSubmit()"
               class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
               [ngClass]="
                 !isFormValid()
@@ -593,7 +592,7 @@
         <div class="mt-6 mb-12 lg:hidden block">
           <button
             [disabled]="!isFormValid()"
-            (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
+            (click)="onSubmit()"
             class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
             [ngClass]="
               !isFormValid()

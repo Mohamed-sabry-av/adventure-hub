@@ -18,7 +18,7 @@ declare module 'express' {
 
 interface OrderStatusParams {
   paymentIntentId: string;
-  orderId:string;
+  orderId: string;
 }
 
 // Interfaces for request bodies
@@ -113,21 +113,32 @@ app.post(
             orderData = {
               billing: JSON.parse(paymentIntent.metadata['billing'] || '{}'),
               shipping: JSON.parse(paymentIntent.metadata['shipping'] || '{}'),
-              line_items: JSON.parse(paymentIntent.metadata['line_items'] || '[]'),
+              line_items: JSON.parse(
+                paymentIntent.metadata['line_items'] || '[]'
+              ),
             };
           } catch (parseError: any) {
             console.error(`Error parsing metadata: ${parseError.message}`);
-            return res.status(400).json({ success: false, error: 'الـ metadata غلط' });
+            return res
+              .status(400)
+              .json({ success: false, error: 'الـ metadata غلط' });
           }
 
           // Validate order data
-          if (!orderData.billing || !orderData.shipping || !orderData.line_items.length) {
+          if (
+            !orderData.billing ||
+            !orderData.shipping ||
+            !orderData.line_items.length
+          ) {
             console.error('الداتا ناقصة في الـ metadata');
-            return res.status(400).json({ success: false, error: 'الداتا ناقصة' });
+            return res
+              .status(400)
+              .json({ success: false, error: 'الداتا ناقصة' });
           }
 
           // Handle country-specific logic
-          const isUAE = orderData.billing.country?.toLowerCase() === 'united arab emirates';
+          const isUAE =
+            orderData.billing.country?.toLowerCase() === 'united arab emirates';
 
           // Create order in WooCommerce
           try {
@@ -144,7 +155,9 @@ app.post(
                 transaction_id: paymentIntent.id,
                 status: isUAE ? 'processing' : 'on-hold',
                 date_paid: new Date().toISOString(),
-                customer_note: !isUAE ? 'مندوبنا هيتصل بيك عشان يظبط الشحن الدولي' : '',
+                customer_note: !isUAE
+                  ? 'مندوبنا هيتصل بيك عشان يظبط الشحن الدولي'
+                  : '',
               },
               WOOCOMMERCE_AUTH
             );
@@ -157,8 +170,13 @@ app.post(
             console.log(`الأوردر اتعمل: ${orderResponse.data.id}`);
             return res.json({ received: true });
           } catch (wooError: any) {
-            console.error(`مشكلة في WooCommerce: ${wooError.message}`, wooError.response?.data);
-            return res.status(500).json({ success: false, error: 'مشكلة في إنشاء الأوردر' });
+            console.error(
+              `مشكلة في WooCommerce: ${wooError.message}`,
+              wooError.response?.data
+            );
+            return res
+              .status(500)
+              .json({ success: false, error: 'مشكلة في إنشاء الأوردر' });
           }
         }
 
@@ -174,7 +192,9 @@ app.post(
       }
     } catch (err: any) {
       console.error(`خطأ في الـ Webhook: ${err.message}`);
-      return res.status(400).json({ success: false, error: `خطأ في الـ Webhook: ${err.message}` });
+      return res
+        .status(400)
+        .json({ success: false, error: `خطأ في الـ Webhook: ${err.message}` });
     }
   }
 );
@@ -198,10 +218,13 @@ app.post(
           .status(400)
           .json({ success: false, error: 'فيه حاجة ناقصة في الداتا' });
       }
-      if (!orderData.billing || !orderData.shipping || !orderData.line_items || orderData.line_items.length === 0) {
-        return res
-          .status(400)
-          .json({ success: false, error: 'الداتا غلط' });
+      if (
+        !orderData.billing ||
+        !orderData.shipping ||
+        !orderData.line_items ||
+        orderData.line_items.length === 0
+      ) {
+        return res.status(400).json({ success: false, error: 'الداتا غلط' });
       }
 
       // Create a Payment Intent
@@ -231,21 +254,56 @@ app.post(
 
 // API endpoint to check order status
 // API endpoint to check order status
-app.get('/api/order/status/:paymentIntentId', async (req: express.Request<OrderStatusParams>, res: express.Response) => {
-  try {
-    const paymentIntentId = req.params.paymentIntentId; // دلوقتي هيشتغل من غير مشاكل
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    const orderId = paymentIntent.metadata?.['orderId'];
+app.get(
+  '/api/order/status/:paymentIntentId',
+  async (req: express.Request<OrderStatusParams>, res: express.Response) => {
+    try {
+      const paymentIntentId = req.params.paymentIntentId; // دلوقتي هيشتغل من غير مشاكل
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      );
+      const orderId = paymentIntent.metadata?.['orderId'];
 
-    if (orderId && orderId !== 'pending') {
-      return res.json({ success: true, orderId });
+      if (orderId && orderId !== 'pending') {
+        return res.json({ success: true, orderId });
+      }
+      return res
+        .status(202)
+        .json({ success: false, message: 'الأوردر لسه ما اتعملش' });
+    } catch (error: any) {
+      console.error('خطأ في جلب حالة الأوردر:', error);
+      return res.status(500).json({ success: false, error: error.message });
     }
-    return res.status(202).json({ success: false, message: 'الأوردر لسه ما اتعملش' });
-  } catch (error: any) {
-    console.error('خطأ في جلب حالة الأوردر:', error);
-    return res.status(500).json({ success: false, error: error.message });
   }
-});
+);
+
+// Serve static files from /browser
+app.get(
+  '**',
+  express.static(browserDistFolder, {
+    maxAge: '1y',
+    index: 'index.html',
+  })
+);
+
+// Render Angular application for all other requests
+app.get(
+  '**',
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const { protocol, originalUrl, baseUrl, headers } = req;
+
+    commonEngine
+      .render({
+        bootstrap,
+        documentFilePath: indexHtml,
+        url: `${protocol}://${headers.host}${originalUrl}`,
+        publicPath: browserDistFolder,
+        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+      })
+      .then((html) => res.send(html))
+      .catch((err) => next(err));
+  }
+);
 
 // Serve static files from /browser
 app.get(

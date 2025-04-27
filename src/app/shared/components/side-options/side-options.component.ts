@@ -1,8 +1,18 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  Inject,
+  PLATFORM_ID,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { SideOptionsService, SideOptionsState } from '../../../core/services/side-options.service';
+import {
+  SideOptionsService,
+  SideOptionsState,
+} from '../../../core/services/side-options.service';
 import { CartService } from '../../../features/cart/service/cart.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { Subject, takeUntil } from 'rxjs';
@@ -17,19 +27,31 @@ import { Subject, takeUntil } from 'rxjs';
     trigger('slideInFromRight', [
       transition(':enter', [
         style({ transform: 'translateX(100%)', opacity: 0 }),
-        animate('300ms ease-out', style({ transform: 'translateX(0)', opacity: 1 })),
+        animate(
+          '300ms ease-out',
+          style({ transform: 'translateX(0)', opacity: 1 })
+        ),
       ]),
       transition(':leave', [
-        animate('300ms ease-in', style({ transform: 'translateX(100%)', opacity: 0 }))
+        animate(
+          '300ms ease-in',
+          style({ transform: 'translateX(100%)', opacity: 0 })
+        ),
       ]),
     ]),
     trigger('slideUpFromBottom', [
       transition(':enter', [
         style({ transform: 'translateY(100%)', opacity: 0 }),
-        animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 })),
+        animate(
+          '300ms ease-out',
+          style({ transform: 'translateY(0)', opacity: 1 })
+        ),
       ]),
       transition(':leave', [
-        animate('300ms ease-in', style({ transform: 'translateY(100%)', opacity: 0 }))
+        animate(
+          '300ms ease-in',
+          style({ transform: 'translateY(100%)', opacity: 0 })
+        ),
       ]),
     ]),
     trigger('fadeInOut', [
@@ -37,10 +59,8 @@ import { Subject, takeUntil } from 'rxjs';
         style({ opacity: 0 }),
         animate('300ms ease-in', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
-    ])
+      transition(':leave', [animate('300ms ease-out', style({ opacity: 0 }))]),
+    ]),
   ],
 })
 export class SideOptionsComponent implements OnInit, OnDestroy {
@@ -54,7 +74,7 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     selectedColor: null,
     visibleColors: [],
     isMobile: false,
-    variations: []
+    variations: [],
   };
 
   quantity: number = 1;
@@ -72,7 +92,7 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.sideOptionsService.state$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(state => {
+      .subscribe((state) => {
         this.state = state;
         this.cdr.markForCheck();
       });
@@ -101,20 +121,21 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     if (!this.state.product) return;
 
     const productToAdd = {
-      id: this.state.selectedVariation ? this.state.selectedVariation.id : this.state.product.id,
+      id: this.state.selectedVariation
+        ? this.state.selectedVariation.id
+        : this.state.product.id,
       name: this.state.product.name,
       quantity: this.quantity,
       price: this.state.selectedVariation
         ? this.state.selectedVariation.price
         : this.state.product.price,
-      image: this.state.selectedVariation?.image?.src ?? this.state.product.images?.[0]?.src,
+      image:
+        this.state.selectedVariation?.image?.src ??
+        this.state.product.images?.[0]?.src,
     };
 
     // Call addProductToCart
     this.cartService.addProductToCart(productToAdd);
-
-    // Show the side cart
-    this.cartService.cartMode(true);
 
     // Close side options
     this.closeSideOptions();
@@ -136,18 +157,29 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    if (this.hasSizes() && this.hasColors() && this.state.selectedSize && this.state.selectedColor) {
-      const selectedSizeObj = this.state.uniqueSizes.find(size => size.size === this.state.selectedSize);
+    if (
+      this.hasSizes() &&
+      this.hasColors() &&
+      this.state.selectedSize &&
+      this.state.selectedColor
+    ) {
+      const selectedSizeObj = this.state.uniqueSizes.find(
+        (size) => size.size === this.state.selectedSize
+      );
       return !selectedSizeObj?.inStock;
     }
 
     if (this.hasSizes() && this.state.selectedSize) {
-      const selectedSizeObj = this.state.uniqueSizes.find(size => size.size === this.state.selectedSize);
+      const selectedSizeObj = this.state.uniqueSizes.find(
+        (size) => size.size === this.state.selectedSize
+      );
       return !selectedSizeObj?.inStock;
     }
 
     if (this.hasColors() && this.state.selectedColor) {
-      const selectedColorObj = this.state.colorOptions.find(color => color.color === this.state.selectedColor);
+      const selectedColorObj = this.state.colorOptions.find(
+        (color) => color.color === this.state.selectedColor
+      );
       return !selectedColorObj?.inStock;
     }
 
@@ -222,10 +254,12 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     }
 
     const selectedColorOption = this.state.colorOptions.find(
-      option => option.color === this.state.selectedColor
+      (option) => option.color === this.state.selectedColor
     );
 
-    return selectedColorOption?.image || this.state.product?.images?.[0]?.src || '';
+    return (
+      selectedColorOption?.image || this.state.product?.images?.[0]?.src || ''
+    );
   }
 
   viewProductDetails() {

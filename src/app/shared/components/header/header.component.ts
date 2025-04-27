@@ -62,6 +62,7 @@ export class HeaderComponent implements OnInit {
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
   sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
   @ViewChild('headerEl') headerElement!: ElementRef;
+  @ViewChild('placeholderEl') placeholderEl!: ElementRef;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
@@ -97,6 +98,7 @@ export class HeaderComponent implements OnInit {
       subscriptio3.unsubscribe();
     });
   }
+  isFixed: boolean = false;
 
   handleScroll() {
     const currentScrollY = window.scrollY;
@@ -111,6 +113,12 @@ export class HeaderComponent implements OnInit {
 
     if (this.headerElement) {
       this.headerHeight = this.headerElement.nativeElement.offsetHeight;
+    }
+
+    if (currentScrollY > 0) {
+      this.isFixed = true;
+    } else {
+      this.isFixed = false;
     }
 
     this.lastScrollY = currentScrollY;

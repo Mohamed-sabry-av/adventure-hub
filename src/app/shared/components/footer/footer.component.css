@@ -1,0 +1,37 @@
+.main-page {
+  @apply uppercase font-semibold text-base mb-2;
+}
+
+ul {
+  @apply text-sm gap-y-2 flex flex-col justify-center;
+}
+
+li {
+  color: rgb(204, 204, 204);
+}
+
+a {
+  @apply relative  transition-all duration-300 ease-in-out;
+}
+
+a::after {
+  content: "";
+  @apply absolute left-0 bottom-0 w-0 h-[2px] bg-white transition-all duration-300 ease-in-out;
+}
+
+a:hover::after {
+  @apply w-full;
+}
+
+a:hover {
+  @apply text-white cursor-pointer;
+}
+
+.social-link {
+  @apply flex items-center;
+}
+
+i {
+  cursor: pointer;
+  margin-right: 10px;
+}

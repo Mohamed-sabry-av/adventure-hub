@@ -220,14 +220,14 @@ export class CheckoutFormComponent {
 
   avaliableCountries(): any[] {
     const countries = [
-      { country: 'Bahrain' },
-      { country: 'Egypt' },
-      { country: 'Kuwait' },
-      { country: 'Oman' },
-      { country: 'Saudi Arabia' },
-      { country: 'Qatar' },
-      { country: 'Singapore' },
-      { country: 'United Arab Emirates' },
+      { country: 'Bahrain', code: 'bh' },
+      { country: 'Egypt', code: 'eg' },
+      { country: 'Kuwait', code: 'kw' },
+      { country: 'Oman', code: 'om' },
+      { country: 'Saudi Arabia', code: 'sa' },
+      { country: 'Qatar', code: 'qa' },
+      { country: 'Singapore', code: 'sg' },
+      { country: 'United Arab Emirates', code: 'uae' },
     ];
 
     return countries.sort((a, b) => a.country.localeCompare(b.country));
@@ -365,7 +365,7 @@ export class CheckoutFormComponent {
 
   async initStripe() {
     this.stripe = await loadStripe(
-      'pk_test_51QIucCEaH7ud4cFjFPe9sl0NUpZYwDtXyvIrjUnnBruvMwYQKxbpi5Zy8OXowEqV9iHQVe5sx3yudPeRzu0hLeoq00Ym0bx962'
+      'pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45'
     );
     if (this.stripe) {
       this.elements = this.stripe.elements();
@@ -417,12 +417,12 @@ export class CheckoutFormComponent {
         // تحديد طرق الدفع المدعومة
         if (result.applePay) {
           this.applePaySupported = true;
-          console.log("Apple Pay is supported");
+          console.log('Apple Pay is supported');
         }
 
         if (result.googlePay) {
           this.googlePaySupported = true;
-          console.log("Google Pay is supported");
+          console.log('Google Pay is supported');
 
           // إضافة Google Pay كخيار في قائمة طرق الدفع
           const paymentMethodControl = this.billingForm.get('paymentMethod');
@@ -450,14 +450,19 @@ export class CheckoutFormComponent {
         this.paymentRequest.on('paymentmethod', async (event: any) => {
           console.log('Payment method received:', event.paymentMethod);
 
-          const paymentType = event.paymentMethod.card.wallet?.type || 'walletPayment';
+          const paymentType =
+            event.paymentMethod.card.wallet?.type || 'walletPayment';
 
           // تحديث طريقة الدفع في النموذج
           const paymentMethodControl = this.billingForm.get('paymentMethod');
           if (paymentMethodControl) {
-            paymentMethodControl.patchValue(paymentType === 'google_pay' ? 'googlePay' :
-                                            paymentType === 'apple_pay' ? 'applePay' :
-                                            'walletPayment');
+            paymentMethodControl.patchValue(
+              paymentType === 'google_pay'
+                ? 'googlePay'
+                : paymentType === 'apple_pay'
+                ? 'applePay'
+                : 'walletPayment'
+            );
           }
 
           // إرسال الطلب مع رمز الدفع
@@ -467,7 +472,7 @@ export class CheckoutFormComponent {
           event.complete('success');
         });
       } else {
-        console.log("No supported wallet payment methods found");
+        console.log('No supported wallet payment methods found');
       }
     } catch (error) {
       console.error('Error initializing wallet payments:', error);
@@ -481,7 +486,9 @@ export class CheckoutFormComponent {
           type: 'card',
           card: this.cardNumber,
           billing_details: {
-            name: `${this.billingForm.get('firstName')?.value} ${this.billingForm.get('lastName')?.value}`,
+            name: `${this.billingForm.get('firstName')?.value} ${
+              this.billingForm.get('lastName')?.value
+            }`,
             email: this.billingForm.get('email')?.value,
             phone: this.billingForm.get('phone')?.value,
             address: {
@@ -490,8 +497,8 @@ export class CheckoutFormComponent {
               state: this.billingForm.get('state')?.value,
               postal_code: this.billingForm.get('postCode')?.value,
               country: this.billingForm.get('countrySelect')?.value,
-            }
-          }
+            },
+          },
         });
 
         if (result.error) {
@@ -499,6 +506,7 @@ export class CheckoutFormComponent {
           alert('فشل الدفع: ' + result.error.message);
         } else if (result.paymentMethod) {
           console.log('Payment Method:', result.paymentMethod.id);
+          console.log(result);
           this.onSubmit(result.paymentMethod.id);
         }
       } catch (error) {
@@ -514,11 +522,14 @@ export class CheckoutFormComponent {
     if (!this.isFormValid()) {
       return;
     }
-    this.checkoutService.createOrder({
-      billingForm: this.billingForm,
-      shippingForm: this.shippingForm,
-      isShippingDifferent: this.isShippingDifferent,
-    }, paymentToken);
+    this.checkoutService.createOrder(
+      {
+        billingForm: this.billingForm,
+        shippingForm: this.shippingForm,
+        isShippingDifferent: this.isShippingDifferent,
+      },
+      paymentToken
+    );
   }
 
   // ------------------------- Tabby Installments -------------------------

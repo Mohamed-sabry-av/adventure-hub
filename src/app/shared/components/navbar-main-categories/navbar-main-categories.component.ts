@@ -48,11 +48,20 @@ import { trigger, transition, style, animate } from '@angular/animations';
         ),
       ]),
     ]),
+
+    trigger('visible', [
+      transition(':enter', [
+        style({ opacity: 0, height: '0px', overflow: 'hidden' }),
+        animate('0.3s ease-out', style({ opacity: 1, height: '*' })),
+      ]),
+      transition(':leave', [
+        animate('0.3s ease-in', style({ opacity: 0, height: '0px' })),
+      ]),
+    ]),
   ],
 })
 export class NavbarMainCategoriesComponent {
   private navbarService = inject(NavbarService);
-  
   @Input({ required: true }) categories: Category[] = [];
   @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
@@ -97,7 +106,9 @@ export class NavbarMainCategoriesComponent {
 
   private buildFullPath(category: Category, path: string[]): void {
     if (category.parent !== 0) {
-      const parentCategory = this.allCategories.find((c) => c.id === category.parent);
+      const parentCategory = this.allCategories.find(
+        (c) => c.id === category.parent
+      );
       if (parentCategory) {
         this.buildFullPath(parentCategory, path);
       }

@@ -271,32 +271,71 @@ export class CheckoutEffect {
     )
   );
 
-  createOrderEffect = createEffect(() =>
-    this.actions$.pipe(
-      ofType(createOrderAction),
-      tap(() => this.store.dispatch(startLoadingOrderAction())),
+  // createOrderEffect = createEffect(() =>
+  //   this.actions$.pipe(
+  //     ofType(createOrderAction),
+  //     tap(() => this.store.dispatch(startLoadingOrderAction())),
 
-      switchMap(({ orderDetails }) => {
-        return this.wooApiService.postRequest('orders', orderDetails).pipe(
-          map((res: any) => {
-            const orderId = res.id;
-            const orderKey = res.order_key;
-            this.router.navigate([`/order-received/${orderId}`], {
-              queryParams: { key: orderKey },
-            });
-            this.store.dispatch(stopLoadingOrderAction());
-            return fetchOrderDataAction({ orderId: orderId });
-          }),
+  //     switchMap(({ orderDetails }) => {
+  //       return this.wooApiService.postRequest('orders', orderDetails).pipe(
+  //         map((res: any) => {
+  //           const orderId = res.id;
+  //           const orderKey = res.order_key;
+  //           this.router.navigate([`/order-received/${orderId}`], {
+  //             queryParams: { key: orderKey },
+  //           });
+  //           this.store.dispatch(stopLoadingOrderAction());
+  //           return fetchOrderDataAction({ orderId: orderId });
+  //         }),
 
-          catchError((error: any) => {
-            this.store.dispatch(stopLoadingOrderAction());
-            this.uiService.showError('Failed To Create Order');
+  //         catchError((error: any) => {
+  //           this.store.dispatch(stopLoadingOrderAction());
+  //           this.uiService.showError('Failed To Create Order');
 
-            return this.handleError.handelError(error);
-          })
-        );
-      })
-    )
+  //           return this.handleError.handelError(error);
+  //         })
+  //       );
+  //     })
+  //   )
+  // );
+
+  createOrderPaymentEffect = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(createOrderAction),
+        tap(() => this.store.dispatch(startLoadingOrderAction())),
+
+        switchMap(({ orderDetails }) => {
+          return this.httpClient
+            .post(
+              'http://localhost:4000/api/payment/create-intent',
+              orderDetails
+            )
+            .pipe(
+              map((res: any) => {
+                console.log('نجحححححححححححححححححح');
+                console.log(res);
+                const orderId = res.id;
+                // const orderKey = res.order_key;
+                // this.router.navigate([`/order-received/${orderId}`], {
+                //   queryParams: { key: orderKey },
+                // });
+                this.store.dispatch(stopLoadingOrderAction());
+                // return fetchOrderDataAction({ orderId: orderId });
+              }),
+
+              catchError((error: any) => {
+                console.log(error);
+                console.log('حصل ايوررررررررررررررر في البايمنت');
+                this.store.dispatch(stopLoadingOrderAction());
+                this.uiService.showError('Failed To Create Order');
+
+                return this.handleError.handelError(error);
+              })
+            );
+        })
+      ),
+    { dispatch: false }
   );
 
   getOrderDataEffect = createEffect(() =>

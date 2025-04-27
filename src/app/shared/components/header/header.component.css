@@ -28,6 +28,14 @@
   @apply fixed top-0 z-[50] bg-[#2E2E2E];
 }
 
+header {
+  @apply w-full bg-[#2E2E2E];
+}
+
+header.is-fixed {
+  @apply fixed top-0 left-0 z-[50];
+}
+
 @keyframes slide-first {
   0%,
   40% {
