@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import {
   createOrderAction,
   fetchCouponsAction,
@@ -16,21 +16,14 @@ import {
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { CartService } from '../../features/cart/service/cart.service';
-import {
-  fetchUserCartAction,
-  getUserCartAction,
-  updateCartStockStatusAction,
-} from '../actions/cart.action';
+import { fetchUserCartAction, getUserCartAction } from '../actions/cart.action';
 import { Router } from '@angular/router';
 import {
   cartStatusAction,
-  startLoadingCartAction,
   startLoadingCouponAction,
   startLoadingOrderAction,
-  stopLoadingCartAction,
   stopLoadingCouponAction,
   stopLoadingOrderAction,
-  dialogFailureAction,
 } from '../actions/ui.action';
 import { UIService } from '../../shared/services/ui.service';
 import { HandleErrorsService } from '../../core/services/handel-errors.service';
@@ -105,6 +98,15 @@ export class CheckoutEffect {
   applyCouponEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(getCouponAction),
+      tap(() =>
+        this.store.dispatch(
+          cartStatusAction({
+            mainPageLoading: false,
+            sideCartLoading: true,
+            error: null,
+          })
+        )
+      ),
       switchMap(({ validCoupon, isLoggedIn, invalidCoupon }) => {
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
         if (isLoggedIn) {
@@ -141,13 +143,27 @@ export class CheckoutEffect {
                   });
 
                   this.store.dispatch(stopLoadingCouponAction());
-
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
+                  );
                   return getUserCartAction({ userCart: response });
                 }),
                 catchError((error: any) => {
                   this.store.dispatch(stopLoadingCouponAction());
                   this.uiService.showError(
                     error.error.data.data.reason || 'Failed To Apply Coupon'
+                  );
+
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
                   );
 
                   return of(
@@ -163,7 +179,13 @@ export class CheckoutEffect {
           } else {
             this.store.dispatch(stopLoadingCouponAction());
             this.uiService.showError(`Coupon ${invalidCoupon} does not exist!`);
-
+            this.store.dispatch(
+              cartStatusAction({
+                mainPageLoading: false,
+                sideCartLoading: false,
+                error: null,
+              })
+            );
             return of(
               getCouponStatusAction({
                 errorMsg: `Coupon ${invalidCoupon} does not exist!`,
@@ -174,6 +196,13 @@ export class CheckoutEffect {
         } else {
           this.store.dispatch(stopLoadingCouponAction());
           if (invalidCoupon) {
+            this.store.dispatch(
+              cartStatusAction({
+                mainPageLoading: false,
+                sideCartLoading: false,
+                error: null,
+              })
+            );
             return of(
               getCouponStatusAction({
                 errorMsg: `Coupon ${invalidCoupon} does not exist!`,

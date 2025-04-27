@@ -1,7 +1,13 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { CartService } from '../../cart/service/cart.service';
-import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  combineLatest,
+  map,
+  Observable,
+} from 'rxjs';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../../../Store/store';
 import {
@@ -16,6 +22,8 @@ import {
 import { AccountAuthService } from '../../auth/account-auth.service';
 import { take } from 'rxjs';
 import { UIService } from '../../../shared/services/ui.service';
+import { ApiService } from '../../../core/services/api.service';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
@@ -24,8 +32,12 @@ export class CheckoutService {
   private store = inject(Store<StoreInterface>);
   private accountAuthService = inject(AccountAuthService);
   private uiService = inject(UIService);
+  private httpClient = inject(HttpClient);
 
-  selectedCountry$: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  selectedShippingCountry$: BehaviorSubject<string> =
+    new BehaviorSubject<string>('');
+  selectedBillingCountry$: BehaviorSubject<string> =
+    new BehaviorSubject<string>('');
   emailIsUsed$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   productsOutStock$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
   appliedCouponStatus$: Observable<any> = this.store.select(
@@ -73,10 +85,41 @@ export class CheckoutService {
       });
   }
 
-  getSelectedCountry(country: string) {
-    this.selectedCountry$.next(country);
+  getAvaliableCountries() {
+    return this.httpClient
+      .get(
+        'https://adventures-hub.com/wp-json/custom/v1/shipping-countries-with-states'
+      )
+      .pipe(
+        map((response: any) => response),
+        catchError((error: any) => error.error.message)
+      );
   }
 
+  avaliableCountries$ = this.getAvaliableCountries();
+
+  availablePaymentMethods$ = combineLatest([
+    this.avaliableCountries$,
+    this.selectedBillingCountry$,
+  ]).pipe(
+    map(([countries, selectedCountryCode]) => {
+      const selectedCountry = countries.find(
+        (country: any) => country.code === selectedCountryCode
+      );
+
+      return selectedCountry && selectedCountry.payment_methods
+        ? selectedCountry.payment_methods.map((method: any) => method.id)
+        : [];
+    })
+  );
+
+  getSelectedShippingCountry(country: string) {
+    this.selectedShippingCountry$.next(country);
+  }
+
+  getSelectedBillingCountry(country: string) {
+    this.selectedBillingCountry$.next(country);
+  }
   private getPaymentMethodTitle(paymentMethod: string): string {
     switch (paymentMethod) {
       case 'cod':
@@ -125,7 +168,6 @@ export class CheckoutService {
   private getCartTotalPrice() {
     return this.cartService.savedUserCart$.pipe(
       map((response: any) => {
-        console.log(response);
         return {
           total: response.userCart.totals.total_price,
           currency: response.userCart.totals.currency_code,
@@ -250,6 +292,8 @@ export class CheckoutService {
                   line_items: [{ product_id: 132940, quantity: 1 }],
                 },
               };
+
+              console.log(orderDetailsByPayment);
 
               if (couponData.isValid || couponData.coupon.length === 0) {
                 this.store.dispatch(

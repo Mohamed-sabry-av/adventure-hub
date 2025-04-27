@@ -1,4 +1,11 @@
-<div class="lg:p-4">
+<div
+  class="lg:p-4"
+  [class]="{
+
+  'bg-gray-200': ((cartStatus$ | async)?.sideCartLoading),
+  'animate-pulse': ((cartStatus$ | async)?.sideCartLoading),
+}"
+>
   <!-- items -->
   @if ( !(isVisible$ |async) && (loadedCart$ | async)?.userCart?.items?.length >
   0 ) {
@@ -53,11 +60,11 @@
         #couponInput
         [disabled]="haveCoupon === true"
         [class]="{
-            'bg-[#b0b8ca]': haveCoupon ===true ,
+            'bg-[#99a0b1]': haveCoupon ===true ,
             'text-black': haveCoupon ===true ,
           }"
       />
-
+      ss
       <button
         class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold"
         (click)="haveCoupon === true ? onRemoveCoupon() : onApplyCoupon()"
@@ -95,7 +102,7 @@
     <div class="flex justify-between">
       <p>
         <span class="font-semibold"> Subtotal · </span>
-        <span>{{ totalItemsLength }} items</span>
+        <span>{{ (loadedCart$ | async)?.userCart?.items_count }} items</span>
       </p>
       <p>
         {{
@@ -125,20 +132,20 @@
     <div
       class="flex"
       [class]="{
-        'flex-col': (selectedCountry$ | async) !== 'United Arab Emirates',
-        'justify-between': (selectedCountry$ | async) === 'United Arab Emirates',
+        'flex-col': (selectedCountry$ | async) !== 'AE',
+        'justify-between': (selectedCountry$ | async) === 'AE',
       }"
     >
       <h3 class="font-semibold text-base">Shipping</h3>
       <div
         [class]="{
-          isUAE: (selectedCountry$ | async) !== 'United Arab Emirates'
+          isUAE: (selectedCountry$ | async) !== 'AE'
         }"
       >
         <p class="text-sm">
           {{
             (selectedCountry$ | async) !== ""
-              ? (selectedCountry$ | async) === "United Arab Emirates"
+              ? (selectedCountry$ | async) === "AE"
                 ? (loadedCart$ | async)?.userCart.totals?.total_price > 100
                   ? "FREE"
                   : "AED " + 20
@@ -148,7 +155,6 @@
         </p>
       </div>
     </div>
-
     <!-- Total -->
     <div class="flex justify-between text-xl text-black/80 font-semibold">
       <p>Total</p>

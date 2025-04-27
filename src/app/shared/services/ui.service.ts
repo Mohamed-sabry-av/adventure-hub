@@ -2,10 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
   cartStatusSelector,
-  dialogErrorSelector,
   spinnerOfCouponSelector,
   spinnerOfOrderSelector,
-  spinnerOfUiSelector,
 } from '../../Store/selectors/ui.selector';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { CartStatus } from '../../features/cart/model/cart.model';
@@ -13,8 +11,6 @@ import { CartStatus } from '../../features/cart/model/cart.model';
 @Injectable({ providedIn: 'root' })
 export class UIService {
   private store = inject(Store);
-
-  isLoading$ = this.store.select(spinnerOfUiSelector);
 
   private errorState = new BehaviorSubject<{
     isVisible: boolean;
