@@ -10,11 +10,15 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import bootstrap from './main.server';
 
-// Extend Express Request to include rawBody (مش ضروري دلوقتي لأننا هنستخدم req.body كـ Buffer مباشرة)
 declare module 'express' {
   interface Request {
     rawBody?: Buffer;
   }
+}
+
+interface OrderStatusParams {
+  paymentIntentId: string;
+  orderId:string;
 }
 
 // Interfaces for request bodies
@@ -27,11 +31,6 @@ interface OrderData {
 interface PaymentIntentRequest {
   amount: number;
   currency: string;
-  orderData: OrderData;
-}
-
-interface PaymentConfirmationRequest {
-  paymentIntentId: string;
   orderData: OrderData;
 }
 
@@ -83,14 +82,14 @@ app.use(cors({ origin: process.env['CLIENT_URL']!, credentials: true }));
 // Webhook endpoint to handle Stripe events
 app.post(
   '/stripe-webhook',
-  bodyParser.raw({ type: 'application/json' }), // Raw body parser بس للـ webhook
+  bodyParser.raw({ type: 'application/json' }),
   async (req: express.Request, res: express.Response) => {
     const sig = req.headers['stripe-signature'] as string;
 
     try {
       // Verify webhook signature
       const event = stripe.webhooks.constructEvent(
-        req.body, // req.body هنا هيبقى Buffer لأننا بنستخدم bodyParser.raw()
+        req.body,
         sig,
         process.env['STRIPE_WEBHOOK_SECRET']!
       );
@@ -101,31 +100,33 @@ app.post(
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           console.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
 
-          // Check if order already exists to ensure idempotency
+          // Check for idempotency
           const existingOrderId = paymentIntent.metadata['orderId'];
           if (existingOrderId && existingOrderId !== 'pending') {
             console.log(`Order ${existingOrderId} already processed`);
             return res.json({ received: true });
           }
 
-          // Extract order data from metadata
-          let orderData;
+          // Parse order data from metadata
+          let orderData: OrderData;
           try {
             orderData = {
               billing: JSON.parse(paymentIntent.metadata['billing'] || '{}'),
               shipping: JSON.parse(paymentIntent.metadata['shipping'] || '{}'),
-              line_items: JSON.parse(
-                paymentIntent.metadata['line_items'] || '[]'
-              ),
+              line_items: JSON.parse(paymentIntent.metadata['line_items'] || '[]'),
             };
           } catch (parseError: any) {
             console.error(`Error parsing metadata: ${parseError.message}`);
-            return res
-              .status(400)
-              .json({ success: false, error: 'Invalid metadata format' });
+            return res.status(400).json({ success: false, error: 'الـ metadata غلط' });
           }
 
-          // Handle country-specific logic for shipping and payment
+          // Validate order data
+          if (!orderData.billing || !orderData.shipping || !orderData.line_items.length) {
+            console.error('الداتا ناقصة في الـ metadata');
+            return res.status(400).json({ success: false, error: 'الداتا ناقصة' });
+          }
+
+          // Handle country-specific logic
           const isUAE = orderData.billing.country?.toLowerCase() === 'united arab emirates';
 
           // Create order in WooCommerce
@@ -134,62 +135,54 @@ app.post(
               `${WOOCOMMERCE_API_URL}/orders`,
               {
                 payment_method: 'stripe',
-                payment_method_title: 'Credit Card / Digital Wallet',
+                payment_method_title: 'كارت/محفظة رقمية',
                 set_paid: true,
                 billing: orderData.billing,
                 shipping: orderData.shipping,
                 line_items: orderData.line_items,
                 total: (paymentIntent.amount / 100).toString(),
                 transaction_id: paymentIntent.id,
-                status: isUAE ? 'processing' : 'on-hold', // Set on-hold for non-UAE countries
+                status: isUAE ? 'processing' : 'on-hold',
                 date_paid: new Date().toISOString(),
-                customer_note: !isUAE ? 'Our representative will call you to arrange international shipping.' : '',
+                customer_note: !isUAE ? 'مندوبنا هيتصل بيك عشان يظبط الشحن الدولي' : '',
               },
               WOOCOMMERCE_AUTH
             );
 
-            // Update Payment Intent metadata with order ID
+            // Update Payment Intent with order ID
             await stripe.paymentIntents.update(paymentIntent.id, {
               metadata: { orderId: orderResponse.data.id },
             });
 
-            console.log(`Order created: ${orderResponse.data.id}`);
+            console.log(`الأوردر اتعمل: ${orderResponse.data.id}`);
             return res.json({ received: true });
           } catch (wooError: any) {
-            console.error(
-              `WooCommerce error: ${wooError.message}`,
-              wooError.response?.data
-            );
-            return res
-              .status(500)
-              .json({ success: false, error: 'Failed to create order in WooCommerce' });
+            console.error(`مشكلة في WooCommerce: ${wooError.message}`, wooError.response?.data);
+            return res.status(500).json({ success: false, error: 'مشكلة في إنشاء الأوردر' });
           }
         }
 
         case 'payment_intent.payment_failed': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log(`PaymentIntent failed: ${paymentIntent.id}`);
-          // Notify customer or log failure (e.g., send email)
+          console.log(`الدفع فشل: ${paymentIntent.id}`);
           return res.json({ received: true });
         }
 
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          console.log(`إيفينت مش متعرف عليه: ${event.type}`);
           return res.json({ received: true });
       }
     } catch (err: any) {
-      console.error(`Webhook Error: ${err.message}`);
-      return res
-        .status(400)
-        .json({ success: false, error: `Webhook Error: ${err.message}` });
+      console.error(`خطأ في الـ Webhook: ${err.message}`);
+      return res.status(400).json({ success: false, error: `خطأ في الـ Webhook: ${err.message}` });
     }
   }
 );
 
-// JSON body parser for other routes (بعد الـ webhook)
+// JSON body parser for other routes
 app.use(bodyParser.json());
 
-// API endpoint to create a Payment Intent for credit cards and wallets
+// API endpoint to create a Payment Intent
 app.post(
   '/api/payment/create-intent',
   async (
@@ -200,45 +193,22 @@ app.post(
       const { amount, currency, orderData } = req.body;
 
       // Validate input
-      if (!amount) {
+      if (!amount || !currency || !orderData) {
         return res
           .status(400)
-          .json({ success: false, error: 'Amount is required' });
+          .json({ success: false, error: 'فيه حاجة ناقصة في الداتا' });
       }
-      if (!currency) {
+      if (!orderData.billing || !orderData.shipping || !orderData.line_items || orderData.line_items.length === 0) {
         return res
           .status(400)
-          .json({ success: false, error: 'Currency is required' });
-      }
-      if (!orderData) {
-        return res
-          .status(400)
-          .json({ success: false, error: 'Order data is required' });
-      }
-
-      if (!orderData.billing) {
-        return res
-          .status(400)
-          .json({ success: false, error: 'Billing data is required' });
-      }
-
-      if (!orderData.shipping) {
-        return res
-          .status(400)
-          .json({ success: false, error: 'Shipping data is required' });
-      }
-
-      if (!orderData.line_items || orderData.line_items.length === 0) {
-        return res
-          .status(400)
-          .json({ success: false, error: 'Line items are required' });
+          .json({ success: false, error: 'الداتا غلط' });
       }
 
       // Create a Payment Intent
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency,
-        payment_method_types: ['card', 'wallet'], // Support cards and electronic wallets
+        payment_method_types: ['card'],
         metadata: {
           orderId: 'pending',
           billing: JSON.stringify(orderData.billing),
@@ -250,96 +220,32 @@ app.post(
       return res.json({
         success: true,
         clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id, // Return the PaymentIntent ID
+        paymentIntentId: paymentIntent.id,
       });
     } catch (error: any) {
-      console.error('Create Intent Error:', error);
+      console.error('خطأ في إنشاء الـ Intent:', error);
       return res.status(500).json({ success: false, error: error.message });
     }
   }
 );
 
-// API endpoint to confirm payment and create WooCommerce order (fallback)
-app.post(
-  '/api/payment/confirm',
-  async (
-    req: express.Request<{}, {}, PaymentConfirmationRequest>,
-    res: express.Response
-  ) => {
-    try {
-      const { paymentIntentId, orderData } = req.body;
+// API endpoint to check order status
+// API endpoint to check order status
+app.get('/api/order/status/:paymentIntentId', async (req: express.Request<OrderStatusParams>, res: express.Response) => {
+  try {
+    const paymentIntentId = req.params.paymentIntentId; // دلوقتي هيشتغل من غير مشاكل
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const orderId = paymentIntent.metadata?.['orderId'];
 
-      // Validate input
-      if (!paymentIntentId || !orderData) {
-        return res
-          .status(400)
-          .json({ success: false, error: 'Missing required fields' });
-      }
-
-      // Validate PaymentIntent ID format
-      if (paymentIntentId.includes('_secret_')) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'You passed a string that looks like a client secret as the PaymentIntent ID, but you must provide a valid PaymentIntent ID. Please use the value in the `id` field of the PaymentIntent.',
-        });
-      }
-
-      // Retrieve Payment Intent to confirm payment status
-      const paymentIntent = await stripe.paymentIntents.retrieve(
-        paymentIntentId
-      );
-      if (paymentIntent.status !== 'succeeded') {
-        return res
-          .status(400)
-          .json({ success: false, error: 'Payment not completed' });
-      }
-
-      // Check if order already exists to ensure idempotency
-      const existingOrderId = paymentIntent.metadata['orderId'];
-      if (existingOrderId && existingOrderId !== 'pending') {
-        return res
-          .status(200)
-          .json({ success: true, orderId: existingOrderId });
-      }
-
-      // Handle country-specific logic for shipping and payment
-      const isUAE = orderData.billing.country?.toLowerCase() === 'united arab emirates';
-
-      // Create order in WooCommerce
-      const orderResponse = await axios.post(
-        `${WOOCOMMERCE_API_URL}/orders`,
-        {
-          payment_method: 'stripe',
-          payment_method_title: 'Credit Card / Digital Wallet',
-          set_paid: true,
-          billing: orderData.billing,
-          shipping: orderData.shipping,
-          line_items: orderData.line_items,
-          total: (paymentIntent.amount / 100).toString(),
-          transaction_id: paymentIntent.id,
-          status: isUAE ? 'processing' : 'on-hold', // Set on-hold for non-UAE countries
-          date_paid: new Date().toISOString(),
-          customer_note: !isUAE ? 'Our representative will call you to arrange international shipping.' : '',
-        },
-        WOOCOMMERCE_AUTH
-      );
-
-      // Update Payment Intent metadata with order ID
-      await stripe.paymentIntents.update(paymentIntentId, {
-        metadata: { orderId: orderResponse.data.id },
-      });
-
-      return res.json({ success: true, orderId: orderResponse.data.id });
-    } catch (error: any) {
-      console.error('Confirmation Error:', error);
-      return res.status(500).json({
-        success: false,
-        error: error.response?.data?.message || error.message,
-      });
+    if (orderId && orderId !== 'pending') {
+      return res.json({ success: true, orderId });
     }
+    return res.status(202).json({ success: false, message: 'الأوردر لسه ما اتعملش' });
+  } catch (error: any) {
+    console.error('خطأ في جلب حالة الأوردر:', error);
+    return res.status(500).json({ success: false, error: error.message });
   }
-);
+});
 
 // Serve static files from /browser
 app.get(

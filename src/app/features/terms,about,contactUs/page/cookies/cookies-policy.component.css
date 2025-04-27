@@ -1,0 +1,14 @@
+.cookies-policy-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  div[innerHTML] {
+    line-height: 1.6;
+  }

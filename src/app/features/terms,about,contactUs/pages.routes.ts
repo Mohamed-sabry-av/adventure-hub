@@ -15,4 +15,18 @@ export const pagesRoutes: Routes = [
         (m) => m.AboutUsComponent
       ),
   },
+  {
+    path: 'Cookies-Policy',
+    loadComponent: () =>
+      import('../terms,about,contactUs/page/cookies/cookies.component').then(
+        (m) => m.CookiesPolicyComponent
+      ),
+  },
+  {
+    path: 'return-Policy',
+    loadComponent: () =>
+      import('../terms,about,contactUs/page/return-policy/return-policy.component').then(
+        (m) => m.RefundPolicyComponent
+      ),
+  },
 ];
