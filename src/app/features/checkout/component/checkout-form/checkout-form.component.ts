@@ -475,6 +475,44 @@ export class CheckoutFormComponent {
     }
   }
 
+  async payNow() {
+    if (this.stripe && this.cardNumber) {
+      try {
+        const result = await this.stripe.createPaymentMethod({
+          type: 'card',
+          card: this.cardNumber,
+          billing_details: {
+            name: `${this.billingForm.get('firstName')?.value} ${
+              this.billingForm.get('lastName')?.value
+            }`,
+            email: this.billingForm.get('email')?.value,
+            phone: this.billingForm.get('phone')?.value,
+            address: {
+              line1: this.billingForm.get('address')?.value,
+              city: this.billingForm.get('city')?.value,
+              state: this.billingForm.get('state')?.value,
+              postal_code: this.billingForm.get('postCode')?.value,
+              country: this.billingForm.get('countrySelect')?.value,
+            },
+          },
+        });
+
+        if (result.error) {
+          console.error(result.error.message);
+          alert('فشل الدفع: ' + result.error.message);
+        } else if (result.paymentMethod) {
+          console.log('Payment Method:', result.paymentMethod.id);
+          this.onSubmit(result.paymentMethod.id);
+        }
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        alert('حدث خطأ أثناء معالجة الدفع. يرجى المحاولة مرة أخرى.');
+      }
+    } else {
+      console.error('Stripe أو حقل البطاقة غير جاهز');
+    }
+  }
+
   onSubmit(paymentToken?: string) {
     if (!this.isFormValid()) {
       return;

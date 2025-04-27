@@ -540,7 +540,7 @@
           <div class="mt-6 mb-12 lg:block hidden">
             <button
               [disabled]="!isFormValid()"
-              (click)="onSubmit()"
+              (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
               class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
               [ngClass]="
                 !isFormValid()
@@ -597,7 +597,7 @@
         <div class="mt-6 mb-12 lg:hidden block">
           <button
             [disabled]="!isFormValid()"
-            (click)="onSubmit()"
+            (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
             class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
             [ngClass]="
               !isFormValid()

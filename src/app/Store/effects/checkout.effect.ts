@@ -283,10 +283,13 @@ export class CheckoutEffect {
               })
             );
         } else {
-          this.store.dispatch(stopLoadingCouponAction());
-
           loadedData.loadedCart.coupons = [];
           localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
+
+          setTimeout(
+            () => this.store.dispatch(stopLoadingCouponAction()),
+            3000
+          );
 
           return of(
             fetchUserCartAction({

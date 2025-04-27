@@ -64,14 +64,16 @@
             'text-black': haveCoupon ===true ,
           }"
       />
-      ss
+
       <button
         class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold"
         (click)="haveCoupon === true ? onRemoveCoupon() : onApplyCoupon()"
-        [disabled]="couponValue === ''"
+        [disabled]="
+          couponValue === '' || (cartStatus$ | async)?.sideCartLoading
+        "
         [class]="{
           'bg-red-500': haveCoupon === true,
-          'bg-gray-500': couponValue === '',
+          'bg-gray-500': couponValue === '' ,
           'cursor-pointer': couponValue !== '',
           'bg-orange-500': haveCoupon === false && couponValue !=='',
         }"
