@@ -1,137 +1,219 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { loadStripe, Stripe, StripeElements, StripePaymentRequestButtonElement } from '@stripe/stripe-js';
+import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../../environments/environment'; // Add environment file
 
 @Component({
   selector: 'app-payment',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './payment.component.html',
-  styleUrl: './payment.component.css'
+  styleUrls: ['./payment.component.css']
 })
-export class PaymentComponent implements OnInit {
+export class PaymentComponent implements OnInit, OnChanges {
+  @Input() clientSecret: string | null = null;
+  @Input() amount: number = 0;
+  @Input() currency: string = 'aed';
+  @Input() orderData: any = null;
+  @Input() processing: boolean = false;
+  @Output() paymentSuccess = new EventEmitter<{paymentIntentId: string, orderId?: string}>();
+  @Output() paymentError = new EventEmitter<string>();
+  @Output() processingChange = new EventEmitter<boolean>();
+
   stripe: Stripe | null = null;
   elements: StripeElements | null = null;
-  card: any;
-  paymentRequest: any;
-  prButton: StripePaymentRequestButtonElement | null = null;
-  error: string | null = null;
-  googlePaySupported = false;
-  applePaySupported = false;
+  paymentElement: StripePaymentElement | null = null;
+  error: any | null = null;
+  paymentStatus: 'initial' | 'processing' | 'success' | 'error' = 'initial';
+  paymentIntentId: string | null = null;
 
-  @ViewChild('cardElement', { static: true }) cardElementRef!: ElementRef;
-  @ViewChild('paymentRequestButtonElement', { static: true }) paymentRequestButtonElementRef!: ElementRef;
+  // Use demo mode for testing (set to false in production)
+  useDemoMode = false; // Change to false for production
 
-  constructor() {}
+  private readonly STRIPE_PUBLISHABLE_KEY = 'pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45';
+  private readonly BACKEND_URL = environment.apiUrl; // e.g., 'http://localhost:4000'
+
+  @ViewChild('paymentElement', { static: true }) paymentElementRef!: ElementRef;
+
+  constructor(private http: HttpClient) {}
 
   async ngOnInit() {
-    // تحميل Stripe باستخدام أحدث إصدار
-    this.stripe = await loadStripe('pk_test_51RD3yPIPLmPtcaOkAPNrNJV5j2bFeHAdAzwZa2Rif9dG6C8psDSow39N3QE66a0F6gbQONj3bb3IeoPFRHOXxMqX00Aw6qKltl');
+    this.stripe = await loadStripe(this.STRIPE_PUBLISHABLE_KEY);
 
     if (!this.stripe) {
-      console.log("stripe is not loaded yet");
+      console.error("Stripe couldn't be loaded");
+      this.error = "Failed to load payment processor";
+      this.paymentError.emit(this.error);
       return;
     }
 
-    this.elements = this.stripe.elements();
+    if (this.clientSecret && !this.useDemoMode) {
+      await this.setupStripeElements();
+    }
+  }
 
-    // تهيئة حقل البطاقة العادي
-    this.card = this.elements.create('card', {
-      style: {
-        base: {
-          fontSize: '16px',
-          color: '#32325d',
+  async ngOnChanges(changes: SimpleChanges) {
+    if (changes['clientSecret'] && this.clientSecret && this.stripe && !this.useDemoMode) {
+      console.log('Client secret received:', this.clientSecret);
+      await this.setupStripeElements();
+    }
+
+    if (changes['processing']) {
+      this.paymentStatus = this.processing ? 'processing' : this.paymentStatus;
+    }
+  }
+
+  async setupStripeElements() {
+    if (!this.stripe || !this.clientSecret) {
+      console.error('Stripe or clientSecret not initialized');
+      this.error = 'Payment system not initialized';
+      this.paymentError.emit(this.error);
+      return;
+    }
+
+    try {
+      this.elements = this.stripe.elements({
+        clientSecret: this.clientSecret,
+        appearance: {
+          theme: 'stripe',
+          variables: { colorPrimary: '#0066cc' }
         }
-      }
-    });
-
-    this.card.mount(this.cardElementRef.nativeElement);
-
-    // تهيئة PaymentRequest لدعم Google Pay و Apple Pay
-    this.initPaymentRequest();
-  }
-
-  async initPaymentRequest() {
-    if (!this.stripe || !this.elements) return;
-
-    // إنشاء payment request مع معلومات الدفع
-    this.paymentRequest = this.stripe.paymentRequest({
-      country: 'AE', // United Arab Emirates
-      currency: 'aed',
-      total: {
-        label: 'طلبك',
-        amount: 1000, // المبلغ بالفلس (10 AED)
-      },
-      requestPayerName: true,
-      requestPayerEmail: true,
-      requestPayerPhone: true,
-      // إضافة دعم للشحن إذا كان مطلوبًا
-      // requestShipping: true,
-    });
-
-    // التحقق من دعم المتصفح لـ Google Pay أو Apple Pay
-    const result = await this.paymentRequest.canMakePayment();
-
-    if (result) {
-      // تحديد نوع الدفع المدعوم
-      if (result.applePay) {
-        this.applePaySupported = true;
-        console.log("Apple Pay is supported");
-      }
-
-      if (result.googlePay) {
-        this.googlePaySupported = true;
-        console.log("Google Pay is supported");
-      }
-
-      // إذا كان أي منهما مدعومًا، أنشئ زر الدفع
-      this.prButton = this.elements.create('paymentRequestButton', {
-        paymentRequest: this.paymentRequest,
-        style: {
-          paymentRequestButton: {
-            type: 'default', // 'default', 'donate', or 'buy'
-            theme: 'dark', // 'dark', 'light', or 'light-outline'
-            height: '40px',
-          },
-        },
       });
 
-      // ربط زر الدفع بالـDOM
-      this.prButton.mount(this.paymentRequestButtonElementRef.nativeElement);
-
-      // معالجة حدث الدفع
-      this.paymentRequest.on('paymentmethod', async (event: any) => {
-        console.log('Payment method received:', event.paymentMethod);
-
-        // في الحالة الطبيعية، ستقوم بإرسال هذا الـtoken إلى الخادم الخلفي
-        // وإكمال عملية الدفع هناك
-
-        // هنا نقوم بالتأكيد على الدفع لتجربة الاختبار فقط
-        event.complete('success');
-
-        // إشعار المستخدم بنجاح الدفع
-        alert('تم الدفع بنجاح باستخدام ' + (event.paymentMethod.card.wallet?.type || 'wallet payment'));
+      this.paymentElement = this.elements.create('payment', {
+        layout: { type: 'tabs', defaultCollapsed: false },
+        paymentMethodOrder: ['card', 'apple_pay', 'google_pay']
       });
-    } else {
-      console.log("No supported payment methods found");
+      this.paymentElement.mount(this.paymentElementRef.nativeElement);
+
+      // Listen for payment element ready event
+      this.paymentElement.on('ready', () => {
+        console.log('Payment element is ready for input');
+      });
+
+      // Listen for change events
+      this.paymentElement.on('change', (event) => {
+        if (event.complete) {
+          console.log('Payment details complete');
+        } else if (event) {
+          this.error = event || 'Please check your payment details';
+        }
+      });
+    } catch (error: any) {
+      console.error('Error setting up Stripe Elements:', error);
+      this.error = 'Failed to initialize payment form';
+      this.paymentError.emit(this.error);
     }
   }
 
-  pay(amount: number) {
-    if (!this.stripe || !this.card) {
-      console.error("Stripe or card element not initialized");
+  async pay() {
+    if (this.useDemoMode) {
+      this.setPaymentProcessing(true);
+      this.error = null;
+
+      setTimeout(() => {
+        this.paymentStatus = 'success';
+        this.paymentIntentId = 'pi_' + Math.random().toString(36).substring(2, 15);
+        this.checkOrderStatus(this.paymentIntentId);
+        this.setPaymentProcessing(false);
+      }, 2000);
       return;
     }
 
-    this.stripe.createToken(this.card).then((result: any) => {
-      if (result.error) {
-        this.error = result.error.message;
-        console.log('Error:', result.error);
-      } else {
-        this.error = null;
-        console.log('Token:', result.token);
-        // إرسال token إلى الخادم للتعامل مع الدفع
+    if (!this.stripe || !this.elements || !this.clientSecret) {
+      console.error('Stripe, elements, or clientSecret not initialized');
+      this.error = 'Payment system not initialized';
+      this.paymentStatus = 'error';
+      this.paymentError.emit(this.error);
+      return;
+    }
+
+    this.setPaymentProcessing(true);
+    this.error = null;
+
+    try {
+      const { error, paymentIntent } = await this.stripe.confirmPayment({
+        elements: this.elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout/complete`, // Used only if redirect is required
+        },
+        redirect: 'if_required' // Avoid redirect unless necessary
+      });
+
+      if (error) {
+        this.error = error.message || 'Payment failed';
+        this.paymentStatus = 'error';
+        this.paymentError.emit(this.error);
+        console.error('Payment error:', error);
+        this.setPaymentProcessing(false);
+      } else if (paymentIntent) {
+        this.paymentStatus = 'success';
+        this.paymentIntentId = paymentIntent.id;
+        console.log('Payment successful, paymentIntentId:', paymentIntent.id);
+        this.checkOrderStatus(paymentIntent.id);
       }
-    });
+    } catch (e: any) {
+      this.error = e.message || 'Payment failed';
+      this.paymentStatus = 'error';
+      this.paymentError.emit(this.error);
+      console.error('Payment exception:', e);
+      this.setPaymentProcessing(false);
+    }
+  }
+
+  checkOrderStatus(paymentIntentId: string) {
+    if (!paymentIntentId) {
+      this.error = 'Missing payment intent ID';
+      this.paymentStatus = 'error';
+      this.setPaymentProcessing(false);
+      this.paymentError.emit(this.error);
+      return;
+    }
+
+    const checkStatus = () => {
+      this.http.get(`${this.BACKEND_URL}/api/order/status/${paymentIntentId}`).subscribe(
+        (response: any) => {
+          if (response.success && response.orderId) {
+            console.log('Order created successfully:', response.orderId);
+            this.setPaymentProcessing(false);
+            this.paymentSuccess.emit({
+              paymentIntentId: paymentIntentId,
+              orderId: response.orderId
+            });
+
+            if (!this.useDemoMode) {
+              window.location.href = `/checkout/complete?order_id=${response.orderId}`;
+            }
+          } else {
+            // Order is not yet created, retry after delay
+            setTimeout(checkStatus, 2000);
+          }
+        },
+        (error) => {
+          console.error('Error checking order status:', error);
+          if (this.useDemoMode) {
+            const fakeOrderId = Math.floor(Math.random() * 10000) + 1;
+            console.log('Demo mode: Simulating successful order despite error');
+            console.log('Order created successfully:', fakeOrderId);
+            this.setPaymentProcessing(false);
+            this.paymentSuccess.emit({
+              paymentIntentId: paymentIntentId,
+              orderId: String(fakeOrderId)
+            });
+          } else {
+            setTimeout(checkStatus, 3000);
+          }
+        }
+      );
+    };
+
+    checkStatus();
+  }
+
+  private setPaymentProcessing(isProcessing: boolean) {
+    this.processing = isProcessing;
+    this.processingChange.emit(isProcessing);
   }
 }

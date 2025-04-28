@@ -21,7 +21,6 @@ interface OrderStatusParams {
   orderId: string;
 }
 
-// Interfaces for request bodies
 interface OrderData {
   billing: any;
   shipping: any;
@@ -34,7 +33,7 @@ interface PaymentIntentRequest {
   orderData: OrderData;
 }
 
-// Load environment variables from .env file
+// Load environment variables
 dotenv.config();
 
 // Validate required environment variables
@@ -57,7 +56,7 @@ if (missingEnvVars.length > 0) {
 
 // Initialize Stripe
 const stripe = new Stripe(process.env['STRIPE_SECRET_KEY']!, {
-  // apiVersion: '2020-08-27', // Specify API version for compatibility
+  // apiVersion: '2024-10-28.acs', // Use a supported API version
 });
 
 // WooCommerce API configuration
@@ -79,7 +78,16 @@ const commonEngine = new CommonEngine();
 // Middleware setup
 app.use(cors({ origin: process.env['CLIENT_URL']!, credentials: true }));
 
-// Webhook endpoint to handle Stripe events
+// Custom middleware to bypass JSON parsing for webhook
+app.use((req, res, next) => {
+  if (req.originalUrl === '/stripe-webhook') {
+    next(); // Skip JSON parsing for webhook
+  } else {
+    bodyParser.json()(req, res, next); // Apply JSON parsing for other routes
+  }
+});
+
+// Webhook endpoint with raw body parser
 app.post(
   '/stripe-webhook',
   bodyParser.raw({ type: 'application/json' }),
@@ -87,60 +95,43 @@ app.post(
     const sig = req.headers['stripe-signature'] as string;
 
     try {
-      // Verify webhook signature
+      // Verify webhook signature using raw body
       const event = stripe.webhooks.constructEvent(
         req.body,
         sig,
         process.env['STRIPE_WEBHOOK_SECRET']!
       );
 
-      // Handle specific events
       switch (event.type) {
         case 'payment_intent.succeeded': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           console.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
 
-          // Check for idempotency
           const existingOrderId = paymentIntent.metadata['orderId'];
           if (existingOrderId && existingOrderId !== 'pending') {
             console.log(`Order ${existingOrderId} already processed`);
             return res.json({ received: true });
           }
 
-          // Parse order data from metadata
           let orderData: OrderData;
           try {
             orderData = {
               billing: JSON.parse(paymentIntent.metadata['billing'] || '{}'),
               shipping: JSON.parse(paymentIntent.metadata['shipping'] || '{}'),
-              line_items: JSON.parse(
-                paymentIntent.metadata['line_items'] || '[]'
-              ),
+              line_items: JSON.parse(paymentIntent.metadata['line_items'] || '[]'),
             };
           } catch (parseError: any) {
             console.error(`Error parsing metadata: ${parseError.message}`);
-            return res
-              .status(400)
-              .json({ success: false, error: 'الـ metadata غلط' });
+            return res.status(400).json({ success: false, error: 'Invalid metadata' });
           }
 
-          // Validate order data
-          if (
-            !orderData.billing ||
-            !orderData.shipping ||
-            !orderData.line_items.length
-          ) {
-            console.error('الداتا ناقصة في الـ metadata');
-            return res
-              .status(400)
-              .json({ success: false, error: 'الداتا ناقصة' });
+          if (!orderData.billing || !orderData.shipping || !orderData.line_items.length) {
+            console.error('Incomplete order data in metadata');
+            return res.status(400).json({ success: false, error: 'Missing order data' });
           }
 
-          // Handle country-specific logic
-          const isUAE =
-            orderData.billing.country?.toLowerCase() === 'united arab emirates';
+          const isUAE = orderData.billing.country?.toLowerCase() === 'ae';
 
-          // Create order in WooCommerce
           try {
             const orderResponse = await axios.post(
               `${WOOCOMMERCE_API_URL}/orders`,
@@ -155,81 +146,56 @@ app.post(
                 transaction_id: paymentIntent.id,
                 status: isUAE ? 'processing' : 'on-hold',
                 date_paid: new Date().toISOString(),
-                customer_note: !isUAE
-                  ? 'مندوبنا هيتصل بيك عشان يظبط الشحن الدولي'
-                  : '',
+                customer_note: !isUAE ? 'مندوبنا هيتصل بيك عشان يظبط الشحن الدولي' : '',
               },
               WOOCOMMERCE_AUTH
             );
 
-            // Update Payment Intent with order ID
             await stripe.paymentIntents.update(paymentIntent.id, {
               metadata: { orderId: orderResponse.data.id },
             });
 
-            console.log(`الأوردر اتعمل: ${orderResponse.data.id}`);
+            console.log(`Order created: ${orderResponse.data.id}`);
             return res.json({ received: true });
           } catch (wooError: any) {
-            console.error(
-              `مشكلة في WooCommerce: ${wooError.message}`,
-              wooError.response?.data
-            );
-            return res
-              .status(500)
-              .json({ success: false, error: 'مشكلة في إنشاء الأوردر' });
+            console.error(`WooCommerce error: ${wooError.message}`, wooError.response?.data);
+            return res.status(500).json({ success: false, error: 'Failed to create order' });
           }
         }
 
         case 'payment_intent.payment_failed': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log(`الدفع فشل: ${paymentIntent.id}`);
+          console.log(`Payment failed: ${paymentIntent.id}`);
           return res.json({ received: true });
         }
 
         default:
-          console.log(`إيفينت مش متعرف عليه: ${event.type}`);
+          console.log(`Unhandled event type: ${event.type}`);
           return res.json({ received: true });
       }
     } catch (err: any) {
-      console.error(`خطأ في الـ Webhook: ${err.message}`);
-      return res
-        .status(400)
-        .json({ success: false, error: `خطأ في الـ Webhook: ${err.message}` });
+      console.error(`Webhook error: ${err.message}`);
+      return res.status(400).json({ success: false, error: `Webhook error: ${err.message}` });
     }
   }
 );
 
-// JSON body parser for other routes
-app.use(bodyParser.json());
-
-// API endpoint to create a Payment Intent
+// Create Payment Intent
 app.post(
   '/api/payment/create-intent',
-  async (
-    req: express.Request<{}, {}, PaymentIntentRequest>,
-    res: express.Response
-  ) => {
+  async (req: express.Request<{}, {}, PaymentIntentRequest>, res: express.Response) => {
     try {
       const { amount, currency, orderData } = req.body;
 
-      // Validate input
       if (!amount || !currency || !orderData) {
-        return res
-          .status(400)
-          .json({ success: false, error: 'فيه حاجة ناقصة في الداتا' });
+        return res.status(400).json({ success: false, error: 'Missing required fields' });
       }
-      if (
-        !orderData.billing ||
-        !orderData.shipping ||
-        !orderData.line_items ||
-        orderData.line_items.length === 0
-      ) {
-        return res.status(400).json({ success: false, error: 'الداتا غلط' });
+      if (!orderData.billing || !orderData.shipping || !orderData.line_items || orderData.line_items.length === 0) {
+        return res.status(400).json({ success: false, error: 'Invalid order data' });
       }
 
-      // Create a Payment Intent
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(amount * 100),
         currency,
         payment_method_types: ['card'],
         metadata: {
@@ -246,32 +212,27 @@ app.post(
         paymentIntentId: paymentIntent.id,
       });
     } catch (error: any) {
-      console.error('خطأ في إنشاء الـ Intent:', error);
+      console.error('Error creating Payment Intent:', error);
       return res.status(500).json({ success: false, error: error.message });
     }
   }
 );
 
-// API endpoint to check order status
-// API endpoint to check order status
+// Check order status
 app.get(
   '/api/order/status/:paymentIntentId',
   async (req: express.Request<OrderStatusParams>, res: express.Response) => {
     try {
-      const paymentIntentId = req.params.paymentIntentId; // دلوقتي هيشتغل من غير مشاكل
-      const paymentIntent = await stripe.paymentIntents.retrieve(
-        paymentIntentId
-      );
+      const { paymentIntentId } = req.params;
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       const orderId = paymentIntent.metadata?.['orderId'];
 
       if (orderId && orderId !== 'pending') {
         return res.json({ success: true, orderId });
       }
-      return res
-        .status(202)
-        .json({ success: false, message: 'الأوردر لسه ما اتعملش' });
+      return res.status(202).json({ success: false, message: 'Order not yet created' });
     } catch (error: any) {
-      console.error('خطأ في جلب حالة الأوردر:', error);
+      console.error('Error checking order status:', error);
       return res.status(500).json({ success: false, error: error.message });
     }
   }
@@ -286,40 +247,11 @@ app.get(
   })
 );
 
-// Render Angular application for all other requests
+// Render Angular application
 app.get(
   '**',
   (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { protocol, originalUrl, baseUrl, headers } = req;
-
-    commonEngine
-      .render({
-        bootstrap,
-        documentFilePath: indexHtml,
-        url: `${protocol}://${headers.host}${originalUrl}`,
-        publicPath: browserDistFolder,
-        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
-      })
-      .then((html) => res.send(html))
-      .catch((err) => next(err));
-  }
-);
-
-// Serve static files from /browser
-app.get(
-  '**',
-  express.static(browserDistFolder, {
-    maxAge: '1y',
-    index: 'index.html',
-  })
-);
-
-// Render Angular application for all other requests
-app.get(
-  '**',
-  (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const { protocol, originalUrl, baseUrl, headers } = req;
-
     commonEngine
       .render({
         bootstrap,

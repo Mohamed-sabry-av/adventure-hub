@@ -190,13 +190,19 @@ export class ProductInfoComponent {
   get isProductInStock(): boolean {
     const product = this.productInfo();
     if (product?.type === 'simple') {
+      // If stock is not managed, rely on stock_status alone
+      if (!product.manage_stock) {
+        return product.stock_status === 'instock';
+      }
+      // If stock is managed, check stock_quantity or backorders
       return product.stock_status === 'instock' && (product.stock_quantity > 0 || product.backorders_allowed);
     }
-
+  
+    // Variable product logic
     if (!this.allVariationAttributesSelected) {
       return false;
     }
-
+  
     const selectedVariation = this.getSelectedVariation();
     return !!selectedVariation && selectedVariation.stock_status === 'instock' && (selectedVariation.stock_quantity > 0 || selectedVariation.backorders_allowed);
   }
