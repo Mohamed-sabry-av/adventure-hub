@@ -44,5 +44,7 @@ export class OrderPageComponent {
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
-  isError$: Observable<any> = this.uiService.isLoading$;
+  // لاز ارجع هنا اهندل السبينرات والايرورات والكلام ده
+
+  isError$: Observable<any> = this.uiService.errorState$;
 }

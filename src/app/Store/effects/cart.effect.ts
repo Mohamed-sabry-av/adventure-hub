@@ -294,6 +294,13 @@ export class CartEffect {
                   ? error.error.message
                   : `Something went wrong fetching the available data. Please try again later.`
               );
+              this.store.dispatch(
+                cartStatusAction({
+                  mainPageLoading: false,
+                  sideCartLoading: false,
+                  error: null,
+                })
+              );
 
               return of(
                 cartStatusAction({
@@ -363,7 +370,13 @@ export class CartEffect {
                 }),
                 catchError((error) => {
                   console.log(error);
-
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
+                  );
                   this.uiService.showError('Failed to Update Product');
                   return of(
                     cartStatusAction({

@@ -68,8 +68,8 @@
           <!-- Country Select -->
           <div>
             <p-select
-              [options]="avaliableCountries()"
-              optionLabel="country"
+              [options]="avaliableCountries$ | async"
+              optionLabel="name"
               optionValue="code"
               placeholder="Select a Country"
               class="bg-white w-full py-[6px] px-3 rounded-lg"
@@ -303,6 +303,9 @@
                 </div>
               </div>
             </div>
+
+            @if ((avaliablePaymentMethods$ |
+            async)?.includes('tabby_installments')) {
             <!-- Tabby -->
             <div>
               <!-- Option 2 -->
@@ -381,6 +384,7 @@
               </div>
               }
             </div>
+            } @if ((selectedBillingCountry$ | async) === 'AE') {
             <!-- COD -->
             <div @slideInOut>
               <!-- Option 2 -->
@@ -415,6 +419,7 @@
               </div>
               }
             </div>
+            }
           </div>
 
           <!-- Shipping -->
@@ -482,11 +487,11 @@
             <!-- Country Select -->
             <div>
               <p-select
-                [options]="avaliableCountries()"
-                optionLabel="country"
-                optionValue="country"
+                [options]="avaliableCountries$ | async"
+                optionLabel="name"
+                optionValue="code"
                 placeholder="Select a Country"
-                class="bg-white w-full py-[14px] px-3 rounded-lg"
+                class="bg-white w-full py-[6px] px-3 rounded-lg"
                 formControlName="countrySelect"
               />
             </div>
@@ -535,7 +540,7 @@
           <div class="mt-6 mb-12 lg:block hidden">
             <button
               [disabled]="!isFormValid()"
-              (click)="onSubmit()"
+              (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
               class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
               [ngClass]="
                 !isFormValid()
@@ -592,7 +597,7 @@
         <div class="mt-6 mb-12 lg:hidden block">
           <button
             [disabled]="!isFormValid()"
-            (click)="onSubmit()"
+            (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
             class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
             [ngClass]="
               !isFormValid()

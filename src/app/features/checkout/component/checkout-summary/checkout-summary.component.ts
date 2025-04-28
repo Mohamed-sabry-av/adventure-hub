@@ -5,6 +5,7 @@ import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { CheckoutService } from '../../services/checkout.service';
 import { FormsModule } from '@angular/forms';
 import { UIService } from '../../../../shared/services/ui.service';
+import { CartStatus } from '../../../cart/model/cart.model';
 
 @Component({
   selector: 'app-checkout-summary',
@@ -19,20 +20,21 @@ export class CheckoutSummaryComponent {
   private uiService = inject(UIService);
   @Input({ required: true }) isVisible$!: Observable<boolean>;
 
-  selectedCountry$: Observable<string> = this.checkoutService.selectedCountry$;
+  selectedCountry$: Observable<string> =
+    this.checkoutService.selectedShippingCountry$;
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
   appliedCouponStatus$: Observable<any> =
     this.checkoutService.appliedCouponStatus$;
   isCouponLoading$: Observable<boolean> = this.uiService.isCouponLoading$;
+  cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
-  totalItemsLength: number = 0;
   couponValue: string = '';
   haveCoupon: boolean = false;
 
   ngOnInit() {
     const subscribtion = this.loadedCart$
       .pipe(
-        filter((response: any) => response?.userCart?.items?.length > 0),
+        filter((response: any) => response?.userCart?.coupons),
         map((res: any) => {
           const coupons = res.userCart.coupons || {};
           const couponKeys = Object.keys(coupons);
@@ -47,16 +49,10 @@ export class CheckoutSummaryComponent {
           }
 
           this.couponValue = couponData?.code || '';
-          this.totalItemsLength = 0;
           return res.userCart;
         })
       )
-      .subscribe((response: any) => {
-        console.log(response);
-        response.items.map((item: any) => {
-          this.totalItemsLength += item.quantity;
-        });
-      });
+      .subscribe();
 
     this.destroyRef.onDestroy(() => {
       subscribtion.unsubscribe();

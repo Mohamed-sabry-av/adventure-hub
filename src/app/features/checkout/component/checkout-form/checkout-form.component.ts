@@ -81,7 +81,13 @@ export class CheckoutFormComponent {
   );
   isOrderLoading$: Observable<boolean> = this.uiService.isOrderLoading$;
   isVisible: boolean = false;
-  paymentRadiosValue: string = 'cod';
+  paymentRadiosValue: string = 'stripe';
+  selectedBillingCountry$: Observable<string> =
+    this.checkoutService.selectedBillingCountry$;
+  avaliableCountries$: Observable<any> =
+    this.checkoutService.getAvaliableCountries();
+  avaliablePaymentMethods$: Observable<any> =
+    this.checkoutService.availablePaymentMethods$;
 
   private createAddressForm(includeContactInfo: boolean): FormGroup {
     const formControls: { [key: string]: FormControl } = {
@@ -107,7 +113,7 @@ export class CheckoutFormComponent {
         Validators.maxLength(30),
         Validators.required,
       ]),
-      paymentMethod: new FormControl('cod'),
+      paymentMethod: new FormControl('stripe'),
       shippingMethod: new FormControl('same'),
     };
 
@@ -158,8 +164,9 @@ export class CheckoutFormComponent {
     const subscribtion2 = this.billingForm
       .get('countrySelect')
       ?.valueChanges.subscribe((value) => {
+        this.onGetSelectedBillingCountry(value);
         if (!this.isShippingDifferent) {
-          this.onGetSelectedCountry(value);
+          this.onGetSelectedShippingCountry(value);
         }
       });
 
@@ -167,7 +174,7 @@ export class CheckoutFormComponent {
       ?.get('countrySelect')
       ?.valueChanges.subscribe((value) => {
         if (this.isShippingDifferent) {
-          this.onGetSelectedCountry(value);
+          this.onGetSelectedShippingCountry(value);
         }
       });
 
@@ -192,7 +199,7 @@ export class CheckoutFormComponent {
       apartment: '',
       city: '',
       state: '',
-      paymentMethod: 'cod',
+      paymentMethod: 'stripe',
       shippingMethod: 'same',
       email: '',
       phone: '',
@@ -209,28 +216,13 @@ export class CheckoutFormComponent {
       state: '',
     });
 
-    this.paymentRadiosValue = 'cod';
+    this.paymentRadiosValue = 'stripe';
     this.isShippingDifferent = false;
     this.isVisible = false;
     this.summaryIsVisible$.next(false);
 
-    this.toggleCreditCardValidators('cod');
+    this.toggleCreditCardValidators('stripe');
     this.toggleShippingForm();
-  }
-
-  avaliableCountries(): any[] {
-    const countries = [
-      { country: 'Bahrain', code: 'bh' },
-      { country: 'Egypt', code: 'eg' },
-      { country: 'Kuwait', code: 'kw' },
-      { country: 'Oman', code: 'om' },
-      { country: 'Saudi Arabia', code: 'sa' },
-      { country: 'Qatar', code: 'qa' },
-      { country: 'Singapore', code: 'sg' },
-      { country: 'United Arab Emirates', code: 'uae' },
-    ];
-
-    return countries.sort((a, b) => a.country.localeCompare(b.country));
   }
 
   onShowSummary() {
@@ -275,6 +267,14 @@ export class CheckoutFormComponent {
       return this.billingForm.valid && this.shippingForm.valid;
     }
     return this.billingForm.valid;
+  }
+
+  onGetSelectedShippingCountry(selectedCountry: string) {
+    this.checkoutService.getSelectedShippingCountry(selectedCountry);
+  }
+
+  onGetSelectedBillingCountry(selectedCountry: string) {
+    this.checkoutService.getSelectedBillingCountry(selectedCountry);
   }
 
   get emailIsInvalid() {
@@ -337,10 +337,6 @@ export class CheckoutFormComponent {
       this.billingForm,
       'postCode'
     );
-  }
-
-  onGetSelectedCountry(selectedCountry: any) {
-    this.checkoutService.getSelectedCountry(selectedCountry);
   }
 
   // ------------------------- Stripe & Wallet Payments -------------------------
@@ -506,7 +502,6 @@ export class CheckoutFormComponent {
           alert('فشل الدفع: ' + result.error.message);
         } else if (result.paymentMethod) {
           console.log('Payment Method:', result.paymentMethod.id);
-          console.log(result);
           this.onSubmit(result.paymentMethod.id);
         }
       } catch (error) {
