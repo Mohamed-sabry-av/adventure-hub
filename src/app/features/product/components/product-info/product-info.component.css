@@ -72,7 +72,7 @@
 .action-buttons {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   width: 100%;
 }
 
@@ -86,36 +86,61 @@
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   transition: all 0.2s ease;
   border: none;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .cart-btn {
-  background-color: #ef5e37;
+  background-color: #f4663c;
   color: white;
-  border: 1px solid #ef5e37;
+  border: none;
 }
 
 .cart-btn:hover {
-  background-color: #d04726;
-  border-color: #d04726;
+  background-color: #e35632;
 }
 
 .buy-btn {
-  background-color: #232323;
+  background-color: #525d45;
   color: white;
-  border: 1px solid #232323;
+  border: none;
 }
 
 .buy-btn:hover {
-  background-color: #000000;
-  border-color: #000000;
+  background-color: #414b35;
 }
 
 .cart-btn i, .buy-btn i {
   font-size: 16px;
+}
+
+/* Wishlist button styles */
+.wishlist-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: white;
+  color: #525d45;
+  transition: all 0.2s ease;
+}
+
+.wishlist-btn:hover {
+  background-color: rgba(82, 93, 69, 0.1);
+}
+
+.wishlist-btn.active i {
+  color: #f4663c;
+}
+
+.wishlist-btn i {
+  font-size: 18px;
 }
 
 /* Payment Options */

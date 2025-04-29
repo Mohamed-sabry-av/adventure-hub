@@ -26,9 +26,7 @@ export class LocalStorageService {
         timestamp: Date.now(),
       };
       this.storage.setItem(key, JSON.stringify(data));
-      console.log('Data saved to localStorage:', data);
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
     }
   }
 

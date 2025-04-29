@@ -21,7 +21,6 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
 import { CartEffect } from './Store/effects/cart.effect';
 import { reducers } from './Store/store';
-import { provideNgxStripe } from 'ngx-stripe';
 import { CheckoutEffect } from './Store/effects/checkout.effect';
 
 export const appConfig: ApplicationConfig = {
@@ -31,9 +30,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withIncrementalHydration()),
     provideHttpClient(withFetch()),
     provideAnimations(),
-    provideNgxStripe(
-      'pk_test_51R5cjQ04DfoEqXm6jd9PtsMnRHkDqd5JK3fuSjypNjMeCeMMOd8dSTlfZUX10nfspUxHHmhb30sArt3O2KOZNlp600ZFKp20Zn'
-    ),
 
     providePrimeNG({
       theme: {

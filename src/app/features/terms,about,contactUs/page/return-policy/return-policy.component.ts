@@ -53,10 +53,8 @@ export class RefundPolicyComponent implements OnInit {
           title: this.pageData?.title?.rendered,
           description: this.pageData?.excerpt?.rendered || 'Refund Policy - Adventures HUB Sports Shop',
         });
-        console.log('Refund Policy Data:', this.pageData);
       },
       error: (error) => {
-        console.error('Error fetching Refund Policy:', error);
         // Fallback SEO tags in case of error
         this.schemaData = this.seoService.applySeoTags(null, {
           title: 'Refund Policy - Adventures HUB Sports Shop',

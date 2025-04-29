@@ -66,4 +66,13 @@ export class ProductsGridComponent implements OnChanges {
   trackByIndex(index: number): number {
     return index;
   }
+
+  // destroy
+  ngOnDestroy() {
+    this.products = [];
+    this.isLoading = false;
+    this.isLoadingMore = false;
+    this.skeletonCount = 0;
+    this.showEmptyState = false;
+  }
 }

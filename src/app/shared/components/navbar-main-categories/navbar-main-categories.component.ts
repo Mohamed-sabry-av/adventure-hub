@@ -13,20 +13,16 @@ import { RouterLink } from '@angular/router';
 import { Category } from '../../../interfaces/category.model';
 import { NavbarService } from '../../services/navbar.service';
 import { Observable } from 'rxjs';
-import { AsyncPipe, NgClass } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
-import { AppContainerComponent } from '../app-container/app-container.component';
-import { StyleClass } from 'primeng/styleclass';
+
 import { trigger, transition, style, animate } from '@angular/animations';
 @Component({
   selector: 'app-navbar-main-categories',
   imports: [
     RouterLink,
-    StyleClass,
     AsyncPipe,
-    AppContainerComponent,
     DrawerModule,
-    NgClass,
   ],
   templateUrl: './navbar-main-categories.component.html',
   styleUrl: './navbar-main-categories.component.css',

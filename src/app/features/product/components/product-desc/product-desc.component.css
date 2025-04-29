@@ -1,54 +1,37 @@
-/* Product Description Styles */
+/* تنسيق عام */
 .product-description {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* Sticky Navigation Tabs */
+/* تنسيق التبويبات اللاصقة */
 .sticky-tabs {
   position: sticky;
   top: 0;
   background: #fff;
-  z-index: 100;
+  z-index: 10;
   border-bottom: 1px solid #e0e0e0;
   padding: 10px 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
 }
 
 .description-tabs {
   display: flex;
-  justify-content: flex-start;
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 15px;
+  justify-content: center;
+  gap: 20px;
 }
 
 .tab-item {
   cursor: pointer;
-  padding: 10px 15px;
+  padding: 10px 20px;
   font-size: 16px;
   font-weight: 500;
   color: #333;
-  transition: all 0.3s ease;
-  position: relative;
 }
 
 .tab-item.active {
-  color: #ef5e37;
-  font-weight: 600;
-}
-
-.tab-item.active:after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background-color: #ef5e37;
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
 }
 
 .review-count {
@@ -59,7 +42,7 @@
   margin-left: 5px;
 }
 
-/* Content Sections */
+/* تنسيق الأقسام */
 .tab-sections {
   margin-top: 20px;
 }
@@ -74,7 +57,7 @@
   color: #333;
 }
 
-/* Product Description */
+/* تنسيق وصف المنتج الخام */
 .raw-description {
   font-size: 16px;
   line-height: 1.6;
@@ -88,7 +71,7 @@
   margin: 10px 0;
 }
 
-/* Specifications */
+/* تنسيق المواصفات */
 .specifications {
   margin-top: 20px;
 }
@@ -121,46 +104,26 @@
   color: #555;
 }
 
-/* Additional Info */
+/* تنسيق المعلومات الإضافية */
 .additional-info-content {
   margin-top: 20px;
 }
 
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  max-width: 800px;
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.info-item {
-  display: flex;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 12px 0;
+.info-table th,
+.info-table td {
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  text-align: left;
 }
 
-.info-label {
-  flex: 0 0 150px;
+.info-table th {
+  background: #f9f9f9;
   font-weight: 500;
-  color: #333;
-}
-
-.info-value {
-  flex: 1;
-  color: #555;
-}
-
-/* For mobile layouts */
-@media (max-width: 640px) {
-  .info-item {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .info-label {
-    flex: none;
-    margin-bottom: 4px;
-  }
 }
 
 .color-list,
@@ -175,7 +138,7 @@
   padding: 20px;
 }
 
-/* Reviews */
+/* تنسيق المراجعات */
 .reviews-content {
   margin-top: 20px;
 }
@@ -186,7 +149,7 @@
 }
 
 .add-review-btn {
-  background: #ef5e37;
+  background: #007bff;
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -196,10 +159,10 @@
 }
 
 .add-review-btn:hover {
-  background: #d04726;
+  background: #0056b3;
 }
 
-/* Loading State */
+/* تنسيق حالة التحميل */
 .loading-description {
   text-align: center;
   padding: 50px;
@@ -207,7 +170,7 @@
   color: #777;
 }
 
-/* UI Kit Classes Support */
+/* دعم كلاسات UIkit المستخدمة في الوصف */
 .uk-section {
   padding: 40px 0;
 }
@@ -268,12 +231,12 @@
   }
 
   .description-tabs {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
   }
 
   .tab-item {
     padding: 10px;
-    font-size: 14px;
+    font-size: 13px;
   }
 }

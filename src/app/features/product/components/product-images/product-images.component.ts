@@ -1,4 +1,4 @@
-import { Component, input, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, input, OnInit,DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,9 +8,8 @@ import { CommonModule } from '@angular/common';
   templateUrl: './product-images.component.html',
   styleUrls: ['./product-images.component.css'],
 })
-export class ProductImagesComponent implements OnInit, OnDestroy {
-  // Inputs from parent component
-  productImages = input<any>();
+export class ProductImagesComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);  productImages = input<any>();
   selectedColor = input<string | null>(null);
   variations = input<any[]>([]);
   productName = input<string>('Product');
@@ -45,6 +44,11 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
       this.isMobile = event.matches;
     };
     this.mediaQuery.addEventListener('change', this.mediaQueryListener);
+    
+    this.destroyRef.onDestroy(() => {
+      this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
+    });
+  
   }
 
   // Clean up event listeners when component is destroyed
@@ -167,4 +171,5 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
   get images(): { src: string; alt: string }[] {
     return this.getGalleryImages();
   }
+  
 }

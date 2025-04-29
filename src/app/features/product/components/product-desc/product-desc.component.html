@@ -6,7 +6,7 @@
         Description
       </div>
       <div class="tab-item" [class.active]="activeSection === 'additional-info'" (click)="scrollToSection('additional-info')">
-        Additional information
+        Additional Information
       </div>
       <div class="tab-item" [class.active]="activeSection === 'reviews'" (click)="scrollToSection('reviews')">
         Reviews <span class="review-count" *ngIf="reviewCount > 0">{{ reviewCount }}</span>
@@ -29,7 +29,7 @@
 
     <!-- Additional Information Section -->
     <div id="additional-info" class="content-section">
-      <h2 class="section-header">Additional information</h2>
+      <h2 class="section-header">Additional Information</h2>
       <div class="additional-info-content">
         <table class="info-table">
           <tbody>
@@ -81,7 +81,7 @@
         <ng-template #noReviews>
           <div class="no-reviews">
             <p>This product has no reviews yet. Be the first to review!</p>
-            <button class="add-review-btn">Add a review</button>
+            <button class="add-review-btn">Add a Review</button>
           </div>
         </ng-template>
       </div>

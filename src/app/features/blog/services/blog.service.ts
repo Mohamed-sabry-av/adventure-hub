@@ -10,22 +10,6 @@ export class BlogService {
 
   blogData$ = new BehaviorSubject<any>('');
 
-  // getPosts() {
-  //   this.apiService.getRequest('');
-
-  //   this.httpClient
-  //     .get('https://adventures-hub.com/wp-json/wp/v2/posts', {
-  //       params: new HttpParams().set(
-  //         '_fields',
-  //         'content,date,excerpt,id,link,title,yoast_head_json'
-  //       ),
-  //       observe: 'response',
-  //     })
-  //     .subscribe((response: any) => {
-  //       console.log(response.headers.keys());
-  //       this.blogData$.next(response.body);
-  //     });
-  // }
 
   getPosts(page: number = 1, perPage: number = 100) {
     this.httpClient

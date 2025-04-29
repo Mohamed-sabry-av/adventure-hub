@@ -7,11 +7,12 @@
       [class.active]="selectedImageIndex === i"
       (click)="selectImage(i)"
     >
-      <img
-        [src]="image.src"
-        [alt]="image.alt || productName()"
-        class="thumbnail-img"
-      />
+    <img
+    [src]="image.src"
+    [alt]="image.alt || productName()"
+    class="thumbnail-img"
+    loading="lazy"
+  />
     </div>
   </div>
 
@@ -26,11 +27,14 @@
     
     <div class="image-slide">
       <img
-        *ngIf="images[selectedImageIndex]"
-        [src]="images[selectedImageIndex].src"
-        [alt]="images[selectedImageIndex].alt || productName()"
-        class="main-img"
-      />
+      *ngIf="images[selectedImageIndex]"
+      [src]="images[selectedImageIndex].src"
+      [alt]="images[selectedImageIndex].alt || productName()"
+      class="main-img"
+      width="640"
+      height="640"
+      fetchpriority="high"
+    />
     </div>
     
     <!-- Image counter for mobile -->

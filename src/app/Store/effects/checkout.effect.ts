@@ -42,7 +42,6 @@ export class CheckoutEffect {
     this.actions$.pipe(
       ofType(fetchCouponsAction),
       tap(() => this.store.dispatch(startLoadingCouponAction())),
-
       switchMap(({ enteredCouponValue, isLoggedIn }) => {
         enteredCouponValue = enteredCouponValue?.code
           ? enteredCouponValue.code
@@ -68,7 +67,7 @@ export class CheckoutEffect {
             })
           ),
           map((response: any) => {
-            console.log('Coupon Is Loaded', response);
+            console.log('Coupons loaded:', response);
             if (response?.length === 0) {
               this.store.dispatch(stopLoadingCouponAction());
             }
@@ -80,9 +79,9 @@ export class CheckoutEffect {
             });
           }),
           catchError((error: any) => {
+            console.error('Error fetching coupons:', error);
             this.store.dispatch(stopLoadingCouponAction());
-            this.uiService.showError('Failed To Fetch Coupons');
-
+            this.uiService.showError('Failed to fetch coupons');
             return of(
               cartStatusAction({
                 mainPageLoading: false,
@@ -110,7 +109,7 @@ export class CheckoutEffect {
       switchMap(({ validCoupon, isLoggedIn, invalidCoupon }) => {
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
         if (isLoggedIn) {
-          console.log('LOGGGEDD');
+          console.log('Applying coupon for logged-in user');
           if (validCoupon) {
             const body = {
               coupon_code: validCoupon[0].code,
@@ -128,19 +127,17 @@ export class CheckoutEffect {
                   this.store.dispatch(
                     getCouponStatusAction({
                       errorMsg: null,
-                      successMsg: 'success',
+                      successMsg: 'Coupon applied successfully',
                     })
                   );
 
-                  response.items = response.items.map((item: any) => {
-                    return {
-                      ...item,
-                      images: {
-                        imageSrc: item.images[0].thumbnail,
-                        imageAlt: item.images[0].alt,
-                      },
-                    };
-                  });
+                  response.items = response.items.map((item: any) => ({
+                    ...item,
+                    images: {
+                      imageSrc: item.images[0].thumbnail,
+                      imageAlt: item.images[0].alt,
+                    },
+                  }));
 
                   this.store.dispatch(stopLoadingCouponAction());
                   this.store.dispatch(
@@ -153,11 +150,10 @@ export class CheckoutEffect {
                   return getUserCartAction({ userCart: response });
                 }),
                 catchError((error: any) => {
+                  console.error('Error applying coupon:', error);
                   this.store.dispatch(stopLoadingCouponAction());
-                  this.uiService.showError(
-                    error.error.data.data.reason || 'Failed To Apply Coupon'
-                  );
-
+                  const errorMessage = error.error?.data?.data?.reason || 'Failed to apply coupon';
+                  this.uiService.showError(errorMessage);
                   this.store.dispatch(
                     cartStatusAction({
                       mainPageLoading: false,
@@ -165,12 +161,9 @@ export class CheckoutEffect {
                       error: null,
                     })
                   );
-
                   return of(
                     getCouponStatusAction({
-                      errorMsg:
-                        error.error.data.data.reason ||
-                        'Failed To Apply Coupon',
+                      errorMsg: errorMessage,
                       successMsg: null,
                     })
                   );
@@ -178,7 +171,8 @@ export class CheckoutEffect {
               );
           } else {
             this.store.dispatch(stopLoadingCouponAction());
-            this.uiService.showError(`Coupon ${invalidCoupon} does not exist!`);
+            const errorMessage = `Coupon ${invalidCoupon} does not exist`;
+            this.uiService.showError(errorMessage);
             this.store.dispatch(
               cartStatusAction({
                 mainPageLoading: false,
@@ -188,7 +182,7 @@ export class CheckoutEffect {
             );
             return of(
               getCouponStatusAction({
-                errorMsg: `Coupon ${invalidCoupon} does not exist!`,
+                errorMsg: errorMessage,
                 successMsg: null,
               })
             );
@@ -196,6 +190,8 @@ export class CheckoutEffect {
         } else {
           this.store.dispatch(stopLoadingCouponAction());
           if (invalidCoupon) {
+            const errorMessage = `Coupon ${invalidCoupon} does not exist`;
+            this.uiService.showError(errorMessage);
             this.store.dispatch(
               cartStatusAction({
                 mainPageLoading: false,
@@ -205,7 +201,7 @@ export class CheckoutEffect {
             );
             return of(
               getCouponStatusAction({
-                errorMsg: `Coupon ${invalidCoupon} does not exist!`,
+                errorMsg: errorMessage,
                 successMsg: null,
               })
             );
@@ -214,12 +210,11 @@ export class CheckoutEffect {
           this.store.dispatch(
             getCouponStatusAction({
               errorMsg: null,
-              successMsg: 'success',
+              successMsg: 'Coupon applied successfully',
             })
           );
 
           const coupon = { coupon_code: validCoupon[0].code };
-
           const isCouponExists = loadedData.loadedCart.coupons.some(
             (c: any) => c.code === coupon.coupon_code
           );
@@ -261,36 +256,28 @@ export class CheckoutEffect {
             )
             .pipe(
               map((response: any) => {
+                console.log('Coupon removed successfully:', response);
                 this.store.dispatch(stopLoadingCouponAction());
-
-                response.items = response.items.map((item: any) => {
-                  return {
-                    ...item,
-                    images: {
-                      imageSrc: item.images[0].thumbnail,
-                      imageAlt: item.images[0].alt,
-                    },
-                  };
-                });
-
+                response.items = response.items.map((item: any) => ({
+                  ...item,
+                  images: {
+                    imageSrc: item.images[0].thumbnail,
+                    imageAlt: item.images[0].alt,
+                  },
+                }));
                 return getUserCartAction({ userCart: response });
               }),
               catchError((error: any) => {
+                console.error('Error removing coupon:', error);
                 this.store.dispatch(stopLoadingCouponAction());
-                this.uiService.showError('Failed To Remove Coupon');
-
+                this.uiService.showError('Failed to remove coupon');
                 return of(error);
               })
             );
         } else {
           loadedData.loadedCart.coupons = [];
           localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
-
-          setTimeout(
-            () => this.store.dispatch(stopLoadingCouponAction()),
-            3000
-          );
-
+          setTimeout(() => this.store.dispatch(stopLoadingCouponAction()), 3000);
           return of(
             fetchUserCartAction({
               mainPageLoading: false,
@@ -303,87 +290,54 @@ export class CheckoutEffect {
     )
   );
 
-  // createOrderEffect = createEffect(() =>
-  //   this.actions$.pipe(
-  //     ofType(createOrderAction),
-  //     tap(() => this.store.dispatch(startLoadingOrderAction())),
-
-  //     switchMap(({ orderDetails }) => {
-  //       return this.wooApiService.postRequest('orders', orderDetails).pipe(
-  //         map((res: any) => {
-  //           const orderId = res.id;
-  //           const orderKey = res.order_key;
-  //           this.router.navigate([`/order-received/${orderId}`], {
-  //             queryParams: { key: orderKey },
-  //           });
-  //           this.store.dispatch(stopLoadingOrderAction());
-  //           return fetchOrderDataAction({ orderId: orderId });
-  //         }),
-
-  //         catchError((error: any) => {
-  //           this.store.dispatch(stopLoadingOrderAction());
-  //           this.uiService.showError('Failed To Create Order');
-
-  //           return this.handleError.handelError(error);
-  //         })
-  //       );
-  //     })
-  //   )
-  // );
-
-  createOrderPaymentEffect = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(createOrderAction),
-        tap(() => this.store.dispatch(startLoadingOrderAction())),
-
-        switchMap(({ orderDetails }) => {
-          return this.httpClient
-            .post(
-              'http://localhost:4000/api/payment/create-intent',
-              orderDetails
-            )
-            .pipe(
-              map((res: any) => {
-                console.log('نجحححححححححححححححححح');
-                console.log(res);
-                const orderId = res.id;
-                // const orderKey = res.order_key;
-                // this.router.navigate([`/order-received/${orderId}`], {
-                //   queryParams: { key: orderKey },
-                // });
-                this.store.dispatch(stopLoadingOrderAction());
-                // return fetchOrderDataAction({ orderId: orderId });
-              }),
-
-              catchError((error: any) => {
-                console.log(error);
-                console.log('حصل ايوررررررررررررررر في البايمنت');
-                this.store.dispatch(stopLoadingOrderAction());
-                this.uiService.showError('Failed To Create Order');
-
-                return this.handleError.handelError(error);
-              })
-            );
-        })
-      ),
-    { dispatch: false }
+  createOrderEffect = createEffect(() =>
+    this.actions$.pipe(
+      ofType(createOrderAction),
+      tap(() => this.store.dispatch(startLoadingOrderAction())),
+      switchMap(({ orderDetails }) => {
+        return this.httpClient
+          .post('http://localhost:4000/api/orders', orderDetails, {
+            headers: { 'Content-Type': 'application/json' }
+          })
+          .pipe(
+            map((res: any) => {
+              console.log('Order created successfully:', res);
+              const orderId = res.id;
+              const orderKey = res.order_key;
+              this.router.navigate([`/order-received/${orderId}`], {
+                queryParams: { key: orderKey },
+              });
+              this.store.dispatch(stopLoadingOrderAction());
+              return fetchOrderDataAction({ orderId });
+            }),
+            catchError((error: any) => {
+              console.error('Error creating order:', {
+                status: error.status,
+                statusText: error.statusText,
+                message: error.message,
+                response: typeof error.error === 'string' ? error.error.substring(0, 200) : error.error
+              });
+              this.store.dispatch(stopLoadingOrderAction());
+              this.uiService.showError('Failed to create order');
+              return this.handleError.handelError(error);
+            })
+          );
+      })
+    )
   );
 
   getOrderDataEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(fetchOrderDataAction),
-
       switchMap(({ orderId }) => {
         return this.wooApiService.getRequest(`orders/${orderId}`).pipe(
           map((res: any) => {
-            console.log('Order Retrived Successfully:', res);
-
+            console.log('Order retrieved successfully:', res);
             return getOrderDataAction({ orderDetails: res });
           }),
-
           catchError((error: any) => {
-            this.uiService.showError('Failed To Retrive Order Data');
+            console.error('Error retrieving order:', error);
+            this.uiService.showError('Failed to retrieve order data');
             return of();
           })
         );

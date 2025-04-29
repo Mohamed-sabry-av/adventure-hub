@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { CarouselModule } from 'primeng/carousel'; // ✅ استيراد PrimeNG Carousel
+import { CarouselModule } from 'primeng/carousel'; 
 
 @Component({
   selector: 'app-product-related',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductCardComponent, CarouselModule], // ✅ إضافة الـ Carousel
+  imports: [CommonModule, ProductCardComponent, CarouselModule],
   templateUrl: './product-related.component.html',
   styleUrls: ['./product-related.component.css'],
 })
@@ -33,7 +33,6 @@ export class ProductRelatedComponent implements OnInit {
       this.productService.getProductsByIds(this.relatedIds).subscribe({
         next: (products) => {
           this.relatedProducts = products;
-          console.log('Related Products Fetched:', this.relatedProducts);
         },
         error: (error) => {
           console.error('Error fetching related products:', error);

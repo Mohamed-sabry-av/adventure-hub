@@ -49,7 +49,6 @@ export class CookiesPolicyComponent implements OnInit {
           title: this.pageData?.title?.rendered,
           description: this.pageData?.excerpt?.rendered || 'Cookies Policy - Adventures HUB Sports Shop',
         });
-        console.log('Cookies Policy Data:', this.pageData);
       },
       error: (error) => {
         console.error('Error fetching Cookies Policy:', error);

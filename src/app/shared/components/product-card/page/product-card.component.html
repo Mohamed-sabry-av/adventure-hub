@@ -1,9 +1,9 @@
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
   <app-card-image-slider
-  [product]="product"
-  [isHovered]="isCardHovered"
-  [variations]="product.variations || []"
-></app-card-image-slider>
+  [product]="modifiedProduct"
+  [isHovered]="isHovered"
+  [variations]="variations">
+</app-card-image-slider>
 
   <!-- Product details (title, price, etc) -->
   <app-card-details

@@ -32,7 +32,7 @@
             [class.out-of-stock]="!option.inStock"
             (click)="option.inStock && selectAttribute('Color', option.value)"
           >
-            <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'"></div>
+            <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'" [title]="option.value"></div>
             <span class="color-name">{{ option.value }}</span>
             <span class="out-of-stock-badge" *ngIf="!option.inStock">Out of Stock</span>
           </div>
@@ -80,21 +80,30 @@
     </div>
 
     <!-- Cart and Buy Buttons -->
-    <div class="action-buttons">
-      <button
-        class="cart-btn"
-        (click)="addToCart()"
-      >
-        <i class="pi pi-shopping-cart"></i>
-        <span>ADD TO CART</span>
-      </button>
+    <div class="flex mt-6 mb-4">
+      <div class="action-buttons">
+        <button
+          class="cart-btn"
+          (click)="addToCart()"
+        >
+          ADD TO CART
+        </button>
+
+        <button
+          class="buy-btn"
+          (click)="buyNow()"
+        >
+          BUY IT NOW
+        </button>
+      </div>
 
       <button
-        class="buy-btn"
-        (click)="buyNow()"
+        class="wishlist-btn ml-2"
+        (click)="addToWishList(productInfo()?.id)"
+        [class.active]="isInWishlist"
+        [disabled]="isAddingToWishlist"
       >
-        <i class="pi pi-bolt"></i>
-        <span>BUY NOW</span>
+        <i class="pi pi-heart"></i>
       </button>
     </div>
 
@@ -104,6 +113,7 @@
       <div class="payment-methods">
         <img src="https://ext.same-assets.com/1752825376/3628814952.png" alt="Tabby" class="payment-icon">
         <img src="https://ext.same-assets.com/1752825376/2635905792.png" alt="Card" class="payment-icon">
+        <img src="https://ext.same-assets.com/1687448576/8956612608.png" alt="Google Pay" class="payment-icon">
       </div>
     </div>
 
@@ -133,19 +143,7 @@
     <span class="text-red-500 font-medium">This variation is out of stock</span>
   </div>
 
-  <div
-    class="mt-4 flex items-center gap-x-2 cursor-pointer"
-    (click)="addToWishList(productInfo()?.id)"
-    [class.opacity-50]="isAddingToWishlist"
-    [class.pointer-events-none]="isAddingToWishlist"
-  >
-    <i class="pi pi-heart text-sm" [class.text-red-500]="isInWishlist"></i>
-    <span class="text-sm font-semibold hover:underline">
-      {{ isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}
-    </span>
-  </div>
-
-  <!-- Optional: Display success/error message -->
+  <!-- Wishlist message -->
   <div *ngIf="wishlistMessage" class="mt-2 text-sm" [class.text-green-500]="wishlistSuccess" [class.text-red-500]="!wishlistSuccess">
     {{ wishlistMessage }}
   </div>

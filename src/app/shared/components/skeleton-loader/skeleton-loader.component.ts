@@ -5,7 +5,7 @@ import { AppContainerComponent } from '../app-container/app-container.component'
 @Component({
   selector: 'app-skeleton-loader',
   standalone: true,
-  imports: [NgClass, AppContainerComponent],
+  imports: [ AppContainerComponent],
   templateUrl: './skeleton-loader.component.html',
   styleUrls: ['./skeleton-loader.component.css'],
 })

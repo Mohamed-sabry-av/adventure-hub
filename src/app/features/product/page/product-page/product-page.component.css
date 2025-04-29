@@ -15,114 +15,7 @@
   border-top: 1px solid #eee;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 767px) {
-  .sticky-info {
-    position: static;
-  }
-}
-
-
-/* Skeleton loading styles */
-.skeleton-breadcrumb,
-.skeleton-image,
-.skeleton-description,
-.skeleton-info,
-.skeleton-related,
-.skeleton-line,
-.skeleton-button,
-.skeleton-related-item {
-  background: #e0e0e0;
-  border-radius: 4px;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Breadcrumb skeleton */
-.skeleton-breadcrumb {
-  height: 20px;
-  width: 50%;
-  margin: 16px 0;
-}
-
-/* Image skeleton */
-.skeleton-image {
-  height: 400px;
-  width: 100%;
-}
-
-/* Description skeleton */
-.skeleton-description {
-  margin-top: 16px;
-}
-
-.skeleton-line {
-  height: 16px;
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-.skeleton-line.short {
-  width: 60%;
-}
-
-/* Product info skeleton */
-.skeleton-info {
-  padding: 16px;
-}
-
-.skeleton-button {
-  height: 40px;
-  width: 120px;
-  margin-top: 16px;
-}
-
-/* Related products skeleton */
-.skeleton-related {
-  display: flex;
-  gap: 16px;
-  margin-top: 32px;
-}
-
-.skeleton-related-item {
-  height: 200px;
-  width: 200px;
-}
-
-/* Existing styles (unchanged) */
-.sticky-wrapper {
-  position: relative;
-}
-
-.sticky-info {
-  position: sticky;
-  top: 20px;
-}
-
-.full-width-product-description {
-  margin: 40px 0;
-  padding: 20px 0;
-  border-top: 1px solid #eee;
-}
-
-@media (max-width: 767px) {
-  .sticky-info {
-    position: static;
-  }
-}
-
-/* New styles for mobile/desktop descriptions */
+/* Mobile/Desktop Descriptions */
 .mobile-description {
   display: block;
 }
@@ -140,15 +33,142 @@
   }
 }
 
-/* Existing skeleton styles (unchanged) */
+/* Carousel Container */
+.carousel-container {
+  width: 100%;
+  overflow-x: hidden;
+  padding: 16px 0;
+}
+
+/* Carousel Track */
+.carousel-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Mobile: 150px cards */
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  padding: 0 16px;
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in Chrome/Safari */
+}
+
+/* Carousel Card */
+.carousel-card {
+  width: 150px; /* Slightly smaller card width */
+  height: 220px; /* Adjusted height for smaller cards */
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  transition: transform 0.2s ease;
+}
+
+.carousel-card:hover {
+  transform: translateY(-4px); /* Subtle hover effect */
+}
+
+/* Card Image */
+.card-image {
+  width: 100%;
+  height: 120px; /* Smaller image height */
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Card Title */
+.card-title {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 8px 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Card Price */
+.card-price {
+  font-size: 13px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Skeleton Cards */
+.skeleton-related-item {
+  width: 150px;
+  height: 220px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Desktop Layout */
+@media (min-width: 768px) {
+  .carousel-track {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Larger cards on desktop */
+    padding: 0 24px;
+  }
+
+  .carousel-card {
+    width: 180px; /* Slightly larger for desktop */
+    height: 260px;
+  }
+
+  .card-image {
+    height: 140px;
+  }
+
+  .card-title {
+    font-size: 15px;
+  }
+
+  .card-price {
+    font-size: 14px;
+  }
+
+  .skeleton-related-item {
+    width: 180px;
+    height: 260px;
+  }
+}
+
+/* Mobile Layout (Two Cards per Row) */
+@media (max-width: 767px) {
+  .carousel-track {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Slightly smaller for smaller screens */
+    gap: 10px;
+  }
+
+  .carousel-card {
+    width: 140px;
+    height: 200px;
+  }
+
+  .card-image {
+    height: 110px;
+  }
+
+  .skeleton-related-item {
+    width: 140px;
+    height: 200px;
+  }
+}
+
+/* Skeleton Loading Styles */
 .skeleton-breadcrumb,
 .skeleton-image,
 .skeleton-description,
 .skeleton-info,
 .skeleton-related,
 .skeleton-line,
-.skeleton-button,
-.skeleton-related-item {
+.skeleton-button {
   background: #e0e0e0;
   border-radius: 4px;
   animation: pulse 1.5s infinite ease-in-out;
@@ -201,17 +221,14 @@
   margin-top: 16px;
 }
 
-.relatedProducts{
+/* Responsive Adjustments */
+@media (max-width: 767px) {
+  .sticky-info {
+    position: static;
+  }
+}
+
+/* Ensure Related Products Z-Index */
+.relatedProducts {
   z-index: 1 !important;
-}
-
-.skeleton-related {
-  display: flex;
-  gap: 16px;
-  margin-top: 32px;
-}
-
-.skeleton-related-item {
-  height: 200px;
-  width: 200px;
 }

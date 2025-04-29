@@ -13,7 +13,6 @@ import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { RouterLink } from '@angular/router';
-import { Select } from 'primeng/select';
 import { Product } from '../../../../interfaces/product';
 import { UIService } from '../../../../shared/services/ui.service';
 import { CartStatus } from '../../model/cart.model';
@@ -25,7 +24,6 @@ import { CartStatus } from '../../model/cart.model';
     DrawerModule,
     ButtonModule,
     CurrencyPipe,
-    Select,
     RouterLink,
   ],
   templateUrl: './side-cart.component.html',
