@@ -23,7 +23,6 @@ import { CartStatus } from '../../../cart/model/cart.model';
     NewProductsComponent,
     RecommendedProductsComponent,
     SaleProductsComponent,
-    AppContainerComponent,
     DialogErrorComponent,
     AsyncPipe,
   ],

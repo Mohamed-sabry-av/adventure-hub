@@ -1,61 +1,63 @@
-import { AfterViewInit, Component, ElementRef, HostListener, input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { KlaviyoService } from '../../services/klaviyo.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { SafeHtmlPipe } from '../../../../shared/pipes/safeHtml.pipe';
 
 interface SpecItem {
   key: string;
   value: string;
 }
 
-// interface KlaviyoReview {
-//   id: string;
-//   rating: number;
-//   comment: string;
-//   reviewer: string;
-//   date: string;
-// }
+interface Attribute {
+  name: string;
+  value: string;
+}
 
 @Component({
   selector: 'app-product-desc',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SafeHtmlPipe],
   templateUrl: './product-desc.component.html',
   styleUrls: ['./product-desc.component.css'],
 })
 export class ProductDescComponent implements OnInit, AfterViewInit {
-  productAdditionlInfo = input<any>();
+  @Input() productAdditionlInfo: any;
   activeSection: 'description' | 'additional-info' | 'reviews' = 'description';
-  descriptionSections: { text?: string; image?: string; title?: string; align?: string }[] = [];
-  productSpecs: SpecItem[] = [];
   reviewCount: number = 0;
-  // reviews: KlaviyoReview[] = [];
+  safeDescription: SafeHtml | null = null;
 
   private sectionPositions: { [key: string]: number } = {};
   private scrolling = false;
   private headerHeight: number = 0;
+  private offsetBuffer: number = 100; // Buffer for better section detection
 
   constructor(
     private elementRef: ElementRef,
     private route: ActivatedRoute,
     private router: Router,
-    private klaviyoService: KlaviyoService
+    private klaviyoService: KlaviyoService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit() {
-    this.parseDescription();
-    this.extractSpecifications();
+    // Debug: Print productAdditionlInfo to console
+    console.log('Product Additional Info:', this.productAdditionlInfo);
+    console.log('Description:', this.productAdditionlInfo?.description);
+    console.log('Variations:', this.productAdditionlInfo?.variations);
+
+    // Set the sanitized description
+    this.setSafeDescription();
+
     this.reviewCount = 0;
     this.fetchReviews();
-  
-    this.route.url.subscribe((segments) => {
-      const section = segments[segments.length - 1]?.path as
-        | 'description'
-        | 'additional-info'
-        | 'reviews';
-      if (section && ['description', 'additional-info', 'reviews'].includes(section)) {
-        this.activeSection = section;
-        setTimeout(() => this.scrollToSection(section), 0);
+
+    // Check URL for active section
+    this.route.fragment.subscribe(fragment => {
+      if (fragment && ['description', 'additional-info', 'reviews'].includes(fragment)) {
+        this.activeSection = fragment as 'description' | 'additional-info' | 'reviews';
+        setTimeout(() => this.scrollToSection(this.activeSection, false), 100);
       }
     });
   }
@@ -66,8 +68,13 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     this.headerHeight = stickyHeader ? stickyHeader.offsetHeight : 70;
 
     // Calculate section positions
-    this.calculateSectionPositions();
-    this.checkActiveSection();
+    setTimeout(() => {
+      this.calculateSectionPositions();
+      this.checkActiveSection();
+    }, 200);
+
+    // Initialize lazy loading for images
+    this.initializeLazyLoading();
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -80,30 +87,39 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   @HostListener('window:resize', ['$event'])
   onWindowResize() {
     this.calculateSectionPositions();
+    // Recalculate header height on resize
+    const stickyHeader = this.elementRef.nativeElement.querySelector('.sticky-tabs');
+    this.headerHeight = stickyHeader ? stickyHeader.offsetHeight : 70;
   }
 
-  
-
-  scrollToSection(sectionId: 'description' | 'additional-info' | 'reviews'): void {
+  scrollToSection(sectionId: 'description' | 'additional-info' | 'reviews', updateUrl: boolean = true): void {
     this.activeSection = sectionId;
-    this.router.navigate([`/product/${this.productAdditionlInfo()?.id}/${sectionId}`]);
-  
+
+    if (updateUrl) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        fragment: sectionId,
+        replaceUrl: true
+      });
+    }
+
     const element = document.getElementById(sectionId);
     if (element) {
       this.scrolling = true;
       const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = elementPosition - this.headerHeight - 10;
-  
+
       window.scrollTo({
         top: offsetPosition,
         behavior: 'smooth',
       });
-  
+
       setTimeout(() => {
         this.scrolling = false;
       }, 600);
     }
   }
+
   private calculateSectionPositions(): void {
     const sections = ['description', 'additional-info', 'reviews'];
     this.sectionPositions = {};
@@ -118,18 +134,18 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   private checkActiveSection(): void {
     if (this.scrolling) return;
 
-    const scrollPosition = window.pageYOffset + this.headerHeight + 50; // Buffer for better UX
+    const scrollPosition = window.pageYOffset + this.headerHeight + this.offsetBuffer;
     let activeSection: 'description' | 'additional-info' | 'reviews' = 'description';
 
     // Determine which section is in view
     if (
       this.sectionPositions['reviews'] &&
-      scrollPosition >= this.sectionPositions['reviews'] - 100
+      scrollPosition >= this.sectionPositions['reviews'] - this.offsetBuffer
     ) {
       activeSection = 'reviews';
     } else if (
       this.sectionPositions['additional-info'] &&
-      scrollPosition >= this.sectionPositions['additional-info'] - 100
+      scrollPosition >= this.sectionPositions['additional-info'] - this.offsetBuffer
     ) {
       activeSection = 'additional-info';
     } else if (this.sectionPositions['description']) {
@@ -147,79 +163,61 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     }
   }
 
-  parseDescription() {
-    const description = this.productAdditionlInfo()?.description || '';
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(description, 'text/html');
+  private setSafeDescription(): void {
+    const description = this.productAdditionlInfo?.description || '';
+    if (!description) {
+      this.safeDescription = null;
+      return;
+    }
 
-    this.descriptionSections = [];
-
-    const productBlocks = Array.from(doc.querySelectorAll('.product-block'));
-    productBlocks.forEach((block) => {
-      const rte = block.querySelector('.rte');
-      if (rte) {
-        const introText = rte.querySelector('p:not(.medium-4 *)')?.innerHTML;
-        if (introText) {
-          this.descriptionSections.push({ text: introText });
-        }
-
-        const featureList = rte.querySelector('ul');
-        if (featureList) {
-          this.descriptionSections.push({ text: featureList.outerHTML });
-        }
-
-        const weight = rte.querySelector('p:not(.medium-4 *) ~ p:not(.medium-4 *)');
-        if (weight) {
-          this.descriptionSections.push({ text: weight.innerHTML });
-        }
-      }
-
-      const sizingChart = block.querySelector('h1');
-      if (sizingChart && sizingChart.textContent?.includes('SIZING CHART')) {
-        const image = block.querySelector('img')?.getAttribute('data-src') || '';
-        const title = sizingChart.textContent || '';
-        this.descriptionSections.push({
-          title,
-          image,
-          align: 'center',
-        });
-      }
-    });
-
-    if (!this.descriptionSections.length) {
-      this.descriptionSections.push({ text: description });
+    try {
+      // Sanitize the HTML content to prevent XSS attacks but allow formatting
+      this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(description);
+    } catch (error) {
+      console.error('Error sanitizing product description:', error);
+      const sanitizedText = this.sanitizer.sanitize(SecurityContext.HTML, description) || '';
+      this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(sanitizedText);
     }
   }
 
-  extractSpecifications(): void {
-    const description = this.productAdditionlInfo()?.description || '';
-    const specs: SpecItem[] = [];
+  // Extract colors and sizes from variations
+  getAdditionalInfoFromVariations(): { colors: string[]; sizes: string[] } {
+    const variations = this.productAdditionlInfo?.variations || [];
+    const colors = new Set<string>();
+    const sizes = new Set<string>();
 
-    // Example: Parse specifications from description (customize as needed)
-    if (description.includes('Specifications') || description.includes('specifications')) {
-      // Add logic to extract specs (e.g., from a table or list in the description)
-      // Example placeholder:
-      specs.push({ key: 'Material', value: 'Cotton' });
-      specs.push({ key: 'Weight', value: '200g' });
-    }
+    variations.forEach((variation: any) => {
+      variation.attributes?.forEach((attr: any) => {
+        if (attr.name === 'Color' && attr.option) {
+          colors.add(attr.option);
+        }
+        if (attr.name === 'Size' && attr.option) {
+          sizes.add(attr.option);
+        }
+      });
+    });
 
-    this.productSpecs = specs;
+    return {
+      colors: Array.from(colors),
+      sizes: Array.from(sizes),
+    };
   }
 
   fetchReviews() {
-  //   const productId = this.productAdditionlInfo()?.id;
-  //   if (productId) {
-  //     this.klaviyoService.getProductReviews(productId).subscribe({
-  //       next: (reviews) => {
-  //         this.reviews = reviews;
-  //         this.reviewCount = reviews.length;
-  //       },
-  //       error: (error) => {
-  //         console.error('Error fetching reviews:', error);
-  //         this.reviewCount = 0;
-  //         this.reviews = [];
-  //       },
-  //     });
-  //   }
-  // }
-}}
+    // Placeholder for fetching reviews
+    // Implement as needed
+  }
+
+  private initializeLazyLoading(): void {
+    // Initialize lazy loading for images with data-src
+    const images = document.querySelectorAll('img[data-src]');
+    images.forEach((img) => {
+      const src = img.getAttribute('data-src');
+      if (src) {
+        img.setAttribute('src', src);
+        img.setAttribute('loading', 'lazy');
+        img.removeAttribute('data-src');
+      }
+    });
+  }
+}

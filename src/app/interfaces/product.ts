@@ -109,6 +109,8 @@ export interface Product {
 
 export interface Variation {
   id?: number;
+  manage_stock?:boolean;
+  stock_quantity?: number;
   attributes?: VariationAttribute[] | any;
   image?: Image | any;
   images?: { src: string; alt?: string;srcset?:string ;sizes?:string }[] | any;

@@ -1,13 +1,16 @@
-<div *ngIf="isFixed" [style.height.px]="headerHeight"></div>
+<!-- Placeholder only shown when header is fixed and not on product page -->
+<div *ngIf="isFixed && !isProductPage" [style.height.px]="headerHeight"></div>
 
 <header
   class="w-full"
   [class]="{
-  'is-scroll':lastScrollY !==0 && currentPage !== 'checkout',
-}"
+    'is-scroll': lastScrollY !== 0 && currentPage !== 'checkout' && !isProductPage,
+    'fixed top-0 left-0 z-50': isFixed && !isProductPage,
+    'relative': isProductPage
+  }"
   #headerEl
 >
-  @if (currentPage ==='checkout') {
+  @if (currentPage === 'checkout') {
   <div
     class="h-[135px] w-full bg-white border-b relative flex items-center justify-center"
   >
@@ -22,10 +25,9 @@
 
     <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
   </div>
-
   } @else {
-  <!-- معلومات فرعية -->
-  <!-- @if (lastScrollY ===0) {
+  <!-- Secondary Info -->
+  <!-- @if (lastScrollY === 0) {
   <div
     class="relative mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6"
   >
@@ -38,7 +40,7 @@
   </div>
   } -->
 
-  <!-- معلومات اساسية -->
+  <!-- Main Info -->
   <app-app-container>
     <div class="py-3 flex items-center justify-between">
       <div>
@@ -100,7 +102,6 @@
     }
   </app-app-container>
 
-  <!-- @if (showNavbar) { -->
   <div @navbarAnimation>
     @defer (on idle) {
     <app-navbar-container
@@ -110,5 +111,4 @@
     }
   </div>
   }
-  <!-- } -->
 </header>

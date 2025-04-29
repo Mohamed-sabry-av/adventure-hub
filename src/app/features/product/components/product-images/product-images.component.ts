@@ -20,7 +20,12 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
   mediaQuery!: MediaQueryList;
   mediaQueryListener!: (event: MediaQueryListEvent) => void;
   selectedImageIndex: number = 0;
-  
+
+  isZoomed: boolean = false;
+
+  // Track image loading state
+  isImageLoading: boolean = true;
+
   // Reference to the main image container for zoom functionality
   @ViewChild('zoomContainer') zoomContainer!: ElementRef;
 
@@ -51,7 +56,6 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
 
   // Function to get images for the gallery based on selected color
   getGalleryImages(): { src: string; alt: string }[] {
- 
     if (!this.selectedColor() || !this.variations()?.length) {
       const images = this.productImages() || this.defaultImages;
       return Array.isArray(images)
@@ -61,17 +65,17 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
           }))
         : [];
     }
-  
+
     // ابحث عن variation باللون المختار
     const selectedVariation = this.variations().find((v: any) => {
       const match = v.attributes?.some(
-        (attr: any) => 
-          attr.name === 'Color' && 
+        (attr: any) =>
+          attr.name === 'Color' &&
           attr.option.toLowerCase() === this.selectedColor()?.toLowerCase()
       );
       return match;
     });
-  
+
     // لو لقيت variation، ارجع صورها
     if (selectedVariation) {
       const mainImage = selectedVariation.image?.src
@@ -83,7 +87,7 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
       })) || [];
       return [...mainImage, ...additionalImages];
     }
-  
+
     const images = this.productImages() || this.defaultImages;
     return Array.isArray(images)
       ? images.map((img: any) => ({
@@ -95,49 +99,63 @@ export class ProductImagesComponent implements OnInit, OnDestroy {
 
   // Select a specific image by index
   selectImage(index: number): void {
-    this.selectedImageIndex = index;
+    if (this.selectedImageIndex !== index) {
+      this.isImageLoading = true;
+      this.selectedImageIndex = index;
+    }
   }
 
   // Navigate to the next image
   nextImage(): void {
     const images = this.getGalleryImages();
     this.selectedImageIndex = (this.selectedImageIndex + 1) % images.length;
+    this.isImageLoading = true;
   }
 
   // Navigate to the previous image
   prevImage(): void {
     const images = this.getGalleryImages();
     this.selectedImageIndex = (this.selectedImageIndex - 1 + images.length) % images.length;
+    this.isImageLoading = true;
   }
 
-  // Zoom functionality
+  // Handle image load event to update loading state
+  onImageLoad(): void {
+    this.isImageLoading = false;
+  }
+
+  // Improved zoom functionality with class toggle
   zoom(event: MouseEvent) {
     if (this.isMobile) return; // Don't enable zoom on mobile
-    
+
     const container = this.zoomContainer.nativeElement;
     const zoomedImage: HTMLElement = container.querySelector('.main-img');
     if (!container || !zoomedImage) return;
-  
+
     const rect = container.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-  
+
     const percentX = (x / rect.width) * 100;
     const percentY = (y / rect.height) * 100;
-  
+
     zoomedImage.style.transformOrigin = `${percentX}% ${percentY}%`;
     zoomedImage.style.transform = `scale(2)`;
+    zoomedImage.classList.add('zoomed');
+    this.isZoomed = true;
   }
 
   // Reset zoom when mouse leaves the container
   resetZoom() {
     if (this.isMobile) return;
-    
+
     const container = this.zoomContainer.nativeElement;
     const zoomedImage = container.querySelector('.main-img');
     if (!zoomedImage) return;
-    
+
     zoomedImage.style.transform = 'scale(1)';
+    zoomedImage.classList.remove('zoomed');
+    this.isZoomed = false;
   }
 
   // Track by function for ngFor performance

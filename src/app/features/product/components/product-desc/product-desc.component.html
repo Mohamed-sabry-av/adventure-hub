@@ -1,12 +1,11 @@
-<div class="product-description" *ngIf="productAdditionlInfo()">
+<div class="product-description" *ngIf="productAdditionlInfo">
   <!-- Sticky Navigation -->
   <div class="sticky-tabs">
     <div class="description-tabs">
       <div class="tab-item" [class.active]="activeSection === 'description'" (click)="scrollToSection('description')">
         Description
       </div>
-      <div class="tab-item" [class.active]="activeSection === 'additional-info'"
-        (click)="scrollToSection('additional-info')">
+      <div class="tab-item" [class.active]="activeSection === 'additional-info'" (click)="scrollToSection('additional-info')">
         Additional information
       </div>
       <div class="tab-item" [class.active]="activeSection === 'reviews'" (click)="scrollToSection('reviews')">
@@ -20,38 +19,12 @@
     <!-- Description Section -->
     <div id="description" class="content-section">
       <h2 class="section-header">Description</h2>
-
-      <!-- Initial text -->
-      <div class="description-section" *ngIf="descriptionSections.length && descriptionSections[0].text">
-        <div class="text-content" [innerHTML]="descriptionSections[0].text"></div>
+      <div *ngIf="safeDescription; else noDescription">
+        <div class="raw-description" [innerHTML]="safeDescription"></div>
       </div>
-
-      <!-- Image-Text Sections -->
-      <div *ngFor="let section of descriptionSections.slice(1)" class="image-text-section"
-        [class.left-align]="section.align === 'left'" [class.right-align]="section.align === 'right'">
-        <div class="section-image" *ngIf="section.image">
-          <img [src]="section.image" [alt]="section.title || 'Product feature'" loading="lazy">
-        </div>
-        <div class="section-content">
-          <h3 *ngIf="section.title" class="section-title">{{ section.title }}</h3>
-          <div class="section-text" *ngIf="section.text" [innerHTML]="section.text"></div>
-        </div>
-      </div>
-
-      <!-- If no structured content is available, show raw description -->
-      <div *ngIf="!descriptionSections.length" class="raw-description" [innerHTML]="productAdditionlInfo().description">
-      </div>
-
-      <!-- Specifications -->
-      <div class="specifications" *ngIf="productSpecs.length > 0">
-        <h3 class="specs-header">Specifications</h3>
-        <div class="specs-list">
-          <div class="spec-item" *ngFor="let spec of productSpecs">
-            <span class="spec-label">{{ spec.key }} :</span>
-            <span class="spec-value">{{ spec.value }}</span>
-          </div>
-        </div>
-      </div>
+      <ng-template #noDescription>
+        <p class="no-description">No description available for this product.</p>
+      </ng-template>
     </div>
 
     <!-- Additional Information Section -->
@@ -61,26 +34,26 @@
         <table class="info-table">
           <tbody>
             <!-- Brand -->
-            <tr *ngIf="productAdditionlInfo().brand">
+            <tr *ngIf="productAdditionlInfo.brand">
               <th>Brand</th>
-              <td>{{ productAdditionlInfo().brand }}</td>
+              <td>{{ productAdditionlInfo.brand }}</td>
             </tr>
 
             <!-- Colors -->
-            <tr *ngIf="productAdditionlInfo().available_colors && productAdditionlInfo().available_colors.length > 0">
+            <tr *ngIf="(getAdditionalInfoFromVariations().colors).length > 0">
               <th>Color</th>
               <td class="color-list">
-                <span *ngFor="let color of productAdditionlInfo().available_colors; let last = last">
+                <span *ngFor="let color of getAdditionalInfoFromVariations().colors; let last = last">
                   {{ color }}{{ !last ? ', ' : '' }}
                 </span>
               </td>
             </tr>
 
             <!-- Sizes -->
-            <tr *ngIf="productAdditionlInfo().available_sizes && productAdditionlInfo().available_sizes.length > 0">
+            <tr *ngIf="(getAdditionalInfoFromVariations().sizes).length > 0">
               <th>Size</th>
               <td class="size-list">
-                <span *ngFor="let size of productAdditionlInfo().available_sizes; let last = last">
+                <span *ngFor="let size of getAdditionalInfoFromVariations().sizes; let last = last">
                   {{ size }}{{ !last ? ', ' : '' }}
                 </span>
               </td>
@@ -90,9 +63,9 @@
       </div>
 
       <!-- If no additional information available -->
-      <div *ngIf="!productAdditionlInfo().brand &&
-                 !(productAdditionlInfo().available_colors && productAdditionlInfo().available_colors.length > 0) &&
-                 !(productAdditionlInfo().available_sizes && productAdditionlInfo().available_sizes.length > 0)"
+      <div *ngIf="!productAdditionlInfo.brand &&
+                 !getAdditionalInfoFromVariations().colors?.length &&
+                 !getAdditionalInfoFromVariations().sizes?.length"
         class="no-info">
         <p>No additional information available for this product.</p>
       </div>
@@ -102,7 +75,6 @@
     <div id="reviews" class="content-section">
       <h2 class="section-header">Reviews</h2>
       <div class="reviews-content">
-        <!-- Here you can implement actual reviews or a placeholder -->
         <div *ngIf="reviewCount > 0; else noReviews">
           <p>Reviews implementation will be integrated here</p>
         </div>
@@ -118,6 +90,6 @@
 </div>
 
 <!-- Loading state -->
-<div class="loading-description" *ngIf="!productAdditionlInfo()">
+<div class="loading-description" *ngIf="!productAdditionlInfo">
   <p>Loading product description...</p>
 </div>

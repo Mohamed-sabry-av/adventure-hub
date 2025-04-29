@@ -69,39 +69,47 @@ export class HeaderComponent implements OnInit {
   showNavbar: boolean = true;
   showSearchbar: boolean = false;
   lastScrollY: number = 0;
-  headerHeight: any;
+  headerHeight: number = 0;
+  isFixed: boolean = false;
+  isProductPage: boolean = false; // New property to track product page
 
   ngOnInit() {
     this.fetchAllCategories();
 
-    const subscribtion = this.router.events
+    const subscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
-        if (event.url === '/checkout') {
-          this.currentPage = 'checkout';
-        } else {
-          this.currentPage = '';
-        }
+        this.currentPage = event.url === '/checkout' ? 'checkout' : '';
+        // Check if the current route is a product page
+        this.isProductPage = event.url.startsWith('/product') || event.url.includes('/product/');
       });
 
-    const subscribtion2 = this.sidenavIsVisible$.subscribe((visible) => {
+    const subscription2 = this.sidenavIsVisible$.subscribe((visible) => {
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
-    const subscriptio3 = fromEvent(window, 'scroll')
+    const subscription3 = fromEvent(window, 'scroll')
       .pipe(debounceTime(10))
       .subscribe(() => this.handleScroll());
 
     this.destroyRef.onDestroy(() => {
-      subscribtion.unsubscribe();
-      subscribtion2.unsubscribe();
-      subscriptio3.unsubscribe();
+      subscription.unsubscribe();
+      subscription2.unsubscribe();
+      subscription3.unsubscribe();
     });
   }
-  isFixed: boolean = false;
 
   handleScroll() {
     const currentScrollY = window.scrollY;
+
+    // Skip sticky behavior for product page
+    if (this.isProductPage) {
+      this.isFixed = false;
+      this.showNavbar = true;
+      this.navbarService.showNavbar(true);
+      this.navbarService.handleScroll(0); // No offset for product page
+      return;
+    }
 
     if (currentScrollY > this.lastScrollY && currentScrollY > 50) {
       // Scrolling down

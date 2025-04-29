@@ -30,6 +30,8 @@ export class ProductInfoComponent {
 
   @Output() selectedAttributeChange = new EventEmitter<{ name: string; value: string | null }>();
 
+  linkCopied: boolean = false;
+
   constructor(private cartService: CartService,private wishlistService:WooCommerceAccountService) {}
 
   ngOnInit() {
@@ -52,7 +54,8 @@ export class ProductInfoComponent {
     // Unsubscribe to prevent memory leaks
     if (this.wishlistSubscription) {
       this.wishlistSubscription.unsubscribe();
-    }}
+    }
+  }
 
   onQuantityUp() {
     if (this.quantity < this.maxLength) {
@@ -197,12 +200,12 @@ export class ProductInfoComponent {
       // If stock is managed, check stock_quantity or backorders
       return product.stock_status === 'instock' && (product.stock_quantity > 0 || product.backorders_allowed);
     }
-  
+
     // Variable product logic
     if (!this.allVariationAttributesSelected) {
       return false;
     }
-  
+
     const selectedVariation = this.getSelectedVariation();
     return !!selectedVariation && selectedVariation.stock_status === 'instock' && (selectedVariation.stock_quantity > 0 || selectedVariation.backorders_allowed);
   }
@@ -352,7 +355,7 @@ export class ProductInfoComponent {
     const variationAttributes = this.getVariationAttributes();
     return variationAttributes.length === 0 || variationAttributes.every((attrName: string) => this.selectedAttributes[attrName] !== null);
   }
-  
+
   addToWishList(productId: number) {
     if (!productId) {
       console.error('Invalid product ID');
@@ -431,5 +434,42 @@ export class ProductInfoComponent {
     setTimeout(() => {
       this.wishlistMessage = null;
     }, 5000);
+  }
+
+  // Social sharing methods
+  getFacebookShareUrl(): string {
+    // Get current product URL to share
+    const productUrl = this.getCurrentProductUrl();
+    const title = encodeURIComponent(this.productInfo()?.name || 'Check out this product');
+    return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}&t=${title}`;
+  }
+
+  getTwitterShareUrl(): string {
+    const productUrl = this.getCurrentProductUrl();
+    const title = encodeURIComponent(this.productInfo()?.name || 'Check out this product');
+    return `https://twitter.com/intent/tweet?text=${title}&url=${encodeURIComponent(productUrl)}`;
+  }
+
+  getWhatsAppShareUrl(): string {
+    const productUrl = this.getCurrentProductUrl();
+    const title = encodeURIComponent(this.productInfo()?.name || 'Check out this product');
+    return `https://api.whatsapp.com/send?text=${title}%20${encodeURIComponent(productUrl)}`;
+  }
+
+  copyProductLink(event: Event): void {
+    event.preventDefault();
+    const productUrl = this.getCurrentProductUrl();
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(productUrl).then(() => {
+      this.linkCopied = true;
+      setTimeout(() => {
+        this.linkCopied = false;
+      }, 2000);
+    });
+  }
+
+  private getCurrentProductUrl(): string {
+    return window.location.href;
   }
 }
