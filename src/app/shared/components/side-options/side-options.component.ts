@@ -91,7 +91,7 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   private uiService = inject(UIService);
   private sideOptionsService = inject(SideOptionsService);
 
-  spinnerIsLoading$: Observable<boolean> = this.uiService.isSpinnerLoading$;
+  spinnerIsLoading$: Observable<any> = this.uiService.loadingMap$;
 
   constructor(
     private cartService: CartService,
@@ -101,6 +101,8 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.uiService.loadingMap$.subscribe((res) => console.log(res));
+
     this.sideOptionsService.state$
       .pipe(takeUntil(this.destroy$))
       .subscribe((state) => {

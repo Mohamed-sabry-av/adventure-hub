@@ -427,7 +427,7 @@
   background-color: #f26638;
   color: white;
   border: none;
-  border-radius: 6px; /* Squared with rounded corners like in the image */
+  border-radius: 6px;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;

@@ -6,6 +6,7 @@ export const fetchUserCartAction = createAction(
     isLoggedIn: boolean;
     mainPageLoading: boolean;
     sideCartLoading: boolean;
+    buyItNow?: boolean;
     openSideCart?: boolean;
   }>()
 );
@@ -38,4 +39,9 @@ export const updateCartStockStatusAction = createAction(
 export const syncCartAction = createAction(
   '[Cart] Add Multiple Products To User Cart',
   props<{ authToken: string; items: any[] }>()
+);
+
+export const clearUserCarAction = createAction(
+  '[Cart] Clear User Cart ',
+  props<{ isLoggedIn: boolean }>()
 );

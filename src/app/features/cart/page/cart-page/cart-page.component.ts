@@ -43,7 +43,6 @@ export class CartPageComponent {
 
   ngOnInit() {
     const subscription = this.loadedCart$.subscribe((res: any) => {
-
       if (!res?.cartIsLoaded) {
         this.cartService.fetchUserCart({
           mainPageLoading: true,

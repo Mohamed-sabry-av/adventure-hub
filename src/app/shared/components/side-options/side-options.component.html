@@ -124,10 +124,16 @@
       [class.add-success]="addSuccess"
       (click)="onAddToCart()"
     >
-      ADD TO CART
+      @if((spinnerIsLoading$ | async).add){
+      <div class="spinner-container">
+        <div
+          class="block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+      </div>
+      }@else { ADD TO CART }
     </button>
     <button class="buy-now-btn" (click)="onBuyItNow()">
-      @if (spinnerIsLoading$ | async) {
+      @if ((spinnerIsLoading$ | async).buy) {
       <div class="spinner-container">
         <div
           class="block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
