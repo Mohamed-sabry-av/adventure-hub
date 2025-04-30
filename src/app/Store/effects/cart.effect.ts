@@ -9,6 +9,7 @@ import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
+  clearUserCarAction,
   fetchUserCartAction,
   getUserCartAction,
   syncCartAction,
@@ -560,6 +561,62 @@ export class CartEffect {
               mainPageLoading: false,
               sideCartLoading: true,
               isLoggedIn: false,
+            })
+          );
+        }
+      })
+    )
+  );
+
+  clearUserCart = createEffect(() =>
+    this.actions$.pipe(
+      ofType(clearUserCarAction),
+      switchMap(({ isLoggedIn }) => {
+        if (isLoggedIn) {
+          const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
+
+          return this.httpClient
+            .post(
+              'https://adventures-hub.com/wp-json/custom/v1/cart/clear',
+              {},
+              { headers: loadedData.headers }
+            )
+            .pipe(
+              map((res) => {
+                console.log('CART IS EMPTY');
+                console.log(res);
+
+                return fetchUserCartAction({
+                  isLoggedIn: true,
+                  mainPageLoading: true,
+                  sideCartLoading: false,
+                });
+              }),
+              catchError((error: any) => {
+                this.uiService.showError(
+                  error?.error?.message
+                    ? error.error.message
+                    : 'Failed to Delete Product'
+                );
+
+                return of(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: error?.error?.message || 'Failed to Delete Product',
+                  })
+                );
+              })
+            );
+        } else {
+          localStorage.removeItem('Cart');
+          console.log('CART IS EMPTY');
+
+          return of(
+            fetchUserCartAction({
+              isLoggedIn: false,
+              mainPageLoading: true,
+              sideCartLoading: false,
             })
           );
         }

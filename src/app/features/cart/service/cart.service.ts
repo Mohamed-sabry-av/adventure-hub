@@ -10,6 +10,7 @@ import {
 import {
   addProductToUserCartAction,
   deleteProductOfUserCarAction,
+  clearUserCarAction,
   fetchUserCartAction,
   syncCartAction,
   updateCartStockStatusAction,
@@ -182,6 +183,24 @@ export class CartService {
         } else {
           console.warn('No Loaded Items In Offline Cart');
         }
+      }
+    });
+  }
+
+  clearUserCart() {
+    this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
+      if (isLoggedIn) {
+        this.store.dispatch(
+          clearUserCarAction({
+            isLoggedIn: true,
+          })
+        );
+      } else {
+        this.store.dispatch(
+          clearUserCarAction({
+            isLoggedIn: false,
+          })
+        );
       }
     });
   }

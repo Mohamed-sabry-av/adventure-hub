@@ -40,3 +40,8 @@ export const syncCartAction = createAction(
   '[Cart] Add Multiple Products To User Cart',
   props<{ authToken: string; items: any[] }>()
 );
+
+export const clearUserCarAction = createAction(
+  '[Cart] Clear User Cart ',
+  props<{ isLoggedIn: boolean }>()
+);
