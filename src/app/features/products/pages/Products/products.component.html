@@ -1,6 +1,6 @@
 <ng-container>
   @if (schemaData) {
-    <script type="application/ld+json" [innerHTML]="schemaData"></script>
+  <script type="application/ld+json" [innerHTML]="schemaData"></script>
   }
 
   <app-breadcrumb
@@ -20,9 +20,9 @@
         </div>
 
         @if (currentCategory?.description) {
-          <div class="mt-2 text-sm text-gray-700 max-w-3xl">
-            {{ currentCategory.description }}
-          </div>
+        <div class="mt-2 text-sm text-gray-700 max-w-3xl">
+          {{ currentCategory.description }}
+        </div>
         }
       </div>
 
@@ -69,7 +69,7 @@
                 <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fill-rule="evenodd"
-                    d="M3 5a1 1 
+                    d="M3 5a1 1
 
 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
                     clip-rule="evenodd"
@@ -130,3 +130,5 @@
     class="drawer"
   ></app-filter-drawer>
 </ng-container>
+
+<app-dialog-error />

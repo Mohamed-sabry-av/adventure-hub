@@ -13,6 +13,11 @@
   [@slideInFromRight]
 >
   <div class="options-panel-header">
+    @if ( (spinnerIsLoading$ | async).buy || (spinnerIsLoading$ | async).add) {
+    <div
+      class="block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black absolute top-4 right-4"
+    ></div>
+    }@else {
     <div class="close-button" (click)="closeSideOptions()">
       <svg
         class="close-icon"
@@ -27,6 +32,8 @@
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
     </div>
+
+    }
     <div class="product-info">
       <div class="product-image">
         <img [src]="getSelectedColorImage()" alt="Product image" />
@@ -116,9 +123,14 @@
     </div>
     <button
       class="add-to-cart-btn"
-      [disabled]="isAddToCartDisabled()"
+      [disabled]="(spinnerIsLoading$ | async).buy || isAddToCartDisabled()"
       [class.add-success]="addSuccess"
       (click)="onAddToCart()"
+      [class]="{
+        '!bg-gray-500': (spinnerIsLoading$ | async).buy,
+        '!cursor-default': (spinnerIsLoading$ | async).buy,
+
+      }"
     >
       @if((spinnerIsLoading$ | async).add){
       <div class="spinner-container">
@@ -128,7 +140,15 @@
       </div>
       }@else { ADD TO CART }
     </button>
-    <button class="buy-now-btn" (click)="onBuyItNow()">
+    <button
+      class="buy-now-btn"
+      (click)="onBuyItNow()"
+      [disabled]="(spinnerIsLoading$ | async).add"
+      [class]="{
+        '!bg-gray-500': (spinnerIsLoading$ | async).add,
+        '!cursor-default': (spinnerIsLoading$ | async).add,
+      }"
+    >
       @if ((spinnerIsLoading$ | async).buy) {
       <div class="spinner-container">
         <div
@@ -251,19 +271,39 @@
     </div>
     <button
       class="add-to-cart-btn"
-      [disabled]="isAddToCartDisabled()"
+      [disabled]="(spinnerIsLoading$ | async).buy || isAddToCartDisabled()"
       [class.add-success]="addSuccess"
       (click)="onAddToCart()"
-    >
-      ADD TO CART
-    </button>
-    <button class="buy-now-btn" (click)="onBuyItNow()">
-      @if (spinnerIsLoading$ | async) {
-      <div
-        class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-      ></div>
+      [class]="{
+        '!bg-gray-500': (spinnerIsLoading$ | async).buy,
+        '!cursor-default': (spinnerIsLoading$ | async).buy,
 
-      }@else { BUY IT NOW }
+      }"
+    >
+      @if((spinnerIsLoading$ | async).add){
+      <div class="spinner-container">
+        <div
+          class="block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+      </div>
+      }@else { ADD TO CART }
+    </button>
+    <button
+      class="buy-now-btn"
+      (click)="onBuyItNow()"
+      [disabled]="(spinnerIsLoading$ | async).add"
+      [class]="{
+        '!bg-gray-500': (spinnerIsLoading$ | async).add,
+        '!cursor-default': (spinnerIsLoading$ | async).add,
+      }"
+    >
+      @if ((spinnerIsLoading$ | async).buy) {
+      <div class="spinner-container">
+        <div
+          class="block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+      </div>
+      } @else { BUY IT NOW }
     </button>
   </div>
 </div>
