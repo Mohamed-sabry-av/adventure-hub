@@ -1,5 +1,7 @@
-<footer class="bg-[#212122] text-[#fbfbfb] py-[64px]">
-  <div class="flex justify-center items-start gap-x-8">
+<footer class="bg-[#212122] text-[#fbfbfb] pb-8 pt-[64px] overflow-hidden">
+  <div
+    class="flex md:flex-row flex-col justify-center items-start gap-8 md:ml-0 ml-8"
+  >
     <div>
       <p class="main-page">about</p>
       <ul>
@@ -12,25 +14,27 @@
       <p class="main-page">help</p>
       <ul>
         <li>
-          <a> My Account </a>
+          <a [routerLink]="['/user']"> My Account </a>
         </li>
         <li>
-          <a> About Us </a>
+          <a [routerLink]="['pages', 'about-us']"> About Us </a>
         </li>
         <li>
-          <a> Contact Us </a>
+          <a [routerLink]="['pages', 'contact-us']"> Contact Us </a>
         </li>
         <li>
-          <a> Terms and Conditions </a>
+          <a [routerLink]="['pages', 'terms']"> Terms and Conditions </a>
         </li>
         <li>
-          <a> Return &amp; Refund Policy </a>
+          <a [routerLink]="['pages', 'return-Policy']">
+            Return &amp; Refund Policy
+          </a>
         </li>
         <li>
-          <a> Cookies Policy </a>
+          <a [routerLink]="['pages', 'Cookies-Policy']"> Cookies Policy </a>
         </li>
         <li>
-          <a> Vendor Dashboard </a>
+          <a [routerLink]="['pages', 'vendor-dashboard']"> Vendor Dashboard </a>
         </li>
       </ul>
     </div>
@@ -39,17 +43,80 @@
       <ul>
         <li class="social-link">
           <i class="pi pi-facebook"></i>
-          <a>Facebook</a>
+          <a href="https://www.facebook.com/adventureshubme" target="_blank"
+            >Facebook</a
+          >
         </li>
         <li class="social-link">
           <i class="pi pi-instagram"></i>
-          <a>Instagram</a>
+          <a
+            href="https://www.instagram.com/adventures_hub_dxb/"
+            target="_blank"
+            >Instagram</a
+          >
         </li>
         <li class="social-link">
           <i class="pi pi-youtube"></i>
-          <a>Youtube</a>
+          <a href="https://www.youtube.com/@adventures-hub" target="_blank"
+            >Youtube</a
+          >
+        </li>
+        <li class="main-page !text-white">Send a message</li>
+        <li class="social-link !-mt-1">
+          <a
+            href="['https://m.me/adventureshubme']"
+            target="_blank"
+            class="no-style"
+          >
+            <img
+              class="social-image"
+              data-src="https://adventures-hub.com/wp-content/uploads/2023/03/messenger-icon.svg"
+              alt="messenger-icon"
+              src="https://adventures-hub.com/wp-content/uploads/2023/03/messenger-icon.svg"
+            />
+          </a>
+
+          <a
+            href="'https://web.whatsapp.com/send?phone=+971508388874'"
+            target="_blank"
+            class="no-style"
+          >
+            <img
+              class="social-image"
+              data-src="https://adventures-hub.com/wp-content/uploads/2023/03/whatsapp-icon.svg"
+              alt="whatsapp-icon"
+              src="https://adventures-hub.com/wp-content/uploads/2023/03/whatsapp-icon.svg"
+            />
+          </a>
         </li>
       </ul>
+    </div>
+  </div>
+
+  <!-- Brands -->
+
+  <div class="w-full md:ml-0 ml-8">
+    <p class="main-page md:!text-center !mt-8">shop by brand</p>
+    <div
+      class="flex md:flex-row flex-col md:gap-0 gap-6 md:mt-0 mt-4 items-start md:items-center justify-around"
+    >
+      <p>© Adventures HUB {{ currentYear }}, All rights reserved.</p>
+      <div
+        class="flex flex-wrap flex-row md:flex-col lg:flex-row items-center gap-5"
+      >
+        <img
+          class="credit-image"
+          data-src="/wp-content/uploads/2024/11/positivessl_trust_seal_lg.png"
+          alt="positivessl_trust_seal_lg"
+          src="https://adventures-hub.com//wp-content/uploads/2024/11/positivessl_trust_seal_lg.png"
+        />
+        <img
+          class="credit-image"
+          data-src="https://themedemo.commercegurus.com/shoptimizer-demodata/wp-content/uploads/sites/53/2018/05/credit-cards.png"
+          alt="credit-cards"
+          src="https://themedemo.commercegurus.com/shoptimizer-demodata/wp-content/uploads/sites/53/2018/05/credit-cards.png"
+        />
+      </div>
     </div>
   </div>
 </footer>
