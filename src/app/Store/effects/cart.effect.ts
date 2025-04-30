@@ -15,9 +15,14 @@ import {
   updateProductOfUserCartAction,
 } from '../actions/cart.action';
 import { getCouponDataAction } from '../actions/checkout.action';
-import { cartStatusAction } from '../actions/ui.action';
+import {
+  cartStatusAction,
+  startLoadingSpinnerAction,
+  stopLoadingSpinnerAction,
+} from '../actions/ui.action';
 import { UIService } from '../../shared/services/ui.service';
 import { Router } from '@angular/router';
+import { SideOptionsService } from '../../core/services/side-options.service';
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -26,6 +31,7 @@ export class CartEffect {
   private cartService = inject(CartService);
   private uiService = inject(UIService);
   private router = inject(Router);
+  private sideOptionsService = inject(SideOptionsService);
 
   syncOfflineCartToLive = createEffect(() =>
     this.actions$.pipe(
@@ -69,6 +75,10 @@ export class CartEffect {
       ofType(addProductToUserCartAction),
       switchMap(({ product, isLoggedIn, buyItNow }) => {
         console.log('From Effect', product);
+        if (buyItNow) {
+          console.log('Hello');
+          this.store.dispatch(startLoadingSpinnerAction());
+        }
 
         const apiUrl = isLoggedIn
           ? 'https://adventures-hub.com/wp-json/custom/v1/cart/add'
@@ -92,8 +102,7 @@ export class CartEffect {
 
         return requestMethod.pipe(
           map((response: any) => {
-            console.log(response);
-
+            this.sideOptionsService.closeSideOptions();
             if (isLoggedIn) {
               console.log('Product Added To Cart Online');
               response.items = response.items.map((item: any) => {
@@ -107,6 +116,7 @@ export class CartEffect {
               });
 
               if (buyItNow) {
+                this.store.dispatch(stopLoadingSpinnerAction());
                 this.router.navigateByUrl('/checkout', { replaceUrl: true });
                 return getUserCartAction({ userCart: response });
               } else {
@@ -114,7 +124,6 @@ export class CartEffect {
                 return getUserCartAction({ userCart: response });
               }
             } else {
-              console.log(buyItNow);
               const stockQuantity = response.stock_quantity || 0;
               const quantityLimits = response.quantity_limits || {
                 minimum: 1,
@@ -184,6 +193,8 @@ export class CartEffect {
               );
 
               if (buyItNow) {
+                this.store.dispatch(stopLoadingSpinnerAction());
+
                 this.router.navigateByUrl('/checkout', { replaceUrl: true });
                 return fetchUserCartAction({
                   isLoggedIn: false,
@@ -202,6 +213,8 @@ export class CartEffect {
             }
           }),
           catchError((error: any) => {
+            this.store.dispatch(stopLoadingSpinnerAction());
+
             console.log('Error in adding product to cart:', error);
             this.uiService.showError(
               error.error?.message

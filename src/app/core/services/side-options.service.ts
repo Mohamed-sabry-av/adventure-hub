@@ -7,7 +7,7 @@ export interface SideOptionsState {
   product: Product | null;
   selectedVariation: Variation | null;
   uniqueSizes: { size: string; inStock: boolean }[];
-  selectedSize: string | null ;
+  selectedSize: string | null;
   colorOptions: { color: string; image: string; inStock: boolean }[];
   selectedColor: string | null;
   visibleColors: { color: string; image: string; inStock: boolean }[];
@@ -16,7 +16,7 @@ export interface SideOptionsState {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SideOptionsService {
   private initialState: SideOptionsState = {
@@ -29,10 +29,12 @@ export class SideOptionsService {
     selectedColor: null,
     visibleColors: [],
     isMobile: false,
-    variations: []
+    variations: [],
   };
 
-  private stateSubject = new BehaviorSubject<SideOptionsState>(this.initialState);
+  private stateSubject = new BehaviorSubject<SideOptionsState>(
+    this.initialState
+  );
 
   get state$(): Observable<SideOptionsState> {
     return this.stateSubject.asObservable();
@@ -43,39 +45,46 @@ export class SideOptionsService {
   }
 
   openSideOptions(options: Partial<SideOptionsState>): void {
-    const selectedColor = options.selectedColor || this.currentState.selectedColor;
-    const uniqueSizes = this.getSizesForColor(selectedColor || '', options.variations || []);
+    const selectedColor =
+      options.selectedColor || this.currentState.selectedColor;
+    const uniqueSizes = this.getSizesForColor(
+      selectedColor || '',
+      options.variations || []
+    );
     this.stateSubject.next({
       ...this.initialState,
       isOpen: true,
       ...options,
-      uniqueSizes: uniqueSizes
+      uniqueSizes: uniqueSizes,
     });
   }
 
   closeSideOptions(): void {
     this.stateSubject.next({
       ...this.currentState,
-      isOpen: false
+      isOpen: false,
     });
   }
 
   updateOptions(options: Partial<SideOptionsState>): void {
     this.stateSubject.next({
       ...this.currentState,
-      ...options
+      ...options,
     });
   }
 
   selectSize(size: string): void {
     this.stateSubject.next({
       ...this.currentState,
-      selectedSize: size
+      selectedSize: size,
     });
   }
 
   selectColor(color: string, image: string): void {
-    const uniqueSizes = this.getSizesForColor(color, this.currentState.variations);
+    const uniqueSizes = this.getSizesForColor(
+      color,
+      this.currentState.variations
+    );
     let newSelectedSize = this.currentState.selectedSize;
 
     // Check if the current selected size is still available
@@ -91,7 +100,7 @@ export class SideOptionsService {
       ...this.currentState,
       selectedColor: color,
       uniqueSizes: uniqueSizes,
-      selectedSize: newSelectedSize
+      selectedSize: newSelectedSize,
     });
   }
 

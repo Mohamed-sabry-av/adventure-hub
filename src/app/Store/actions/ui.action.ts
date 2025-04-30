@@ -1,5 +1,8 @@
 import { createAction, props } from '@ngrx/store';
 
+export const startLoadingSpinnerAction = createAction('[UI] Start Loading');
+export const stopLoadingSpinnerAction = createAction('[UI] Stop Loading');
+
 export const startLoadingCouponAction = createAction('[Coupon] Start Loading');
 export const stopLoadingCouponAction = createAction('[Coupon] Stop Loading');
 

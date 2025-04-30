@@ -1,16 +1,23 @@
 <div class="product-info">
-  <h1 class="text-5xl font-medium text-olive mb-4">{{ productInfo()?.name }}</h1>
+  <h1 class="text-3xl font-medium text-olive mb-4">
+    {{ productInfo()?.name }}
+  </h1>
 
   <div class="flex items-baseline mb-4">
     <span class="text-2xl font-bold">{{ getPriceInfo().price }} AED</span>
-    <span class="text-gray-500 line-through ml-2" *ngIf="getPriceInfo().isOnSale">
+    <span
+      class="text-gray-500 line-through ml-2"
+      *ngIf="getPriceInfo().isOnSale"
+    >
       {{ getPriceInfo().regularPrice }} AED
     </span>
   </div>
 
   <div class="product-brand" *ngIf="brandName !== 'brand'">
     <span class="brand-label">Brand:</span>
-    <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
+    <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{
+      brandName
+    }}</a>
   </div>
 
   <!-- Stock Status Message for Completely Out of Stock -->
@@ -32,28 +39,44 @@
             [class.out-of-stock]="!option.inStock"
             (click)="option.inStock && selectAttribute('Color', option.value)"
           >
-            <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'" [title]="option.value"></div>
+            <div
+              class="color-swatch"
+              [style.background-image]="'url(' + option.image + ')'"
+              [title]="option.value"
+            ></div>
             <span class="color-name">{{ option.value }}</span>
-            <span class="out-of-stock-badge" *ngIf="!option.inStock">Out of Stock</span>
+            <span class="out-of-stock-badge" *ngIf="!option.inStock"
+              >Out of Stock</span
+            >
           </div>
         </div>
       </div>
     </ng-container>
 
     <!-- Size Options (Filtered by Selected Color, including out of stock) -->
-    <ng-container *ngIf="getVariationOptions('Size', selectedAttributes['Color']).length">
+    <ng-container
+      *ngIf="getVariationOptions('Size', selectedAttributes['Color']).length"
+    >
       <div class="product-option">
         <label class="option-label">Size</label>
         <div class="size-options">
           <div
-            *ngFor="let option of getVariationOptions('Size', selectedAttributes['Color']); let i = index"
+            *ngFor="
+              let option of getVariationOptions(
+                'Size',
+                selectedAttributes['Color']
+              );
+              let i = index
+            "
             class="size-option"
             [class.active]="selectedAttributes['Size'] === option.value"
             [class.out-of-stock]="!option.inStock"
             (click)="option.inStock && selectAttribute('Size', option.value)"
           >
             {{ option.value }}
-            <span class="out-of-stock-badge" *ngIf="!option.inStock">Out of Stock</span>
+            <span class="out-of-stock-badge" *ngIf="!option.inStock"
+              >Out of Stock</span
+            >
           </div>
         </div>
       </div>
@@ -61,18 +84,43 @@
   </div>
 
   <!-- Prompt to Select Variation -->
-  <div *ngIf="!allVariationAttributesSelected && !isCompletelyOutOfStock && productInfo()?.type === 'variable'">
-    <span class="text-gray-500">Please select all options to check availability</span>
+  <div
+    *ngIf="
+      !allVariationAttributesSelected &&
+      !isCompletelyOutOfStock &&
+      productInfo()?.type === 'variable'
+    "
+  >
+    <span class="text-gray-500"
+      >Please select all options to check availability</span
+    >
   </div>
 
   <!-- Quantity Controls and Add to Cart / Buy Now Buttons -->
-  <div *ngIf="(allVariationAttributesSelected || productInfo()?.type === 'simple') && isProductInStock">
+  <div
+    *ngIf="
+      (allVariationAttributesSelected || productInfo()?.type === 'simple') &&
+      isProductInStock
+    "
+  >
     <div class="product-option">
       <label class="option-label">Quantity</label>
       <div class="quantity-control">
-        <button class="quantity-btn" (click)="onQuantityDown()" [disabled]="quantity <= 1">-</button>
+        <button
+          class="quantity-btn"
+          (click)="onQuantityDown()"
+          [disabled]="quantity <= 1"
+        >
+          -
+        </button>
         <span class="quantity-display">{{ quantity }}</span>
-        <button class="quantity-btn" (click)="onQuantityUp()" [disabled]="quantity >= maxLength">+</button>
+        <button
+          class="quantity-btn"
+          (click)="onQuantityUp()"
+          [disabled]="quantity >= maxLength"
+        >
+          +
+        </button>
       </div>
       <span class="text-sm text-gray-500 ml-2" *ngIf="maxLength > 0">
         {{ maxLength }} items available
@@ -82,18 +130,15 @@
     <!-- Cart and Buy Buttons -->
     <div class="flex mt-6 mb-4">
       <div class="action-buttons">
-        <button
-          class="cart-btn"
-          (click)="addToCart()"
-        >
-          ADD TO CART
-        </button>
+        <button class="cart-btn" (click)="addToCart()">ADD TO CART</button>
 
-        <button
-          class="buy-btn"
-          (click)="buyNow()"
-        >
-          BUY IT NOW
+        <button class="buy-btn" (click)="buyNow()">
+          @if (isSpinnerLoading$ | async) {
+          <div
+            class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+          ></div>
+
+          }@else { BUY IT NOW }
         </button>
       </div>
 
@@ -111,9 +156,21 @@
     <div class="payment-options">
       <div class="payment-title">Pay with</div>
       <div class="payment-methods">
-        <img src="https://ext.same-assets.com/1752825376/3628814952.png" alt="Tabby" class="payment-icon">
-        <img src="https://ext.same-assets.com/1752825376/2635905792.png" alt="Card" class="payment-icon">
-        <img src="https://ext.same-assets.com/1687448576/8956612608.png" alt="Google Pay" class="payment-icon">
+        <img
+          src="https://ext.same-assets.com/1752825376/3628814952.png"
+          alt="Tabby"
+          class="payment-icon"
+        />
+        <img
+          src="https://ext.same-assets.com/1752825376/2635905792.png"
+          alt="Card"
+          class="payment-icon"
+        />
+        <img
+          src="https://ext.same-assets.com/1687448576/8956612608.png"
+          alt="Google Pay"
+          class="payment-icon"
+        />
       </div>
     </div>
 
@@ -121,16 +178,38 @@
     <div class="social-share">
       <h3 class="share-title">Share Product</h3>
       <div class="share-buttons">
-        <a [href]="getFacebookShareUrl()" target="_blank" rel="noopener noreferrer" class="share-button facebook" aria-label="Share on Facebook">
+        <a
+          [href]="getFacebookShareUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-button facebook"
+          aria-label="Share on Facebook"
+        >
           <i class="pi pi-facebook"></i>
         </a>
-        <a [href]="getTwitterShareUrl()" target="_blank" rel="noopener noreferrer" class="share-button twitter" aria-label="Share on Twitter">
+        <a
+          [href]="getTwitterShareUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-button twitter"
+          aria-label="Share on Twitter"
+        >
           <i class="pi pi-twitter"></i>
         </a>
-        <a [href]="getWhatsAppShareUrl()" target="_blank" rel="noopener noreferrer" class="share-button whatsapp" aria-label="Share on WhatsApp">
+        <a
+          [href]="getWhatsAppShareUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-button whatsapp"
+          aria-label="Share on WhatsApp"
+        >
           <i class="pi pi-whatsapp"></i>
         </a>
-        <a (click)="copyProductLink($event)" class="share-button copy-link" aria-label="Copy product link">
+        <a
+          (click)="copyProductLink($event)"
+          class="share-button copy-link"
+          aria-label="Copy product link"
+        >
           <i class="pi pi-link"></i>
           <span *ngIf="linkCopied" class="copy-toast">Link copied!</span>
         </a>
@@ -139,18 +218,40 @@
   </div>
 
   <!-- Out of Stock for Selected Variation -->
-  <div *ngIf="allVariationAttributesSelected && !isProductInStock && !isCompletelyOutOfStock">
+  <div
+    *ngIf="
+      allVariationAttributesSelected &&
+      !isProductInStock &&
+      !isCompletelyOutOfStock
+    "
+  >
     <span class="text-red-500 font-medium">This variation is out of stock</span>
   </div>
 
   <!-- Wishlist message -->
-  <div *ngIf="wishlistMessage" class="mt-2 text-sm" [class.text-green-500]="wishlistSuccess" [class.text-red-500]="!wishlistSuccess">
+  <div
+    *ngIf="wishlistMessage"
+    class="mt-2 text-sm"
+    [class.text-green-500]="wishlistSuccess"
+    [class.text-red-500]="!wishlistSuccess"
+  >
     {{ wishlistMessage }}
   </div>
 
-  <div *ngIf="isProductInStock" class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
+  <div
+    *ngIf="isProductInStock"
+    class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between"
+  >
     <div>
-      <p class="text-sm">4 interest-free payments or as low as <strong>AED {{ (parseFloatValue(getPriceInfo().price) / 10.45).toFixed(2) }}/month</strong></p>
+      <p class="text-sm">
+        4 interest-free payments or as low as
+        <strong
+          >AED
+          {{
+            (parseFloatValue(getPriceInfo().price) / 10.45).toFixed(2)
+          }}/month</strong
+        >
+      </p>
       <p class="text-sm text-gray-500">More options</p>
     </div>
     <img
@@ -162,16 +263,20 @@
 
   <div class="mt-6 flex flex-col gap-y-1">
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping in UAE For orders above AED 100.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping
+      in UAE For orders above AED 100.
     </p>
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> 7 days easy returns.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> 7 days easy
+      returns.
     </p>
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery within 1-2 working days.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery
+      within 1-2 working days.
     </p>
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide shipping.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide
+      shipping.
     </p>
   </div>
 </div>

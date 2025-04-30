@@ -3,17 +3,26 @@
   *ngIf="state.isOpen"
   class="panel-backdrop"
   [class.active]="state.isOpen"
-  (click)="closeSideOptions()">
-</div>
+  (click)="closeSideOptions()"
+></div>
 
 <!-- Product Options Side Panel for Desktop -->
 <div
   *ngIf="state.isOpen && !state.isMobile"
   class="options-side-panel"
-  [@slideInFromRight]>
+  [@slideInFromRight]
+>
   <div class="options-panel-header">
     <div class="close-button" (click)="closeSideOptions()">
-      <svg class="close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        class="close-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
@@ -27,10 +36,14 @@
         <p class="product-sku" *ngIf="getSKU()">SKU: {{ getSKU() }}</p>
         <div class="product-price">
           <span class="current-price">{{ getCurrentPrice() }}</span>
-          <span class="old-price" *ngIf="getOldPrice()">{{ getOldPrice() }}</span>
+          <span class="old-price" *ngIf="getOldPrice()">{{
+            getOldPrice()
+          }}</span>
         </div>
         <p class="tax-info">VAT included</p>
-        <a class="view-details-link" (click)="viewProductDetails()">View details</a>
+        <a class="view-details-link" (click)="viewProductDetails()"
+          >View details</a
+        >
       </div>
     </div>
   </div>
@@ -38,18 +51,25 @@
   <!-- Options Selection -->
   <div class="options-selection">
     <!-- Color Options -->
-    <div class="option-section" *ngIf="state.colorOptions && state.colorOptions.length > 0">
+    <div
+      class="option-section"
+      *ngIf="state.colorOptions && state.colorOptions.length > 0"
+    >
       <h5 class="option-title">Color</h5>
       <div class="color-options">
         <div
           *ngFor="let color of state.colorOptions"
           class="color-swatch"
           [class.selected]="state.selectedColor === color.color"
-          [class.out-of-stock]="!color.inStock">
-          <div class="color-inner"
-               [style.background-image]="color.image ? 'url(' + color.image + ')' : 'none'"
-               (click)="selectColor(color.color, color.image)">
-          </div>
+          [class.out-of-stock]="!color.inStock"
+        >
+          <div
+            class="color-inner"
+            [style.background-image]="
+              color.image ? 'url(' + color.image + ')' : 'none'
+            "
+            (click)="selectColor(color.color, color.image)"
+          ></div>
           <span class="color-name">{{ color.color }}</span>
         </div>
       </div>
@@ -65,7 +85,8 @@
           [class.selected]="state.selectedSize === size.size"
           [class.out-of-stock]="!size.inStock"
           [disabled]="!size.inStock"
-          (click)="selectSize(size.size)">
+          (click)="selectSize(size.size)"
+        >
           {{ size.size }}
         </button>
       </div>
@@ -78,7 +99,8 @@
       <button
         class="quantity-btn decrease"
         (click)="decreaseQuantity()"
-        [disabled]="quantity <= 1">
+        [disabled]="quantity <= 1"
+      >
         <span>−</span>
       </button>
       <input
@@ -86,10 +108,9 @@
         class="quantity-input"
         [value]="quantity"
         min="1"
-        (change)="onQuantityChange($event)">
-      <button
-        class="quantity-btn increase"
-        (click)="increaseQuantity()">
+        (change)="onQuantityChange($event)"
+      />
+      <button class="quantity-btn increase" (click)="increaseQuantity()">
         <span>+</span>
       </button>
     </div>
@@ -97,10 +118,18 @@
       class="add-to-cart-btn"
       [disabled]="isAddToCartDisabled()"
       [class.add-success]="addSuccess"
-      (click)="onAddToCart()">
+      (click)="onAddToCart()"
+    >
       ADD TO CART
     </button>
-    <button class="buy-now-btn">BUY IT NOW</button>
+    <button class="buy-now-btn text-center" (click)="onBuyItNow()">
+      @if (spinnerIsLoading$ | async) {
+      <div
+        class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white text-center"
+      ></div>
+
+      }@else { BUY IT NOW }
+    </button>
   </div>
 </div>
 
@@ -108,11 +137,20 @@
 <div
   *ngIf="state.isOpen && state.isMobile"
   class="mobile-options-panel"
-  [@slideUpFromBottom]>
+  [@slideUpFromBottom]
+>
   <div class="mobile-panel-header">
     <div class="pull-handle"></div>
     <div class="close-button" (click)="closeSideOptions()">
-      <svg class="close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        class="close-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
@@ -126,10 +164,14 @@
         <p class="product-sku" *ngIf="getSKU()">SKU: {{ getSKU() }}</p>
         <div class="product-price">
           <span class="current-price">{{ getCurrentPrice() }}</span>
-          <span class="old-price" *ngIf="getOldPrice()">{{ getOldPrice() }}</span>
+          <span class="old-price" *ngIf="getOldPrice()">{{
+            getOldPrice()
+          }}</span>
         </div>
         <p class="tax-info">VAT included</p>
-        <a class="view-details-link" (click)="viewProductDetails()">View details</a>
+        <a class="view-details-link" (click)="viewProductDetails()"
+          >View details</a
+        >
       </div>
     </div>
   </div>
@@ -137,18 +179,25 @@
   <!-- Mobile Options Selection -->
   <div class="options-selection">
     <!-- Color Options -->
-    <div class="option-section" *ngIf="state.colorOptions && state.colorOptions.length > 0">
+    <div
+      class="option-section"
+      *ngIf="state.colorOptions && state.colorOptions.length > 0"
+    >
       <h5 class="option-title">Color</h5>
       <div class="color-options">
         <div
           *ngFor="let color of state.colorOptions"
           class="color-swatch"
           [class.selected]="state.selectedColor === color.color"
-          [class.out-of-stock]="!color.inStock">
-          <div class="color-inner"
-               [style.background-image]="color.image ? 'url(' + color.image + ')' : 'none'"
-               (click)="selectColor(color.color, color.image)">
-          </div>
+          [class.out-of-stock]="!color.inStock"
+        >
+          <div
+            class="color-inner"
+            [style.background-image]="
+              color.image ? 'url(' + color.image + ')' : 'none'
+            "
+            (click)="selectColor(color.color, color.image)"
+          ></div>
           <span class="color-name">{{ color.color }}</span>
         </div>
       </div>
@@ -164,7 +213,8 @@
           [class.selected]="state.selectedSize === size.size"
           [class.out-of-stock]="!size.inStock"
           [disabled]="!size.inStock"
-          (click)="selectSize(size.size)">
+          (click)="selectSize(size.size)"
+        >
           {{ size.size }}
         </button>
       </div>
@@ -177,7 +227,8 @@
       <button
         class="quantity-btn decrease"
         (click)="decreaseQuantity()"
-        [disabled]="quantity <= 1">
+        [disabled]="quantity <= 1"
+      >
         <span>−</span>
       </button>
       <input
@@ -185,10 +236,9 @@
         class="quantity-input"
         [value]="quantity"
         min="1"
-        (change)="onQuantityChange($event)">
-      <button
-        class="quantity-btn increase"
-        (click)="increaseQuantity()">
+        (change)="onQuantityChange($event)"
+      />
+      <button class="quantity-btn increase" (click)="increaseQuantity()">
         <span>+</span>
       </button>
     </div>
@@ -196,7 +246,8 @@
       class="add-to-cart-btn"
       [disabled]="isAddToCartDisabled()"
       [class.add-success]="addSuccess"
-      (click)="onAddToCart()">
+      (click)="onAddToCart()"
+    >
       ADD TO CART
     </button>
     <button class="buy-now-btn">BUY IT NOW</button>

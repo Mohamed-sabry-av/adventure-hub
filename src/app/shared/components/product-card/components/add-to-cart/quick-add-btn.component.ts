@@ -1,4 +1,14 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  OnInit,
+  Inject,
+  PLATFORM_ID,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { SizeSelectorComponent } from '../size-selector/size-selector.component';
@@ -21,26 +31,25 @@ import { SideOptionsService } from '../../../../../core/services/side-options.se
         style({ opacity: 0 }),
         animate('300ms ease-in', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ]),
+      transition(':leave', [animate('300ms ease-out', style({ opacity: 0 }))]),
     ]),
   ],
 })
 export class MobileQuickAddComponent implements OnInit {
   @Input() uniqueSizes: { size: string; inStock: boolean }[] = [];
   @Input() selectedSize: string | null = null;
-  @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
+  @Input() colorOptions: { color: string; image: string; inStock: boolean }[] =
+    [];
   @Input() selectedColor: string | null = null;
   @Input() mobileQuickAddExpanded: boolean = false;
   @Input() isMobile: boolean = false;
   @Input() isHovered: boolean = false;
-  @Input() visibleColors: { color: string; image: string; inStock: boolean }[] = [];
+  @Input() visibleColors: { color: string; image: string; inStock: boolean }[] =
+    [];
   @Input() product: Product | null = null;
   @Input() selectedVariation: any | null = null;
   @Input() variations: Variation[] = [];
 
-  
   @Output() toggleMobileQuickAdd = new EventEmitter<void>();
   @Output() selectSize = new EventEmitter<string>();
   @Output() selectColor = new EventEmitter<{ color: string; image: string }>();
@@ -68,7 +77,7 @@ export class MobileQuickAddComponent implements OnInit {
       colorOptions: this.colorOptions,
       selectedColor: this.selectedColor,
       visibleColors: this.visibleColors,
-      isMobile: this.isMobile
+      isMobile: this.isMobile,
     });
   }
 }

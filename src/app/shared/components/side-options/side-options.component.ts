@@ -6,8 +6,9 @@ import {
   Inject,
   PLATFORM_ID,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AsyncPipe, CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
@@ -16,12 +17,13 @@ import {
 } from '../../../core/services/side-options.service';
 import { CartService } from '../../../features/cart/service/cart.service';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
+import { UIService } from '../../services/ui.service';
 
 @Component({
   selector: 'app-side-options',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AsyncPipe],
   templateUrl: './side-options.component.html',
   styleUrls: ['./side-options.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,6 +85,9 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   quantity: number = 1;
   addSuccess: boolean = false;
   private destroy$ = new Subject<void>();
+  private uiService = inject(UIService);
+
+  spinnerIsLoading$: Observable<boolean> = this.uiService.isSpinnerLoading$;
 
   constructor(
     private sideOptionsService: SideOptionsService,
@@ -118,7 +123,7 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     this.sideOptionsService.selectColor(color, image);
   }
 
-  onAddToCart(): void {
+  onAddToCart(buyItNow?: boolean): void {
     if (this.isAddToCartDisabled()) return;
 
     if (!this.state.product) return;
@@ -138,10 +143,7 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     };
 
     // Call addProductToCart
-    this.cartService.addProductToCart(productToAdd);
-
-    // Close side options
-    this.closeSideOptions();
+    this.cartService.addProductToCart(productToAdd, buyItNow);
 
     // Show success indication
     this.addSuccess = true;
@@ -270,5 +272,10 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
       this.router.navigate(['/product', this.state.product.id]);
       this.closeSideOptions();
     }
+  }
+
+  onBuyItNow() {
+    const buyItNow = true;
+    this.onAddToCart(buyItNow);
   }
 }

@@ -2,22 +2,24 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
+  inject,
   input,
   Output,
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { CartService } from '../../../cart/service/cart.service';
 import { WishlistComponent } from '../../../auth/account-details/components/wishlist/wishlist.component';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
+import { UIService } from '../../../../shared/services/ui.service';
 
 declare var _learnq: any;
 
 @Component({
   selector: 'app-product-info',
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, AsyncPipe],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +37,9 @@ export class ProductInfoComponent {
   wishlistMessage: string | null = null;
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
+  private uiService = inject(UIService);
+
+  isSpinnerLoading$: Observable<boolean> = this.uiService.isSpinnerLoading$;
 
   @Output() selectedAttributeChange = new EventEmitter<{
     name: string;
