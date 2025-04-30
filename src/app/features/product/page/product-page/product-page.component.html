@@ -78,6 +78,7 @@
   <!-- Related Products -->
   @if (productData?.related_ids) {
     <app-product-related [relatedIds]="productData.related_ids" class="relatedProducts" />
+    <app-recent-products-mini></app-recent-products-mini>
   } @else {
     <!-- Skeleton grid for related products -->
     <div class="carousel-container">
@@ -88,6 +89,5 @@
   }
 
   <!-- Recently Viewed Products -->
-  <app-recent-products-mini></app-recent-products-mini>
 </app-app-container>
 <app-dialog-error />

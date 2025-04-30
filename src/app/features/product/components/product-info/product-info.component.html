@@ -2,10 +2,12 @@
   <h1 class="text-5xl font-medium text-olive mb-4">{{ productInfo()?.name }}</h1>
 
   <div class="flex items-baseline mb-4">
-    <span class="text-2xl font-bold">{{ getPriceInfo().price }} AED</span>
-    <span class="text-gray-500 line-through ml-2" *ngIf="getPriceInfo().isOnSale">
-      {{ getPriceInfo().regularPrice }} AED
-    </span>
+    <span class="text-2xl font-bold" [innerHtml]="getPriceInfo().price | currencySvg"></span>
+    <span
+      class="text-gray-500 line-through ml-2"
+      *ngIf="getPriceInfo().isOnSale"
+      [innerHtml]="getPriceInfo().regularPrice | currencySvg"
+    ></span>
   </div>
 
   <div class="product-brand" *ngIf="brandName !== 'brand'">
@@ -82,19 +84,8 @@
     <!-- Cart and Buy Buttons -->
     <div class="flex mt-6 mb-4">
       <div class="action-buttons">
-        <button
-          class="cart-btn"
-          (click)="addToCart()"
-        >
-          ADD TO CART
-        </button>
-
-        <button
-          class="buy-btn"
-          (click)="buyNow()"
-        >
-          BUY IT NOW
-        </button>
+        <button class="cart-btn" (click)="addToCart()">ADD TO CART</button>
+        <button class="buy-btn" (click)="buyNow()">BUY IT NOW</button>
       </div>
 
       <button
@@ -121,13 +112,31 @@
     <div class="social-share">
       <h3 class="share-title">Share Product</h3>
       <div class="share-buttons">
-        <a [href]="getFacebookShareUrl()" target="_blank" rel="noopener noreferrer" class="share-button facebook" aria-label="Share on Facebook">
+        <a
+          [href]="getFacebookShareUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-button facebook"
+          aria-label="Share on Facebook"
+        >
           <i class="pi pi-facebook"></i>
         </a>
-        <a [href]="getTwitterShareUrl()" target="_blank" rel="noopener noreferrer" class="share-button twitter" aria-label="Share on Twitter">
+        <a
+          [href]="getTwitterShareUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-button twitter"
+          aria-label="Share on Twitter"
+        >
           <i class="pi pi-twitter"></i>
         </a>
-        <a [href]="getWhatsAppShareUrl()" target="_blank" rel="noopener noreferrer" class="share-button whatsapp" aria-label="Share on WhatsApp">
+        <a
+          [href]="getWhatsAppShareUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-button whatsapp"
+          aria-label="Share on WhatsApp"
+        >
           <i class="pi pi-whatsapp"></i>
         </a>
         <a (click)="copyProductLink($event)" class="share-button copy-link" aria-label="Copy product link">
@@ -144,13 +153,24 @@
   </div>
 
   <!-- Wishlist message -->
-  <div *ngIf="wishlistMessage" class="mt-2 text-sm" [class.text-green-500]="wishlistSuccess" [class.text-red-500]="!wishlistSuccess">
+  <div
+    *ngIf="wishlistMessage"
+    class="mt-2 text-sm"
+    [class.text-green-500]="wishlistSuccess"
+    [class.text-red-500]="!wishlistSuccess"
+  >
     {{ wishlistMessage }}
   </div>
 
-  <div *ngIf="isProductInStock" class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between">
+  <div
+    *ngIf="isProductInStock"
+    class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between"
+  >
     <div>
-      <p class="text-sm">4 interest-free payments or as low as <strong>AED {{ (parseFloatValue(getPriceInfo().price) / 10.45).toFixed(2) }}/month</strong></p>
+      <p class="text-sm">
+        4 interest-free payments or as low as
+        <strong [innerHtml]="(parseFloatValue(getPriceInfo().price) / 10.45).toFixed(2) | currencySvg"></strong>/month
+      </p>
       <p class="text-sm text-gray-500">More options</p>
     </div>
     <img

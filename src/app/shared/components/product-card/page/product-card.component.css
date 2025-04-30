@@ -38,7 +38,7 @@
 /* Responsive styles */
 @media (max-width: 767px) {
   .product-card {
-    min-height: 320px;
+    min-height: 120px;
     font-size: 0.9rem;
   }
 

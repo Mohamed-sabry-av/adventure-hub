@@ -468,13 +468,15 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   getBrandName(): any | null {
-    if (!this.product.meta_data) return null;
-
-    const brandMeta = this.product.meta_data.find(
-      (meta: any) => meta.key === '_brand' || meta.key === 'brand'
+    const brandAttr = this.product?.attributes?.find(
+      (attr: any) => attr.name === 'Brand'
     );
-
-    return brandMeta ? brandMeta.value : null;
+    const option = brandAttr?.options?.[0];
+    return option
+      ? typeof option === 'string'
+        ? option
+        : option.name || option.value || null
+      : null;
   }
 
   getBrandSlug(): string | null {

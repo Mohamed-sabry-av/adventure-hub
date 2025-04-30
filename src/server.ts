@@ -25,6 +25,10 @@ interface OrderData {
   billing: any;
   shipping: any;
   line_items: any[];
+  coupon_lines?: any[];
+  customer_id?: number;
+  meta_data?: any[];
+  total?:string
 }
 
 interface PaymentIntentRequest {
@@ -113,12 +117,15 @@ app.post(
             return res.json({ received: true });
           }
 
-          let orderData: OrderData;
+          let orderData: any;
           try {
             orderData = {
               billing: JSON.parse(paymentIntent.metadata['billing'] || '{}'),
               shipping: JSON.parse(paymentIntent.metadata['shipping'] || '{}'),
               line_items: JSON.parse(paymentIntent.metadata['line_items'] || '[]'),
+              coupon_lines: JSON.parse(paymentIntent.metadata['coupon_lines'] || '[]'), // إضافة coupon_lines
+              customer_id: JSON.parse(paymentIntent.metadata['customer_id'] || '0'),
+              meta_data: JSON.parse(paymentIntent.metadata['meta_data'] || '[]'),
             };
           } catch (parseError: any) {
             console.error(`Error parsing metadata: ${parseError.message}`);
@@ -126,7 +133,7 @@ app.post(
           }
 
           if (!orderData.billing || !orderData.shipping || !orderData.line_items.length) {
-            console.error('Incomplete order data in metadata');
+            console.error('Incomplete order data in metadata:', orderData);
             return res.status(400).json({ success: false, error: 'Missing order data' });
           }
 
@@ -137,16 +144,19 @@ app.post(
               `${WOOCOMMERCE_API_URL}/orders`,
               {
                 payment_method: 'stripe',
-                payment_method_title: 'كارت/محفظة رقمية',
+                payment_method_title: 'Credit Card / Digital Wallet',
                 set_paid: true,
                 billing: orderData.billing,
                 shipping: orderData.shipping,
                 line_items: orderData.line_items,
+                coupon_lines: orderData.coupon_lines || [], // إضافة coupon_lines
                 total: (paymentIntent.amount / 100).toString(),
                 transaction_id: paymentIntent.id,
                 status: isUAE ? 'processing' : 'on-hold',
                 date_paid: new Date().toISOString(),
-                customer_note: !isUAE ? 'مندوبنا هيتصل بيك عشان يظبط الشحن الدولي' : '',
+                customer_id: orderData.customer_id || 0,
+                meta_data: orderData.meta_data || [],
+                customer_note: !isUAE ? 'Our representative will contact you to arrange international shipping' : '',
               },
               WOOCOMMERCE_AUTH
             );
@@ -155,7 +165,8 @@ app.post(
               metadata: { orderId: orderResponse.data.id },
             });
 
-            console.log(`Order created: ${orderResponse.data.id}`);
+            console.log(`Stripe Order created: ${orderResponse.data.id}`);
+            console.log('Order response:', orderResponse.data);
             return res.json({ received: true });
           } catch (wooError: any) {
             console.error(`WooCommerce error: ${wooError.message}`, wooError.response?.data);
@@ -166,6 +177,7 @@ app.post(
         case 'payment_intent.payment_failed': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           console.log(`Payment failed: ${paymentIntent.id}`);
+          // Do not create an order on payment failure
           return res.json({ received: true });
         }
 
@@ -180,7 +192,7 @@ app.post(
   }
 );
 
-// Create Payment Intent
+// Create Payment Intent for Stripe payments
 app.post(
   '/api/payment/create-intent',
   async (req: express.Request<{}, {}, PaymentIntentRequest>, res: express.Response) => {
@@ -203,6 +215,9 @@ app.post(
           billing: JSON.stringify(orderData.billing),
           shipping: JSON.stringify(orderData.shipping),
           line_items: JSON.stringify(orderData.line_items),
+          coupon_lines: JSON.stringify(orderData.coupon_lines || []), // إضافة coupon_lines
+          customer_id: JSON.stringify(orderData.customer_id || 0),
+          meta_data: JSON.stringify(orderData.meta_data || []),
         },
       });
 
@@ -214,6 +229,64 @@ app.post(
     } catch (error: any) {
       console.error('Error creating Payment Intent:', error);
       return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+);
+
+// Create COD Order
+app.post(
+  '/api/orders',
+  async (req: express.Request<{}, {}, OrderData>, res: express.Response) => {
+    try {
+      const { billing, shipping, line_items, coupon_lines, total, customer_id, meta_data } = req.body;
+
+      // Validate the incoming order data
+      if (!billing || !shipping || !line_items || line_items.length === 0) {
+        return res.status(400).json({ success: false, error: 'Missing required order data' });
+      }
+
+      // Restrict COD to UAE only
+      const isUAE = billing.country?.toLowerCase() === 'ae';
+      if (!isUAE) {
+        return res.status(400).json({ success: false, error: 'Cash on Delivery is only available in the UAE' });
+      }
+
+      // Calculate total if not provided (optional, if needed by WooCommerce)
+      const calculatedTotal = total || line_items.reduce((sum: number, item: any) => {
+        return sum + (item.price * item.quantity || 0);
+      }, 0).toString();
+
+      // Create the order in WooCommerce
+      const orderResponse = await axios.post(
+        `${WOOCOMMERCE_API_URL}/orders`,
+        {
+          payment_method: 'cod',
+          payment_method_title: 'Cash on Delivery',
+          set_paid: false,
+          billing,
+          shipping,
+          line_items,
+          coupon_lines: coupon_lines || [], // إضافة coupon_lines
+          total: calculatedTotal,
+          status: 'processing', // Since COD is only for UAE, status is always 'processing'
+          customer_id: customer_id || 0,
+          meta_data: meta_data || [],
+          customer_note: '',
+        },
+        WOOCOMMERCE_AUTH
+      );
+
+      console.log(`COD Order created: ${orderResponse.data.id}`);
+      console.log('Order response:', orderResponse.data);
+
+      // Return the order ID for redirection
+      return res.json({
+        success: true,
+        id: orderResponse.data.id,
+      });
+    } catch (error: any) {
+      console.error('Error creating COD order:', error.message, error.response?.data);
+      return res.status(500).json({ success: false, error: 'Failed to create COD order' });
     }
   }
 );

@@ -1,109 +1,110 @@
-@if ((loadedOrder$ | async).id) {
+@if ((loadedOrder$ | async)) {
+  @if ((loadedOrder$ | async)?.id) {
+  <main>
+    <!-- Order Details -->
+    <section>
+      <!-- Table Of Data -->
+      <div class="py-8 px-20 shadow-md border border-[#e2e2e2] rounded-lg mb-12">
+        <h2 class="text-3xl font-semibold">Order details</h2>
 
-<main>
-  <!-- Order Details -->
-  <section>
-    <!-- Table Of Data -->
-    <div class="py-8 px-20 shadow-md border border-[#e2e2e2] rounded-lg mb-12">
-      <h2 class="text-3xl font-semibold">Order details</h2>
+        <!-- Order Data -->
+        <table class="w-full">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Total</th>
+            </tr>
+          </thead>
 
-      <!-- Order Data -->
-      <table class="w-full">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Total</th>
-          </tr>
-        </thead>
+          <tbody class="border-y">
+            @for (item of (loadedOrder$ | async)?.line_items; track $index) {
+            <tr class="py-2 border-t">
+              <td class="flex flex-col">
+                <span>
+                  {{ item.name }} <strong>× {{ item.quantity }}</strong></span
+                >
+                @for (variation of item.meta_data; track $index) {
+                <span
+                  >{{ variation.display_key }}: {{ variation.display_value }}
+                </span>
+                }
+              </td>
+              <td class="text-sm">
+                {{item.total | currency :`${(loadedOrder$ | async)?.currency_symbol}`}}
+              </td>
+            </tr>
+            }
+          </tbody>
 
-        <tbody class="border-y">
-          @for (item of (loadedOrder$ | async).line_items; track $index) {
-          <tr class="py-2 border-t">
-            <td class="flex flex-col">
-              <span>
-                {{ item.name }} <strong>× {{ item.quantity }}</strong></span
-              >
-              @for (variation of item.meta_data; track $index) {
-              <span
-                >{{ variation.display_key }}: {{ variation.display_value }}
-              </span>
-              }
-            </td>
-            <td class="text-sm">
-              {{item.total | currency :`${(loadedOrder$ | async).currency_symbol}`}}
-            </td>
-          </tr>
-          }
-        </tbody>
+          <tfoot>
+            <tr class="pt-3">
+              <th class="font-medium">Subtotal:</th>
+              <td class="text-sm">
+                {{
+                  (loadedOrder$ | async)?.total +
+                    (loadedOrder$ | async)?.discount_total
+                }}
+              </td>
+            </tr>
+            <tr>
+              <th class="font-medium">Shipping:</th>
+              <td class="text-sm">
+                {{
+                  (loadedOrder$ | async)?.shipping_total === "0"
+                    ? "Free shipping"
+                    : (loadedOrder$ | async)?.shipping_total| currency :`${(loadedOrder$ | async)?.currency_symbol}`
+                }}
+              </td>
+            </tr>
+            <tr>
+              <th class="font-medium">
+                {{ (loadedOrder$ | async)?.payment_method }}:
+              </th>
+              <td class="text-sm">
+                {{ (loadedOrder$ | async)?.payment_method_title }}
+              </td>
+            </tr>
 
-        <tfoot>
-          <tr class="pt-3">
-            <th class="font-medium">Subtotal:</th>
-            <td class="text-sm">
-              {{
-                (loadedOrder$ | async).total +
-                  (loadedOrder$ | async).discount_total
-              }}
-            </td>
-          </tr>
-          <tr>
-            <th class="font-medium">Shipping:</th>
-            <td class="text-sm">
-              {{
-                (loadedOrder$ | async).shipping_total === "0"
-                  ? "Free shipping"
-                  : (loadedOrder$ | async).shipping_total| currency :`${(loadedOrder$ | async).currency_symbol}`
-              }}
-            </td>
-          </tr>
-          <tr>
-            <th class="font-medium">
-              {{ (loadedOrder$ | async).payment_method }}:
-            </th>
-            <td class="text-sm">
-              {{ (loadedOrder$ | async).payment_method_title }}
-            </td>
-          </tr>
-
-          <tr class="pt-2">
-            <th class="text-xl">Total:</th>
-            <td class="text-xl font-medium">
-              {{ (loadedOrder$ | async).total | currency :`${(loadedOrder$ | async).currency_symbol}` }}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-
-    <!-- Shipping Data Addresses -->
-    <div class="grid grid-cols-12">
-      <div class="col-span-12 md:col-span-6 mb-6">
-        <h2 class="text-3xl font-semibold">Billing address</h2>
-        <address>
-          {{ (loadedOrder$ | async).billing.first_name }}
-
-          {{ (loadedOrder$ | async).billing.last_name }}
-          <br />
-          {{ (loadedOrder$ | async).billing.address_1 }}
-          <br />
-          {{ (loadedOrder$ | async).billing.city }}
-          <p class="mb-5">+{{ (loadedOrder$ | async).billing.phone }}</p>
-          <p>{{ (loadedOrder$ | async).billing.email }}</p>
-        </address>
+            <tr class="pt-2">
+              <th class="text-xl">Total:</th>
+              <td class="text-xl font-medium">
+                {{ (loadedOrder$ | async)?.total | currency :`${(loadedOrder$ | async)?.currency_symbol}` }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
-      <div class="col-span-12 md:col-span-6 mb-6">
-        <h2 class="text-3xl font-semibold">Shipping address</h2>
-        <address>
-          {{ (loadedOrder$ | async).billing.first_name }}
 
-          {{ (loadedOrder$ | async).billing.last_name }}
-          <br />
-          {{ (loadedOrder$ | async).billing.address_1 }}
-          <br />
-          {{ (loadedOrder$ | async).billing.city }}
-        </address>
+      <!-- Shipping Data Addresses -->
+      <div class="grid grid-cols-12">
+        <div class="col-span-12 md:col-span-6 mb-6">
+          <h2 class="text-3xl font-semibold">Billing address</h2>
+          <address>
+            {{ (loadedOrder$ | async)?.billing?.first_name }}
+
+            {{ (loadedOrder$ | async)?.billing?.last_name }}
+            <br />
+            {{ (loadedOrder$ | async)?.billing?.address_1 }}
+            <br />
+            {{ (loadedOrder$ | async)?.billing?.city }}
+            <p class="mb-5">+{{ (loadedOrder$ | async)?.billing?.phone }}</p>
+            <p>{{ (loadedOrder$ | async)?.billing?.email }}</p>
+          </address>
+        </div>
+        <div class="col-span-12 md:col-span-6 mb-6">
+          <h2 class="text-3xl font-semibold">Shipping address</h2>
+          <address>
+            {{ (loadedOrder$ | async)?.billing?.first_name }}
+
+            {{ (loadedOrder$ | async)?.billing?.last_name }}
+            <br />
+            {{ (loadedOrder$ | async)?.billing?.address_1 }}
+            <br />
+            {{ (loadedOrder$ | async)?.billing?.city }}
+          </address>
+        </div>
       </div>
-    </div>
-  </section>
-</main>
+    </section>
+  </main>
+  }
 }

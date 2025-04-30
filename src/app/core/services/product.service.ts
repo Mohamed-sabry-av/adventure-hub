@@ -106,7 +106,7 @@ export class ProductService {
           .set('category', categoryId.toString())
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+            'default_attributes,id,slug,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
@@ -247,7 +247,7 @@ export class ProductService {
           .set('include', ids.join(','))
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('stock_status', 'instock'),
         observe: 'response',
@@ -266,6 +266,42 @@ export class ProductService {
         shareReplay(1)
       ),
       300000
+    );
+  }
+
+
+  getProductBySlug(slug: string): Observable<Product> {
+    const cacheKey = `product_slug_${slug}`;
+    return this.cachingService.cacheObservable(
+      cacheKey,
+      this.WooAPI.getRequestProducts<any>('products', {
+        params: new HttpParams()
+          .set('slug', slug)
+          .set(
+            '_fields',
+            'default_attributes,id,name,slug,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type,related_ids'
+          )
+          .set('stock_status', 'instock')
+          .set('status', 'publish'),
+        observe: 'response',
+      }).pipe(
+        map((response: HttpResponse<any>) => {
+          const product = response.body[0]; // WooCommerce بيرجع array، ناخد أول منتج
+          if (!product) {
+            throw new Error(`Product with slug ${slug} not found`);
+          }
+          return {
+            ...product,
+            images: product.images.slice(0, 3) || [],
+          } as Product;
+        }),
+        catchError((error) => {
+          console.error(`Error fetching product with slug ${slug}:`, error);
+          return this.handleErrorsService.handelError(error);
+        }),
+        shareReplay(1)
+      ),
+      300000 // TTL 5 دقائق
     );
   }
 }

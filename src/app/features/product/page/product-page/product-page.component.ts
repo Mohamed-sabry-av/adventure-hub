@@ -1,23 +1,25 @@
-import { Component, DestroyRef, input, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
+import { SeoService } from '../../../../core/services/seo.service';
+import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
+import { map, switchMap } from 'rxjs';
+import { CommonModule } from '@angular/common';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
 import { ProductDescComponent } from '../../components/product-desc/product-desc.component';
 import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
-import { SeoService } from '../../../../core/services/seo.service';
-import { map, switchMap } from 'rxjs';
 import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
-import { CommonModule } from '@angular/common';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
-import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
 
-declare var _learnq: any; // Declare Klaviyo global variable
+declare var _learnq: any;
 
 @Component({
   selector: 'app-product-page',
   imports: [
+    CommonModule,
     ProductImagesComponent,
     ProductInfoComponent,
     ProductDescComponent,
@@ -33,61 +35,37 @@ declare var _learnq: any; // Declare Klaviyo global variable
   standalone: true,
 })
 export class ProductPageComponent implements OnInit {
-  productId = input.required<string>();
   schemaData: any;
   productData: any;
   productDataForDesc: any;
   selectedColor: string | null = null;
   isLoading: boolean = true;
 
+  private route = inject(ActivatedRoute);
+  private productService = inject(ProductService);
+  private seoService = inject(SeoService);
   private recentlyVisitedService = inject(RecentlyVisitedService);
-
-  constructor(
-    private productService: ProductService,
-    private seoService: SeoService,
-    private destroyRef: DestroyRef
-  ) {}
-
-  onSelectedColorChange(event: { name: string; value: string | null }) {
-    if (event.name === 'Color') {
-      this.selectedColor = event.value;
-      if (typeof _learnq !== 'undefined' && event.value && this.productData) {
-        _learnq.push([
-          'track',
-          'Selected Color',
-          {
-            ProductID: this.productData.id,
-            ProductName: this.productData.name,
-            Color: event.value,
-            Brand: this.productData.brand || 'Unknown',
-            Categories:
-              this.productData.categories?.map((cat: any) => cat.name) || [],
-          },
-        ]);
-      }
-    }
-  }
-
-  formatPrice(price: string | number): string {
-    if (!price) return '0';
-    const numPrice = Number(String(price).replace(/[^0-9.-]+/g, ''));
-    return numPrice.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  }
+  private router = inject(Router);
 
   ngOnInit() {
-    this.isLoading = true;
-    const subscription = this.productService
-      .getProductById(Number(this.productId()))
+    this.route.paramMap
       .pipe(
-        switchMap((product: any) => {
-          return this.productService
-            .getProductVariations(Number(this.productId()))
-            .pipe(
-              map((variations) => {
-                const normalizedProduct = {
+        switchMap((params) => {
+          const slug = params.get('slug'); 
+          if (!slug) {
+            this.router.navigate(['/']); // لو مفيش slug، رجّع للصفحة الرئيسية
+            return [];
+          }
+
+
+          this.isLoading = true;
+          this.productData = null; // Clear old data
+          this.productDataForDesc = null;
+          this.schemaData = null;
+          return this.productService.getProductBySlug(slug).pipe(
+            switchMap((product: any) =>
+              this.productService.getProductVariations(product.id).pipe(
+                map((variations) => ({
                   ...product,
                   variations: variations || [],
                   brand:
@@ -120,10 +98,10 @@ export class ProductPageComponent implements OnInit {
                         .filter(Boolean)
                     ),
                   ],
-                };
-                return normalizedProduct;
-              })
-            );
+                }))
+              )
+            )
+          );
         })
       )
       .subscribe({
@@ -172,7 +150,34 @@ export class ProductPageComponent implements OnInit {
           this.isLoading = false;
         },
       });
+  }
 
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  onSelectedColorChange(event: { name: string; value: string | null }) {
+    if (event.name === 'Color') {
+      this.selectedColor = event.value;
+      if (typeof _learnq !== 'undefined' && event.value && this.productData) {
+        _learnq.push([
+          'track',
+          'Selected Color',
+          {
+            ProductID: this.productData.id,
+            ProductName: this.productData.name,
+            Color: event.value,
+            Brand: this.productData.brand || 'Unknown',
+            Categories:
+              this.productData.categories?.map((cat: any) => cat.name) || [],
+          },
+        ]);
+      }
+    }
+  }
+
+  formatPrice(price: string | number): string {
+    if (!price) return '0';
+    const numPrice = Number(String(price).replace(/[^0-9.-]+/g, ''));
+    return numPrice.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
   }
 }

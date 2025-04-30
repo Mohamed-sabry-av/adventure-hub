@@ -1,0 +1,31 @@
+<!-- Loading Spinner -->
+@if (isLoading$ | async) {
+<div class="flex justify-center items-center my-20 min-h-[50vh]">
+  <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
+</div>
+} @else {
+<!-- Order Confirmation Content -->
+<app-app-container>
+  <!-- Order Confirmation Header with success message and order metadata -->
+  <app-order-confirmation-header />
+
+  <!-- Payment method information -->
+  <div class="mb-6 bg-blue-50 p-4 rounded-lg text-blue-800 shadow-sm">
+    <p class="text-base md:text-lg flex items-center">
+      <span class="material-icons-outlined mr-2 text-blue-600">payments</span>
+    </p>
+  </div>
+
+  <!-- Order Details including products and shipping information -->
+  <app-order-confirmation-details />
+
+  <!-- Customer Addresses -->
+  <app-order-confirmation-addresses />
+</app-app-container>
+
+<!-- Service Highlights at bottom of page -->
+<app-service-highlights />
+}
+
+<!-- Error Dialog Component -->
+<app-dialog-error />

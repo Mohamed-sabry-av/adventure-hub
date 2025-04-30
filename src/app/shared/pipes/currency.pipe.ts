@@ -16,7 +16,7 @@ export class CurrencySvgPipe implements PipeTransform {
     const formattedValue = typeof value === 'number' ? value.toString() : value;
     const html = `
       <span class="flex items-center">
-        <img src="/icons/UAE_Dirham_Symbol.svg" alt="UAE Dirham" class="h-4 w-4 mr-1">
+        <img src="/icons/UAE_Dirham_Symbol.svg" alt="UAE Dirham" class="h-5 w-5 mr-1">
         ${formattedValue}
       </span>
     `;

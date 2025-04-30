@@ -13,8 +13,4 @@ export class OrderMainDataComponent {
   private orderService = inject(OrderService);
 
   loadedOrder$: Observable<any> = this.orderService.loadedOrder$;
-
-  ngOnInit() {
-    this.loadedOrder$.subscribe((res) => console.log(res));
-  }
 }

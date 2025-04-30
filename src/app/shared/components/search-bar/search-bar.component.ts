@@ -182,7 +182,7 @@ export class SearchBarComponent implements OnInit {
   selectProduct(product: any): void {
     this.saveToRecentSearches(this.searchInput.nativeElement.value);
     this.showResults = false;
-    this.router.navigate([`/product/${product.id}`]);
+    this.router.navigate([`/product/${product.slug}`]);
   }
 
   selectCategory(category: Category): void {

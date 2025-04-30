@@ -13,6 +13,8 @@
   margin: 40px 0;
   padding: 20px 0;
   border-top: 1px solid #eee;
+  width: 100%; /* Ensure it stays within its parent */
+  box-sizing: border-box; /* Prevent padding/margin from causing overflow */
 }
 
 /* Mobile/Desktop Descriptions */
@@ -139,6 +141,7 @@
   }
 }
 
+
 /* Mobile Layout (Two Cards per Row) */
 @media (max-width: 767px) {
   .carousel-track {
@@ -225,6 +228,11 @@
 @media (max-width: 767px) {
   .sticky-info {
     position: static;
+  }
+
+  .full-width-product-description.mobile-description {
+    margin-top: 20px; /* Add space to separate from product info */
+    position: relative; /* Ensure it respects the normal flow */
   }
 }
 

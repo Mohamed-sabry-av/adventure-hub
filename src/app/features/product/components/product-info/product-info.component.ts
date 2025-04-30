@@ -6,12 +6,13 @@ import { CartService } from '../../../cart/service/cart.service';
 import { WishlistComponent } from '../../../auth/account-details/components/wishlist/wishlist.component';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
 import { Subscription } from 'rxjs';
+import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 
 declare var _learnq: any;
 
 @Component({
   selector: 'app-product-info',
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule,CurrencySvgPipe],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
   standalone: true,

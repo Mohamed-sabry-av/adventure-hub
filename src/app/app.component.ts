@@ -34,9 +34,9 @@ declare global {
 export class AppComponent {
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
+  private router = inject(Router);
   isCheckoutPage = false;
-
-  constructor(private router: Router) {}
+  private previousUrl: string | null = null;
 
   ngOnInit() {
     const navEndEvents = this.router.events.pipe(
@@ -46,6 +46,21 @@ export class AppComponent {
     const subscription = navEndEvents.subscribe((event: NavigationEnd) => {
       this.isCheckoutPage = event.urlAfterRedirects.includes('/checkout');
 
+      // Extract path without fragment
+      const currentPath = event.urlAfterRedirects.split('#')[0];
+
+      // Scroll to top only if the path has changed (not just fragment)
+      if (this.previousUrl !== currentPath) {
+        console.log('Scrolling to top for path:', currentPath); // للاختبار
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth', // Smooth scroll
+        });
+      }
+
+      this.previousUrl = currentPath;
+
+      // Analytics tracking
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: 'pageView',
@@ -63,8 +78,7 @@ export class AppComponent {
               pageTitle: document.title,
             },
           ]);
-        } catch (error) {
-        }
+        } catch (error) {}
       }
     });
 

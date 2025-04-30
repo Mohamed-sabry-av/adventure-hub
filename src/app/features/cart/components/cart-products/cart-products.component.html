@@ -56,7 +56,7 @@
             <p class="font-normal text-[#b2b48d]">
               {{ item.name.split(" ")[0] }}
             </p>
-            <a [routerLink]="[`/product/${item.id}`]">
+            <a [routerLink]="[`/product/${item.slug}`]">
               <p
                 class="text-base cursor-pointer hover:underline"
                 [innerHTML]="item.name"

@@ -1,22 +1,31 @@
 <div class="image-slider">
-  <!-- Product status tags - moved to bottom left -->
+  <!-- Product status tags -->
   <div class="product-tags product-tags-bottom-left">
-    <div *ngFor="let tag of getProductTags()"
-         class="tag"
-         [ngClass]="getTagClass(tag)">
+    <div
+      *ngFor="let tag of getProductTags()"
+      class="tag"
+      [ngClass]="getTagClass(tag)"
+    >
       {{ tag }}
     </div>
   </div>
 
   <!-- Image slider -->
-  <div class="slider-container"
-       #sliderContainer
-       [ngClass]="{'hovered': isHovered && product.images.length > 1}">
+  <div
+    class="slider-container"
+    #sliderContainer
+    [ngClass]="{'hovered': isHovered && product.images.length > 1}"
+  >
     <!-- Images -->
-    <div class="slide"
-         *ngFor="let image of product?.images; let i = index"
-         [ngClass]="{'active': i === 0, 'second-image': i === 1 && isHovered && product.images.length > 1}">
-      <a [routerLink]="['/product', product.id]">
+    <div
+      class="slide"
+      *ngFor="let image of product?.images; let i = index"
+      [ngClass]="{
+        'active': i === 0,
+        'second-image': i === 1 && isHovered && product.images.length > 1
+      }"
+    >
+      <a [routerLink]="['/product', product.slug]">
         <img
           [src]="getOptimizedImageUrl(image.src)"
           [srcset]="getImageSrcset(image)"
@@ -25,7 +34,8 @@
           height="400"
           loading="lazy"
           [alt]="product.name"
-          (load)="onImageLoad($event)" />
+          (load)="onImageLoad($event)"
+        />
       </a>
     </div>
   </div>
