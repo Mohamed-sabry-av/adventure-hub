@@ -5,6 +5,7 @@ track $index) {
   <div>
     <a [routerLink]="['/', post.slug]" class="relative group block">
       <img
+        loading="lazy"
         [src]="post.yoast_head_json.og_image[0].url"
         alt="section-img"
         class="article-image"

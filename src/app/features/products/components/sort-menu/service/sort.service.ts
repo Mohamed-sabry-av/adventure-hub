@@ -44,14 +44,12 @@ export class SortServiceService {
         .pipe(
           map((response: HttpResponse<any>) => {
             const fullUrl = `${response.url}`;
-            console.log('API for Sorting Req', fullUrl);
             return response.body.map((product: any) => ({
               ...product,
               images: product.images.slice(0, 3) || [],
             }));
           }),
           catchError((error) => {
-            console.log('Error fetching sorted products:', error);
             return of([]);
           }),
           shareReplay(1)

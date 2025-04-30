@@ -40,10 +40,7 @@ export class ProductService {
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
-          // console.log(
-          //   `API response for all products (page ${page}, perPage ${perPage}):`,
-          //   response.body.length
-          // );
+         
           const products = this.getUniqueProducts(
             response.body.map((product: any) => ({
               ...product,
@@ -61,10 +58,6 @@ export class ProductService {
       300000 // TTL 5 دقائق
     );
   }
-
-  // getProductByID() {
-  //   this.WooAPI.getRequestProducts();
-  // }
 
   // GET TOTAL PRODUCTS FOR PAGINATION
   getTotalProducts(): Observable<number> {
@@ -88,7 +81,6 @@ export class ProductService {
             );
             return 0;
           }
-          console.log('Total products fetched:', total);
           return total;
         }),
         catchError((error) => {
@@ -123,10 +115,7 @@ export class ProductService {
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
-          // console.log(
-          //   `API response for category ${categoryId} (page ${page}, perPage ${perPage}):`,
-          //   response.body.length
-          // );
+         
           const products = this.getUniqueProducts(
             response.body.map((product: any) => ({
               ...product,
@@ -136,10 +125,7 @@ export class ProductService {
           return products;
         }),
         catchError((error) => {
-          // console.error(
-          //   `Error fetching products for category ${categoryId}:`,
-          //   error
-          // );
+       
           return of([]); // إرجاع مصفوفة فريدة فارغة في حالة الخطأ
         }),
         shareReplay(1)
@@ -171,10 +157,7 @@ export class ProductService {
             );
             return 0;
           }
-          // console.log(
-          //   `Total products for category ${categoryId} fetched:`,
-          //   total
-          // );
+      
           return total;
         }),
         catchError((error) => {
@@ -198,7 +181,6 @@ export class ProductService {
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
-          console.log(`API response for product ${id}:`, response.body);
           return response.body as Product;
         }),
         catchError((error) => {
@@ -211,10 +193,7 @@ export class ProductService {
     );
   }
 
-  // productID(id: number): Observable<Product> {
-  //   this.WooAPI.getRequestProducts(`products/${id}`, {});
-  // }
-
+ 
   getUniqueProducts(products: any[]): any[] {
     const uniqueProducts = [];
     const seenIds = new Set();
@@ -278,7 +257,6 @@ export class ProductService {
             ...product,
             images: product.images.slice(0, 3) || [],
           }));
-          console.log('Products fetched by IDs:', products);
           return products;
         }),
         catchError((error) => {

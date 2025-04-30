@@ -1,0 +1,16 @@
+.refund-policy-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  div[innerHTML] {
+    line-height: 1.6;
+    color: #555;
+  }

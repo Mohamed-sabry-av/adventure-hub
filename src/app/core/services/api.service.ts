@@ -47,7 +47,6 @@ export class ApiService {
       observe: options.observe || 'body',
     };
 
-    console.log();
 
     return this.http
       .get<T>(

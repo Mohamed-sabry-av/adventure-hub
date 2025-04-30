@@ -1,216 +1,110 @@
+/* تنسيق عام */
 .product-description {
-  margin: 30px 0;
-  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-/* Sticky Tabs */
+/* تنسيق التبويبات اللاصقة */
 .sticky-tabs {
   position: sticky;
   top: 0;
-  z-index: 1;
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 20px;
+  background: #fff;
+  z-index: 10;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 0;
 }
 
-/* Tab Navigation */
 .description-tabs {
   display: flex;
-  margin-bottom: 0;
+  justify-content: center;
+  gap: 20px;
 }
 
 .tab-item {
-  padding: 12px 25px;
+  cursor: pointer;
+  padding: 10px 20px;
   font-size: 16px;
   font-weight: 500;
-  color: #666;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.2s;
+  color: #333;
 }
 
 .tab-item.active {
-  color: #e7603a;
-}
-
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e7603a;
-}
-
-.tab-item:hover {
-  color: #e7603a;
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
 }
 
 .review-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 20px;
-  min-width: 20px;
-  padding: 0 5px;
-  background-color: #333;
-  color: #fff;
-  border-radius: 10px;
+  background: #f0f0f0;
+  border-radius: 12px;
+  padding: 2px 8px;
   font-size: 12px;
   margin-left: 5px;
 }
 
-/* Content Sections */
+/* تنسيق الأقسام */
 .tab-sections {
-  position: relative;
+  margin-top: 20px;
 }
 
 .content-section {
-  margin-bottom: 50px;
-  scroll-margin-top: 60px; /* For smooth scrolling accounting for sticky header */
+  padding: 20px 0;
 }
 
 .section-header {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  margin-bottom: 20px;
   color: #333;
-  margin: 20px 0;
-  padding-bottom: 0; /* Updated to match image */
-  border-bottom: none; /* Updated to match image */
 }
 
-/* Description Section */
-.description-section {
-  margin-bottom: 25px;
-}
-
-.text-content {
+/* تنسيق وصف المنتج الخام */
+.raw-description {
+  font-size: 16px;
   line-height: 1.6;
   color: #555;
-  font-size: 15px;
 }
 
-/* Image-Text Sections */
-.image-text-section {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 30px;
-  gap: 20px;
-}
-
-@media (min-width: 768px) {
-  .image-text-section {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .image-text-section.left-align {
-    flex-direction: row;
-  }
-
-  .image-text-section.right-align {
-    flex-direction: row-reverse;
-  }
-}
-
-.section-image {
-  flex: 1;
-  min-width: 0;
-}
-
-.section-image img {
-  width: 100%;
+.raw-description img {
   max-width: 100%;
   height: auto;
-  border-radius: 6px;
   display: block;
+  margin: 10px 0;
 }
 
-.section-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 15px;
-}
-
-.section-text {
-  line-height: 1.6;
-  color: #555;
-  font-size: 15px;
-}
-
-/* Specifications */
+/* تنسيق المواصفات */
 .specifications {
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  margin-top: 20px;
 }
 
 .specs-header {
   font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 20px;
+  margin-bottom: 15px;
 }
 
 .specs-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
 }
 
 .spec-item {
   display: flex;
-  line-height: 1.6;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 5px;
 }
 
 .spec-label {
-  font-weight: 600;
+  font-weight: 500;
   color: #333;
-  width: 40%;
-  max-width: 200px;
-  padding-right: 15px;
 }
 
 .spec-value {
   color: #555;
 }
 
-/* Specifications Table */
-.specifications-content {
-  margin-top: 20px;
-}
-
-.specs-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.specs-table th,
-.specs-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-}
-
-.specs-table th {
-  width: 30%;
-  font-weight: 600;
-  color: #333;
-  background-color: #f9f9f9;
-}
-
-.specs-table td {
-  color: #555;
-}
-
-/* Additional Information Section */
+/* تنسيق المعلومات الإضافية */
 .additional-info-content {
   margin-top: 20px;
 }
@@ -220,157 +114,129 @@
   border-collapse: collapse;
 }
 
-.info-table tr {
-  display: flex;
-  justify-content: space-between; /* Align label and value to opposite ends */
-  padding: 12px 0; /* Vertical spacing between rows */
-  border-bottom: 1px dashed #ccc; /* Dashed line separator */
+.info-table th,
+.info-table td {
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  text-align: left;
 }
 
 .info-table th {
-  font-weight: 600; /* Bold labels */
-  color: #333;
-  font-size: 14px;
-  text-align: left;
-  flex: 0 0 auto; /* Prevent label from stretching */
-}
-
-.info-table td {
-  color: #555;
-  font-size: 14px;
-  text-align: right; /* Align values to the right */
-  flex: 0 0 auto; /* Prevent value from stretching */
+  background: #f9f9f9;
+  font-weight: 500;
 }
 
 .color-list,
 .size-list {
-  display: inline; /* Keep the comma-separated list inline */
+  font-size: 14px;
 }
 
-.color-list span,
-.size-list span {
-  color: #555;
-}
-
-/* No additional information message */
 .no-info {
-  padding: 20px;
-  text-align: center;
+  font-size: 16px;
   color: #777;
-  background-color: #f9f9f9;
-  border-radius: 6px;
+  text-align: center;
+  padding: 20px;
 }
 
-/* Reviews Section */
+/* تنسيق المراجعات */
 .reviews-content {
   margin-top: 20px;
 }
 
 .no-reviews {
-  padding: 30px;
   text-align: center;
-  background-color: #f9f9f9;
-  border-radius: 6px;
+  padding: 20px;
 }
 
 .add-review-btn {
-  margin-top: 15px;
-  padding: 10px 25px;
-  background-color: #e7603a;
-  color: white;
+  background: #007bff;
+  color: #fff;
   border: none;
-  border-radius: 4px;
-  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  margin-top: 10px;
 }
 
 .add-review-btn:hover {
-  background-color: #d45534;
+  background: #0056b3;
 }
 
-/* Raw Description */
-.raw-description {
-  line-height: 1.6;
-  color: #555;
-}
-
-/* No Specifications Message */
-.no-specs {
-  padding: 20px;
-  text-align: center;
-  color: #777;
-  background-color: #f9f9f9;
-  border-radius: 6px;
-}
-
-/* Loading state */
+/* تنسيق حالة التحميل */
 .loading-description {
-  padding: 30px;
   text-align: center;
-  color: #666;
-}
-.content-section {
-  margin-bottom: 50px;
-  scroll-margin-top: 80px; /* Increased to match potential header height */
+  padding: 50px;
+  font-size: 18px;
+  color: #777;
 }
 
-/* Responsive Styles */
-@media (max-width: 767px) {
+/* دعم كلاسات UIkit المستخدمة في الوصف */
+.uk-section {
+  padding: 40px 0;
+}
+
+.uk-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.uk-h2 {
+  font-size: 24px;
+  margin: 20px 0;
+}
+
+.uk-panel {
+  margin: 20px 0;
+}
+
+.uk-margin {
+  margin: 20px 0;
+}
+
+.uk-text-background {
+  background: #f0f0f0;
+  padding: 2px 8px;
+}
+
+.uk-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15px;
+}
+
+.uk-width-1-2,
+.uk-width-2-3,
+.uk-width-1-3 {
+  padding: 0 15px;
+}
+
+.uk-width-1-2 {
+  flex: 0 0 50%;
+}
+
+.uk-width-2-3 {
+  flex: 0 0 66.666%;
+}
+
+.uk-width-1-3 {
+  flex: 0 0 33.333%;
+}
+
+@media (max-width: 768px) {
+  .uk-width-1-2,
+  .uk-width-2-3,
+  .uk-width-1-3 {
+    flex: 0 0 100%;
+  }
+
+  .description-tabs {
+    flex-direction: row;
+    align-items: center;
+  }
+
   .tab-item {
-    padding: 10px 15px;
-    font-size: 14px;
-  }
-
-  .section-title {
-    font-size: 16px;
-  }
-
-  .text-content,
-  .section-text {
-    font-size: 14px;
-  }
-
-  .specs-table th,
-  .specs-table td {
     padding: 10px;
-    font-size: 14px;
-  }
-
-  .section-header {
-    font-size: 18px;
-  }
-
-  .info-table th,
-  .info-table td {
     font-size: 13px;
   }
-}
-
-.review-item {
-  border-bottom: 1px solid #eee;
-  padding: 15px 0;
-}
-
-.review-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.reviewer {
-  font-weight: bold;
-}
-
-.rating {
-  color: #f39c12;
-}
-
-.review-comment {
-  margin-bottom: 10px;
-}
-
-.review-date {
-  color: #888;
-  font-size: 0.9em;
 }

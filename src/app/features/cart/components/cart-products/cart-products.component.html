@@ -44,6 +44,7 @@
       <!-- الصوره -->
       <a [routerLink]="[`/${item.permalink}`]">
         <img
+          loading="lazy"
           [src]="item.images.imageSrc"
           [alt]="item.images.imageAlt"
           class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer"

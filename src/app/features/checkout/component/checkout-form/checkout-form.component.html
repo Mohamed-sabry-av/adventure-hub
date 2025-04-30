@@ -34,16 +34,14 @@
               >
             </div>
 
-            <!-- الاينبوت بتاع الايميل -->
+            <!-- Email Input -->
             <div class="py-4 w-full">
               <input
                 type="email"
                 class="bg-white border w-full py-[14px] px-3 rounded-lg"
                 placeholder="Email"
                 formControlName="email"
-                [class]="{
-                  'border-red-500': emailIsInvalid,
-                }"
+                [class.border-red-500]="emailIsInvalid"
               />
             </div>
             @if (emailIsInvalid) {
@@ -59,11 +57,10 @@
           </div>
         </section>
 
-        <!-- Biling -->
+        <!-- Billing -->
         <section class="flex flex-col gap-y-4">
           <h2 class="font-semibold text-xl">
-            Billing details
-            <span class="text-red-500 text-base">*</span>
+            Billing details <span class="text-red-500 text-base">*</span>
           </h2>
           <!-- Country Select -->
           <div>
@@ -83,20 +80,15 @@
           >
             <div
               class="w-full relative"
-              [class]="{
-                'mb-5': firstNameIsInvalid || lastNameIsInvalid
-              }"
+              [class.mb-5]="firstNameIsInvalid || lastNameIsInvalid"
             >
               <input
                 type="text"
                 class="bg-white border w-full py-[14px] px-3 rounded-lg"
                 placeholder="First name"
                 formControlName="firstName"
-                [class]="{
-                  'border-red-500': firstNameIsInvalid,
-                }"
+                [class.border-red-500]="firstNameIsInvalid"
               />
-
               @if (firstNameIsInvalid) {
               <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
                 Enter a first name
@@ -110,11 +102,8 @@
                 class="bg-white border w-full py-[14px] px-3 rounded-lg"
                 placeholder="Last name"
                 formControlName="lastName"
-                [class]="{
-                  'border-red-500': lastNameIsInvalid,
-                }"
+                [class.border-red-500]="lastNameIsInvalid"
               />
-
               @if (lastNameIsInvalid) {
               <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
                 Enter a last name
@@ -130,9 +119,7 @@
               class="bg-white border w-full py-[14px] px-3 rounded-lg"
               placeholder="Address"
               formControlName="address"
-              [class]="{
-        'border-red-500': addressIsInvalid,
-      }"
+              [class.border-red-500]="addressIsInvalid"
             />
             @if (addressIsInvalid) {
             <p class="text-sm text-red-500 w-full mt-1">Enter an address</p>
@@ -150,9 +137,7 @@
           <!-- City and State -->
           <div
             class="flex items-center gap-x-2"
-            [class]="{
-              'mb-5': stateIsInvalid || cityIsInvalid
-            }"
+            [class.mb-5]="stateIsInvalid || cityIsInvalid"
           >
             <div class="w-full relative">
               <input
@@ -160,9 +145,7 @@
                 class="bg-white border w-full py-[14px] px-3 rounded-lg"
                 placeholder="City"
                 formControlName="city"
-                [class]="{
-                  'border-red-500': cityIsInvalid,
-                }"
+                [class.border-red-500]="cityIsInvalid"
               />
               @if (cityIsInvalid) {
               <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
@@ -176,11 +159,8 @@
                 class="bg-white border w-full py-[14px] px-3 rounded-lg"
                 placeholder="State"
                 formControlName="state"
-                [class]="{
-                  'border-red-500': stateIsInvalid,
-                }"
+                [class.border-red-500]="stateIsInvalid"
               />
-
               @if (stateIsInvalid) {
               <p class="absolute text-sm text-red-500 w-full mt-1 left-0">
                 Enter a state
@@ -196,9 +176,7 @@
               class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
               placeholder="Postcode / Zip"
               formControlName="postCode"
-              [class]="{
-              'border-red-500': postCodeIsInvalid,
-            }"
+              [class.border-red-500]="postCodeIsInvalid"
             />
             @if (postCodeIsInvalid) {
             <p class="text-sm text-red-500 w-full mt-[6px]">Enter a Postcode</p>
@@ -212,11 +190,8 @@
               class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
               placeholder="Phone"
               formControlName="phone"
-              [class]="{
-                'border-red-500': phoneIsInvalid,
-              }"
+              [class.border-red-500]="phoneIsInvalid"
             />
-
             @if (phoneIsInvalid) {
             <p class="text-sm text-red-500 mt-2">Enter a valid phone</p>
             }
@@ -247,11 +222,9 @@
             <div>
               <div
                 class="flex justify-between items-center bg-white rounded-t-lg p-4"
-                [class]="{
-                  paymentOptionActive: paymentRadiosValue === 'stripe',
-                  'mb-3': paymentRadiosValue === 'stripe',
-                  'border-t': paymentRadiosValue !== 'stripe'
-                }"
+                [class.paymentOptionActive]="paymentRadiosValue === 'stripe'"
+                [class.mb-3]="paymentRadiosValue === 'stripe'"
+                [class.border-t]="paymentRadiosValue !== 'stripe'"
               >
                 <div class="flex items-center gap-x-2">
                   <input
@@ -264,23 +237,23 @@
                 </div>
                 <div class="flex items-center gap-x-2">
                   <img
+                    loading="lazy"
                     src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/visa.sxIq5Dot.svg"
                     alt=""
                   />
                   <img
+                    loading="lazy"
                     src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/mastercard.1c4_lyMp.svg"
                     alt=""
                   />
                 </div>
               </div>
 
-              <!-- حقول Stripe Elements المنفصلة -->
+              <!-- Stripe Elements Fields -->
               <div
                 class="flex flex-col gap-y-3 px-4 pb-4"
-                [class]="{
-                  block: paymentRadiosValue === 'stripe',
-                  hidden: paymentRadiosValue !== 'stripe'
-                }"
+                [class.block]="paymentRadiosValue === 'stripe'"
+                [class.hidden]="paymentRadiosValue !== 'stripe'"
                 @slideInOut
               >
                 <!-- Card Number -->
@@ -306,15 +279,13 @@
 
             @if ((avaliablePaymentMethods$ |
             async)?.includes('tabby_installments')) {
+
             <!-- Tabby -->
             <div>
-              <!-- Option 2 -->
               <div
                 class="flex justify-between items-center bg-white p-4"
-                [class]="{
-                  paymentOptionActive: paymentRadiosValue === 'tabby',
-                  'border-t': paymentRadiosValue !== 'tabby'
-                }"
+                [class.paymentOptionActive]="paymentRadiosValue === 'tabby'"
+                [class.border-t]="paymentRadiosValue !== 'tabby'"
               >
                 <div class="flex items-center gap-x-2">
                   <input
@@ -328,13 +299,13 @@
                   >
                 </div>
                 <img
+                  loading="lazy"
                   src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/tabby.C7-15TZI.svg"
                   alt=""
                 />
               </div>
 
               @if (paymentRadiosValue === 'tabby') {
-              <!-- Tabby Details -->
               <div class="px-3" @slideInOut>
                 <div class="flex flex-col items-center gap-y-6 mt-8">
                   <svg
@@ -387,13 +358,10 @@
             } @if ((selectedBillingCountry$ | async) === 'AE') {
             <!-- COD -->
             <div @slideInOut>
-              <!-- Option 2 -->
               <div
                 class="flex justify-between items-center bg-white rounded-b-lg p-4"
-                [class]="{
-                  paymentOptionActive: paymentRadiosValue === 'cod',
-                  'border-t': paymentRadiosValue !== 'cod'
-                }"
+                [class.paymentOptionActive]="paymentRadiosValue === 'cod'"
+                [class.border-t]="paymentRadiosValue !== 'cod'"
               >
                 <div class="flex items-center gap-x-2">
                   <input
@@ -402,12 +370,11 @@
                     value="cod"
                     formControlName="paymentMethod"
                   />
-                  <label class="text-sm" for="cod"> Cash on delivery </label>
+                  <label class="text-sm" for="cod">Cash on delivery</label>
                 </div>
               </div>
 
-              @if (paymentRadiosValue === 'cod' ) {
-              <!-- COD Details -->
+              @if (paymentRadiosValue === 'cod') {
               <div class="px-3" @slideInOut>
                 <div class="mt-3">
                   <p class="text-sm mb-3">
@@ -420,6 +387,14 @@
               }
             </div>
             }
+          </div>
+
+          <!-- Payment Error -->
+          <div
+            *ngIf="checkoutService.paymentError$ | async as error"
+            class="text-red-500 text-sm mt-2"
+          >
+            {{ error }}
           </div>
 
           <!-- Shipping -->
@@ -436,8 +411,8 @@
                   formControlName="shippingMethod"
                 />
                 <label class="text-sm" for="same"
-                  >Same as shipping address
-                </label>
+                  >Same as shipping address</label
+                >
               </div>
 
               <!-- Different Address -->
@@ -451,18 +426,18 @@
                   value="different"
                   formControlName="shippingMethod"
                 />
-                <label class="text-sm" for="different">
-                  Use a different billing address</label
+                <label class="text-sm" for="different"
+                  >Use a different billing address</label
                 >
               </div>
             </div>
           </div>
-          <!-- Shiiping Form -->
+
+          <!-- Shipping Form -->
           @if (isShippingDifferent) {
           <form class="flex flex-col gap-y-4 mt-4" [formGroup]="shippingForm">
             <h2 class="font-semibold text-xl">
-              Shipping details
-              <span class="text-red-500 text-base">*</span>
+              Shipping details <span class="text-red-500 text-base">*</span>
             </h2>
 
             <!-- First and Last Name -->
@@ -475,7 +450,6 @@
                 placeholder="First name"
                 formControlName="firstName"
               />
-
               <input
                 type="text"
                 class="bg-white border w-full py-[14px] px-3 rounded-lg"
@@ -552,13 +526,13 @@
               <div
                 class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
               ></div>
-              }@else { @if (paymentRadiosValue === 'cod') { Complete order }
-              @else { Pay now }}
+              } @else { @if (paymentRadiosValue === 'cod') { Complete order }
+              @else { Pay now } }
             </button>
           </div>
           <hr />
 
-          <!-- Polices -->
+          <!-- Policies -->
           <div class="lg:block hidden">
             <div class="flex gap-x-4 mt-4">
               <a [routerLink]="" class="underline text-sm text-red-400"
@@ -579,14 +553,11 @@
     <!-- Show Button -->
     <div class="flex justify-between items-center mb-4 lg:hidden">
       <p class="text-xl font-semibold">Order summary</p>
-
       <div
         class="flex items-center gap-x-2 text-orange-500 cursor-pointer"
         (click)="onShowSummary()"
       >
-        <button>
-          {{ !(summaryIsVisible$ | async) ? "Hide" : "Show" }}
-        </button>
+        <button>{{ !(summaryIsVisible$ | async) ? "Hide" : "Show" }}</button>
         <i class="pi pi-sort-down-fill"></i>
       </div>
     </div>
@@ -609,8 +580,8 @@
             <div
               class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
             ></div>
-            }@else { @if (paymentRadiosValue === 'cod') { Complete order } @else
-            { Pay now }}
+            } @else { @if (paymentRadiosValue === 'cod') { Complete order }
+            @else { Pay now } }
           </button>
         </div>
       </app-checkout-summary>

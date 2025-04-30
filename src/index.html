@@ -1,93 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Advhub</title>
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://checkout.tabby.ai/tabby-checkout.js" async></script>
-            <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <script>
+<head>
+  <meta charset="utf-8">
+  <title>Advhub</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1976d2">
+
+  <!-- Preconnect للخوادم المهمة -->
+  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+  <link rel="preconnect" href="https://adventures-hub.com" crossorigin>
+  <link rel="preconnect" href="https://checkout.tabby.ai" crossorigin>
+
+  <!-- <link rel="preload" href="/assets/fonts/Roboto-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/Poppins-Regular.woff2" as="font" type="font/woff2" crossorigin> -->
+  <link rel="preload" href="/assets/fonts/poppins-regular-webfont.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Critical CSS -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    .product-gallery { display: flex; gap: 16px; }
+    .main-img { object-fit: cover; width: 100%; max-width: 640px; height: auto; }
+    .thumbnail-img { width: 80px; height: 80px; object-fit: cover; }
+  </style>
+  <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'">
+</head>
+<body class="mat-typography">
+  <app-root></app-root>
+  <noscript>Please enable JavaScript to continue using this application.</noscript>
+
+  <script>
+    setTimeout(() => {
+      // Klaviyo
+      var s = document.createElement('script');
+      s.src = 'https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=QXDLFh';
+      s.async = true;
+      document.body.appendChild(s);
+
+      // Google Tag Manager
+      var gtm = document.createElement('script');
+      gtm.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-KQZ3H8ND';
+      gtm.async = true;
+      document.body.appendChild(gtm);
+
+      // Facebook SDK
+      var fb = document.createElement('script');
+      fb.src = 'https://connect.facebook.net/en_US/sdk.js';
+      fb.async = true;
+      fb.id = 'facebook-jssdk';
+      document.body.appendChild(fb);
       window.fbAsyncInit = function () {
         FB.init({
-          appId: "639673088797642", // استخدم الـ App ID الخاص بتطبيقك
+          appId: '639673088797642',
           cookie: true,
           xfbml: true,
-          version: "v13.0", // استخدم النسخة المناسبة
+          version: 'v13.0',
         });
-
         FB.AppEvents.logPageView();
       };
 
-      (function (d, s, id) {
-        var js,
-          fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) {
-          return;
-        }
-        js = d.createElement(s);
-        js.id = id;
-        js.src = "https://connect.facebook.net/en_US/sdk.js";
-        js.async = true;
-        js.defer = true;
-        fjs.parentNode.insertBefore(js, fjs);
-      })(document, "script", "facebook-jssdk");
-    </script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
-    />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <meta name="theme-color" content="#1976d2" />
+      // Tabby Checkout
+      var tabby = document.createElement('script');
+      tabby.src = 'https://checkout.tabby.ai/tabby-checkout.js';
+      tabby.async = true;
+      document.body.appendChild(tabby);
 
-    <!-- Google Tag Manager -->
-    <script>
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({
-          "gtm.start": new Date().getTime(),
-          event: "gtm.js",
-        });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "GTM-KQZ3H8ND");
-    </script>
-    <!-- End Google Tag Manager -->
-  </head>
+      // Recaptcha
+      var recaptcha = document.createElement('script');
+      recaptcha.src = 'https://www.google.com/recaptcha/api.js';
+      recaptcha.async = true;
+      recaptcha.defer = true;
+      document.body.appendChild(recaptcha);
 
-  <body class="mat-typography">
-    <app-root></app-root>
-    <noscript
-      >Please enable JavaScript to continue using this application.</noscript
-    >
+      // Google Sign-In
+      var gsi = document.createElement('script');
+      gsi.src = 'https://accounts.google.com/gsi/client';
+      gsi.async = true;
+      gsi.defer = true;
+      document.body.appendChild(gsi);
+    }, 2000);
+  </script>
 
   <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KQZ3H8ND" height="0" width="0"
-      style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+  <noscript>
+    <iframe
+      src="https://www.googletagmanager.com/ns.html?id=GTM-KQZ3H8ND"
+      height="0"
+      width="0"
+      style="display:none;visibility:hidden"
+    ></iframe>
+  </noscript>
 </body>
-
-
-<script type="text/javascript">
-  var _learnq = _learnq || [];
-  (function () {
-    var s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.async = true;
-    s.src = 'https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=QXDLFh';
-    var x = document.getElementsByTagName('script')[0];
-    x.parentNode.insertBefore(s, x);
-  })();
-</script>
-
 </html>

@@ -64,7 +64,6 @@ export class AppComponent {
             },
           ]);
         } catch (error) {
-          console.log('Klaviyo error', error);
         }
       }
     });

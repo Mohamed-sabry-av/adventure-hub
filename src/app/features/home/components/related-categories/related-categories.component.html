@@ -1,69 +1,85 @@
 <section class="related-categories py-8 px-4 bg-gray-50">
   <div class="container mx-auto">
     <h2 class="text-2xl font-bold mb-6">Shop By Category</h2>
-    
+
     <!-- Loading Indicator -->
     @if (loading) {
-      <div class="flex justify-center py-8">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
+    <div class="flex justify-center py-8">
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"
+      ></div>
+    </div>
     }
-    
+
     <!-- Error Message -->
     @if (error) {
-      <div class="bg-red-100 text-red-700 p-4 mb-4 rounded">
-        {{ error }}
-      </div>
+    <div class="bg-red-100 text-red-700 p-4 mb-4 rounded">
+      {{ error }}
+    </div>
     }
-    
+
     <!-- Categories Grid -->
     @if (!loading && !error && categories.length > 0) {
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        @for (category of categories.slice(0, 5); track category.id) {
-          <a [routerLink]="['/category', category.slug]" class="category-card group relative overflow-hidden rounded-lg shadow-md">
-            <div class="aspect-w-1 aspect-h-1">
-              <img 
-                [src]="category.image?.src" 
-                [alt]="category.name" 
-                class="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
-              >
-            </div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-              <div class="p-4 w-full">
-                <h3 class="text-white font-bold text-lg">{{ category.name }}</h3>
-                <p class="text-white/80 text-sm">{{ category.count }} products</p>
-              </div>
-            </div>
-          </a>
-        }
-      </div>
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-        @for (category of categories.slice(5, 7); track category.id) {
-          <a [routerLink]="['/category', category.slug]" class="category-card-large group relative overflow-hidden rounded-lg shadow-md">
-            <div class="aspect-w-2 aspect-h-1">
-              <img 
-                [src]="category.image?.src" 
-                [alt]="category.name" 
-                class="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
-              >
-            </div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-              <div class="p-4 w-full">
-                <h3 class="text-white font-bold text-xl">{{ category.name }}</h3>
-                <p class="text-white/80">{{ category.count }} products</p>
-              </div>
-            </div>
-          </a>
-        }
-      </div>
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+    >
+      @for (category of categories.slice(0, 5); track category.id) {
+      <a
+        [routerLink]="['/category', category.slug]"
+        class="category-card group relative overflow-hidden rounded-lg shadow-md"
+      >
+        <div class="aspect-w-1 aspect-h-1">
+          <img
+            loading="lazy"
+            [src]="category.image?.src"
+            [alt]="category.name"
+            class="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
+          />
+        </div>
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end"
+        >
+          <div class="p-4 w-full">
+            <h3 class="text-white font-bold text-lg">{{ category.name }}</h3>
+            <p class="text-white/80 text-sm">{{ category.count }} products</p>
+          </div>
+        </div>
+      </a>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+      @for (category of categories.slice(5, 7); track category.id) {
+      <a
+        [routerLink]="['/category', category.slug]"
+        class="category-card-large group relative overflow-hidden rounded-lg shadow-md"
+      >
+        <div class="aspect-w-2 aspect-h-1">
+          <img
+            loading="lazy"
+            [src]="category.image?.src"
+            [alt]="category.name"
+            class="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
+          />
+        </div>
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end"
+        >
+          <div class="p-4 w-full">
+            <h3 class="text-white font-bold text-xl">{{ category.name }}</h3>
+            <p class="text-white/80">{{ category.count }} products</p>
+          </div>
+        </div>
+      </a>
+      }
+    </div>
     }
-    
+
     <!-- No Categories Found -->
     @if (!loading && !error && categories.length === 0) {
-      <div class="text-center py-8 bg-gray-100 rounded-lg">
-        <p class="text-gray-600">No categories found.</p>
-      </div>
+    <div class="text-center py-8 bg-gray-100 rounded-lg">
+      <p class="text-gray-600">No categories found.</p>
+    </div>
     }
   </div>
 </section>

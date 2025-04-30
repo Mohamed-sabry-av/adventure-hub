@@ -78,6 +78,7 @@
                 <div class="w-[55px] h-[55px] border rounded-lg p-1 relative">
                   <a [routerLink]="[`/${product.permalink}`]">
                     <img
+                      loading="lazy"
                       [src]="product.images.imageSrc"
                       [alt]="product.images.imageAlt"
                       class="w-full h-full object-cover cursor-pointer"

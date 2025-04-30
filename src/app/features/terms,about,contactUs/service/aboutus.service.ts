@@ -6,12 +6,19 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class AboutusService {
-  private readonly apiURL = 'https://adventures-hub.com/wp-json/wp/v2/pages/1004'; // ID بتاع About Us
+  private readonly baseApiURL = 'https://adventures-hub.com/wp-json/wp/v2/pages'; 
 
   constructor(private http: HttpClient) {}
 
-  getAboutUs(): Observable<any> { // غيرت الاسم لـ getAboutUs عشان يكون أوضح
-    return this.http.get<any>(this.apiURL);
+  // About Us (page_id=1004)
+  getAboutUs(): Observable<any> {
+    return this.http.get<any>(`${this.baseApiURL}/1004`);
   }
-
+  // Cookies Policy (page_id=78519)
+  getPageById(pageId: number = 78519): Observable<any> {
+    return this.http.get<any>(`${this.baseApiURL}/${pageId}`);
+  }
+  getReturn(pageId: number = 78500): Observable<any> {
+    return this.http.get<any>(`${this.baseApiURL}/${pageId}`);
+  }
 }

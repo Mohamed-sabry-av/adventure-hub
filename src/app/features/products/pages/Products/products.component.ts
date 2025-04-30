@@ -20,7 +20,7 @@ import { ProductsGridComponent } from '../../components/products-grid/products-g
 import { SeoService } from '../../../../core/services/seo.service';
 import { catchError, finalize, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/isEqual';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 
 @Component({
@@ -301,4 +301,5 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.filterDrawerOpen = false;
     this.cdr.markForCheck();
   }
+  
 }

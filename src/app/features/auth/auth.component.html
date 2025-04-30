@@ -2,14 +2,21 @@
 <div class="auth-container">
   <!-- Mountain Background Image in HTML -->
   <div class="auth-background-container">
-<img class="auth-background-image" src="authBackground/authBackground.webp" alt="Mountain climber" loading="lazy">    <div class="auth-background-overlay"></div>
+    <img
+      loading="lazy"
+      class="auth-background-image"
+      src="authBackground/authBackground.webp"
+      alt="Mountain climber"
+      loading="lazy"
+    />
+    <div class="auth-background-overlay"></div>
   </div>
-  
+
   <div class="auth-card-container">
     <!-- Brand Logo and Title -->
     <div class="auth-header">
       <div class="logo-container">
-        <img class="logo-Head" src="header/White logo-01.png">
+        <img loading="lazy" class="logo-Head" src="header/White logo-01.png" />
         <!-- <h1 class="brand-title">Adventures Hub</h1> -->
         <p class="brand-tagline">Gear Up For Your Next Summit</p>
       </div>
@@ -19,8 +26,20 @@
     <div class="auth-card">
       <!-- Auth Navigation Tabs -->
       <div class="auth-tabs">
-        <button class="tab-button" [class.active]="activeTab === 'login'" (click)="setActiveTab('login')">Sign In</button>
-        <button class="tab-button" [class.active]="activeTab === 'signup'" (click)="setActiveTab('signup')">Create Account</button>
+        <button
+          class="tab-button"
+          [class.active]="activeTab === 'login'"
+          (click)="setActiveTab('login')"
+        >
+          Sign In
+        </button>
+        <button
+          class="tab-button"
+          [class.active]="activeTab === 'signup'"
+          (click)="setActiveTab('signup')"
+        >
+          Create Account
+        </button>
       </div>
 
       <!-- Tab Content -->
@@ -39,7 +58,9 @@
 
     <!-- Outdoor Quote -->
     <div class="outdoor-quote">
-      <p>"The summit is what drives us, but the climb itself is what matters."</p>
+      <p>
+        "The summit is what drives us, but the climb itself is what matters."
+      </p>
       <span>- Conrad Anker</span>
     </div>
   </div>

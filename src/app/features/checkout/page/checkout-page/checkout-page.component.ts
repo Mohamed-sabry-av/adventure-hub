@@ -20,7 +20,6 @@ import { CartStatus } from '../../../cart/model/cart.model';
   selector: 'app-checkout-page',
   imports: [
     CheckoutFormComponent,
-    CheckoutSummaryComponent,
     RouterLink,
     AsyncPipe,
     DialogErrorComponent,

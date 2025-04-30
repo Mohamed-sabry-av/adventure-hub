@@ -1,5 +1,6 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -66,39 +67,38 @@ export class HeaderComponent implements OnInit {
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
-  showNavbar: boolean = true;
   showSearchbar: boolean = false;
+  isProductPage: boolean = false; // New property to track product page
+
+  // ------------------------- Done
+  showNavbar: boolean = true;
   lastScrollY: number = 0;
-  headerHeight: any;
+  headerHeight: number = 0;
+  isFixed: boolean = false;
 
   ngOnInit() {
     this.fetchAllCategories();
 
-    const subscribtion = this.router.events
+    const subscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
-        if (event.url === '/checkout') {
-          this.currentPage = 'checkout';
-        } else {
-          this.currentPage = '';
-        }
+        this.currentPage = event.url === '/checkout' ? 'checkout' : '';
       });
 
-    const subscribtion2 = this.sidenavIsVisible$.subscribe((visible) => {
+    const subscription2 = this.sidenavIsVisible$.subscribe((visible) => {
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
-    const subscriptio3 = fromEvent(window, 'scroll')
+    const subscription3 = fromEvent(window, 'scroll')
       .pipe(debounceTime(10))
       .subscribe(() => this.handleScroll());
 
     this.destroyRef.onDestroy(() => {
-      subscribtion.unsubscribe();
-      subscribtion2.unsubscribe();
-      subscriptio3.unsubscribe();
+      subscription.unsubscribe();
+      subscription2.unsubscribe();
+      subscription3.unsubscribe();
     });
   }
-  isFixed: boolean = false;
 
   handleScroll() {
     const currentScrollY = window.scrollY;
@@ -115,13 +115,14 @@ export class HeaderComponent implements OnInit {
       this.headerHeight = this.headerElement.nativeElement.offsetHeight;
     }
 
+    this.lastScrollY = currentScrollY;
+    // -------------------------------- done
+
     if (currentScrollY > 0) {
       this.isFixed = true;
     } else {
       this.isFixed = false;
     }
-
-    this.lastScrollY = currentScrollY;
     this.navbarService.showNavbar(this.showNavbar);
     this.navbarService.handleScroll(this.headerHeight);
   }

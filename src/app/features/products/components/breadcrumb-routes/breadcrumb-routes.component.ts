@@ -101,7 +101,6 @@ export class BreadcrumbRoutesComponent implements OnInit {
               this.cacheService.set(cacheKey, count);
               this.loadedCounts++;
             } catch (error) {
-              console.error(`Error fetching product count for category ${subcat.id}:`, error);
               this.updateSubcategoryCount(subcat.id, 0);
               this.loadedCounts++;
             }
@@ -111,7 +110,6 @@ export class BreadcrumbRoutesComponent implements OnInit {
 
       this.checkLoadingComplete();
     } catch (error) {
-      console.error('Error loading subcategories:', error);
       this.subcategories = [];
       this.isDataFullyLoaded = true;
     }
@@ -143,9 +141,7 @@ export class BreadcrumbRoutesComponent implements OnInit {
     const newPath = this.getSubCategoryRoute(category);
     try {
       await this.router.navigate(newPath);
-      console.log('Navigated to subcategory:', newPath);
     } catch (error) {
-      console.error('Error navigating to subcategory:', error);
     }
   }
 

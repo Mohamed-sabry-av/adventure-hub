@@ -259,7 +259,6 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
   }
 
   private updateUI(): void {
-    // console.log('Updating UI', { isLoadingAttributes: this.isLoadingAttributes, attributes: this.attributes });
     this.cdr.markForCheck();
     }
 }

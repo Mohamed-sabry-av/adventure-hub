@@ -14,7 +14,6 @@ import { Meta, Title } from '@angular/platform-browser';
     CommonModule,
     LoginComponent,
     SignupComponent,
-    AccountDetailsComponent,
   ],
   standalone: true,
   templateUrl: './auth.component.html',

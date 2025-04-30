@@ -7,6 +7,9 @@ import {
   combineLatest,
   map,
   Observable,
+  switchMap,
+  take,
+  throwError,
 } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../../../Store/store';
@@ -20,10 +23,32 @@ import {
   copuponStatusSelector,
 } from '../../../Store/selectors/checkout.selector';
 import { AccountAuthService } from '../../auth/account-auth.service';
-import { take } from 'rxjs';
 import { UIService } from '../../../shared/services/ui.service';
-import { ApiService } from '../../../core/services/api.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+
+export interface PaymentIntentRequest {
+  amount: number;
+  currency: string;
+  orderData: {
+    billing: any;
+    shipping: any;
+    line_items: any[];
+  };
+}
+
+export interface PaymentIntentResponse {
+  success: boolean;
+  clientSecret?: string;
+  paymentIntentId?: string;
+  error?: string;
+}
+
+export interface OrderResponse {
+  id: string;
+  status: string;
+  [key: string]: any;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
@@ -34,6 +59,20 @@ export class CheckoutService {
   private uiService = inject(UIService);
   private httpClient = inject(HttpClient);
 
+  private readonly BACKEND_URL = environment.apiUrl;
+
+  paymentIntentClientSecret$: BehaviorSubject<string | null> =
+    new BehaviorSubject<string | null>(null);
+  paymentIntentId$: BehaviorSubject<string | null> = new BehaviorSubject<
+    string | null
+  >(null);
+  paymentProcessing$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    false
+  );
+  paymentError$: BehaviorSubject<string | null> = new BehaviorSubject<
+    string | null
+  >(null);
+
   selectedShippingCountry$: BehaviorSubject<string> =
     new BehaviorSubject<string>('');
   selectedBillingCountry$: BehaviorSubject<string> =
@@ -43,7 +82,6 @@ export class CheckoutService {
   appliedCouponStatus$: Observable<any> = this.store.select(
     copuponStatusSelector
   );
-
   appliedCouponValue$: Observable<any> = this.store.select(copuponDataSelector);
 
   applyCoupon(couponValue: string) {
@@ -51,21 +89,9 @@ export class CheckoutService {
     this.accountAuthService.isLoggedIn$
       .pipe(take(1))
       .subscribe((isLoggedIn: boolean) => {
-        if (isLoggedIn) {
-          this.store.dispatch(
-            fetchCouponsAction({
-              enteredCouponValue: couponValue,
-              isLoggedIn: true,
-            })
-          );
-        } else {
-          this.store.dispatch(
-            fetchCouponsAction({
-              enteredCouponValue: couponValue,
-              isLoggedIn: false,
-            })
-          );
-        }
+        this.store.dispatch(
+          fetchCouponsAction({ enteredCouponValue: couponValue, isLoggedIn })
+        );
       });
   }
 
@@ -73,26 +99,25 @@ export class CheckoutService {
     this.accountAuthService.isLoggedIn$
       .pipe(take(1))
       .subscribe((isLoggedIn: boolean) => {
-        if (isLoggedIn) {
-          this.store.dispatch(
-            removeCouponAction({ validCoupon: couponValue, isLoggedIn: true })
-          );
-        } else {
-          this.store.dispatch(
-            removeCouponAction({ validCoupon: couponValue, isLoggedIn: false })
-          );
-        }
+        this.store.dispatch(
+          removeCouponAction({ validCoupon: couponValue, isLoggedIn })
+        );
       });
   }
 
-  getAvaliableCountries() {
+  getAvaliableCountries(): Observable<any> {
     return this.httpClient
       .get(
         'https://adventures-hub.com/wp-json/custom/v1/shipping-countries-with-states'
       )
       .pipe(
         map((response: any) => response),
-        catchError((error: any) => error.error.message)
+        catchError((error: any) => {
+          console.error('Error fetching countries:', error);
+          return throwError(
+            () => new Error(error.error?.message || 'Failed to fetch countries')
+          );
+        })
       );
   }
 
@@ -105,6 +130,12 @@ export class CheckoutService {
     map(([countries, selectedCountryCode]) => {
       const selectedCountry = countries.find(
         (country: any) => country.code === selectedCountryCode
+      );
+
+      console.log(
+        selectedCountry && selectedCountry.payment_methods
+          ? selectedCountry.payment_methods.map((method: any) => method.id)
+          : []
       );
 
       return selectedCountry && selectedCountry.payment_methods
@@ -120,6 +151,7 @@ export class CheckoutService {
   getSelectedBillingCountry(country: string) {
     this.selectedBillingCountry$.next(country);
   }
+
   private getPaymentMethodTitle(paymentMethod: string): string {
     switch (paymentMethod) {
       case 'cod':
@@ -131,7 +163,7 @@ export class CheckoutService {
       case 'applePay':
         return 'Apple Pay';
       case 'walletPayment':
-        return 'Wallet Payment (Stripe)';
+        return 'Wallet Payment';
       case 'tabby':
         return 'Tabby Installments';
       default:
@@ -154,7 +186,7 @@ export class CheckoutService {
     }
   }
 
-  private getCartItems(): Observable<any[]> {
+  getCartItems(): Observable<any[]> {
     return this.cartService.savedUserCart$.pipe(
       map((response: any) =>
         response?.userCart?.items.map((item: any) => ({
@@ -165,14 +197,12 @@ export class CheckoutService {
     );
   }
 
-  private getCartTotalPrice() {
+  getCartTotalPrice(): Observable<{ total: number; currency: string }> {
     return this.cartService.savedUserCart$.pipe(
-      map((response: any) => {
-        return {
-          total: response.userCart.totals.total_price,
-          currency: response.userCart.totals.currency_code,
-        };
-      })
+      map((response: any) => ({
+        total: response.userCart.totals.total_price,
+        currency: response.userCart.totals.currency_code,
+      }))
     );
   }
 
@@ -182,12 +212,9 @@ export class CheckoutService {
     return this.appliedCouponValue$.pipe(
       take(1),
       map((response: any) => {
-        console.log(response);
         if (response?.code) {
           const coupon = [{ code: response.code }];
-          console.log(coupon);
           const isUsed = response.used_by?.includes(form.value.email);
-          console.log(isUsed);
           this.emailIsUsed$.next(isUsed);
           return { isValid: !isUsed, coupon };
         }
@@ -202,12 +229,112 @@ export class CheckoutService {
       take(1),
       map((isLoggedIn: boolean) => {
         if (isLoggedIn) {
-          let loadedCustomerId: any = localStorage.getItem('customerId');
+          const loadedCustomerId: any = localStorage.getItem('customerId');
           return loadedCustomerId ? JSON.parse(loadedCustomerId).value : 0;
         }
         return 0;
       })
     );
+  }
+
+  createPaymentIntent(
+    amount: number,
+    currency: string,
+    orderData: { billing: any; shipping: any; line_items: any[] }
+  ): Observable<PaymentIntentResponse> {
+    const payload: PaymentIntentRequest = { amount, currency, orderData };
+
+    return this.httpClient
+      .post<PaymentIntentResponse>(
+        `${this.BACKEND_URL}/api/payment/create-intent`,
+        payload
+      )
+      .pipe(
+        map((response) => {
+          if (response.success && response.clientSecret) {
+            this.paymentIntentClientSecret$.next(response.clientSecret);
+            this.paymentIntentId$.next(response.paymentIntentId || null);
+            return response;
+          }
+          throw new Error(response.error || 'Failed to create payment intent');
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error creating payment intent:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            error: error.error,
+          });
+          const errorMessage =
+            error.error?.error || error.message || 'Payment system error';
+          this.paymentError$.next(errorMessage);
+          return throwError(() => new Error(errorMessage));
+        })
+      );
+  }
+
+  checkOrderStatus(paymentIntentId: string): Observable<any> {
+    if (!paymentIntentId) {
+      return throwError(() => new Error('Missing payment intent ID'));
+    }
+
+    return this.httpClient
+      .get(`${this.BACKEND_URL}/api/order/status/${paymentIntentId}`)
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error checking order status:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            error: error.error,
+          });
+          return throwError(() => new Error('Failed to check order status'));
+        })
+      );
+  }
+
+  prepareOrderData(forms: {
+    billingForm: FormGroup;
+    shippingForm: FormGroup;
+    isShippingDifferent: boolean;
+  }): { billing: any; shipping: any; line_items: any[] } {
+    const billingFirstName =
+      forms.billingForm.get('firstName')?.value ||
+      forms.billingForm.get('email')?.value?.split('@')[0] ||
+      'Customer';
+    const billingLastName = forms.billingForm.get('lastName')?.value || '';
+
+    const billingAddress = {
+      first_name: billingFirstName,
+      last_name: billingLastName,
+      address_1: forms.billingForm.get('address')?.value || '',
+      city: forms.billingForm.get('city')?.value || '',
+      state: forms.billingForm.get('state')?.value || '',
+      postcode: `${forms.billingForm.get('postCode')?.value || ''}`,
+      country: forms.billingForm.get('countrySelect')?.value || '',
+      email: forms.billingForm.get('email')?.value || '',
+      phone: `${forms.billingForm.get('phone')?.value || ''}`,
+    };
+
+    const shippingAddress = forms.isShippingDifferent
+      ? {
+          first_name:
+            forms.shippingForm.get('firstName')?.value || billingFirstName,
+          last_name:
+            forms.shippingForm.get('lastName')?.value || billingLastName,
+          address_1: forms.shippingForm.get('address')?.value || '',
+          city: forms.shippingForm.get('city')?.value || '',
+          state: forms.shippingForm.get('state')?.value || '',
+          postcode: `${forms.shippingForm.get('postCode')?.value || ''}`,
+          country: forms.shippingForm.get('countrySelect')?.value || '',
+        }
+      : { ...billingAddress };
+
+    return {
+      billing: billingAddress,
+      shipping: shippingAddress,
+      line_items: [],
+    };
   }
 
   createOrder(
@@ -217,14 +344,13 @@ export class CheckoutService {
       isShippingDifferent: boolean;
     },
     paymentToken?: string
-  ) {
-    const subscription = this.cartService.savedUserCart$
-      .pipe(take(1))
-      .subscribe((cart) => {
+  ): Observable<OrderResponse> {
+    return this.cartService.savedUserCart$.pipe(
+      take(1),
+      switchMap((cart) => {
         const outOfStockItems =
-          cart?.items?.filter((item: any) => {
-            return item.stock_status !== 'instock';
-          }) || [];
+          cart?.items?.filter((item: any) => item.stock_status !== 'instock') ||
+          [];
 
         if (outOfStockItems.length > 0) {
           const outOfStockProducts = outOfStockItems.map((item: any) => ({
@@ -232,82 +358,133 @@ export class CheckoutService {
             name: item.name || `Product ${item.id}`,
           }));
           this.productsOutStock$.next(outOfStockProducts);
-          this.uiService.showError(
-            'Cannot create order: Some products are out of stock '
+          return throwError(
+            () =>
+              new Error('Cannot create order: Some products are out of stock')
           );
-
-          return;
-        } else {
-          const subscription2 = combineLatest([
-            this.getCartItems(),
-            this.getCoupons(forms.billingForm),
-            this.getCustomerId(),
-            this.getCartTotalPrice(),
-          ])
-            .pipe(take(1))
-            .subscribe(([lineItems, couponData, customerId, cartTotals]) => {
-              const billingAddress = {
-                first_name: forms.billingForm.get('firstName')?.value,
-                last_name: forms.billingForm.get('lastName')?.value,
-                address_1: forms.billingForm.get('address')?.value,
-                city: forms.billingForm.get('city')?.value,
-                state: forms.billingForm.get('state')?.value,
-                postcode: `${forms.billingForm.get('postCode')?.value}`,
-                country: forms.billingForm.get('countrySelect')?.value,
-                email: forms.billingForm.get('email')?.value,
-                phone: `${forms.billingForm.get('phone')?.value}`,
-              };
-              const shippingAddress = forms.isShippingDifferent
-                ? {
-                    first_name: forms.shippingForm.get('firstName')?.value,
-                    last_name: forms.shippingForm.get('lastName')?.value,
-                    address_1: forms.shippingForm.get('address')?.value,
-                    city: forms.shippingForm.get('city')?.value,
-                    state: forms.shippingForm.get('state')?.value,
-                    postcode: `${forms.billingForm.get('postCode')?.value}`,
-                    country: forms.shippingForm.get('countrySelect')?.value,
-                  }
-                : { ...billingAddress };
-
-              const paymentMethod =
-                forms.billingForm.get('paymentMethod')?.value || 'cod';
-
-              const orderData: any = {
-                payment_method: paymentMethod,
-                payment_method_title: this.getPaymentMethodTitle(paymentMethod),
-                set_paid: this.getSetPaid(paymentMethod),
-                billing: billingAddress,
-                shipping: shippingAddress,
-                line_items: [{ product_id: 132940, quantity: 1 }],
-                coupon_lines: couponData.coupon || [],
-                customer_id: customerId || 0,
-              };
-
-              const orderDetailsByPayment = {
-                amount: Number(cartTotals.total),
-                currency: cartTotals.currency,
-                orderData: {
-                  billing: billingAddress,
-                  shipping: shippingAddress,
-                  line_items: [{ product_id: 132940, quantity: 1 }],
-                },
-              };
-
-              console.log(orderDetailsByPayment);
-
-              if (couponData.isValid || couponData.coupon.length === 0) {
-                this.store.dispatch(
-                  createOrderAction({ orderDetails: orderDetailsByPayment })
-                );
-              } else {
-                this.uiService.showError(
-                  'Coupon already used. Order not created.'
-                );
-              }
-            });
-          this.destroyRef.onDestroy(() => subscription2.unsubscribe());
         }
-      });
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+
+        return combineLatest([
+          this.getCartItems(),
+          this.getCoupons(forms.billingForm),
+          this.getCustomerId(),
+          this.getCartTotalPrice(),
+        ]).pipe(
+          switchMap(([lineItems, couponData, customerId, cartTotals]) => {
+            const billingFirstName =
+              forms.billingForm.get('firstName')?.value ||
+              forms.billingForm.get('email')?.value?.split('@')[0] ||
+              'Customer';
+            const billingLastName =
+              forms.billingForm.get('lastName')?.value || '';
+
+            const billingAddress = {
+              first_name: billingFirstName,
+              last_name: billingLastName,
+              address_1: forms.billingForm.get('address')?.value || '',
+              city: forms.billingForm.get('city')?.value || '',
+              state: forms.billingForm.get('state')?.value || '',
+              postcode: `${forms.billingForm.get('postCode')?.value || ''}`,
+              country: forms.billingForm.get('countrySelect')?.value || '',
+              email: forms.billingForm.get('email')?.value || '',
+              phone: `${forms.billingForm.get('phone')?.value || ''}`,
+            };
+
+            const shippingAddress = forms.isShippingDifferent
+              ? {
+                  first_name:
+                    forms.shippingForm.get('firstName')?.value ||
+                    billingFirstName,
+                  last_name:
+                    forms.shippingForm.get('lastName')?.value ||
+                    billingLastName,
+                  address_1: forms.shippingForm.get('address')?.value || '',
+                  city: forms.shippingForm.get('city')?.value || '',
+                  state: forms.shippingForm.get('state')?.value || '',
+                  postcode: `${
+                    forms.shippingForm.get('postCode')?.value || ''
+                  }`,
+                  country: forms.shippingForm.get('countrySelect')?.value || '',
+                }
+              : { ...billingAddress };
+
+            const paymentMethod =
+              forms.billingForm.get('paymentMethod')?.value || 'cod';
+
+            const orderData = {
+              payment_method: paymentMethod,
+              payment_method_title: this.getPaymentMethodTitle(paymentMethod),
+              set_paid: this.getSetPaid(paymentMethod),
+              billing: billingAddress,
+              shipping: shippingAddress,
+              line_items: lineItems,
+              coupon_lines: couponData.coupon || [],
+              customer_id: customerId || 0,
+              payment_token: paymentToken,
+              meta_data: paymentToken
+                ? [{ key: '_payment_intent_id', value: paymentToken }]
+                : [],
+            };
+
+            console.log('Sending order data to server:', orderData);
+
+            if (!couponData.isValid && couponData.coupon.length > 0) {
+              return throwError(
+                () => new Error('Coupon already used. Order not created.')
+              );
+            }
+
+            // For all payment methods, send the order to the server
+            return this.httpClient
+              .post<OrderResponse>(
+                `${this.BACKEND_URL}/api/orders`,
+                orderData,
+                {
+                  headers: { 'Content-Type': 'application/json' },
+                }
+              )
+              .pipe(
+                map((response) => {
+                  console.log('Order creation response:', response);
+                  return response;
+                }),
+                catchError((error: HttpErrorResponse) => {
+                  console.error('Error creating order:', {
+                    status: error.status,
+                    statusText: error.statusText,
+                    message: error.message,
+                    response:
+                      typeof error.error === 'string'
+                        ? error.error.substring(0, 200)
+                        : error.error,
+                  });
+                  let errorMessage = 'Failed to create order';
+                  if (error.status === 0) {
+                    errorMessage = 'Network error: Unable to reach the server';
+                  } else if (error.error instanceof ErrorEvent) {
+                    errorMessage = `Client-side error: ${error.error.message}`;
+                  } else if (
+                    typeof error.error === 'string' &&
+                    error.error.includes('<!DOCTYPE')
+                  ) {
+                    errorMessage = `Server returned an unexpected HTML response. Status: ${error.status} ${error.statusText}`;
+                    console.error(
+                      'HTML response content:',
+                      error.error.substring(0, 200)
+                    );
+                  } else {
+                    errorMessage =
+                      error.error?.message ||
+                      `Server error: ${error.status} - ${error.message}`;
+                  }
+                  this.uiService.showError(errorMessage);
+                  this.paymentError$.next(errorMessage);
+                  return throwError(() => new Error(errorMessage));
+                })
+              );
+          })
+        );
+      })
+    );
   }
 }

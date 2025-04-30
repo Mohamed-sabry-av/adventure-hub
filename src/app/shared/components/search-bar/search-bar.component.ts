@@ -17,7 +17,7 @@ interface Category {
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './search-bar.component.html',
   styleUrls: ['./search-bar.component.css']
 })

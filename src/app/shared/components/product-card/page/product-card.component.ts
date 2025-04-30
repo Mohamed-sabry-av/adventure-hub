@@ -18,7 +18,6 @@ import { CartService } from '../../../../features/cart/service/cart.service';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
-import { SizeSelectorComponent } from '../components/size-selector/size-selector.component';
 import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
 
 @Component({
@@ -29,7 +28,6 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
     CardImageSliderComponent,
     CardDetailsComponent,
     ColorSwatchesComponent,
-    SizeSelectorComponent,
     MobileQuickAddComponent,
   ],
   templateUrl: './product-card.component.html',
@@ -149,10 +147,13 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.updateVisibleColors();
         this.updateVisibleSizes();
         this.variationsLoaded = true;
+        this.cdr.markForCheck();
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);
-        this.variationsLoaded = true;
+        this.variations = [];
+        this.variationsLoaded = true; // حتى لو حدث خطأ، قم بإظهار المكون
+        this.cdr.markForCheck();
       },
     });
   }

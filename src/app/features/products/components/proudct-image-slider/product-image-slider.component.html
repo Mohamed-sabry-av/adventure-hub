@@ -8,6 +8,7 @@
       (click)="selectImage(image.src)"
     >
       <img
+        loading="lazy"
         [src]="image.src"
         [alt]="image.alt || productName"
         class="thumbnail-img"
@@ -29,17 +30,18 @@
       [config]="slideConfig"
       (afterChange)="afterChange($event)"
     > -->
-      <div
-        ngxSlickItem
-        *ngFor="let image of images; trackBy: trackByFn"
-        class="slide"
-      >
-        <img
-          [src]="image.src"
-          [alt]="image.alt || productName"
-          class="main-img"
-        />
-      </div>
+    <div
+      ngxSlickItem
+      *ngFor="let image of images; trackBy: trackByFn"
+      class="slide"
+    >
+      <img
+        loading="lazy"
+        [src]="image.src"
+        [alt]="image.alt || productName"
+        class="main-img"
+      />
+    </div>
     <!-- </ngx-slick-carousel> -->
   </div>
 </div>

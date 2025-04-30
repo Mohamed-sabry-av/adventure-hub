@@ -61,13 +61,11 @@ export const routes: Routes = [
   },
   {
     path: 'history',
-    component: HistoryPageComponent,
+    loadComponent: () =>
+      import('./features/products/pages/History-page/history-page.component').then(
+        (m) => m.HistoryPageComponent
+      ),
     title: 'Browsing History',
-  },
-  {
-    path: 'history',
-    component: HistoryPageComponent,
-    title: 'Browsing History'
   },
   {
     path: '**',

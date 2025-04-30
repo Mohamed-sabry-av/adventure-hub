@@ -1,31 +1,32 @@
-<div *ngIf="isFixed" [style.height.px]="headerHeight"></div>
+<!-- Placeholder only shown when header is fixed and not on product page -->
+<!-- <div *ngIf="isFixed && !isProductPage" [style.height.px]="headerHeight"></div> -->
 
 <header
   class="w-full"
   [class]="{
-  'is-scroll':lastScrollY !==0 && currentPage !== 'checkout',
-}"
+    'is-scroll': lastScrollY !== 0
+  }"
   #headerEl
 >
-  @if (currentPage ==='checkout') {
+  @if (currentPage === 'checkout') {
   <div
     class="h-[135px] w-full bg-white border-b relative flex items-center justify-center"
   >
     <a class="block" [routerLink]="''">
       <img
-        src="header/adv-hub-logo-n.png"
+        src="header/adv-hub-logo-n_cropped.png"
         alt="Adventures hub logo"
         routerLink="/home"
         class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
+        loading="lazy"
       />
     </a>
 
     <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
   </div>
-
-  } @else {
-  <!-- معلومات فرعية -->
-  <!-- @if (lastScrollY ===0) {
+  } @else if(currentPage !== 'checkout') {
+  <!-- Secondary Info -->
+  @if (lastScrollY === 0) {
   <div
     class="relative mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6"
   >
@@ -36,9 +37,9 @@
       Buy Now & Pay Later with <strong>Tabby</strong>
     </p>
   </div>
-  } -->
+  }
 
-  <!-- معلومات اساسية -->
+  <!-- Main Info -->
   <app-app-container>
     <div class="py-3 flex items-center justify-between">
       <div>
@@ -57,7 +58,8 @@
       <!-- Logo -->
       <a class="block">
         <img
-          src="header/White logo-01.png"
+          loading="lazy"
+          src="header/White logo-01.webp"
           alt="Adventures hub logo"
           routerLink="/home"
           class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
@@ -100,7 +102,6 @@
     }
   </app-app-container>
 
-  <!-- @if (showNavbar) { -->
   <div @navbarAnimation>
     @defer (on idle) {
     <app-navbar-container
@@ -110,5 +111,4 @@
     }
   </div>
   }
-  <!-- } -->
 </header>

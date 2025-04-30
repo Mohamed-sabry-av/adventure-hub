@@ -10,11 +10,8 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-blog-page',
   imports: [
     AppContainerComponent,
-    BlogArticleComponent,
     BlogRelatedInfoComponent,
-    ServiceHighlightsComponent,
     BlogSectionsComponent,
-    RouterOutlet,
   ],
   templateUrl: './blog-page.component.html',
   styleUrl: './blog-page.component.css',
