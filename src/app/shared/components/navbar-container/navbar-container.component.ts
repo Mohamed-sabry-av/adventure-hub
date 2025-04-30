@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { NavbarMainCategoriesComponent } from '../navbar-main-categories/navbar-main-categories.component';
 import { NavbarSubCategoriesComponent } from '../navbar-sub-categories/navbar-sub-categories.component';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-navbar-container',
@@ -12,7 +12,7 @@ import { AsyncPipe } from '@angular/common';
   imports: [
     NavbarMainCategoriesComponent,
     NavbarSubCategoriesComponent,
-    RouterLink,
+    CommonModule,
     AsyncPipe,
   ],
   templateUrl: './navbar-container.component.html',

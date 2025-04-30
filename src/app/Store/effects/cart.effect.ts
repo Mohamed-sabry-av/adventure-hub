@@ -84,7 +84,7 @@ export class CartEffect {
 
         const apiUrl = isLoggedIn
           ? 'https://adventures-hub.com/wp-json/custom/v1/cart/add'
-          : `https://adventures-hub.com/wp-json/custom/v1/product/${product.slug}/status`;
+          : `https://adventures-hub.com/wp-json/custom/v1/product/${product.id}/status`;
 
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
         let requestMethod: Observable<any> = of();

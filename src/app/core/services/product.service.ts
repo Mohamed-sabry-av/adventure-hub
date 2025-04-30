@@ -270,7 +270,7 @@ export class ProductService {
   }
 
 
-  getProductBySlug(slug: string): Observable<Product> {
+  getProductBySlug(slug: string): Observable<Product | null> {
     const cacheKey = `product_slug_${slug}`;
     return this.cachingService.cacheObservable(
       cacheKey,
@@ -286,9 +286,9 @@ export class ProductService {
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
-          const product = response.body[0]; // WooCommerce بيرجع array، ناخد أول منتج
+          const product = response.body[0];
           if (!product) {
-            throw new Error(`Product with slug ${slug} not found`);
+            return null; // لو المنتج مش موجود، نرجع null
           }
           return {
             ...product,
@@ -297,11 +297,11 @@ export class ProductService {
         }),
         catchError((error) => {
           console.error(`Error fetching product with slug ${slug}:`, error);
-          return this.handleErrorsService.handelError(error);
+          return of(null); // في حالة الخطأ، نرجع null
         }),
         shareReplay(1)
       ),
-      300000 // TTL 5 دقائق
+      300000
     );
   }
 }

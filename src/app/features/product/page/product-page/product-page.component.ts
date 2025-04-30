@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
-import { map, switchMap } from 'rxjs';
+import { map, of, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
@@ -54,37 +54,37 @@ export class ProductPageComponent implements OnInit {
     this.route.paramMap
       .pipe(
         switchMap((params) => {
-          const slug = params.get('slug'); 
+          const slug = params.get('slug');
           if (!slug) {
-            this.router.navigate(['/']); 
-            return [];
+            this.router.navigate(['/']);
+            return of(null); // نرجع Observable بـ null بدل []
           }
-
-
+  
           this.isLoading = true;
-          this.productData = null; // Clear old data
+          this.productData = null;
           this.productDataForDesc = null;
           this.schemaData = null;
+  
           return this.productService.getProductBySlug(slug).pipe(
-            switchMap((product: any) =>
-              this.productService.getProductVariations(product.id).pipe(
+            switchMap((product: any) => {
+              if (!product) {
+                this.router.navigate(['/']);
+                return of(null);
+              }
+              return this.productService.getProductVariations(product.id).pipe(
                 map((variations) => ({
                   ...product,
                   variations: variations || [],
                   brand:
-                    product.attributes?.find(
-                      (attr: any) => attr.name === 'Brand'
-                    )?.options?.[0]?.name ||
-                    product.brand ||
-                    'Unknown',
+                    product.attributes?.find((attr: any) => attr.name === 'Brand')
+                      ?.options?.[0]?.name || product.brand || 'Unknown',
                   available_colors: [
                     ...new Set(
                       (variations || [])
                         .map(
                           (v: any) =>
-                            v.attributes?.find(
-                              (attr: any) => attr.name === 'Color'
-                            )?.option
+                            v.attributes?.find((attr: any) => attr.name === 'Color')
+                              ?.option
                         )
                         .filter(Boolean)
                     ),
@@ -94,63 +94,69 @@ export class ProductPageComponent implements OnInit {
                       (variations || [])
                         .map(
                           (v: any) =>
-                            v.attributes?.find(
-                              (attr: any) => attr.name === 'Size'
-                            )?.option
+                            v.attributes?.find((attr: any) => attr.name === 'Size')
+                              ?.option
                         )
                         .filter(Boolean)
                     ),
                   ],
                 }))
-              )
-            )
+              );
+            })
           );
         })
       )
       .subscribe({
         next: (response: any) => {
-          this.productData = response;
-          this.productDataForDesc = {
-            id: response.id,
-            description: response.description,
-            specifications: response.specifications,
-            variations: response.variations || [],
-            brand: response.brand || 'Unknown',
-          };
-          this.schemaData = this.seoService.applySeoTags(this.productData, {
-            title: this.productData?.name,
-            description: this.productData?.short_description,
-            image: this.productData?.images?.[0]?.src,
-          });
-          this.isLoading = false;
-
-          this.recentlyVisitedService.addProduct(this.productData);
-
-          if (typeof _learnq !== 'undefined' && this.productData) {
-            _learnq.push([
-              'track',
-              'Viewed Product',
-              {
-                ProductID: this.productData.id,
-                ProductName: this.productData.name,
-                Price: this.productData.price,
-                Brand: this.productData.brand || 'Unknown',
-                Categories:
-                  this.productData.categories?.map((cat: any) => cat.name) ||
-                  [],
-                AvailableColors: this.productData.available_colors || [],
-                AvailableSizes: this.productData.available_sizes || [],
-              },
-            ]);
+          this.isLoading = false; // نوقف التحميل هنا أولاً
+          if (response) {
+            this.productData = response;
+            this.productDataForDesc = {
+              id: response.id,
+              description: response.description,
+              specifications: response.specifications,
+              variations: response.variations || [],
+              brand: response.brand || 'Unknown',
+            };
+            this.schemaData = this.seoService.applySeoTags(this.productData, {
+              title: this.productData?.name,
+              description: this.productData?.short_description,
+              image: this.productData?.images?.[0]?.src,
+            });
+  
+            this.recentlyVisitedService.addProduct(this.productData);
+  
+            if (typeof _learnq !== 'undefined' && this.productData) {
+              _learnq.push([
+                'track',
+                'Viewed Product',
+                {
+                  ProductID: this.productData.id,
+                  ProductName: this.productData.name,
+                  Price: this.productData.price,
+                  Brand: this.productData.brand || 'Unknown',
+                  Categories:
+                    this.productData.categories?.map((cat: any) => cat.name) || [],
+                  AvailableColors: this.productData.available_colors || [],
+                  AvailableSizes: this.productData.available_sizes || [],
+                },
+              ]);
+            }
+          } else {
+            this.productData = null;
+            this.schemaData = this.seoService.applySeoTags(null, {
+              title: 'Product Not Found',
+            });
           }
         },
         error: (err) => {
           console.error('Error fetching product data:', err);
+          this.isLoading = false;
           this.productData = null;
           this.schemaData = this.seoService.applySeoTags(null, {
-            title: 'Product Page',
+            title: 'Product Page Error',
           });
-          this.isLoading = false;
+          this.router.navigate(['/']); // نعمل توجيه لو حصل خطأ
         },
       });
   }

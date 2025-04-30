@@ -42,7 +42,7 @@
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <a [routerLink]="[`/${item.permalink}`]">
+      <a [routerLink]="[`/product/${item.slug}`]">
         <img
           loading="lazy"
           [src]="item.images.imageSrc"

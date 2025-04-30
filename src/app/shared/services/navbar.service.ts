@@ -19,15 +19,7 @@ export class NavbarService {
     // التحكم في تمرير الصفحة عند فتح القائمة
     document.body.style.overflow = visible ? 'hidden' : 'auto';
 
-    // إزالة الخلفية الشفافة عند إغلاق القائمة
-    if (!visible) {
-      setTimeout(() => {
-        const backdrops = document.querySelectorAll('.p-component-overlay');
-        backdrops.forEach(backdrop => {
-          (backdrop as HTMLElement).style.display = 'none';
-        });
-      }, 300);
-    }
+
   }
 
   // التعامل مع تمرير الصفحة
