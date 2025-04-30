@@ -17,6 +17,7 @@ import {
 import { getCouponDataAction } from '../actions/checkout.action';
 import { cartStatusAction } from '../actions/ui.action';
 import { UIService } from '../../shared/services/ui.service';
+import { Router } from '@angular/router';
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -24,6 +25,7 @@ export class CartEffect {
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
   private uiService = inject(UIService);
+  private router = inject(Router);
 
   syncOfflineCartToLive = createEffect(() =>
     this.actions$.pipe(
@@ -65,7 +67,7 @@ export class CartEffect {
   addProductToUserCart = createEffect(() =>
     this.actions$.pipe(
       ofType(addProductToUserCartAction),
-      switchMap(({ product, isLoggedIn }) => {
+      switchMap(({ product, isLoggedIn, buyItNow }) => {
         console.log('From Effect', product);
 
         const apiUrl = isLoggedIn
@@ -103,9 +105,16 @@ export class CartEffect {
                   },
                 };
               });
-              this.cartService.cartMode(true);
-              return getUserCartAction({ userCart: response });
+
+              if (buyItNow) {
+                this.router.navigateByUrl('/checkout', { replaceUrl: true });
+                return getUserCartAction({ userCart: response });
+              } else {
+                this.cartService.cartMode(true);
+                return getUserCartAction({ userCart: response });
+              }
             } else {
+              console.log(buyItNow);
               const stockQuantity = response.stock_quantity || 0;
               const quantityLimits = response.quantity_limits || {
                 minimum: 1,
@@ -173,6 +182,16 @@ export class CartEffect {
                 'Cart',
                 JSON.stringify(loadedData.loadedCart)
               );
+
+              if (buyItNow) {
+                this.router.navigateByUrl('/checkout', { replaceUrl: true });
+                return fetchUserCartAction({
+                  isLoggedIn: false,
+                  mainPageLoading: false,
+                  sideCartLoading: false,
+                  openSideCart: false,
+                });
+              }
 
               return fetchUserCartAction({
                 isLoggedIn: false,

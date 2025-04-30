@@ -17,7 +17,7 @@ export const getUserCartAction = createAction(
 
 export const addProductToUserCartAction = createAction(
   '[Cart] Add Product To User Cart',
-  props<{ product: any; isLoggedIn: boolean }>()
+  props<{ product: any; isLoggedIn: boolean; buyItNow?: boolean }>()
 );
 
 export const updateProductOfUserCartAction = createAction(

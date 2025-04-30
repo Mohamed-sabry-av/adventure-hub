@@ -32,61 +32,6 @@ export class CartService {
     this.cartIsVisible$.next(isVisible);
   }
 
-  calcCartPrice(products: any, coupon?: any) {
-    const subTotal = [...products].reduce((acc, ele) => {
-      return acc + +ele.quantity! * ele.prices.price;
-    }, 0);
-
-    let totalDiscount: number = 0;
-    let totalPrice: number = subTotal;
-    let coupons: any = {};
-
-    if (coupon) {
-      coupon = coupon[0];
-      const minAmount = parseFloat(coupon.minimum_amount || '0');
-      const maxAmount = parseFloat(coupon.maximum_amount || '0');
-
-      const isAboveMin = subTotal >= minAmount;
-      const isBelowMax = maxAmount === 0 || subTotal <= maxAmount;
-
-      if (isAboveMin && isBelowMax) {
-        if (coupon.discount_type === 'fixed_cart') {
-          totalDiscount = parseFloat(coupon.amount);
-          totalPrice = Math.max(subTotal - totalDiscount, 0);
-        } else if (coupon.discount_type === 'percent') {
-          totalDiscount = subTotal * (parseFloat(coupon.amount) / 100);
-
-          totalPrice = Math.max(subTotal - totalDiscount, 0);
-        }
-
-        const couponCode = coupon.code;
-        coupons = {
-          [couponCode]: {
-            code: couponCode,
-            discount_type: coupon.discount_type,
-            totals: {
-              total_discount: totalDiscount.toString(),
-            },
-          },
-        };
-      } else {
-        console.log('Coupon not applicable: subtotal is outside allowed range');
-      }
-    }
-
-    return {
-      items: [...products],
-      payment_methods: ['stripe', 'tabby_installments'],
-      totals: {
-        sub_total: subTotal,
-        currency_code: 'AED',
-        total_discount: totalDiscount,
-        total_price: totalPrice,
-      },
-      coupons,
-    };
-  }
-
   loadedDataFromLS(isLoggedIn: boolean) {
     const params = new HttpParams().set(
       '_fields',
@@ -145,7 +90,6 @@ export class CartService {
     });
   }
   savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
-  // .pipe(shareReplay(1));
 
   updateQuantityOfProductInCart(
     selectedProductQuantity: number,
@@ -172,13 +116,14 @@ export class CartService {
     });
   }
 
-  addProductToCart(selectedProduct: any) {
+  addProductToCart(selectedProduct: any, buyItNow?: boolean) {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
         this.store.dispatch(
           addProductToUserCartAction({
             product: selectedProduct,
             isLoggedIn: true,
+            buyItNow: buyItNow,
           })
         );
       } else {
@@ -186,6 +131,7 @@ export class CartService {
           addProductToUserCartAction({
             product: selectedProduct,
             isLoggedIn: false,
+            buyItNow: buyItNow,
           })
         );
       }

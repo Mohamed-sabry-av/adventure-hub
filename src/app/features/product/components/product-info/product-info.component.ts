@@ -286,7 +286,7 @@ export class ProductInfoComponent {
     };
   }
 
-  addToCart(): void {
+  addToCart(buyItNow?: boolean): void {
     const product = this.productInfo();
     if (!product) {
       console.error('No product info available');
@@ -330,7 +330,7 @@ export class ProductInfoComponent {
       return;
     }
 
-    this.cartService.addProductToCart(cartProduct);
+    this.cartService.addProductToCart(cartProduct, buyItNow);
     console.log('Product added to cart:', cartProduct);
 
     if (typeof _learnq !== 'undefined') {
@@ -353,6 +353,8 @@ export class ProductInfoComponent {
 
   buyNow(): void {
     console.log('Buy now with pay clicked');
+    const buyItNow = true;
+    this.addToCart(buyItNow);
   }
 
   parseFloatValue(value: any): number {
