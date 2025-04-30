@@ -16,6 +16,10 @@
   opacity: 1;
 }
 
+.options-panel-header {
+  position: relative;
+}
+
 /* Options Side Panel (Desktop) */
 .options-side-panel {
   position: fixed;

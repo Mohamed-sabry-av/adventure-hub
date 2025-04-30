@@ -45,7 +45,7 @@ export class SideCartComponent {
     const subscribtion = this.cartService.savedUserCart$
       .pipe(filter((response: any) => response?.userCart?.items?.length > 0))
       .subscribe((response: any) => {
-        this.progressValue = response?.userCart.totals?.total_price;
+        this.progressValue = response?.userCart.totals?.sub_total;
       });
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {

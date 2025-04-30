@@ -58,6 +58,7 @@ export class CartEffect {
                 isLoggedIn: true,
                 mainPageLoading: true,
                 sideCartLoading: false,
+                openSideCart: false,
               });
             }),
             catchError((error: any) => {
@@ -76,6 +77,7 @@ export class CartEffect {
       ofType(addProductToUserCartAction),
       switchMap(({ product, isLoggedIn, buyItNow }) => {
         console.log('From Effect', product);
+        console.log('1- Done');
         this.store.dispatch(
           startLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
         );
@@ -102,6 +104,7 @@ export class CartEffect {
 
         return requestMethod.pipe(
           map((response: any) => {
+            console.log('2- Done');
             if (isLoggedIn) {
               console.log('Product Added To Cart Online');
               response.items = response.items.map((item: any) => {
@@ -251,6 +254,7 @@ export class CartEffect {
           openSideCart,
           buyItNow,
         }) => {
+          console.log('3- Done');
           this.store.dispatch(
             cartStatusAction({
               mainPageLoading: mainPageLoading,
@@ -288,6 +292,7 @@ export class CartEffect {
 
           return requestMethod.pipe(
             map((response: any) => {
+              console.log('4- Done');
               console.log(response);
 
               response.items = response.items.map((item: any) => {
@@ -343,6 +348,12 @@ export class CartEffect {
             }),
             catchError((error: any) => {
               console.log(error);
+              console.log('Here Is Error');
+              this.store.dispatch(
+                stopLoadingSpinnerAction({
+                  buttonName: buyItNow ? 'buy' : 'add',
+                })
+              );
 
               this.uiService.showError(
                 error.error.message

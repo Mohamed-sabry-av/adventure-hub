@@ -77,7 +77,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         !this.isLoading &&
         !this.isLoadingMore &&
         !this.isFetching &&
-        this.currentPage * this.itemsPerPage < this.totalProducts 
+        this.currentPage * this.itemsPerPage < this.totalProducts
       ) {
         this.loadMoreProducts();
       }
@@ -301,5 +301,4 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.filterDrawerOpen = false;
     this.cdr.markForCheck();
   }
-  
 }
