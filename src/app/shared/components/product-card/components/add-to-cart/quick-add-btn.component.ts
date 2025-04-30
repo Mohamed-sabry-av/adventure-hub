@@ -68,6 +68,7 @@ export class MobileQuickAddComponent implements OnInit {
   ngOnInit() {}
 
   onToggleOptionsPanel() {
+    console.log('options Start Open');
     this.sideOptionsService.openSideOptions({
       product: this.product,
       variations: this.variations,

@@ -1,14 +1,14 @@
 <!-- Backdrop for options panel -->
 <div
-  *ngIf="state.isOpen"
+  *ngIf="(stateIsOpen$ | async).isOpen"
   class="panel-backdrop"
-  [class.active]="state.isOpen"
+  [class.active]="(stateIsOpen$ | async).isOpen"
   (click)="closeSideOptions()"
 ></div>
 
 <!-- Product Options Side Panel for Desktop -->
 <div
-  *ngIf="state.isOpen && !state.isMobile"
+  *ngIf="(stateIsOpen$ | async).isOpen && !(stateIsOpen$ | async).isMobile"
   class="options-side-panel"
   [@slideInFromRight]
 >
@@ -122,20 +122,21 @@
     >
       ADD TO CART
     </button>
-    <button class="buy-now-btn text-center" (click)="onBuyItNow()">
+    <button class="buy-now-btn" (click)="onBuyItNow()">
       @if (spinnerIsLoading$ | async) {
-      <div
-        class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white text-center"
-      ></div>
-
-      }@else { BUY IT NOW }
+      <div class="spinner-container">
+        <div
+          class="block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+      </div>
+      } @else { BUY IT NOW }
     </button>
   </div>
 </div>
 
 <!-- Mobile Bottom Sheet for Product Options -->
 <div
-  *ngIf="state.isOpen && state.isMobile"
+  *ngIf="(stateIsOpen$ | async).isOpen && (stateIsOpen$ | async).isMobile"
   class="mobile-options-panel"
   [@slideUpFromBottom]
 >
@@ -250,6 +251,13 @@
     >
       ADD TO CART
     </button>
-    <button class="buy-now-btn">BUY IT NOW</button>
+    <button class="buy-now-btn" (click)="onBuyItNow()">
+      @if (spinnerIsLoading$ | async) {
+      <div
+        class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+      ></div>
+
+      }@else { BUY IT NOW }
+    </button>
   </div>
 </div>

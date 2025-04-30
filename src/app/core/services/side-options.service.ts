@@ -45,6 +45,7 @@ export class SideOptionsService {
   }
 
   openSideOptions(options: Partial<SideOptionsState>): void {
+    console.log('Options Should Open');
     const selectedColor =
       options.selectedColor || this.currentState.selectedColor;
     const uniqueSizes = this.getSizesForColor(

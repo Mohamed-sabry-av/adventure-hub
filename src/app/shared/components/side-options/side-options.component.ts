@@ -17,7 +17,7 @@ import {
 } from '../../../core/services/side-options.service';
 import { CartService } from '../../../features/cart/service/cart.service';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { map, Observable, Subject, takeUntil } from 'rxjs';
 import { UIService } from '../../services/ui.service';
 
 @Component({
@@ -86,11 +86,11 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   addSuccess: boolean = false;
   private destroy$ = new Subject<void>();
   private uiService = inject(UIService);
+  private sideOptionsService = inject(SideOptionsService);
 
   spinnerIsLoading$: Observable<boolean> = this.uiService.isSpinnerLoading$;
 
   constructor(
-    private sideOptionsService: SideOptionsService,
     private cartService: CartService,
     private cdr: ChangeDetectorRef,
     private router: Router,
@@ -101,10 +101,16 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     this.sideOptionsService.state$
       .pipe(takeUntil(this.destroy$))
       .subscribe((state) => {
+        console.log(state);
         this.state = state;
         this.cdr.markForCheck();
       });
   }
+  stateIsOpen$: Observable<any> = this.sideOptionsService.state$.pipe(
+    map((response: SideOptionsState) => {
+      return { isOpen: response.isOpen, isMobile: response.isMobile };
+    })
+  );
 
   ngOnDestroy(): void {
     this.destroy$.next();
