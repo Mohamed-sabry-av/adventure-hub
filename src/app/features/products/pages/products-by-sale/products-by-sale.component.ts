@@ -1,4 +1,10 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FilterSidebarComponent } from '../../components/filter-sidebar/filter-sidebar.component';
 import { BreadcrumbComponent } from '../../components/breadcrumb/breadcrumb.component';
@@ -19,6 +25,8 @@ import { SeoService } from '../../../../core/services/seo.service';
     SortMenuComponent,
     ProductsGridComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   templateUrl: './products-by-sale.component.html',
   styleUrls: ['./products-by-sale.component.css'],
 })
@@ -33,18 +41,22 @@ export class ProductsBySaleComponent implements OnInit {
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
   schemaData: any;
-  
+
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
 
-  constructor(private filterService: FilterService,private seoService:SeoService) {}
+  constructor(
+    private filterService: FilterService,
+    private seoService: SeoService
+  ) {}
 
   async ngOnInit() {
     this.isLoading = true;
     try {
       this.schemaData = this.seoService.applySeoTags(null, {
         title: 'On Sale Products - Adventures HUB Sports Shop',
-        description: 'Discover discounted diving equipment, outdoor gear, and sports accessories at Adventures HUB Sports Shop. Shop now and save on premium products!',
+        description:
+          'Discover discounted diving equipment, outdoor gear, and sports accessories at Adventures HUB Sports Shop. Shop now and save on premium products!',
       });
 
       await this.loadProductsWithFilters(this.currentPage);
@@ -88,7 +100,10 @@ export class ProductsBySaleComponent implements OnInit {
     }
   }
 
-  private async loadProductsWithFilters(page: number, filters: { [key: string]: string[] } = {}) {
+  private async loadProductsWithFilters(
+    page: number,
+    filters: { [key: string]: string[] } = {}
+  ) {
     const isInitialLoad = page === 1;
     if (isInitialLoad) {
       this.isLoading = true;
@@ -108,7 +123,9 @@ export class ProductsBySaleComponent implements OnInit {
         )
         .toPromise();
       console.log('Loaded products for page', page, ':', products);
-      this.products = isInitialLoad ? (products || []) : [...this.products, ...(products || [])];
+      this.products = isInitialLoad
+        ? products || []
+        : [...this.products, ...(products || [])];
     } catch (error) {
       console.error('Error loading products:', error);
       if (isInitialLoad) this.products = [];
@@ -120,7 +137,10 @@ export class ProductsBySaleComponent implements OnInit {
 
   private async loadMoreProducts(): Promise<void> {
     this.currentPage++;
-    await this.loadProductsWithFilters(this.currentPage, this.filterSidebar?.selectedFilters || {});
+    await this.loadProductsWithFilters(
+      this.currentPage,
+      this.filterSidebar?.selectedFilters || {}
+    );
   }
 
   private async loadTotalProductsOnSale(): Promise<void> {
@@ -166,7 +186,10 @@ export class ProductsBySaleComponent implements OnInit {
     }
     this.currentPage = 1;
     this.products = [];
-    await this.loadProductsWithFilters(this.currentPage, this.filterSidebar?.selectedFilters || {});
+    await this.loadProductsWithFilters(
+      this.currentPage,
+      this.filterSidebar?.selectedFilters || {}
+    );
   }
 
   private async loadAvailableAttributes() {

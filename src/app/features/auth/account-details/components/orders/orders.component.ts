@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
@@ -8,7 +13,8 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrdersComponent implements OnInit {
   orders: any[] = [];
@@ -39,38 +45,38 @@ export class OrdersComponent implements OnInit {
         this.error = 'Failed to load orders. Please try again later.';
         this.isLoading = false;
         console.error('Error loading orders:', err);
-      }
+      },
     });
   }
 
   getCustomerId(): number | null {
-    const customerIdStr:any = this.localStorageService.getItem('customerId');
+    const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
 
   getOrderStatusLabel(status: string): string {
-    const statusMap: {[key: string]: string} = {
-      'pending': 'Pending',
-      'processing': 'Processing',
+    const statusMap: { [key: string]: string } = {
+      pending: 'Pending',
+      processing: 'Processing',
       'on-hold': 'On Hold',
-      'completed': 'Completed',
-      'cancelled': 'Cancelled',
-      'refunded': 'Refunded',
-      'failed': 'Failed'
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+      refunded: 'Refunded',
+      failed: 'Failed',
     };
 
     return statusMap[status] || status;
   }
 
   getOrderStatusClass(status: string): string {
-    const statusClassMap: {[key: string]: string} = {
-      'pending': 'status-pending',
-      'processing': 'status-processing',
+    const statusClassMap: { [key: string]: string } = {
+      pending: 'status-pending',
+      processing: 'status-processing',
       'on-hold': 'status-on-hold',
-      'completed': 'status-completed',
-      'cancelled': 'status-cancelled',
-      'refunded': 'status-refunded',
-      'failed': 'status-failed'
+      completed: 'status-completed',
+      cancelled: 'status-cancelled',
+      refunded: 'status-refunded',
+      failed: 'status-failed',
     };
 
     return statusClassMap[status] || 'status-default';
@@ -81,7 +87,7 @@ export class OrdersComponent implements OnInit {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   }
 }

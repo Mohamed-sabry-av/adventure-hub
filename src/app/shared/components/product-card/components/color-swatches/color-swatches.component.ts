@@ -1,4 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,11 +12,15 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './color-swatches.component.html',
-  styleUrls: ['./color-swatches.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
+  styleUrls: ['./color-swatches.component.css'],
 })
 export class ColorSwatchesComponent {
-  @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
-  @Input() visibleColors: { color: string; image: string; inStock: boolean }[] = [];
+  @Input() colorOptions: { color: string; image: string; inStock: boolean }[] =
+    [];
+  @Input() visibleColors: { color: string; image: string; inStock: boolean }[] =
+    [];
   @Input() selectedColor: string | null = null;
   @Input() colorScrollIndex: number = 0;
   @Input() maxColorScrollIndex: number = 0;
@@ -28,6 +38,8 @@ export class ColorSwatchesComponent {
 
   getShortColorName(colorName: string): string {
     // If the color name is too long, truncate it
-    return colorName.length > 10 ? colorName.substring(0, 7) + '...' : colorName;
+    return colorName.length > 10
+      ? colorName.substring(0, 7) + '...'
+      : colorName;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AboutusService } from '../../service/aboutus.service';
 import { DecodeHtmlPipe } from '../../../../shared/pipes/decode-html.pipe';
@@ -8,6 +8,8 @@ import { SeoService } from '../../../../core/services/seo.service';
   selector: 'app-cookies-policy',
   standalone: true,
   imports: [CommonModule, DecodeHtmlPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   template: `
     <ng-container *ngIf="schemaData">
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
@@ -16,12 +18,12 @@ import { SeoService } from '../../../../core/services/seo.service';
 
     <div class="cookies-policy-container">
       @if (pageData) {
-        <div>
-          <h1>{{ pageData.title?.rendered | decodeHtml }}</h1>
-          <div [innerHTML]="pageData.content?.rendered"></div>
-        </div>
+      <div>
+        <h1>{{ pageData.title?.rendered | decodeHtml }}</h1>
+        <div [innerHTML]="pageData.content?.rendered"></div>
+      </div>
       } @else {
-        <p>Loading Cookies Policy...</p>
+      <p>Loading Cookies Policy...</p>
       }
     </div>
   `,
@@ -47,7 +49,9 @@ export class CookiesPolicyComponent implements OnInit {
         // Apply SEO tags using yoast_head_json
         this.schemaData = this.seoService.applySeoTags(this.pageData, {
           title: this.pageData?.title?.rendered,
-          description: this.pageData?.excerpt?.rendered || 'Cookies Policy - Adventures HUB Sports Shop',
+          description:
+            this.pageData?.excerpt?.rendered ||
+            'Cookies Policy - Adventures HUB Sports Shop',
         });
       },
       error: (error) => {

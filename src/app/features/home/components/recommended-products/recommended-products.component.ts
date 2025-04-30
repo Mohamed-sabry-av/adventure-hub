@@ -1,4 +1,9 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  HostListener,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
@@ -9,57 +14,59 @@ import { CarouselModule } from 'primeng/carousel';
   selector: 'app-recommended-products',
   standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   templateUrl: './recommended-products.component.html',
-  styleUrls: ['./recommended-products.component.css']
+  styleUrls: ['./recommended-products.component.css'],
 })
 export class RecommendedProductsComponent implements OnInit {
   products: any[] = [];
   loading: boolean = true;
   error: string | null = null;
   screenWidth: number = window.innerWidth;
-  
+
   responsiveOptions = [
     {
       breakpoint: '1199px',
       numVisible: 4,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '991px',
       numVisible: 3,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '767px',
       numVisible: 2.5,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '575px',
       numVisible: 2,
-      numScroll: 1
-    }
+      numScroll: 1,
+    },
   ];
-  
+
   constructor(private homeService: HomeService) {}
-  
+
   ngOnInit(): void {
     this.loadRecommendedProducts();
     this.screenWidth = window.innerWidth;
   }
-  
+
   loadRecommendedProducts(): void {
     this.loading = true;
     this.homeService.getFeaturedProducts(1, 8).subscribe({
-      next: (data:any) => {
+      next: (data: any) => {
         this.products = data;
         this.loading = false;
       },
-      error: (err:any) => {
+      error: (err: any) => {
         this.error = 'Failed to load recommended products';
         this.loading = false;
         console.error('Error loading recommended products:', err);
-      }
+      },
     });
   }
 

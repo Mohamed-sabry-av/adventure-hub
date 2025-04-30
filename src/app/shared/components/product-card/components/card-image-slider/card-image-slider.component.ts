@@ -1,4 +1,14 @@
-import { Component, Input, ViewChild, ElementRef, OnInit, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  Input,
+  ViewChild,
+  ElementRef,
+  OnInit,
+  HostListener,
+  Inject,
+  PLATFORM_ID,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Product, Variation } from '../../../../../interfaces/product';
@@ -9,6 +19,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './card-image-slider.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   styleUrls: ['./card-image-slider.component.css'],
   animations: [
     trigger('fadeIn', [
@@ -61,7 +73,9 @@ export class CardImageSliderComponent implements OnInit {
       const width = parseInt(entry.match(/(\d+)w/)?.[1] || '0');
       return width <= maxWidth;
     });
-    return srcsetEntries.length > 0 ? srcsetEntries.join(',') : `${image.src} ${maxWidth}w`;
+    return srcsetEntries.length > 0
+      ? srcsetEntries.join(',')
+      : `${image.src} ${maxWidth}w`;
   }
 
   getProductTags(): string[] {
@@ -69,9 +83,9 @@ export class CardImageSliderComponent implements OnInit {
       console.warn('No product provided to getProductTags');
       return [];
     }
-  
+
     const tags: string[] = [];
-  
+
     // NEW! tag
     if (this.product.date_created) {
       const createdDate = new Date(this.product.date_created);
@@ -83,7 +97,7 @@ export class CardImageSliderComponent implements OnInit {
         tags.push('NEW!');
       }
     }
-  
+
     // Sale tag
     if (this.product.on_sale) {
       const salePercentage = this.getSalePercentage();
@@ -91,33 +105,39 @@ export class CardImageSliderComponent implements OnInit {
         tags.push(`-${salePercentage}%`);
       }
     }
-  
+
     // HUB tag
     if (this.product.tags && this.product.tags.length > 0) {
       const hubTag = this.product.tags.find(
-        (tag) => tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
+        (tag) =>
+          tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
       );
       if (hubTag) {
         tags.push('HUB');
       }
     }
-  
+
     // Stock status for variable products
     if (this.product.type === 'variable' && this.variations.length > 0) {
       const anyVariationInStock = this.variations.some(
-        (v:any) => v.stock_status === 'instock' && (v.manage_stock ? v.stock_quantity > 0 : true)
+        (v: any) =>
+          v.stock_status === 'instock' &&
+          (v.manage_stock ? v.stock_quantity > 0 : true)
       );
       if (!anyVariationInStock) {
         tags.push('SOLD OUT');
       }
     } else if (this.product.type === 'simple') {
-      const isInStock = this.product.stock_status === 'instock' && 
-                       (this.product.manage_stock ? (this.product.stock_quantity ?? 0) > 0 : true);
+      const isInStock =
+        this.product.stock_status === 'instock' &&
+        (this.product.manage_stock
+          ? (this.product.stock_quantity ?? 0) > 0
+          : true);
       if (!isInStock) {
         tags.push('SOLD OUT');
       }
     }
-  
+
     // Best Seller tag
     const isBestSeller =
       (this.product.rating_count && this.product.rating_count > 20) ||
@@ -128,12 +148,12 @@ export class CardImageSliderComponent implements OnInit {
     if (isBestSeller) {
       tags.push('BESTSELLER');
     }
-  
+
     // Featured tag
     if (this.product.featured) {
       tags.push('FEATURED');
     }
-  
+
     const bottomTags = tags.filter((tag) => tag !== 'HUB');
     const priorityOrder = [
       bottomTags.find((tag) => tag === 'SOLD OUT'),
@@ -142,7 +162,7 @@ export class CardImageSliderComponent implements OnInit {
       bottomTags.find((tag) => tag === 'FEATURED'),
       bottomTags.find((tag) => tag === 'BESTSELLER'),
     ].filter(Boolean) as string[];
-  
+
     const finalBottomTags = priorityOrder.slice(0, 2);
     return [...finalBottomTags, ...(tags.includes('HUB') ? ['HUB'] : [])];
   }
@@ -154,7 +174,9 @@ export class CardImageSliderComponent implements OnInit {
       return originalUrl;
     }
 
-    const screenWidth = isPlatformBrowser(this.platformId) ? window.innerWidth : 1024;
+    const screenWidth = isPlatformBrowser(this.platformId)
+      ? window.innerWidth
+      : 1024;
     let imageWidth = 400;
 
     if (screenWidth < 768) {
@@ -167,7 +189,11 @@ export class CardImageSliderComponent implements OnInit {
   }
 
   getSalePercentage(): number {
-    if (!this.product || !this.product.regular_price || !this.product.sale_price) {
+    if (
+      !this.product ||
+      !this.product.regular_price ||
+      !this.product.sale_price
+    ) {
       return 0;
     }
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -16,6 +16,7 @@ import { RecapchaComponent } from './recapcha/recapcha.component';
   imports: [ReactiveFormsModule, CommonModule, RecapchaComponent],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignupComponent {
   signupForm!: FormGroup;

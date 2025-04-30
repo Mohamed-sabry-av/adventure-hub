@@ -1,4 +1,11 @@
-import { Component, DestroyRef, input, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  input,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
@@ -30,6 +37,8 @@ declare var _learnq: any; // Declare Klaviyo global variable
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
   host: { ngSkipHydration: '' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   standalone: true,
 })
 export class ProductPageComponent implements OnInit {

@@ -5,6 +5,7 @@ import {
   inject,
   ViewChild,
   PLATFORM_ID,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {
   FormGroup,
@@ -64,6 +65,8 @@ interface PaymentIntentResponse {
   ],
   templateUrl: './checkout-form.component.html',
   styleUrls: ['./checkout-form.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('slideInOut', [
       transition(':enter', [

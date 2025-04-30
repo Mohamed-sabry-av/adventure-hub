@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
@@ -19,15 +20,11 @@ import { CartStatus } from '../../model/cart.model';
 
 @Component({
   selector: 'app-side-cart',
-  imports: [
-    AsyncPipe,
-    DrawerModule,
-    ButtonModule,
-    CurrencyPipe,
-    RouterLink,
-  ],
+  imports: [AsyncPipe, DrawerModule, ButtonModule, CurrencyPipe, RouterLink],
   templateUrl: './side-cart.component.html',
   styleUrl: './side-cart.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   host: { ngSkipHydration: '' },
 })
 export class SideCartComponent {

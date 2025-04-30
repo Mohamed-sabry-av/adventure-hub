@@ -1,5 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
@@ -16,6 +22,7 @@ interface BreadcrumbItem {
   imports: [CommonModule, RouterLink],
   templateUrl: './breadcrumb.component.html',
   styleUrls: ['./breadcrumb.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BreadcrumbComponent implements OnInit {
   breadcrumbs$!: Observable<BreadcrumbItem[]>;
@@ -45,8 +52,6 @@ export class BreadcrumbComponent implements OnInit {
       })
     );
 
-
-
     this.breadcrumbs$.subscribe((breadcrumbs) => {
       this.categoryIdChange.emit(this.currentCategoryId);
     });
@@ -73,7 +78,9 @@ export class BreadcrumbComponent implements OnInit {
             currentParentId = category.id;
             // console.log(`Breadcrumb step: ${category.name} (ID: ${category.id})`);
           } else {
-            console.warn(`Category with slug "${slug}" not found or not a child of parent ${currentParentId}`);
+            console.warn(
+              `Category with slug "${slug}" not found or not a child of parent ${currentParentId}`
+            );
             break;
           }
         }

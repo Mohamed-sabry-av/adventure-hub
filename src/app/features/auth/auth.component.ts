@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { AccountAuthService } from './account-auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,14 +10,11 @@ import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-auth',
-  imports: [
-    CommonModule,
-    LoginComponent,
-    SignupComponent,
-  ],
+  imports: [CommonModule, LoginComponent, SignupComponent],
   standalone: true,
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthComponent {
   loginError: string = '';

@@ -1,6 +1,16 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
 
@@ -9,7 +19,8 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   templateUrl: './addresses.component.html',
   styleUrls: ['./addresses.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddressesComponent implements OnInit {
   customerDetails: any = null;
@@ -43,7 +54,7 @@ export class AddressesComponent implements OnInit {
       postcode: ['', Validators.required],
       country: ['', Validators.required],
       email: ['', [Validators.email]],
-      phone: ['']
+      phone: [''],
     });
   }
 
@@ -68,12 +79,12 @@ export class AddressesComponent implements OnInit {
         this.error = 'Failed to load addresses. Please try again later.';
         this.isLoading = false;
         console.error('Error loading addresses:', err);
-      }
+      },
     });
   }
 
   getCustomerId(): number | null {
-    const customerIdStr:any = this.localStorageService.getItem('customerId');
+    const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
 
@@ -86,8 +97,8 @@ export class AddressesComponent implements OnInit {
       address.city,
       address.state,
       address.postcode,
-      address.country
-    ].filter(part => part && part.trim() !== '');
+      address.country,
+    ].filter((part) => part && part.trim() !== '');
 
     return parts.join(', ');
   }
@@ -123,7 +134,7 @@ export class AddressesComponent implements OnInit {
   saveBillingAddress(): void {
     if (this.billingForm.invalid) {
       // Mark all fields as touched to show validation errors
-      Object.keys(this.billingForm.controls).forEach(key => {
+      Object.keys(this.billingForm.controls).forEach((key) => {
         const control = this.billingForm.get(key);
         control?.markAsTouched();
       });
@@ -139,25 +150,27 @@ export class AddressesComponent implements OnInit {
     this.isSaving = true;
     this.error = null;
 
-    this.accountService.updateBillingAddress(customerId, this.billingForm.value).subscribe({
-      next: (data) => {
-        this.customerDetails = data;
-        this.isSaving = false;
-        this.editingBilling = false;
-        this.saveSuccess = true;
-      },
-      error: (err) => {
-        this.error = 'Failed to update billing address. Please try again.';
-        this.isSaving = false;
-        console.error('Error updating billing address:', err);
-      }
-    });
+    this.accountService
+      .updateBillingAddress(customerId, this.billingForm.value)
+      .subscribe({
+        next: (data) => {
+          this.customerDetails = data;
+          this.isSaving = false;
+          this.editingBilling = false;
+          this.saveSuccess = true;
+        },
+        error: (err) => {
+          this.error = 'Failed to update billing address. Please try again.';
+          this.isSaving = false;
+          console.error('Error updating billing address:', err);
+        },
+      });
   }
 
   saveShippingAddress(): void {
     if (this.shippingForm.invalid) {
       // Mark all fields as touched to show validation errors
-      Object.keys(this.shippingForm.controls).forEach(key => {
+      Object.keys(this.shippingForm.controls).forEach((key) => {
         const control = this.shippingForm.get(key);
         control?.markAsTouched();
       });
@@ -173,31 +186,41 @@ export class AddressesComponent implements OnInit {
     this.isSaving = true;
     this.error = null;
 
-    this.accountService.updateShippingAddress(customerId, this.shippingForm.value).subscribe({
-      next: (data) => {
-        this.customerDetails = data;
-        this.isSaving = false;
-        this.editingShipping = false;
-        this.saveSuccess = true;
-      },
-      error: (err) => {
-        this.error = 'Failed to update shipping address. Please try again.';
-        this.isSaving = false;
-        console.error('Error updating shipping address:', err);
-      }
-    });
+    this.accountService
+      .updateShippingAddress(customerId, this.shippingForm.value)
+      .subscribe({
+        next: (data) => {
+          this.customerDetails = data;
+          this.isSaving = false;
+          this.editingShipping = false;
+          this.saveSuccess = true;
+        },
+        error: (err) => {
+          this.error = 'Failed to update shipping address. Please try again.';
+          this.isSaving = false;
+          console.error('Error updating shipping address:', err);
+        },
+      });
   }
 
   // In case we need to simulate a successful save when the API is not available
   simulateSave(isShipping: boolean): void {
     setTimeout(() => {
-      const formData = isShipping ? this.shippingForm.value : this.billingForm.value;
+      const formData = isShipping
+        ? this.shippingForm.value
+        : this.billingForm.value;
 
       if (isShipping) {
-        this.customerDetails.shipping = { ...this.customerDetails.shipping, ...formData };
+        this.customerDetails.shipping = {
+          ...this.customerDetails.shipping,
+          ...formData,
+        };
         this.editingShipping = false;
       } else {
-        this.customerDetails.billing = { ...this.customerDetails.billing, ...formData };
+        this.customerDetails.billing = {
+          ...this.customerDetails.billing,
+          ...formData,
+        };
         this.editingBilling = false;
       }
 

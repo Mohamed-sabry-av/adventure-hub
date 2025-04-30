@@ -1,4 +1,9 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  HostListener,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
@@ -9,57 +14,59 @@ import { CarouselModule } from 'primeng/carousel';
   selector: 'app-sale-products',
   standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   templateUrl: './sale-products.component.html',
-  styleUrls: ['./sale-products.component.css']
+  styleUrls: ['./sale-products.component.css'],
 })
 export class SaleProductsComponent implements OnInit {
   products: any[] = [];
   loading: boolean = true;
   error: string | null = null;
   screenWidth: number = window.innerWidth;
-  
+
   responsiveOptions = [
     {
       breakpoint: '1199px',
       numVisible: 4,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '991px',
       numVisible: 3,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '767px',
       numVisible: 2.5,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '575px',
       numVisible: 2,
-      numScroll: 1
-    }
+      numScroll: 1,
+    },
   ];
-  
+
   constructor(private homeService: HomeService) {}
-  
+
   ngOnInit(): void {
     this.loadSaleProducts();
     this.screenWidth = window.innerWidth;
   }
-  
+
   loadSaleProducts(): void {
     this.loading = true;
     this.homeService.getSaleProducts(1, 8).subscribe({
-      next: (data:any) => {
+      next: (data: any) => {
         this.products = data;
         this.loading = false;
       },
-      error: (err:any) => {
+      error: (err: any) => {
         this.error = 'Failed to load sale products';
         this.loading = false;
         console.error('Error loading sale products:', err);
-      }
+      },
     });
   }
 

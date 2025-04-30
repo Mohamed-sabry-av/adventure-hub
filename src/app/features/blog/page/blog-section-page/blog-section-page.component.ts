@@ -1,4 +1,9 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+} from '@angular/core';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { BlogArticleComponent } from '../../components/blog-article/blog-article.component';
 import { BlogRelatedInfoComponent } from '../../components/blog-related-info/blog-related-info.component';
@@ -15,6 +20,7 @@ import { ActivatedRoute } from '@angular/router';
   ],
   templateUrl: './blog-section-page.component.html',
   styleUrl: './blog-section-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogSectionPageComponent {
   private activatedRoute = inject(ActivatedRoute);

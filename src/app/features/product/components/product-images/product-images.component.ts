@@ -1,4 +1,13 @@
-import { Component, input, OnInit,DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
+import {
+  Component,
+  input,
+  OnInit,
+  DestroyRef,
+  ElementRef,
+  ViewChild,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -7,9 +16,11 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   templateUrl: './product-images.component.html',
   styleUrls: ['./product-images.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductImagesComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);  productImages = input<any>();
+  private destroyRef = inject(DestroyRef);
+  productImages = input<any>();
   selectedColor = input<string | null>(null);
   variations = input<any[]>([]);
   productName = input<string>('Product');
@@ -44,11 +55,10 @@ export class ProductImagesComponent implements OnInit {
       this.isMobile = event.matches;
     };
     this.mediaQuery.addEventListener('change', this.mediaQueryListener);
-    
+
     this.destroyRef.onDestroy(() => {
       this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
     });
-  
   }
 
   // Clean up event listeners when component is destroyed
@@ -65,7 +75,7 @@ export class ProductImagesComponent implements OnInit {
       return Array.isArray(images)
         ? images.map((img: any) => ({
             src: img.src || img,
-            alt: img.alt || 'صورة المنتج'
+            alt: img.alt || 'صورة المنتج',
           }))
         : [];
     }
@@ -85,10 +95,11 @@ export class ProductImagesComponent implements OnInit {
       const mainImage = selectedVariation.image?.src
         ? [{ src: selectedVariation.image.src, alt: 'صورة المنتج' }]
         : [];
-      const additionalImages = selectedVariation.additional_images?.map((url: string) => ({
-        src: url,
-        alt: 'صورة المنتج'
-      })) || [];
+      const additionalImages =
+        selectedVariation.additional_images?.map((url: string) => ({
+          src: url,
+          alt: 'صورة المنتج',
+        })) || [];
       return [...mainImage, ...additionalImages];
     }
 
@@ -96,7 +107,7 @@ export class ProductImagesComponent implements OnInit {
     return Array.isArray(images)
       ? images.map((img: any) => ({
           src: img.src || img,
-          alt: img.alt || 'صورة المنتج'
+          alt: img.alt || 'صورة المنتج',
         }))
       : [];
   }
@@ -119,7 +130,8 @@ export class ProductImagesComponent implements OnInit {
   // Navigate to the previous image
   prevImage(): void {
     const images = this.getGalleryImages();
-    this.selectedImageIndex = (this.selectedImageIndex - 1 + images.length) % images.length;
+    this.selectedImageIndex =
+      (this.selectedImageIndex - 1 + images.length) % images.length;
     this.isImageLoading = true;
   }
 
@@ -171,5 +183,4 @@ export class ProductImagesComponent implements OnInit {
   get images(): { src: string; alt: string }[] {
     return this.getGalleryImages();
   }
-  
 }

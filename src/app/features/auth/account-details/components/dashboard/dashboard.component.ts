@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
 import { CommonModule } from '@angular/common';
@@ -8,7 +15,8 @@ import { CommonModule } from '@angular/common';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit {
   customerDetails: any = null;
@@ -41,12 +49,12 @@ export class DashboardComponent implements OnInit {
         this.error = 'Failed to load customer details. Please try again later.';
         this.isLoading = false;
         console.error('Error loading customer details:', err);
-      }
+      },
     });
   }
 
   getCustomerId(): number | null {
-    const customerIdStr:any = this.localStorageService.getItem('customerId');
+    const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
 

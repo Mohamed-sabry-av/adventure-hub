@@ -1,4 +1,10 @@
-import { Component, DestroyRef, inject, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  Input,
+} from '@angular/core';
 import { Category } from '../../../interfaces/category.model';
 import { filter, map, Observable } from 'rxjs';
 import {
@@ -13,9 +19,11 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-navbar-sub-categories',
-  imports: [CommonModule,RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './navbar-sub-categories.component.html',
   styleUrl: './navbar-sub-categories.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('visible', [
       transition(':enter', [
@@ -70,10 +78,13 @@ export class NavbarSubCategoriesComponent {
 
   private buildFullPath(category: Category, path: string[]): void {
     if (category.parent !== 0) {
-      const parentCategory = this.allCategoriesData.find((c) => c.id === category.parent);
+      const parentCategory = this.allCategoriesData.find(
+        (c) => c.id === category.parent
+      );
       if (parentCategory) {
         this.buildFullPath(parentCategory, path);
       }
     }
     path.push(category.slug);
-  }}
+  }
+}

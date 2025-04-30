@@ -1,4 +1,10 @@
-import { Component, DestroyRef, inject, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  Input,
+} from '@angular/core';
 import { filter, map, Observable } from 'rxjs';
 import { CartService } from '../../../cart/service/cart.service';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
@@ -12,6 +18,7 @@ import { CartStatus } from '../../../cart/model/cart.model';
   imports: [FormsModule, AsyncPipe, CurrencyPipe],
   templateUrl: './checkout-summary.component.html',
   styleUrl: './checkout-summary.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckoutSummaryComponent {
   private cartService = inject(CartService);

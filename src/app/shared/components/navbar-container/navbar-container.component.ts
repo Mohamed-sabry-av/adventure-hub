@@ -1,4 +1,9 @@
-import { Component, HostListener, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  Input,
+} from '@angular/core';
 import { AppContainerComponent } from '../app-container/app-container.component';
 import { Category } from '../../../interfaces/category.model';
 import { RouterLink } from '@angular/router';
@@ -10,10 +15,9 @@ import { FilterSidebarComponent } from '../../../features/products/components/fi
 
 @Component({
   selector: 'app-navbar-container',
-  imports: [
-    NavbarMainCategoriesComponent,
-    NavbarSubCategoriesComponent,
-  ],
+  imports: [NavbarMainCategoriesComponent, NavbarSubCategoriesComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   templateUrl: './navbar-container.component.html',
   styleUrl: './navbar-container.component.css',
 })
@@ -22,7 +26,8 @@ export class NavbarContainerComponent {
   @Input() allCategories: Category[] = [];
 
   private subCategoriesSubject = new BehaviorSubject<Category[]>([]);
-  filterdCategories$: Observable<Category[]> = this.subCategoriesSubject.asObservable();
+  filterdCategories$: Observable<Category[]> =
+    this.subCategoriesSubject.asObservable();
 
   getSubCategories(categoryId: number | null) {
     const filteredCategories =

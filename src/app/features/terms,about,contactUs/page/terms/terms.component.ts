@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'; // أضفت OnInit
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core'; // أضفت OnInit
 import { CommonModule } from '@angular/common';
 import { PrivcyTermsService } from '../../service/privcy-terms.service';
 import { DecodeHtmlPipe } from '../../../../shared/pipes/decode-html.pipe';
@@ -8,8 +8,10 @@ import { SeoService } from '../../../../core/services/seo.service';
   selector: 'app-terms',
   standalone: true,
   imports: [CommonModule, DecodeHtmlPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   template: `
-<ng-container *ngIf="schemaData">
+    <ng-container *ngIf="schemaData">
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
     <div class="terms-container">
@@ -27,7 +29,7 @@ import { SeoService } from '../../../../core/services/seo.service';
 })
 export class TermsComponent implements OnInit {
   termsData: any;
-  schemaData:any;
+  schemaData: any;
 
   constructor(
     private privcyTermsService: PrivcyTermsService,
@@ -35,7 +37,7 @@ export class TermsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.fetchTerms(); 
+    this.fetchTerms();
   }
 
   fetchTerms(): void {
@@ -45,7 +47,9 @@ export class TermsComponent implements OnInit {
         // Apply SEO tags using yoast_head_json
         this.schemaData = this.seoService.applySeoTags(this.termsData, {
           title: this.termsData?.title?.rendered,
-          description: this.termsData?.excerpt?.rendered || 'Terms and Conditions - Adventures HUB Sports Shop',
+          description:
+            this.termsData?.excerpt?.rendered ||
+            'Terms and Conditions - Adventures HUB Sports Shop',
         });
         console.log('Terms Data:', this.termsData);
       },

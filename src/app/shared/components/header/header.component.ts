@@ -1,5 +1,6 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   DestroyRef,
@@ -34,6 +35,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('navbarAnimation', [
       transition(':enter', [

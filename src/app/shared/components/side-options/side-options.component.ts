@@ -5,6 +5,7 @@ import {
   ChangeDetectorRef,
   Inject,
   PLATFORM_ID,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
@@ -23,6 +24,8 @@ import { Subject, takeUntil } from 'rxjs';
   imports: [CommonModule, FormsModule],
   templateUrl: './side-options.component.html',
   styleUrls: ['./side-options.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('slideInFromRight', [
       transition(':enter', [

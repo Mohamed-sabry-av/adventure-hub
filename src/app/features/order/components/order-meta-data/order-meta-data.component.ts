@@ -1,4 +1,9 @@
-import { Component, inject, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+} from '@angular/core';
 import { OrderService } from '../../services/order.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
@@ -8,6 +13,7 @@ import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
   imports: [DatePipe, AsyncPipe, CurrencyPipe],
   templateUrl: './order-meta-data.component.html',
   styleUrl: './order-meta-data.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderMetaDataComponent {
   private orderService = inject(OrderService);

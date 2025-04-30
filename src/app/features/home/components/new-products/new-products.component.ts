@@ -1,4 +1,9 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  HostListener,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
@@ -10,56 +15,58 @@ import { CarouselModule } from 'primeng/carousel';
   standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
   templateUrl: './new-products.component.html',
-  styleUrls: ['./new-products.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
+  styleUrls: ['./new-products.component.css'],
 })
 export class NewProductsComponent implements OnInit {
   products: any[] = [];
   loading: boolean = true;
   error: string | null = null;
   screenWidth: number = window.innerWidth;
-  
+
   responsiveOptions = [
     {
       breakpoint: '1199px',
       numVisible: 4,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '991px',
       numVisible: 3,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '767px',
       numVisible: 2.5,
-      numScroll: 1
+      numScroll: 1,
     },
     {
       breakpoint: '575px',
       numVisible: 2,
-      numScroll: 1
-    }
+      numScroll: 1,
+    },
   ];
-  
+
   constructor(private homeService: HomeService) {}
-  
+
   ngOnInit(): void {
     this.loadNewProducts();
     this.screenWidth = window.innerWidth;
   }
-  
+
   loadNewProducts(): void {
     this.loading = true;
     this.homeService.getNewArrivalsProducts(1, 8).subscribe({
-      next: (data:any) => {
+      next: (data: any) => {
         this.products = data;
         this.loading = false;
       },
-      error: (err:any) => {
+      error: (err: any) => {
         this.error = 'Failed to load new products';
         this.loading = false;
         console.error('Error loading new products:', err);
-      }
+      },
     });
   }
 
