@@ -6,21 +6,20 @@
     (mouseenter)="onEnter()"
     @visible
   >
-    <div class="p-6 overflow-y-auto custom-scrollbar"
-         style="max-height:70vh">
-      <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-7"> 
+    <div class="p-6 overflow-y-auto custom-scrollbar" style="max-height:70vh">
+      <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-7">
         @for (category of categoriesData; track category.id) {
           <div class="break-inside-avoid mb-7 bg-[#252525] rounded shadow-sm hover:shadow transition-shadow duration-200">
-            <!-- العنوان -->
+            <!-- Category title -->
             <div class="bg-[#3D3D3D] px-3 py-2 mb-2 rounded-t">
               <a
                 class="block cursor-pointer text-base font-bold text-white"
                 [routerLink]="getCategoryRoute(category)"
                 [innerHTML]="category.name"
-                (onclick)="onLeave()"
+                (click)="onLeave()"
               ></a>
             </div>
-            <!-- الفئات الفرعية -->
+            <!-- Sub-categories -->
             <div class="px-3 py-2">
               @for (childOfSubCategory of getSubCategories(category.id); track childOfSubCategory.id) {
                 <div class="mb-2">
@@ -34,7 +33,10 @@
                     <div class="ml-3 mt-1">
                       @for (childOfChildOfSubCategory of getSubCategories(childOfSubCategory.id); track childOfChildOfSubCategory.id) {
                         <div class="text-xs py-[2px]">
-                          <a [routerLink]="getCategoryRoute(childOfChildOfSubCategory)" class="hover:text-[#8C8C7A] transition-all duration-150 text-[#ADADAD]">
+                          <a
+                            [routerLink]="getCategoryRoute(childOfChildOfSubCategory)"
+                            class="hover:text-[#8C8C7A] transition-all duration-150 text-[#ADADAD]"
+                          >
                             {{ childOfChildOfSubCategory.name }}
                           </a>
                         </div>

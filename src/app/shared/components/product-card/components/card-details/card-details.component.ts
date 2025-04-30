@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Product } from '../../../../../interfaces/product';
 import { RouterLink } from '@angular/router';
+import { CurrencySvgPipe } from '../../../../pipes/currency.pipe';
 
 @Component({
   selector: 'app-card-details',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink,CurrencySvgPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 
   templateUrl: './card-details.component.html',

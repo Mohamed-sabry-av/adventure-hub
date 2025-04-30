@@ -18,9 +18,10 @@ import { NavbarService } from '../../services/navbar.service';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
-import { debounceTime, filter, fromEvent, Observable, take } from 'rxjs';
+import { debounceTime, filter, fromEvent, Observable } from 'rxjs';
 import { animate, style, transition, trigger } from '@angular/animations';
 
+// Component for the header section
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -36,22 +37,15 @@ import { animate, style, transition, trigger } from '@angular/animations';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-
   animations: [
     trigger('navbarAnimation', [
       transition(':enter', [
         style({ transform: 'translateY(-100%)', opacity: 0 }),
-        animate(
-          '300ms ease-in-out',
-          style({ transform: 'translateY(0)', opacity: 1 })
-        ),
+        animate('300ms ease-in-out', style({ transform: 'translateY(0)', opacity: 1 })),
       ]),
       transition(':leave', [
         style({ transform: 'translateY(0)', opacity: 1 }),
-        animate(
-          '300ms ease-in-out',
-          style({ transform: 'translateY(-100%)', opacity: 0 })
-        ),
+        animate('300ms ease-in-out', style({ transform: 'translateY(-100%)', opacity: 0 })),
       ]),
     ]),
   ],
@@ -62,18 +56,16 @@ export class HeaderComponent implements OnInit {
   private categoriesService = inject(CategoriesService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
   sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
   @ViewChild('headerEl') headerElement!: ElementRef;
-  @ViewChild('placeholderEl') placeholderEl!: ElementRef;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
   showSearchbar: boolean = false;
-  isProductPage: boolean = false; // New property to track product page
-
-  // ------------------------- Done
+  isProductPage: boolean = false;
   showNavbar: boolean = true;
   lastScrollY: number = 0;
   headerHeight: number = 0;
@@ -81,21 +73,27 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
     this.fetchAllCategories();
+    this.observeHeaderHeight();
 
+    // Subscribe to router events to detect page changes
     const subscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.currentPage = event.url === '/checkout' ? 'checkout' : '';
-        // Check if the current route is a product page
         this.isProductPage = event.url.startsWith('/product') || event.url.includes('/product/');
+        this.showNavbar = true;
+        this.navbarService.showNavbar(true);
+        this.cdr.detectChanges();
       });
 
+    // Handle sidenav visibility to control body scroll
     const subscription2 = this.sidenavIsVisible$.subscribe((visible) => {
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
+    // Handle scroll events with debounce
     const subscription3 = fromEvent(window, 'scroll')
-      .pipe(debounceTime(10))
+      .pipe(debounceTime(20))
       .subscribe(() => this.handleScroll());
 
     this.destroyRef.onDestroy(() => {
@@ -105,55 +103,69 @@ export class HeaderComponent implements OnInit {
     });
   }
 
+  // Observe header height changes dynamically
+  private observeHeaderHeight() {
+    const observer = new ResizeObserver(() => {
+      if (this.headerElement) {
+        this.headerHeight = this.headerElement.nativeElement.offsetHeight || 100; // Fallback to 100px
+        this.navbarService.handleScroll(this.headerHeight);
+        this.cdr.detectChanges();
+      }
+    });
+    setTimeout(() => {
+      if (this.headerElement) {
+        observer.observe(this.headerElement.nativeElement);
+      }
+    }, 0);
+    this.destroyRef.onDestroy(() => observer.disconnect());
+  }
+
+  // Handle scroll behavior for navbar visibility
   handleScroll() {
     const currentScrollY = window.scrollY;
 
-    // Skip sticky behavior for product page
     if (this.isProductPage) {
       this.isFixed = false;
       this.showNavbar = true;
       this.navbarService.showNavbar(true);
-      this.navbarService.handleScroll(0); // No offset for product page
+      this.navbarService.handleScroll(this.headerHeight);
+      this.cdr.detectChanges();
       return;
     }
 
     if (currentScrollY > this.lastScrollY && currentScrollY > 50) {
-      // Scrolling down
       this.showNavbar = false;
-    } else if (currentScrollY < this.lastScrollY) {
-      // Scrolling up
-      this.showNavbar = true;
-    }
-
-    if (this.headerElement) {
-      this.headerHeight = this.headerElement.nativeElement.offsetHeight;
+    } else {
+      this.showNavbar = true; // Always show navbar when scrolling up or at the top
     }
 
     this.lastScrollY = currentScrollY;
-    // -------------------------------- done
-
-    if (currentScrollY > 0) {
-      this.isFixed = true;
-    } else {
-      this.isFixed = false;
-    }
+    this.isFixed = currentScrollY > 0;
     this.navbarService.showNavbar(this.showNavbar);
     this.navbarService.handleScroll(this.headerHeight);
+    this.cdr.detectChanges();
   }
 
-  onSiwtchSideNav(visible: boolean) {
+  // Toggle sidenav visibility
+  onSwitchSideNav(visible: boolean) {
     this.navbarService.siwtchSideNav(visible);
   }
 
+  // Fetch categories using CategoriesService
   private fetchAllCategories(): void {
-    this.categoriesService
-      .getAllCategories(['default'])
-      .subscribe((categories) => {
+    this.categoriesService.getAllCategories(['default']).subscribe({
+      next: (categories) => {
         this.allCategories = categories;
         this.mainCategories = categories.filter((cat) => cat.parent === 0);
-      });
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Failed to fetch categories:', error);
+      },
+    });
   }
 
+  // Toggle search bar visibility
   onShowSearchbar() {
     this.showSearchbar = !this.showSearchbar;
     this.navbarService.showSearchBar(this.showSearchbar);

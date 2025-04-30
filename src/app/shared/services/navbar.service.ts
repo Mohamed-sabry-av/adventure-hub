@@ -15,7 +15,7 @@ export class NavbarService {
   }
 
   // -------------------- show navbar or no
-  navbarIsVisible$ = new BehaviorSubject<boolean>(true);
+  navbarIsVisible$ = new BehaviorSubject<boolean>(false);
   showNavbar(isVisible: boolean) {
     this.navbarIsVisible$.next(isVisible);
   }
