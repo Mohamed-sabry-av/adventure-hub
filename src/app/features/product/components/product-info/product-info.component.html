@@ -132,44 +132,7 @@
       </div>
     </div>
 
-    <!-- Social Share Buttons -->
-    <div class="social-share">
-      <h3 class="share-title">Share Product</h3>
-      <div class="share-buttons">
-        <a
-          [href]="getFacebookShareUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="share-button facebook"
-          aria-label="Share on Facebook"
-        >
-          <i class="pi pi-facebook"></i>
-        </a>
-        <a
-          [href]="getTwitterShareUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="share-button twitter"
-          aria-label="Share on Twitter"
-        >
-          <i class="pi pi-twitter"></i>
-        </a>
-        <a
-          [href]="getWhatsAppShareUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="share-button whatsapp"
-          aria-label="Share on WhatsApp"
-        >
-          <i class="pi pi-whatsapp"></i>
-        </a>
-        <a (click)="copyProductLink($event)" class="share-button copy-link" aria-label="Copy product link">
-          <i class="pi pi-link"></i>
-          <span *ngIf="linkCopied" class="copy-toast">Link copied!</span>
-        </a>
-      </div>
-    </div>
-  </div>
+
 
   <!-- Out of Stock for Selected Variation -->
   <div

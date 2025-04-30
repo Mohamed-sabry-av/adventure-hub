@@ -1,0 +1,13 @@
+.navbar-hover-container {
+    @apply relative w-full m-0 p-0;
+  }
+  
+  .navbar-dropdown {
+    @apply top-full left-0 w-full bg-[#2E2E2E] transition-all duration-300 ease-in-out;
+  }
+  
+  @media (max-width: 960px) {
+    .navbar-dropdown {
+      @apply hidden; /* Hide dropdown on mobile */
+    }
+  }

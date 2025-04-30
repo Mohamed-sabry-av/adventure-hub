@@ -1,133 +1,151 @@
-@if (isMobile) {
+@if(isMobile){
   <p-drawer
     [visible]="(sideNavIsVisible$ | async)!"
     position="left"
-    [transitionOptions]="'500ms cubic-bezier(0.4, 0, 0.2, 1)'"
-    [modal]="false"
+    [transitionOptions]="'300ms cubic-bezier(0.4, 0, 0.2, 1)'"
+    [modal]="true"
     styleClass="sidenav-drawer"
-    [style]="{ top: drawerTop + 'px' }"
+    [style]="{
+      top: drawerTop + 'px'
+    }"
+    @slideInOut
   >
-    <hr class="bg-[#3f3c3c] h-[2px] border-0" />
-    <ul class="flex flex-col">
-      @if (categories.length > 0) {
+    <div class="drawer-content" appSwipeGesture swipeDirection="left" (swipe)="closeSideNav()">
+      <div class="drawer-handle"></div>
+      <hr class="bg-[#3f3c3c] h-[2px] border-0" />
+
+      <ul class="flex flex-col">
+        @if (categories.length > 0) {
         @for (category of categories; track category.id) {
-          <div class="flex flex-col border-b border-[#3f3c3c] py-3">
-            <div class="flex items-center justify-between pb-3">
-              <li>
-                <a
-                  class="cursor-pointer text-base md:text-lg font-semibold text-white"
-                  [routerLink]="getCategoryRoute(category)"
-                >
-                  {{ category.name }}
-                </a>
-              </li>
-              <i
-                class="pi {{ isCategoryExpanded(category.id) ? 'pi-angle-up' : 'pi-angle-down' }} text-white cursor-pointer"
-                (click)="toggleCategory(category.id)"
-              ></i>
-            </div>
-            @if (isCategoryExpanded(category.id)) {
-              @for (subCategory of getSubCategories(category.id); track subCategory.id) {
-                <div class="flex gap-x-[10px] items-center py-1 mr-3" @slideInOut>
-                  <a [routerLink]="getCategoryRoute(subCategory)" class="block w-full">
-                    <span
-                      [innerHTML]="subCategory.name"
-                      class="text-sm bg-[#423e3e] rounded-md px-2 py-1 ml-2 text-white mt-2 block font-semibold"
-                    ></span>
-                  </a>
-                  <i
-                    class="pi {{ isCategoryExpanded(subCategory.id) ? 'pi-angle-up' : 'pi-angle-down' }} text-white cursor-pointer"
-                    (click)="toggleCategory(subCategory.id)"
-                  ></i>
-                </div>
-                @if (isCategoryExpanded(subCategory.id)) {
-                  @for (subOfSubOfMain of getSubCategories(subCategory.id); track subOfSubOfMain.id) {
-                    <div class="flex gap-x-[10px] items-center ml-3 py-[1px] mr-6" @slideInOut>
-                      <a [routerLink]="getCategoryRoute(subOfSubOfMain)" class="block w-full">
-                        <span
-                          [innerHTML]="subOfSubOfMain.name"
-                          [class]="{
-                            haveChilds: getSubCategories(subOfSubOfMain.id).length > 0,
-                            notHaveChilds: getSubCategories(subOfSubOfMain.id).length === 0
-                          }"
-                        ></span>
-                      </a>
-                      @if (getSubCategories(subOfSubOfMain.id).length > 0) {
-                        <i
-                          class="pi {{ isCategoryExpanded(subOfSubOfMain.id) ? 'pi-angle-up' : 'pi-angle-down' }} text-white cursor-pointer"
-                          (click)="toggleCategory(subOfSubOfMain.id)"
-                        ></i>
-                      }
-                    </div>
-                    @if (isCategoryExpanded(subOfSubOfMain.id)) {
-                      @for (subOfSubOfSubOfMain of getSubCategories(subOfSubOfMain.id); track subOfSubOfSubOfMain.id) {
-                        <div @slideInOut>
-                          <a [routerLink]="getCategoryRoute(subOfSubOfSubOfMain)">
-                            <span
-                              [innerHTML]="subOfSubOfSubOfMain.name"
-                              class="text-sm ml-10 text-white mt-2 block"
-                            ></span>
-                          </a>
-                        </div>
-                      }
-                    }
-                  }
-                }
-              }
+        <div class="flex flex-col border-b border-[#3f3c3c] py-3">
+          <div class="flex items-center justify-between pb-3">
+            <li>
+              <a
+                class="cursor-pointer text-base md:text-lg font-semibold text-white"
+                [routerLink]="getCategoryRoute(category)"
+                (click)="closeSideNav()"
+              >
+                {{ category.name }}
+              </a>
+            </li>
+            <i
+              class="pi {{
+                isCategoryExpanded(category.id) ? 'pi-angle-up' : 'pi-angle-down'
+              }} text-white cursor-pointer"
+              (click)="toggleCategory(category.id)"
+            ></i>
+          </div>
+          @if (isCategoryExpanded(category.id)) {
+          @for (subCategory of getSubCategories(category.id); track subCategory.id) {
+          <div class="flex gap-x-[10px] items-center py-1 mr-3" @slideInOut>
+            <a [routerLink]="getCategoryRoute(subCategory)" class="block w-full" (click)="closeSideNav()">
+              <span
+                [innerHTML]="subCategory.name"
+                class="text-sm bg-[#423e3e] rounded-md px-2 py-1 ml-2 text-white mt-2 block font-semibold"
+              ></span>
+            </a>
+            <i
+              class="pi {{
+                isCategoryExpanded(subCategory.id) ? 'pi-angle-up' : 'pi-angle-down'
+              }} text-white cursor-pointer"
+              (click)="toggleCategory(subCategory.id)"
+            ></i>
+          </div>
+          @if (isCategoryExpanded(subCategory.id)) {
+          @for (subOfSubOfMain of getSubCategories(subCategory.id); track subOfSubOfMain.id) {
+          <div class="flex gap-x-[10px] items-center ml-3 py-[1px] mr-6" @slideInOut>
+            <a [routerLink]="getCategoryRoute(subOfSubOfMain)" class="block w-full" (click)="closeSideNav()">
+              <span
+                [innerHTML]="subOfSubOfMain.name"
+                [class]="{
+                  haveChilds: getSubCategories(subOfSubOfMain.id).length > 0,
+                  notHaveChilds: getSubCategories(subOfSubOfMain.id).length === 0
+                }"
+              ></span>
+            </a>
+            @if (getSubCategories(subOfSubOfMain.id).length > 0) {
+            <i
+              class="pi {{
+                isCategoryExpanded(subOfSubOfMain.id) ? 'pi-angle-up' : 'pi-angle-down'
+              }} text-white cursor-pointer"
+              (click)="toggleCategory(subOfSubOfMain.id)"
+            ></i>
             }
           </div>
+          @if (isCategoryExpanded(subOfSubOfMain.id)) {
+          @for (subOfSubOfSubOfMain of getSubCategories(subOfSubOfMain.id); track subOfSubOfSubOfMain.id) {
+          <div class="ml-10 py-[1px]" @slideInOut>
+            <a [routerLink]="getCategoryRoute(subOfSubOfSubOfMain)" (click)="closeSideNav()">
+              <span
+                [innerHTML]="subOfSubOfSubOfMain.name"
+                class="text-sm text-white mt-2 block"
+              ></span>
+            </a>
+          </div>
+          }
+          }
+          }
+          }
+          }
+          }
+        </div>
         }
         <a
           routerLink="/product/sale"
           class="text-white w-fit font-semibold bg-orange-600 px-8 py-2 mt-8 rounded-lg text-sm flex items-center"
+          (click)="closeSideNav()"
         >
           <i class="pi pi-percentage text-xs"></i>
           <span> Deals</span>
         </a>
-      } @else {
-        <!-- Placeholder while categories are loading -->
+        } @else {
         @for (i of [1, 2, 3, 4]; track i) {
-          <div class="flex flex-col border-b border-[#3f3c3c] py-3">
-            <div class="h-6 w-3/4 bg-gray-600 animate-pulse rounded"></div>
-          </div>
-        }
-      }
-    </ul>
-  </p-drawer>
-} @else {
-  @if (showNavbar$ | async) {
-    <div class="links-parent" (mouseleave)="selectedCategory(null)" @visible>
-      <ul class="links-child bg-[#2E2E2E]">
-        <div class="flex-grow flex gap-x-4">
-          @if (categories.length > 0) {
-            @for (category of categories; track category.id) {
-              <li
-                class="links-name"
-                [class.active]="category.id === selectedCategoryId"
-                (mouseenter)="selectedCategory(category.id)"
-              >
-                <a class="py-3 cursor-pointer" [routerLink]="getCategoryRoute(category)">
-                  {{ category.name }} <i class="pi pi-angle-down"></i>
-                </a>
-              </li>
-            }
-          } @else {
-            <!-- Placeholder while categories are loading -->
-            @for (i of [1, 2, 3, 4]; track i) {
-              <li class="links-name">
-                <div class="py-3 w-20 h-6 bg-gray-600 animate-pulse rounded"></div>
-              </li>
-            }
-          }
+        <div class="flex flex-col border-b border-[#3f3c3c] py-3">
+          <div class="h-6 w-3/4 bg-gray-600 animate-pulse rounded"></div>
         </div>
-        <a
-          routerLink="/product/sale"
-          class="text-white font-semibold bg-orange-600 px-5 py-1 rounded-lg text-sm flex items-center gap-2"
-        >
-          <i class="pi pi-percentage text-xs"></i>
-          <span>Deals</span>
-        </a>
+        }
+        }
       </ul>
     </div>
+  </p-drawer>
+  } @else {
+  @if (showNavbar$ | async) {
+  <div class="links-parent" (mouseleave)="selectedCategory(null)" @visible>
+    <ul class="links-child bg-[#2E2E2E]">
+      <div class="flex-grow flex gap-x-4">
+        @if (categories.length > 0) {
+        @for (category of categories; track category.id) {
+        <li
+          class="links-name"
+          [class.active]="category.id === selectedCategoryId"
+          (mouseenter)="selectedCategory(category.id)"
+        >
+          <a
+            class="py-3 cursor-pointer"
+            [routerLink]="getCategoryRoute(category)"
+            (click)="selectedCategory(null)"
+          >
+            {{ category.name }} <i class="pi pi-angle-down"></i>
+          </a>
+        </li>
+        }
+        } @else {
+        @for (i of [1, 2, 3, 4]; track i) {
+        <li class="links-name">
+          <div class="py-3 w-20 h-6 bg-gray-600 animate-pulse rounded"></div>
+        </li>
+        }
+        }
+      </div>
+      <a
+        routerLink="/product/sale"
+        class="text-white font-semibold bg-orange-600 px-5 py-1 rounded-lg text-sm flex items-center gap-2"
+        (click)="selectedCategory(null)"
+      >
+        <i class="pi pi-percentage text-xs"></i>
+        <span>Deals</span>
+      </a>
+    </ul>
+  </div>
   }
-}
+  }

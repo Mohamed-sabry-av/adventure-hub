@@ -1,11 +1,10 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
   inject,
+  NgZone,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -20,8 +19,8 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
 import { debounceTime, filter, fromEvent, Observable } from 'rxjs';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { InViewportDirective } from '../../directives/in-viewport.directive';
 
-// Component for the header section
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -33,19 +32,25 @@ import { animate, style, transition, trigger } from '@angular/animations';
     RouterLink,
     SearchBarComponent,
     AsyncPipe,
+    InViewportDirective
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('navbarAnimation', [
       transition(':enter', [
         style({ transform: 'translateY(-100%)', opacity: 0 }),
-        animate('300ms ease-in-out', style({ transform: 'translateY(0)', opacity: 1 })),
+        animate(
+          '400ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ transform: 'translateY(0)', opacity: 1 })
+        ),
       ]),
       transition(':leave', [
         style({ transform: 'translateY(0)', opacity: 1 }),
-        animate('300ms ease-in-out', style({ transform: 'translateY(-100%)', opacity: 0 })),
+        animate(
+          '400ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ transform: 'translateY(-100%)', opacity: 0 })
+        ),
       ]),
     ]),
   ],
@@ -56,118 +61,132 @@ export class HeaderComponent implements OnInit {
   private categoriesService = inject(CategoriesService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
-  sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
+  sidenavIsVisible$: Observable<boolean> = this.navbarService.getSideNavIsVisible$();
+  isNavbarAnimating$: Observable<boolean> = this.navbarService.getIsNavbarAnimating$();
+  isDrawerOpen$: Observable<boolean> = this.navbarService.getIsDrawerOpen$();
   @ViewChild('headerEl') headerElement!: ElementRef;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
-  showSearchbar: boolean = false;
-  isProductPage: boolean = false;
   showNavbar: boolean = true;
+  showSearchbar: boolean = false;
   lastScrollY: number = 0;
-  headerHeight: number = 0;
+  headerHeight: number = 88; // Default height
   isFixed: boolean = false;
+  isProductPage: boolean = false;
+  scrollDelta: number = 0; // Track scroll distance for threshold
+  navbarVisible: boolean = false;
+  ticking: boolean = false; // For requestAnimationFrame to optimize scroll
 
   ngOnInit() {
     this.fetchAllCategories();
-    this.observeHeaderHeight();
 
-    // Subscribe to router events to detect page changes
     const subscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
+      .subscribe((event: any) => {
         this.currentPage = event.url === '/checkout' ? 'checkout' : '';
         this.isProductPage = event.url.startsWith('/product') || event.url.includes('/product/');
         this.showNavbar = true;
         this.navbarService.showNavbar(true);
-        this.cdr.detectChanges();
+        this.scrollDelta = 0; // Reset scroll delta on navigation
       });
 
-    // Handle sidenav visibility to control body scroll
     const subscription2 = this.sidenavIsVisible$.subscribe((visible) => {
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
-    // Handle scroll events with debounce
-    const subscription3 = fromEvent(window, 'scroll')
-      .pipe(debounceTime(20))
-      .subscribe(() => this.handleScroll());
+    // Use passive listener for better scroll performance
+    this.ngZone.runOutsideAngular(() => {
+      window.addEventListener('scroll', this.onScroll, { passive: true });
+    });
 
     this.destroyRef.onDestroy(() => {
       subscription.unsubscribe();
       subscription2.unsubscribe();
-      subscription3.unsubscribe();
+      window.removeEventListener('scroll', this.onScroll);
     });
   }
 
-  // Observe header height changes dynamically
-  private observeHeaderHeight() {
-    const observer = new ResizeObserver(() => {
-      if (this.headerElement) {
-        this.headerHeight = this.headerElement.nativeElement.offsetHeight || 100; // Fallback to 100px
-        this.navbarService.handleScroll(this.headerHeight);
-        this.cdr.detectChanges();
-      }
-    });
-    setTimeout(() => {
-      if (this.headerElement) {
-        observer.observe(this.headerElement.nativeElement);
-      }
-    }, 0);
-    this.destroyRef.onDestroy(() => observer.disconnect());
-  }
+  // Bound method for scroll handler
+  private onScroll = () => {
+    if (!this.ticking) {
+      window.requestAnimationFrame(() => {
+        this.handleScroll();
+        this.ticking = false;
+      });
+      this.ticking = true;
+    }
+  };
 
-  // Handle scroll behavior for navbar visibility
   handleScroll() {
     const currentScrollY = window.scrollY;
 
-    if (this.isProductPage) {
+    // Skip sticky behavior for product page or checkout
+    if (this.isProductPage || this.currentPage === 'checkout') {
       this.isFixed = false;
       this.showNavbar = true;
       this.navbarService.showNavbar(true);
-      this.navbarService.handleScroll(this.headerHeight);
-      this.cdr.detectChanges();
+      this.navbarService.handleScroll(0);
+      this.scrollDelta = 0;
       return;
     }
 
-    if (currentScrollY > this.lastScrollY && currentScrollY > 50) {
-      this.showNavbar = false;
-    } else {
-      this.showNavbar = true; // Always show navbar when scrolling up or at the top
+    // Update header height
+    if (this.headerElement) {
+      this.headerHeight = this.headerElement.nativeElement.offsetHeight || 88;
+      this.navbarService.handleScroll(this.headerHeight);
     }
 
-    this.lastScrollY = currentScrollY;
+    // Calculate scroll delta for threshold
+    const delta = currentScrollY - this.lastScrollY;
+    this.scrollDelta += Math.abs(delta);
+
+    // Smart scroll handling with reduced threshold for smoother experience
+    if (delta > 0 && currentScrollY > 80 && this.scrollDelta > 30) {
+      // Scrolling down, hide navbar after threshold
+      this.ngZone.run(() => {
+        this.showNavbar = false;
+        this.navbarService.showNavbar(false);
+      });
+      this.scrollDelta = 0; // Reset delta after hiding
+    } else if (delta < 0 && this.scrollDelta > 20) {
+      // Scrolling up, show navbar after threshold - reduced for faster response
+      this.ngZone.run(() => {
+        this.showNavbar = true;
+        this.navbarService.showNavbar(true);
+      });
+      this.scrollDelta = 0; // Reset delta after showing
+    }
+
+    // Fix header only when scrolled
     this.isFixed = currentScrollY > 0;
-    this.navbarService.showNavbar(this.showNavbar);
-    this.navbarService.handleScroll(this.headerHeight);
-    this.cdr.detectChanges();
+
+    this.lastScrollY = currentScrollY;
   }
 
-  // Toggle sidenav visibility
-  onSwitchSideNav(visible: boolean) {
+  onSiwtchSideNav(visible: boolean) {
     this.navbarService.siwtchSideNav(visible);
   }
 
-  // Fetch categories using CategoriesService
   private fetchAllCategories(): void {
-    this.categoriesService.getAllCategories(['default']).subscribe({
-      next: (categories) => {
+    this.categoriesService
+      .getAllCategories(['default'])
+      .subscribe((categories) => {
         this.allCategories = categories;
         this.mainCategories = categories.filter((cat) => cat.parent === 0);
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Failed to fetch categories:', error);
-      },
-    });
+      });
   }
 
-  // Toggle search bar visibility
   onShowSearchbar() {
     this.showSearchbar = !this.showSearchbar;
     this.navbarService.showSearchBar(this.showSearchbar);
+  }
+
+  // For the InViewportDirective
+  onNavbarVisible(isVisible: boolean) {
+    this.navbarVisible = isVisible;
   }
 }

@@ -438,26 +438,7 @@ export class ProductInfoComponent {
   }
 
   // Social sharing methods
-  getFacebookShareUrl(): string {
-    // Get current product URL to share
-    const productUrl = this.getCurrentProductUrl();
-    const title = encodeURIComponent(this.productInfo()?.name || 'Check out this product');
-    return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}&t=${title}`;
-  }
-
-  getTwitterShareUrl(): string {
-    const productUrl = this.getCurrentProductUrl();
-    const title = encodeURIComponent(this.productInfo()?.name || 'Check out this product');
-    return `https://twitter.com/intent/tweet?text=${title}&url=${encodeURIComponent(productUrl)}`;
-  }
-
-  getWhatsAppShareUrl(): string {
-    const productUrl = this.getCurrentProductUrl();
-    const title = encodeURIComponent(this.productInfo()?.name || 'Check out this product');
-    return `https://api.whatsapp.com/send?text=${title}%20${encodeURIComponent(productUrl)}`;
-  }
-
-  copyProductLink(event: Event): void {
+    copyProductLink(event: Event): void {
     event.preventDefault();
     const productUrl = this.getCurrentProductUrl();
 

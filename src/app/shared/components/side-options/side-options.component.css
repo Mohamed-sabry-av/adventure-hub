@@ -8,7 +8,8 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   opacity: 0;
-  transition: opacity 0.4s ease; /* Smoother transition */
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
+  backdrop-filter: blur(2px); /* Add blur effect */
 }
 
 .panel-backdrop.active {
@@ -29,7 +30,32 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  transition: transform 0.4s ease; /* Smoother transition */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
+  position: relative;
+}
+
+/* Swipe indicator */
+.swipe-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to left, transparent, rgba(0, 0, 0, 0.03));
+  z-index: 2;
+}
+
+.swipe-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 4px;
+  height: 50px;
+  border-radius: 2px;
+  background-color: rgba(0, 0, 0, 0.06);
+  transform: translateY(-50%);
 }
 
 /* Desktop Header */
@@ -69,14 +95,14 @@
   z-index: 10;
   background: none;
   border: none;
-  transition: transform 0.3s ease; /* Smoother transition */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .close-icon {
   width: 24px;
   height: 24px;
   color: #666;
-  transition: color 0.3s ease; /* Smoother transition */
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .close-button:hover .close-icon {
@@ -100,7 +126,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  transition: transform 0.4s ease; /* Smoother transition */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 /* Mobile Header */
@@ -126,6 +152,11 @@
   background-color: #e0e0e0;
   border-radius: 2px;
   margin: 0 auto 10px;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-options-panel:active .pull-handle {
+  background-color: #bbb;
 }
 
 /* Product Info Styles */
@@ -142,7 +173,7 @@
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease; /* Smoother transition */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .product-image:hover {
@@ -154,7 +185,7 @@
   height: 100%;
   object-fit: contain;
   border-radius: 4px;
-  transition: all 0.3s ease; /* Smoother transition */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .product-details {
@@ -205,7 +236,7 @@
   text-decoration: underline;
   cursor: pointer;
   display: inline-block;
-  transition: color 0.3s ease; /* Smoother transition */
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .view-details-link:hover {
@@ -245,7 +276,7 @@
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  transition: transform 0.3s ease; /* Smoother transition */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .color-inner {
@@ -255,7 +286,7 @@
   border: 1px solid #ddd;
   background-size: cover;
   background-position: center;
-  transition: all 0.3s ease; /* Smoother transition */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .color-swatch:hover:not(.out-of-stock) .color-inner {
@@ -303,7 +334,7 @@
   background-color: white;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.3s ease; /* Smoother transition */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
 }
 
 .size-button:hover:not([disabled]) {
@@ -356,7 +387,7 @@
   cursor: pointer;
   font-size: 18px;
   color: #333;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .quantity-btn:hover:not(:disabled) {
@@ -400,8 +431,10 @@
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease; /* Smoother transition */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
   width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 .add-to-cart-btn:hover:not(:disabled) {
@@ -417,6 +450,30 @@
 
 .add-to-cart-btn.add-success {
   background-color: #4caf50;
+}
+
+.add-to-cart-btn.add-success::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  transform: translate(-50%, -50%);
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 /* Buy Now Button */
@@ -435,6 +492,7 @@
   display: flex; /* Add flex to center content */
   align-items: center; /* Vertically center */
   justify-content: center; /* Horizontally center */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .buy-now-btn:hover {
@@ -469,5 +527,10 @@
   .options-selection,
   .add-to-cart-section {
     padding: 15px;
+  }
+
+  .pull-handle {
+    width: 60px;
+    height: 5px;
   }
 }
