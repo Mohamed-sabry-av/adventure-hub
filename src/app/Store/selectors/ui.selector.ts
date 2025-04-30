@@ -4,6 +4,10 @@ export const spinnerOfUiSelector = (state: StoreInterface) => {
   return state.ui.isSpinnerLoading;
 };
 
+export const loadingMapSelector = (state: StoreInterface) => {
+  return state.ui.loadingMap;
+};
+
 // ------------------------------------------------
 export const spinnerOfCouponSelector = (state: StoreInterface) => {
   return state.ui.isCouponLoading;

@@ -12,6 +12,8 @@ import { CartStatus } from '../../features/cart/model/cart.model';
 
 export interface State {
   isSpinnerLoading: boolean;
+  loadingMap: { [key: string]: boolean };
+
   isCouponLoading: boolean;
   isOrderLoading: boolean;
   cartStatus: CartStatus;
@@ -19,6 +21,8 @@ export interface State {
 
 const initialState: State = {
   isSpinnerLoading: false,
+  loadingMap: {},
+
   isCouponLoading: false,
   isOrderLoading: false,
   cartStatus: {
@@ -32,11 +36,19 @@ export const uiReducer = createReducer(
   initialState,
 
   on(startLoadingSpinnerAction, (state, action) => {
-    return { ...state, isSpinnerLoading: true };
+    return {
+      ...state,
+      loadingMap: { ...state.loadingMap, [action.buttonName!]: true },
+      isSpinnerLoading: true,
+    };
   }),
 
   on(stopLoadingSpinnerAction, (state, action) => {
-    return { ...state, isSpinnerLoading: false };
+    return {
+      ...state,
+      loadingMap: { ...state.loadingMap, [action.buttonName!]: false },
+      isSpinnerLoading: false,
+    };
   }),
 
   on(startLoadingCouponAction, (state) => {

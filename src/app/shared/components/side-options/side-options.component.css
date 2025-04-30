@@ -396,12 +396,16 @@
   background-color: #f26638;
   color: white;
   border: none;
-  border-radius: 6px; /* Squared with rounded corners like in the image */
+  border-radius: 6px;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease; /* Smoother transition */
   width: 100%;
+  margin-top: 12px;
+  position: relative;
+  display: flex; /* Add flex to center content */
+  align-items: center; /* Vertically center */
+  justify-content: center; /* Horizontally center */
 }
 
 .add-to-cart-btn:hover:not(:disabled) {

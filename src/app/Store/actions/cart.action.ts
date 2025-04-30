@@ -6,6 +6,7 @@ export const fetchUserCartAction = createAction(
     isLoggedIn: boolean;
     mainPageLoading: boolean;
     sideCartLoading: boolean;
+    buyItNow?: boolean;
     openSideCart?: boolean;
   }>()
 );

@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
   cartStatusSelector,
+  loadingMapSelector,
   spinnerOfCouponSelector,
   spinnerOfOrderSelector,
   spinnerOfUiSelector,
@@ -33,6 +34,9 @@ export class UIService {
   // --------------------------------------------------------------
   isSpinnerLoading$: Observable<boolean> =
     this.store.select(spinnerOfUiSelector);
+
+  loadingMap$: Observable<{ [key: string]: boolean }> =
+    this.store.select(loadingMapSelector);
   // ------------------------------------------------------
   isCouponLoading$ = this.store.select(spinnerOfCouponSelector);
 

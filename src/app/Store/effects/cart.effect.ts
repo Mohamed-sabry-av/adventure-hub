@@ -75,10 +75,9 @@ export class CartEffect {
       ofType(addProductToUserCartAction),
       switchMap(({ product, isLoggedIn, buyItNow }) => {
         console.log('From Effect', product);
-        if (buyItNow) {
-          console.log('Hello');
-          this.store.dispatch(startLoadingSpinnerAction());
-        }
+        this.store.dispatch(
+          startLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
+        );
 
         const apiUrl = isLoggedIn
           ? 'https://adventures-hub.com/wp-json/custom/v1/cart/add'
@@ -102,7 +101,6 @@ export class CartEffect {
 
         return requestMethod.pipe(
           map((response: any) => {
-            this.sideOptionsService.closeSideOptions();
             if (isLoggedIn) {
               console.log('Product Added To Cart Online');
               response.items = response.items.map((item: any) => {
@@ -115,12 +113,18 @@ export class CartEffect {
                 };
               });
 
+              this.store.dispatch(
+                stopLoadingSpinnerAction({
+                  buttonName: buyItNow ? 'buy' : 'add',
+                })
+              );
+              this.sideOptionsService.closeSideOptions();
               if (buyItNow) {
-                this.store.dispatch(stopLoadingSpinnerAction());
                 this.router.navigateByUrl('/checkout', { replaceUrl: true });
                 return getUserCartAction({ userCart: response });
               } else {
                 this.cartService.cartMode(true);
+
                 return getUserCartAction({ userCart: response });
               }
             } else {
@@ -193,14 +197,12 @@ export class CartEffect {
               );
 
               if (buyItNow) {
-                this.store.dispatch(stopLoadingSpinnerAction());
-
-                this.router.navigateByUrl('/checkout', { replaceUrl: true });
                 return fetchUserCartAction({
                   isLoggedIn: false,
                   mainPageLoading: false,
                   sideCartLoading: false,
                   openSideCart: false,
+                  buyItNow,
                 });
               }
 
@@ -209,11 +211,14 @@ export class CartEffect {
                 mainPageLoading: false,
                 sideCartLoading: false,
                 openSideCart: true,
+                buyItNow,
               });
             }
           }),
           catchError((error: any) => {
-            this.store.dispatch(stopLoadingSpinnerAction());
+            this.store.dispatch(
+              stopLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
+            );
 
             console.log('Error in adding product to cart:', error);
             this.uiService.showError(
@@ -238,7 +243,13 @@ export class CartEffect {
     this.actions$.pipe(
       ofType(fetchUserCartAction),
       switchMap(
-        ({ isLoggedIn, mainPageLoading, sideCartLoading, openSideCart }) => {
+        ({
+          isLoggedIn,
+          mainPageLoading,
+          sideCartLoading,
+          openSideCart,
+          buyItNow,
+        }) => {
           this.store.dispatch(
             cartStatusAction({
               mainPageLoading: mainPageLoading,
@@ -314,7 +325,18 @@ export class CartEffect {
                 })
               );
 
-              this.cartService.cartMode(openSideCart ? openSideCart : false);
+              this.store.dispatch(
+                stopLoadingSpinnerAction({
+                  buttonName: buyItNow ? 'buy' : 'add',
+                })
+              );
+
+              this.sideOptionsService.closeSideOptions();
+              if (buyItNow) {
+                this.router.navigateByUrl('/checkout', { replaceUrl: true });
+              } else {
+                this.cartService.cartMode(openSideCart ? openSideCart : false);
+              }
 
               return getUserCartAction({ userCart: response });
             }),
