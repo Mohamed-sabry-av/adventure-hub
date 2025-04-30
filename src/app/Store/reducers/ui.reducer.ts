@@ -5,16 +5,20 @@ import {
   stopLoadingOrderAction,
   startLoadingOrderAction,
   cartStatusAction,
+  startLoadingSpinnerAction,
+  stopLoadingSpinnerAction,
 } from '../actions/ui.action';
 import { CartStatus } from '../../features/cart/model/cart.model';
 
 export interface State {
+  isSpinnerLoading: boolean;
   isCouponLoading: boolean;
   isOrderLoading: boolean;
   cartStatus: CartStatus;
 }
 
 const initialState: State = {
+  isSpinnerLoading: false,
   isCouponLoading: false,
   isOrderLoading: false,
   cartStatus: {
@@ -27,15 +31,20 @@ const initialState: State = {
 export const uiReducer = createReducer(
   initialState,
 
-  // -------------------------------------------------
+  on(startLoadingSpinnerAction, (state, action) => {
+    return { ...state, isSpinnerLoading: true };
+  }),
+
+  on(stopLoadingSpinnerAction, (state, action) => {
+    return { ...state, isSpinnerLoading: false };
+  }),
+
   on(startLoadingCouponAction, (state) => {
     return { ...state, isCouponLoading: true };
   }),
   on(stopLoadingCouponAction, (state) => {
     return { ...state, isCouponLoading: false };
   }),
-
-  // -------------------------------------------------
 
   on(stopLoadingOrderAction, (state) => {
     return { ...state, isOrderLoading: false };
@@ -44,7 +53,6 @@ export const uiReducer = createReducer(
     return { ...state, isOrderLoading: true };
   }),
 
-  // ------------------------------------------------ Done
   on(cartStatusAction, (state, action) => {
     return {
       ...state,

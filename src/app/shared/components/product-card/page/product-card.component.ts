@@ -7,7 +7,8 @@ import {
   OnInit,
   PLATFORM_ID,
   Inject,
-  HostListener
+  HostListener,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
@@ -32,6 +33,8 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
   ],
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -106,7 +109,6 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.resizeSubscription?.unsubscribe();
   }
 
-
   @HostListener('mouseenter')
   onMouseEnter() {
     this.isCardHovered = true;
@@ -115,7 +117,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   onMouseLeave() {
     this.isCardHovered = false;
   }
-  
+
   private setupResizeListener(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.resizeSubscription = fromEvent(window, 'resize')
@@ -259,7 +261,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.selectedSize = this.uniqueSizes[0].size;
       }
     } else if (this.uniqueSizes.length > 0) {
-      const firstInStockSize = this.uniqueSizes.find(size => size.inStock);
+      const firstInStockSize = this.uniqueSizes.find((size) => size.inStock);
       if (firstInStockSize) {
         this.selectedSize = firstInStockSize.size;
       }
@@ -289,21 +291,21 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     // Update modifiedProduct with images from the selected color variation
     if (this.modifiedProduct) {
       // Find all variations with this color
-      const variationsWithThisColor = this.variations.filter(
-        (v) => v.attributes?.some(
+      const variationsWithThisColor = this.variations.filter((v) =>
+        v.attributes?.some(
           (attr: any) => attr.name === 'Color' && attr.option === color
         )
       );
 
       // If we found variations with this color and they have images
       if (variationsWithThisColor.length > 0) {
-        const imagesForThisColor: {src: string}[] = [];
+        const imagesForThisColor: { src: string }[] = [];
 
         // Collect up to 2 images
-        variationsWithThisColor.forEach(v => {
+        variationsWithThisColor.forEach((v) => {
           if (v.image?.src && imagesForThisColor.length < 2) {
             // Make sure we don't add duplicate images
-            if (!imagesForThisColor.some(img => img.src === v.image.src)) {
+            if (!imagesForThisColor.some((img) => img.src === v.image.src)) {
               imagesForThisColor.push({ src: v.image.src });
             }
           }
@@ -313,7 +315,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         if (imagesForThisColor.length > 0) {
           this.modifiedProduct = {
             ...this.modifiedProduct,
-            images: imagesForThisColor
+            images: imagesForThisColor,
           };
           this.currentSlide = 0;
         }
@@ -350,14 +352,14 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     // Update modifiedProduct with the selected variation's details
     if (this.selectedVariation && this.selectedVariation.image?.src) {
       // Get images for this variation
-      const variationImages = Array.isArray(this.selectedVariation.image.src) ?
-        this.selectedVariation.image.src.map((src:any) => ({ src })) :
-        [{ src: this.selectedVariation.image.src }];
+      const variationImages = Array.isArray(this.selectedVariation.image.src)
+        ? this.selectedVariation.image.src.map((src: any) => ({ src }))
+        : [{ src: this.selectedVariation.image.src }];
 
       // Update modified product with variation images
       this.modifiedProduct = {
         ...this.modifiedProduct,
-        images: variationImages
+        images: variationImages,
       };
       this.currentSlide = 0;
     }
@@ -437,7 +439,9 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  onAddToCartWithOptions(options: { quantity: number } = { quantity: 1 }): void {
+  onAddToCartWithOptions(
+    options: { quantity: number } = { quantity: 1 }
+  ): void {
     if (!this.selectedVariation && this.variations.length > 0) {
       return;
     }
@@ -449,7 +453,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       price: this.selectedVariation
         ? this.selectedVariation.price
         : this.product.price,
-      image: this.selectedVariation?.image?.src ?? this.product.images?.[0]?.src,
+      image:
+        this.selectedVariation?.image?.src ?? this.product.images?.[0]?.src,
     };
 
     // Call addProductToCart without subscribing, as it doesn't return an Observable
@@ -486,6 +491,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       (meta: any) => meta.key === '_brand_slug' || meta.key === 'brand_slug'
     );
 
-    return brandMeta ? brandMeta.value : this.getBrandName()?.toLowerCase().replace(/\s+/g, '-');
+    return brandMeta
+      ? brandMeta.value
+      : this.getBrandName()?.toLowerCase().replace(/\s+/g, '-');
   }
 }

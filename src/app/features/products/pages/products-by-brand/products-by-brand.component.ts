@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  HostListener,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FilterSidebarComponent } from '../../components/filter-sidebar/filter-sidebar.component';
@@ -22,6 +28,8 @@ import { SeoService } from '../../../../core/services/seo.service';
   ],
   templateUrl: './products-by-brand.component.html',
   styleUrls: ['./products-by-brand.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   providers: [ProductsBrandService], // استخدام ProductsBrandService مباشرة
 })
 export class ProductsByBrandComponent implements OnInit {
@@ -32,13 +40,13 @@ export class ProductsByBrandComponent implements OnInit {
   currentBrandSlug: string | null = null;
   brandName: string = 'Loading...';
   currentPage: number = 1;
-   brandInfo: any = null;
+  brandInfo: any = null;
   itemPerPage: number = 20;
   totalProducts: number = 0;
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
-  schemaData:any
+  schemaData: any;
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
@@ -46,7 +54,7 @@ export class ProductsByBrandComponent implements OnInit {
   constructor(
     private productsBrandService: ProductsBrandService,
     private route: ActivatedRoute,
-    private seoService:SeoService,
+    private seoService: SeoService
   ) {}
 
   async ngOnInit() {
@@ -66,7 +74,9 @@ export class ProductsByBrandComponent implements OnInit {
 
           // تطبيق الـ SEO tags بناءً على yoast_head_json
           this.schemaData = this.seoService.applySeoTags(this.brandInfo, {
-            title: this.brandInfo?.name || 'Brand Products - Adventures HUB Sports Shop',
+            title:
+              this.brandInfo?.name ||
+              'Brand Products - Adventures HUB Sports Shop',
             description:
               this.brandInfo?.description ||
               `Explore products by ${this.brandInfo?.name} at Adventures HUB Sports Shop.`,
@@ -78,13 +88,15 @@ export class ProductsByBrandComponent implements OnInit {
           // Fallback SEO tags إذا لم يتم العثور على البراند
           this.schemaData = this.seoService.applySeoTags(null, {
             title: 'Brand Products - Adventures HUB Sports Shop',
-            description: 'Explore products by brand at Adventures HUB Sports Shop.',
+            description:
+              'Explore products by brand at Adventures HUB Sports Shop.',
           });
         }
       } else {
         this.schemaData = this.seoService.applySeoTags(null, {
           title: 'Brand Products - Adventures HUB Sports Shop',
-          description: 'Explore products by brand at Adventures HUB Sports Shop.',
+          description:
+            'Explore products by brand at Adventures HUB Sports Shop.',
         });
       }
     } catch (error) {
@@ -98,7 +110,7 @@ export class ProductsByBrandComponent implements OnInit {
       this.isLoading = false;
     }
   }
-  
+
   ngAfterViewInit() {
     console.log('FilterSidebar:', this.filterSidebar);
     if (this.filterSidebar) {

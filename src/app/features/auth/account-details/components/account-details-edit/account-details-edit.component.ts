@@ -1,6 +1,16 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
 
@@ -8,7 +18,8 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   selector: 'app-account-details-edit',
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './account-details-edit.component.html',
-  styleUrl: './account-details-edit.component.css'
+  styleUrl: './account-details-edit.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountDetailsEditComponent {
   customerDetails: any = null;
@@ -30,14 +41,17 @@ export class AccountDetailsEditComponent {
       last_name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       username: ['', Validators.required],
-      display_name: ['']
+      display_name: [''],
     });
 
-    this.passwordForm = this.fb.group({
-      current_password: ['', Validators.required],
-      new_password: ['', [Validators.required, Validators.minLength(8)]],
-      confirm_password: ['', Validators.required]
-    }, { validator: this.passwordMatchValidator });
+    this.passwordForm = this.fb.group(
+      {
+        current_password: ['', Validators.required],
+        new_password: ['', [Validators.required, Validators.minLength(8)]],
+        confirm_password: ['', Validators.required],
+      },
+      { validator: this.passwordMatchValidator }
+    );
   }
 
   ngOnInit(): void {
@@ -62,7 +76,7 @@ export class AccountDetailsEditComponent {
         this.error = 'Failed to load account details. Please try again later.';
         this.isLoading = false;
         console.error('Error loading customer details:', err);
-      }
+      },
     });
   }
 
@@ -72,19 +86,19 @@ export class AccountDetailsEditComponent {
       last_name: data.last_name,
       email: data.email,
       username: data.username,
-      display_name: data.first_name + ' ' + data.last_name
+      display_name: data.first_name + ' ' + data.last_name,
     });
   }
 
   getCustomerId(): number | null {
-    const customerIdStr:any = this.localStorageService.getItem('customerId');
+    const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
 
   saveAccountDetails(): void {
     if (this.accountForm.invalid) {
       // Mark all fields as touched to show validation errors
-      Object.keys(this.accountForm.controls).forEach(key => {
+      Object.keys(this.accountForm.controls).forEach((key) => {
         const control = this.accountForm.get(key);
         control?.markAsTouched();
       });
@@ -110,7 +124,9 @@ export class AccountDetailsEditComponent {
 
         // Update the local storage if email has changed
         if (this.accountForm.value.email !== this.customerDetails.email) {
-          const user = JSON.parse(this.localStorageService.getItem('auth_user') || '{}');
+          const user = JSON.parse(
+            this.localStorageService.getItem('auth_user') || '{}'
+          );
           user.email = this.accountForm.value.email;
           this.localStorageService.setItem('auth_user', JSON.stringify(user));
         }
@@ -119,7 +135,7 @@ export class AccountDetailsEditComponent {
         this.error = 'Failed to update account details. Please try again.';
         this.isSaving = false;
         console.error('Error updating customer details:', err);
-      }
+      },
     });
   }
 
@@ -134,7 +150,7 @@ export class AccountDetailsEditComponent {
   changePassword(): void {
     if (this.passwordForm.invalid) {
       // Mark all fields as touched to show validation errors
-      Object.keys(this.passwordForm.controls).forEach(key => {
+      Object.keys(this.passwordForm.controls).forEach((key) => {
         const control = this.passwordForm.get(key);
         control?.markAsTouched();
       });
@@ -151,22 +167,24 @@ export class AccountDetailsEditComponent {
     this.error = null;
 
     const passwordData = {
-      password: this.passwordForm.value.new_password
+      password: this.passwordForm.value.new_password,
     };
 
-    this.accountService.updateCustomerDetails(customerId, passwordData).subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.showPasswordForm = false;
-        this.passwordForm.reset();
-        this.saveSuccess = true;
-      },
-      error: (err) => {
-        this.error = 'Failed to update password. Please try again.';
-        this.isSaving = false;
-        console.error('Error updating password:', err);
-      }
-    });
+    this.accountService
+      .updateCustomerDetails(customerId, passwordData)
+      .subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.showPasswordForm = false;
+          this.passwordForm.reset();
+          this.saveSuccess = true;
+        },
+        error: (err) => {
+          this.error = 'Failed to update password. Please try again.';
+          this.isSaving = false;
+          console.error('Error updating password:', err);
+        },
+      });
   }
 
   passwordMatchValidator(group: FormGroup): { notMatched: boolean } | null {

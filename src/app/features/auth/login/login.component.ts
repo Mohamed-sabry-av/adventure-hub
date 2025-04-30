@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -23,6 +23,7 @@ import { CartService } from '../../cart/service/cart.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   loginForm!: FormGroup;

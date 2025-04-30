@@ -416,7 +416,7 @@
 }
 
 .add-to-cart-btn.add-success {
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 /* Buy Now Button */
@@ -425,19 +425,33 @@
   background-color: #5a5f4c;
   color: white;
   border: none;
-  border-radius: 6px; /* Squared with rounded corners like in the image */
+  border-radius: 6px;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease; /* Smoother transition */
   width: 100%;
   margin-top: 12px;
+  position: relative;
+  display: flex; /* Add flex to center content */
+  align-items: center; /* Vertically center */
+  justify-content: center; /* Horizontally center */
 }
 
 .buy-now-btn:hover {
   background-color: #474c3a;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(90, 95, 76, 0.2);
+}
+
+.spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* Take full height of the button */
+  width: 100%; /* Take full width of the button */
+  position: absolute; /* Ensure it overlays the button */
+  top: 0;
+  left: 0;
 }
 
 /* Media queries for responsive design */

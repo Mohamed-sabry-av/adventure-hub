@@ -1,5 +1,7 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -33,6 +35,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('navbarAnimation', [
       transition(':enter', [
@@ -66,12 +70,14 @@ export class HeaderComponent implements OnInit {
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
-  showNavbar: boolean = true;
   showSearchbar: boolean = false;
+  isProductPage: boolean = false; // New property to track product page
+
+  // ------------------------- Done
+  showNavbar: boolean = true;
   lastScrollY: number = 0;
   headerHeight: number = 0;
   isFixed: boolean = false;
-  isProductPage: boolean = false; // New property to track product page
 
   ngOnInit() {
     this.fetchAllCategories();
@@ -123,13 +129,14 @@ export class HeaderComponent implements OnInit {
       this.headerHeight = this.headerElement.nativeElement.offsetHeight;
     }
 
+    this.lastScrollY = currentScrollY;
+    // -------------------------------- done
+
     if (currentScrollY > 0) {
       this.isFixed = true;
     } else {
       this.isFixed = false;
     }
-
-    this.lastScrollY = currentScrollY;
     this.navbarService.showNavbar(this.showNavbar);
     this.navbarService.handleScroll(this.headerHeight);
   }

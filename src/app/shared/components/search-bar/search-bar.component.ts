@@ -1,5 +1,18 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, of } from 'rxjs';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  HostListener,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  Subject,
+  switchMap,
+  of,
+} from 'rxjs';
 import { SearchBarService } from '../../services/search-bar.service';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
@@ -19,7 +32,9 @@ interface Category {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './search-bar.component.html',
-  styleUrls: ['./search-bar.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
+  styleUrls: ['./search-bar.component.css'],
 })
 export class SearchBarComponent implements OnInit {
   searchTerm = new Subject<string>();
@@ -34,10 +49,7 @@ export class SearchBarComponent implements OnInit {
   @ViewChild('searchInput') searchInput!: ElementRef;
   @ViewChild('resultsContainer') resultsContainer!: ElementRef;
 
-  constructor(
-    private searchService: SearchBarService,
-    private router: Router
-  ) {
+  constructor(private searchService: SearchBarService, private router: Router) {
     const savedSearches = localStorage.getItem('recentSearches');
     if (savedSearches) {
       this.recentSearches = JSON.parse(savedSearches).slice(0, 5);
@@ -77,7 +89,7 @@ export class SearchBarComponent implements OnInit {
     this.saveToRecentSearches(query);
 
     this.router.navigate(['/product/search'], {
-      queryParams: { query: query }
+      queryParams: { query: query },
     });
   }
 
@@ -90,8 +102,12 @@ export class SearchBarComponent implements OnInit {
         return image.thumbnail; // مثل 150x150
       }
       // الرجوع إلى صورة صغيرة من srcset إذا كانت موجودة
-      const srcset = image.srcset?.split(',').map((src: string) => src.trim().split(' ')[0]);
-      const smallImage = srcset?.find((src: string) => src.includes('100x100') || src.includes('150x150'));
+      const srcset = image.srcset
+        ?.split(',')
+        .map((src: string) => src.trim().split(' ')[0]);
+      const smallImage = srcset?.find(
+        (src: string) => src.includes('100x100') || src.includes('150x150')
+      );
       return smallImage || image.src; // الرجوع إلى src إذا لم يكن هناك صورة صغيرة
     }
     return ''; // صورة افتراضية إذا لم تكن هناك صور
@@ -132,13 +148,13 @@ export class SearchBarComponent implements OnInit {
 
   processCategories() {
     const categoryMap = new Map<number, Category>();
-    this.categories.forEach(cat => {
+    this.categories.forEach((cat) => {
       categoryMap.set(cat.id, { ...cat, children: [], expanded: false });
     });
 
     this.processedCategories = [];
 
-    this.categories.forEach(cat => {
+    this.categories.forEach((cat) => {
       const category = categoryMap.get(cat.id);
       if (category) {
         if (!cat.parent || !categoryMap.has(cat.parent)) {
@@ -199,7 +215,9 @@ export class SearchBarComponent implements OnInit {
     while (currentCategory) {
       slugs.unshift(currentCategory.slug);
       if (currentCategory.parent) {
-        currentCategory = this.categories.find(cat => cat.id === currentCategory!.parent);
+        currentCategory = this.categories.find(
+          (cat) => cat.id === currentCategory!.parent
+        );
       } else {
         currentCategory = undefined;
       }
@@ -220,7 +238,10 @@ export class SearchBarComponent implements OnInit {
     if (term && !this.recentSearches.includes(term)) {
       this.recentSearches.unshift(term);
       this.recentSearches = this.recentSearches.slice(0, 5);
-      localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches));
+      localStorage.setItem(
+        'recentSearches',
+        JSON.stringify(this.recentSearches)
+      );
     }
   }
 

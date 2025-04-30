@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 
 @Component({
@@ -6,5 +6,6 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
   imports: [AppContainerComponent],
   templateUrl: './about.component.html',
   styleUrl: './about.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutComponent {}

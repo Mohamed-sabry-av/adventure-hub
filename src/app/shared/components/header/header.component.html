@@ -1,12 +1,10 @@
 <!-- Placeholder only shown when header is fixed and not on product page -->
-<div *ngIf="isFixed && !isProductPage" [style.height.px]="headerHeight"></div>
+<!-- <div *ngIf="isFixed && !isProductPage" [style.height.px]="headerHeight"></div> -->
 
 <header
   class="w-full"
   [class]="{
-    'is-scroll': lastScrollY !== 0 && currentPage !== 'checkout' && !isProductPage,
-    'fixed top-0 left-0 z-50': isFixed && !isProductPage,
-    'relative': isProductPage
+    'is-scroll': lastScrollY !== 0
   }"
   #headerEl
 >
@@ -20,14 +18,15 @@
         alt="Adventures hub logo"
         routerLink="/home"
         class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
+        loading="lazy"
       />
     </a>
 
     <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
   </div>
-  } @else {
+  } @else if(currentPage !== 'checkout') {
   <!-- Secondary Info -->
-  <!-- @if (lastScrollY === 0) {
+  @if (lastScrollY === 0) {
   <div
     class="relative mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6"
   >
@@ -38,7 +37,7 @@
       Buy Now & Pay Later with <strong>Tabby</strong>
     </p>
   </div>
-  } -->
+  }
 
   <!-- Main Info -->
   <app-app-container>
@@ -59,6 +58,7 @@
       <!-- Logo -->
       <a class="block">
         <img
+          loading="lazy"
           src="header/White logo-01.webp"
           alt="Adventures hub logo"
           routerLink="/home"

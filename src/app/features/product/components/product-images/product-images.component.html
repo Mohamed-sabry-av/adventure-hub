@@ -7,12 +7,12 @@
       [class.active]="selectedImageIndex === i"
       (click)="selectImage(i)"
     >
-    <img
-    [src]="image.src"
-    [alt]="image.alt || productName()"
-    class="thumbnail-img"
-    loading="lazy"
-  />
+      <img
+        [src]="image.src"
+        [alt]="image.alt || productName()"
+        class="thumbnail-img"
+        loading="lazy"
+      />
     </div>
   </div>
 
@@ -24,19 +24,20 @@
   >
     <button class="prev" (click)="prevImage()">❮</button>
     <button class="next" (click)="nextImage()">❯</button>
-    
+
     <div class="image-slide">
       <img
-      *ngIf="images[selectedImageIndex]"
-      [src]="images[selectedImageIndex].src"
-      [alt]="images[selectedImageIndex].alt || productName()"
-      class="main-img"
-      width="640"
-      height="640"
-      fetchpriority="high"
-    />
+        *ngIf="images[selectedImageIndex]"
+        [src]="images[selectedImageIndex].src"
+        [alt]="images[selectedImageIndex].alt || productName()"
+        class="main-img"
+        width="640"
+        height="640"
+        loading="lazy"
+        fetchpriority="high"
+      />
     </div>
-    
+
     <!-- Image counter for mobile -->
     <div class="image-counter" *ngIf="images.length > 1">
       {{ selectedImageIndex + 1 }} / {{ images.length }}

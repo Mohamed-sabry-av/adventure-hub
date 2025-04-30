@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { SliderComponent } from '../../components/slider/slider.component';
 import { BrandLogosComponent } from '../../components/brand-logos/brand-logos.component';
@@ -28,6 +28,7 @@ import { CartStatus } from '../../../cart/model/cart.model';
   ],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {
   private uiService = inject(UIService);

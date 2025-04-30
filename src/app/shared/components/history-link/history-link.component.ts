@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RecentlyVisitedService } from '../../../core/services/recently-visited.service';
@@ -9,7 +9,9 @@ import { map } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './history-link.component.html',
-  styleUrls: ['./history-link.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
+  styleUrls: ['./history-link.component.css'],
 })
 export class HistoryLinkComponent implements OnInit {
   productCount: number = 0;
@@ -19,10 +21,8 @@ export class HistoryLinkComponent implements OnInit {
   ngOnInit(): void {
     // Subscribe to the recently visited products to get the count
     this.recentlyVisitedService.recentlyVisitedProducts$
-      .pipe(
-        map(products => products.length)
-      )
-      .subscribe(count => {
+      .pipe(map((products) => products.length))
+      .subscribe((count) => {
         this.productCount = count;
       });
   }

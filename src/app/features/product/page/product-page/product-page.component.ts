@@ -1,8 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
-import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
 import { map, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
@@ -13,6 +12,7 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
 import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
+import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
 
 declare var _learnq: any;
 
@@ -32,6 +32,8 @@ declare var _learnq: any;
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
   host: { ngSkipHydration: '' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   standalone: true,
 })
 export class ProductPageComponent implements OnInit {
@@ -47,13 +49,14 @@ export class ProductPageComponent implements OnInit {
   private recentlyVisitedService = inject(RecentlyVisitedService);
   private router = inject(Router);
 
+
   ngOnInit() {
     this.route.paramMap
       .pipe(
         switchMap((params) => {
           const slug = params.get('slug'); 
           if (!slug) {
-            this.router.navigate(['/']); // لو مفيش slug، رجّع للصفحة الرئيسية
+            this.router.navigate(['/']); 
             return [];
           }
 

@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { RouterLink } from '@angular/router';
@@ -8,13 +13,14 @@ import { RouterLink } from '@angular/router';
   templateUrl: './wishlist.component.html',
   styleUrls: ['./wishlist.component.css'],
   standalone: true,
-  imports: [CommonModule,RouterLink],
+  imports: [CommonModule, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WishlistComponent implements OnInit {
   wishlistItems: any[] = [];
   isLoading = true;
   error: string | null = null;
-  product:any;
+  product: any;
 
   private accountService = inject(WooCommerceAccountService);
 
@@ -31,10 +37,12 @@ export class WishlistComponent implements OnInit {
         this.wishlistItems = Array.isArray(data) ? data : [];
         this.isLoading = false;
         console.log('Wishlist loaded:', this.wishlistItems);
-        data = this.product
+        data = this.product;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to load wishlist. Please try again later.';
+        this.error =
+          err.error?.message ||
+          'Failed to load wishlist. Please try again later.';
         this.isLoading = false;
         console.error('Error loading wishlist:', err);
       },
@@ -50,12 +58,15 @@ export class WishlistComponent implements OnInit {
           this.wishlistItems = this.wishlistItems.filter((_, i) => i !== index);
         } else {
           this.wishlistItems[index].isRemoving = false;
-          this.error = response.message || 'Failed to remove item from wishlist.';
+          this.error =
+            response.message || 'Failed to remove item from wishlist.';
         }
       },
       error: (err) => {
         this.wishlistItems[index].isRemoving = false;
-        this.error = err.error?.message || 'Failed to remove item from wishlist. Please try again.';
+        this.error =
+          err.error?.message ||
+          'Failed to remove item from wishlist. Please try again.';
         console.error('Error removing from wishlist:', err);
       },
     });
@@ -71,7 +82,9 @@ export class WishlistComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to add product to cart. Please try again.';
+        this.error =
+          err.error?.message ||
+          'Failed to add product to cart. Please try again.';
         console.error('Error adding to cart:', err);
       },
     });

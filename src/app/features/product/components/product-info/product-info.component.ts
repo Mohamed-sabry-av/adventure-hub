@@ -1,7 +1,14 @@
-import { Component, EventEmitter, input, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  inject,
+  input,
+  Output,
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { CartService } from '../../../cart/service/cart.service';
 import { WishlistComponent } from '../../../auth/account-details/components/wishlist/wishlist.component';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
@@ -15,6 +22,8 @@ declare var _learnq: any;
   imports: [CommonModule, RouterLink, ReactiveFormsModule,CurrencySvgPipe],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   standalone: true,
 })
 export class ProductInfoComponent {
@@ -28,8 +37,9 @@ export class ProductInfoComponent {
   wishlistMessage: string | null = null;
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
+  private uiService = inject(UIService);
 
-  @Output() selectedAttributeChange = new EventEmitter<{ name: string; value: string | null }>();
+  isSpinnerLoading$: Observable<boolean> = this.uiService.isSpinnerLoading$;
 
   linkCopied: boolean = false;
 
@@ -82,26 +92,38 @@ export class ProductInfoComponent {
   }
 
   get productSku() {
-    const shortTitle = this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
+    const shortTitle =
+      this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
     const sku = this.productInfo()?.sku || '';
     return { shortTitle, sku };
   }
 
   get brandName() {
-    return this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.name || 'brand';
+    return (
+      this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')
+        ?.options?.[0]?.name || 'brand'
+    );
   }
 
   get brandSlug() {
-    return this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.slug || 'brand';
+    return (
+      this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')
+        ?.options?.[0]?.slug || 'brand'
+    );
   }
 
   getVariationAttributes(): string[] {
-    return this.productInfo()?.attributes
-      ?.filter((attr: any) => attr.variation)
-      ?.map((attr: any) => attr.name) || [];
+    return (
+      this.productInfo()
+        ?.attributes?.filter((attr: any) => attr.variation)
+        ?.map((attr: any) => attr.name) || []
+    );
   }
 
-  getVariationOptions(attributeName: string, dependentAttributeValue: string | null = null): { value: string; image?: string; inStock: boolean }[] {
+  getVariationOptions(
+    attributeName: string,
+    dependentAttributeValue: string | null = null
+  ): { value: string; image?: string; inStock: boolean }[] {
     const variations = this.productInfo()?.variations || [];
     if (!Array.isArray(variations) || !variations.length) {
       return [];
@@ -109,16 +131,19 @@ export class ProductInfoComponent {
 
     const optionMap = new Map<string, { image?: string; inStock: boolean }>();
     variations.forEach((v: any) => {
-      const attr = v.attributes?.find((attr: any) => attr?.name === attributeName);
+      const attr = v.attributes?.find(
+        (attr: any) => attr?.name === attributeName
+      );
       if (!attr) return;
 
       // For Colors: Consider the color inStock if any variation with this color is in stock
       if (attributeName === 'Color') {
         if (!optionMap.has(attr.option)) {
-          const isInStock = variations.some((variation: any) =>
-            variation.attributes?.some(
-              (a: any) => a?.name === 'Color' && a?.option === attr.option
-            ) && variation.stock_status === 'instock'
+          const isInStock = variations.some(
+            (variation: any) =>
+              variation.attributes?.some(
+                (a: any) => a?.name === 'Color' && a?.option === attr.option
+              ) && variation.stock_status === 'instock'
           );
           optionMap.set(attr.option, {
             image: v.image?.src,
@@ -130,7 +155,8 @@ export class ProductInfoComponent {
       else if (attributeName === 'Size' && dependentAttributeValue) {
         if (
           v.attributes?.some(
-            (a: any) => a?.name === 'Color' && a?.option === dependentAttributeValue
+            (a: any) =>
+              a?.name === 'Color' && a?.option === dependentAttributeValue
           )
         ) {
           optionMap.set(attr.option, {
@@ -160,7 +186,9 @@ export class ProductInfoComponent {
     // If selecting a Color, reset Size and select a default in-stock Size if available
     if (name === 'Color') {
       this.selectedAttributes['Size'] = null;
-      const availableSizes = this.getVariationOptions('Size', value).filter(opt => opt.inStock);
+      const availableSizes = this.getVariationOptions('Size', value).filter(
+        (opt) => opt.inStock
+      );
       if (availableSizes.length > 0) {
         this.selectAttribute('Size', availableSizes[0].value);
       }
@@ -185,7 +213,9 @@ export class ProductInfoComponent {
     return variations.find((v: any) =>
       variationAttributes.every((attrName: string) =>
         v.attributes?.some(
-          (attr: any) => attr?.name === attrName && attr?.option === this.selectedAttributes[attrName]
+          (attr: any) =>
+            attr?.name === attrName &&
+            attr?.option === this.selectedAttributes[attrName]
         )
       )
     );
@@ -208,7 +238,12 @@ export class ProductInfoComponent {
     }
 
     const selectedVariation = this.getSelectedVariation();
-    return !!selectedVariation && selectedVariation.stock_status === 'instock' && (selectedVariation.stock_quantity > 0 || selectedVariation.backorders_allowed);
+    return (
+      !!selectedVariation &&
+      selectedVariation.stock_status === 'instock' &&
+      (selectedVariation.stock_quantity > 0 ||
+        selectedVariation.backorders_allowed)
+    );
   }
 
   getPriceInfo(): { price: string; regularPrice: string; isOnSale: boolean } {
@@ -220,7 +255,10 @@ export class ProductInfoComponent {
     if (product.type === 'simple' || !this.allVariationAttributesSelected) {
       const price = product.price || '';
       const regularPrice = product.regular_price || price;
-      const isOnSale = product.on_sale && price !== regularPrice && parseFloat(price) < parseFloat(regularPrice);
+      const isOnSale =
+        product.on_sale &&
+        price !== regularPrice &&
+        parseFloat(price) < parseFloat(regularPrice);
       return { price, regularPrice, isOnSale };
     }
 
@@ -235,10 +273,14 @@ export class ProductInfoComponent {
       return { price, regularPrice, isOnSale };
     }
 
-    return { price: product.price || '', regularPrice: product.regular_price || product.price || '', isOnSale: false };
+    return {
+      price: product.price || '',
+      regularPrice: product.regular_price || product.price || '',
+      isOnSale: false,
+    };
   }
 
-  addToCart(): void {
+  addToCart(buyItNow?: boolean): void {
     const product = this.productInfo();
     if (!product) {
       console.error('No product info available');
@@ -256,7 +298,9 @@ export class ProductInfoComponent {
       cartProduct = { ...product, quantity: this.quantity };
     } else {
       if (!this.allVariationAttributesSelected) {
-        console.error('Cannot add to cart: Not all variation attributes are selected');
+        console.error(
+          'Cannot add to cart: Not all variation attributes are selected'
+        );
         return;
       }
 
@@ -280,7 +324,7 @@ export class ProductInfoComponent {
       return;
     }
 
-    this.cartService.addProductToCart(cartProduct);
+    this.cartService.addProductToCart(cartProduct, buyItNow);
     console.log('Product added to cart:', cartProduct);
 
     if (typeof _learnq !== 'undefined') {
@@ -303,6 +347,8 @@ export class ProductInfoComponent {
 
   buyNow(): void {
     console.log('Buy now with pay clicked');
+    const buyItNow = true;
+    this.addToCart(buyItNow);
   }
 
   parseFloatValue(value: any): number {
@@ -324,17 +370,27 @@ export class ProductInfoComponent {
     const defaultAttributes = product.default_attributes || [];
 
     variationAttributes.forEach((attrName: string) => {
-      const defaultAttr = defaultAttributes.find((attr: any) => attr.name === attrName);
+      const defaultAttr = defaultAttributes.find(
+        (attr: any) => attr.name === attrName
+      );
       let selectedOption = null;
 
       if (defaultAttr) {
-        selectedOption = this.getVariationOptions(attrName, attrName === 'Size' ? this.selectedAttributes['Color'] : null).find(
-          (opt) => opt.value.toLowerCase() === defaultAttr.option.toLowerCase() && opt.inStock
+        selectedOption = this.getVariationOptions(
+          attrName,
+          attrName === 'Size' ? this.selectedAttributes['Color'] : null
+        ).find(
+          (opt) =>
+            opt.value.toLowerCase() === defaultAttr.option.toLowerCase() &&
+            opt.inStock
         );
       }
 
       if (!selectedOption) {
-        selectedOption = this.getVariationOptions(attrName, attrName === 'Size' ? this.selectedAttributes['Color'] : null).find((opt) => opt.inStock);
+        selectedOption = this.getVariationOptions(
+          attrName,
+          attrName === 'Size' ? this.selectedAttributes['Color'] : null
+        ).find((opt) => opt.inStock);
       }
 
       if (selectedOption) {
@@ -354,13 +410,21 @@ export class ProductInfoComponent {
 
   get allVariationAttributesSelected(): boolean {
     const variationAttributes = this.getVariationAttributes();
-    return variationAttributes.length === 0 || variationAttributes.every((attrName: string) => this.selectedAttributes[attrName] !== null);
+    return (
+      variationAttributes.length === 0 ||
+      variationAttributes.every(
+        (attrName: string) => this.selectedAttributes[attrName] !== null
+      )
+    );
   }
 
   addToWishList(productId: number) {
     if (!productId) {
       console.error('Invalid product ID');
-      this.showWishlistMessage('Failed to add to wishlist: Invalid product ID', false);
+      this.showWishlistMessage(
+        'Failed to add to wishlist: Invalid product ID',
+        false
+      );
       return;
     }
 
@@ -373,38 +437,48 @@ export class ProductInfoComponent {
     this.isAddingToWishlist = true;
     this.wishlistMessage = null;
 
-    this.wishlistSubscription = this.wishlistService.addToWishlist(productId).subscribe({
-      next: (response) => {
-        this.isAddingToWishlist = false;
-        if (response.success) {
-          this.isInWishlist = true;
-          this.showWishlistMessage('Product added to wishlist', true);
-          // Track with Klaviyo (optional)
-          if (typeof _learnq !== 'undefined') {
-            _learnq.push([
-              'track',
-              'Added to Wishlist',
-              {
-                ProductID: productId,
-                ProductName: this.productInfo()?.name,
-                Price: this.getPriceInfo().price,
-                Brand: this.brandName,
-                Categories: this.productInfo()?.categories?.map((cat: any) => cat.name) || [],
-              },
-            ]);
-            console.log('Klaviyo: Added to Wishlist tracked');
+    this.wishlistSubscription = this.wishlistService
+      .addToWishlist(productId)
+      .subscribe({
+        next: (response) => {
+          this.isAddingToWishlist = false;
+          if (response.success) {
+            this.isInWishlist = true;
+            this.showWishlistMessage('Product added to wishlist', true);
+            // Track with Klaviyo (optional)
+            if (typeof _learnq !== 'undefined') {
+              _learnq.push([
+                'track',
+                'Added to Wishlist',
+                {
+                  ProductID: productId,
+                  ProductName: this.productInfo()?.name,
+                  Price: this.getPriceInfo().price,
+                  Brand: this.brandName,
+                  Categories:
+                    this.productInfo()?.categories?.map(
+                      (cat: any) => cat.name
+                    ) || [],
+                },
+              ]);
+              console.log('Klaviyo: Added to Wishlist tracked');
+            }
+          } else {
+            this.showWishlistMessage(
+              response.message || 'Failed to add to wishlist',
+              false
+            );
           }
-        } else {
-          this.showWishlistMessage(response.message || 'Failed to add to wishlist', false);
-        }
-      },
-      error: (error) => {
-        this.isAddingToWishlist = false;
-        this.showWishlistMessage('Failed to add to wishlist: ' + (error.message || 'Unknown error'), false);
-      },
-    });
+        },
+        error: (error) => {
+          this.isAddingToWishlist = false;
+          this.showWishlistMessage(
+            'Failed to add to wishlist: ' + (error.message || 'Unknown error'),
+            false
+          );
+        },
+      });
   }
-
 
   private checkWishlistStatus(productId: number) {
     if (!productId || !this.wishlistService.isLoggedIn()) {
@@ -416,7 +490,9 @@ export class ProductInfoComponent {
       next: (response) => {
         if (response.success && response.data) {
           // Assuming response.data is an array of wishlist items with product IDs
-          this.isInWishlist = response.data.some((item: any) => item.product_id === productId);
+          this.isInWishlist = response.data.some(
+            (item: any) => item.product_id === productId
+          );
         } else {
           this.isInWishlist = false;
         }

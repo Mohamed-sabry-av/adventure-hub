@@ -45,7 +45,6 @@
         @if (productData) {
           <app-product-info
             [productInfo]="productData"
-            (selectedAttributeChange)="onSelectedColorChange($event)"
           />
         } @else {
           <!-- Skeleton for product info -->
@@ -78,7 +77,6 @@
   <!-- Related Products -->
   @if (productData?.related_ids) {
     <app-product-related [relatedIds]="productData.related_ids" class="relatedProducts" />
-    <app-recent-products-mini></app-recent-products-mini>
   } @else {
     <!-- Skeleton grid for related products -->
     <div class="carousel-container">

@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
@@ -8,7 +13,8 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   templateUrl: './downloads.component.html',
   styleUrls: ['./downloads.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DownloadsComponent implements OnInit {
   downloads: any[] = [];
@@ -39,12 +45,12 @@ export class DownloadsComponent implements OnInit {
         this.error = 'Failed to load downloads. Please try again later.';
         this.isLoading = false;
         console.error('Error loading downloads:', err);
-      }
+      },
     });
   }
 
   getCustomerId(): number | null {
-    const customerIdStr:any = this.localStorageService.getItem('customerId');
+    const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
 
@@ -55,30 +61,30 @@ export class DownloadsComponent implements OnInit {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   }
 
   getFileIcon(filename: string): string {
     const extension = filename.split('.').pop()?.toLowerCase() || '';
 
-    const iconMap: {[key: string]: string} = {
-      'pdf': 'pi-file-pdf',
-      'doc': 'pi-file-word',
-      'docx': 'pi-file-word',
-      'xls': 'pi-file-excel',
-      'xlsx': 'pi-file-excel',
-      'ppt': 'pi-file-powerpoint',
-      'pptx': 'pi-file-powerpoint',
-      'jpg': 'pi-image',
-      'jpeg': 'pi-image',
-      'png': 'pi-image',
-      'gif': 'pi-image',
-      'zip': 'pi-file-archive',
-      'rar': 'pi-file-archive',
-      'mp3': 'pi-volume-up',
-      'mp4': 'pi-video',
-      'default': 'pi-file'
+    const iconMap: { [key: string]: string } = {
+      pdf: 'pi-file-pdf',
+      doc: 'pi-file-word',
+      docx: 'pi-file-word',
+      xls: 'pi-file-excel',
+      xlsx: 'pi-file-excel',
+      ppt: 'pi-file-powerpoint',
+      pptx: 'pi-file-powerpoint',
+      jpg: 'pi-image',
+      jpeg: 'pi-image',
+      png: 'pi-image',
+      gif: 'pi-image',
+      zip: 'pi-file-archive',
+      rar: 'pi-file-archive',
+      mp3: 'pi-volume-up',
+      mp4: 'pi-video',
+      default: 'pi-file',
     };
 
     return `pi ${iconMap[extension] || iconMap['default']}`;

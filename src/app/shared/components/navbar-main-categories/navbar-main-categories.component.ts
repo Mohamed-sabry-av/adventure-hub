@@ -58,6 +58,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class NavbarMainCategoriesComponent {
   private navbarService = inject(NavbarService);
+  private destroyRef = inject(DestroyRef);
   @Input({ required: true }) categories: Category[] = [];
   @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
@@ -65,8 +66,20 @@ export class NavbarMainCategoriesComponent {
   selectedCategoryId: number | null = null;
   isMobile: boolean = false;
   sideNavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
+
+  // ----------------------------- Done
   showNavbar$: Observable<boolean> = this.navbarService.navbarIsVisible$;
   drawerTop: number = 100;
+
+  ngOnInit() {
+    const subscription = this.navbarService.headerHeight$.subscribe(
+      (response: any) => {
+        this.drawerTop = response;
+      }
+    );
+
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
 
   @HostListener('window:resize')
   checkIfMobile() {

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { AppContainerComponent } from '../app-container/app-container.component';
 
@@ -8,6 +8,7 @@ import { AppContainerComponent } from '../app-container/app-container.component'
   imports: [ AppContainerComponent],
   templateUrl: './skeleton-loader.component.html',
   styleUrls: ['./skeleton-loader.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SkeletonLoaderComponent {
   @Input() showCheckoutSection: boolean = true; // Show second section for Cart

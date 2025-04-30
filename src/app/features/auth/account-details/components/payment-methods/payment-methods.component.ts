@@ -1,14 +1,25 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WooCommerceAccountService } from '../../account-details.service';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-payment-methods',
   templateUrl: './payment-methods.component.html',
   styleUrls: ['./payment-methods.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentMethodsComponent implements OnInit {
   paymentGateways: any[] = [];
@@ -24,11 +35,20 @@ export class PaymentMethodsComponent implements OnInit {
 
   constructor() {
     this.paymentForm = this.fb.group({
-      card_number: ['', [Validators.required, Validators.pattern('^[0-9]{16}$')]],
-      expiry_month: ['', [Validators.required, Validators.pattern('^(0[1-9]|1[0-2])$')]],
-      expiry_year: ['', [Validators.required, Validators.pattern('^[0-9]{4}$')]],
+      card_number: [
+        '',
+        [Validators.required, Validators.pattern('^[0-9]{16}$')],
+      ],
+      expiry_month: [
+        '',
+        [Validators.required, Validators.pattern('^(0[1-9]|1[0-2])$')],
+      ],
+      expiry_year: [
+        '',
+        [Validators.required, Validators.pattern('^[0-9]{4}$')],
+      ],
       cvv: ['', [Validators.required, Validators.pattern('^[0-9]{3,4}$')]],
-      card_holder: ['', Validators.required]
+      card_holder: ['', Validators.required],
     });
   }
 
@@ -50,7 +70,7 @@ export class PaymentMethodsComponent implements OnInit {
         this.error = 'Failed to load payment methods. Please try again later.';
         this.isLoading = false;
         console.error('Error loading payment methods:', err);
-      }
+      },
     });
   }
 
@@ -69,7 +89,7 @@ export class PaymentMethodsComponent implements OnInit {
   savePaymentMethod(): void {
     if (this.paymentForm.invalid) {
       // Mark all fields as touched to show validation errors
-      Object.keys(this.paymentForm.controls).forEach(key => {
+      Object.keys(this.paymentForm.controls).forEach((key) => {
         const control = this.paymentForm.get(key);
         control?.markAsTouched();
       });
@@ -94,13 +114,13 @@ export class PaymentMethodsComponent implements OnInit {
   }
 
   getPaymentMethodIcon(gatewayId: string): string {
-    const iconMap: {[key: string]: string} = {
-      'stripe': 'pi-credit-card',
-      'paypal': 'pi-paypal',
-      'cod': 'pi-money-bill',
-      'bacs': 'pi-bank',
-      'cheque': 'pi-money-check',
-      'default': 'pi-credit-card'
+    const iconMap: { [key: string]: string } = {
+      stripe: 'pi-credit-card',
+      paypal: 'pi-paypal',
+      cod: 'pi-money-bill',
+      bacs: 'pi-bank',
+      cheque: 'pi-money-check',
+      default: 'pi-credit-card',
     };
 
     return iconMap[gatewayId] || iconMap['default'];

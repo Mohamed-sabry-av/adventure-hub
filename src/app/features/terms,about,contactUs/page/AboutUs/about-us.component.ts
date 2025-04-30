@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AboutusService } from '../../service/aboutus.service';
 import { DecodeHtmlPipe } from '../../../../shared/pipes/decode-html.pipe';
@@ -8,6 +8,8 @@ import { SeoService } from '../../../../core/services/seo.service';
   selector: 'app-about-us',
   standalone: true,
   imports: [CommonModule, DecodeHtmlPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   template: `
     <ng-container *ngIf="schemaData">
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
@@ -16,12 +18,12 @@ import { SeoService } from '../../../../core/services/seo.service';
 
     <div class="about-us-container">
       @if (aboutUsData) {
-        <div>
-          <h1>{{ aboutUsData.title?.rendered | decodeHtml }}</h1>
-          <div [innerHTML]="aboutUsData.content?.rendered"></div>
-        </div>
+      <div>
+        <h1>{{ aboutUsData.title?.rendered | decodeHtml }}</h1>
+        <div [innerHTML]="aboutUsData.content?.rendered"></div>
+      </div>
       } @else {
-        <p>Loading About Us...</p>
+      <p>Loading About Us...</p>
       }
     </div>
   `,
@@ -47,7 +49,9 @@ export class AboutUsComponent implements OnInit {
         // Apply SEO tags using yoast_head_json
         this.schemaData = this.seoService.applySeoTags(this.aboutUsData, {
           title: this.aboutUsData?.title?.rendered,
-          description: this.aboutUsData?.excerpt?.rendered || 'About Us - Adventures HUB Sports Shop',
+          description:
+            this.aboutUsData?.excerpt?.rendered ||
+            'About Us - Adventures HUB Sports Shop',
         });
         console.log('About Us Data:', this.aboutUsData);
       },

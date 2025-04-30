@@ -16,7 +16,7 @@
     <p class="text-lg">Total:</p>
     <p>
       {{
-        (loadedCart$ | async)?.userCart?.totals?.total_price
+        (loadedCart$ | async)?.userCart?.totals?.sub_total
           | currency : (loadedCart$ | async)?.userCart?.totals?.currency_code
       }}
     </p>

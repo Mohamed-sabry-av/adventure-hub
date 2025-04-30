@@ -203,10 +203,12 @@
                 </div>
                 <div class="flex items-center gap-x-2">
                   <img
+                    loading="lazy"
                     src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/visa.sxIq5Dot.svg"
                     alt=""
                   />
                   <img
+                    loading="lazy"
                     src="https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/mastercard.1c4_lyMp.svg"
                     alt=""
                   />
@@ -312,6 +314,14 @@
 
           <!-- Payment Error -->
           <div *ngIf="checkoutService.paymentError$ | async as error" class="text-red-500 text-sm mt-2">
+            {{ error }}
+          </div>
+
+          <!-- Payment Error -->
+          <div
+            *ngIf="checkoutService.paymentError$ | async as error"
+            class="text-red-500 text-sm mt-2"
+          >
             {{ error }}
           </div>
 

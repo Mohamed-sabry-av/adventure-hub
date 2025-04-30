@@ -1,4 +1,10 @@
-import { Component, OnInit, inject, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  HostListener,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AppContainerComponent } from '../../../shared/components/app-container/app-container.component';
@@ -30,8 +36,9 @@ import { AccountDetailsEditComponent } from './components/account-details-edit/a
     AddressesComponent,
     PaymentMethodsComponent,
     WishlistComponent,
-    AccountDetailsEditComponent
-  ]
+    AccountDetailsEditComponent,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountDetailsComponent implements OnInit {
   activeSection: string = 'dashboard';
@@ -50,7 +57,7 @@ export class AccountDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     // Get the active section from the route if available
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       if (params['section']) {
         this.activeSection = params['section'];
       }
@@ -65,7 +72,7 @@ export class AccountDetailsComponent implements OnInit {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { section },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }
 

@@ -4,6 +4,7 @@ import {
   cartStatusSelector,
   spinnerOfCouponSelector,
   spinnerOfOrderSelector,
+  spinnerOfUiSelector,
 } from '../../Store/selectors/ui.selector';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { CartStatus } from '../../features/cart/model/cart.model';
@@ -29,6 +30,9 @@ export class UIService {
     this.errorState.next({ isVisible: false, message: '' });
   }
 
+  // --------------------------------------------------------------
+  isSpinnerLoading$: Observable<boolean> =
+    this.store.select(spinnerOfUiSelector);
   // ------------------------------------------------------
   isCouponLoading$ = this.store.select(spinnerOfCouponSelector);
 

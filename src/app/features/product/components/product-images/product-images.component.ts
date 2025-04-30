@@ -1,4 +1,4 @@
-import { Component, input, OnInit,DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, input, OnInit,DestroyRef, ElementRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   templateUrl: './product-images.component.html',
   styleUrls: ['./product-images.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductImagesComponent implements OnInit {
   private destroyRef = inject(DestroyRef);  productImages = input<any>();
@@ -65,7 +66,7 @@ export class ProductImagesComponent implements OnInit {
       return Array.isArray(images)
         ? images.map((img: any) => ({
             src: img.src || img,
-            alt: img.alt || 'صورة المنتج'
+            alt: img.alt || 'صورة المنتج',
           }))
         : [];
     }
@@ -85,10 +86,11 @@ export class ProductImagesComponent implements OnInit {
       const mainImage = selectedVariation.image?.src
         ? [{ src: selectedVariation.image.src, alt: 'صورة المنتج' }]
         : [];
-      const additionalImages = selectedVariation.additional_images?.map((url: string) => ({
-        src: url,
-        alt: 'صورة المنتج'
-      })) || [];
+      const additionalImages =
+        selectedVariation.additional_images?.map((url: string) => ({
+          src: url,
+          alt: 'صورة المنتج',
+        })) || [];
       return [...mainImage, ...additionalImages];
     }
 
@@ -96,7 +98,7 @@ export class ProductImagesComponent implements OnInit {
     return Array.isArray(images)
       ? images.map((img: any) => ({
           src: img.src || img,
-          alt: img.alt || 'صورة المنتج'
+          alt: img.alt || 'صورة المنتج',
         }))
       : [];
   }

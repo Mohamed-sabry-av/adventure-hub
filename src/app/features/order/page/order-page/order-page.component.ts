@@ -1,4 +1,10 @@
-import { Component, DestroyRef, inject, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  Input,
+} from '@angular/core';
 import { OrderMetaDataComponent } from '../../components/order-meta-data/order-meta-data.component';
 import { OrderMainDataComponent } from '../../components/order-main-data/order-main-data.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
@@ -24,6 +30,7 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
   ],
   templateUrl: './order-page.component.html',
   styleUrl: './order-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderPageComponent {
   private orderService = inject(OrderService);

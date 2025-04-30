@@ -6,7 +6,7 @@ import {
   animate,
 } from '@angular/animations';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { CartService } from '../../service/cart.service';
@@ -16,6 +16,8 @@ import { CartService } from '../../service/cart.service';
   imports: [RouterLink, AsyncPipe, CurrencyPipe],
   templateUrl: './cart-checkout.component.html',
   styleUrl: './cart-checkout.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('toggleTextarea', [
       state(

@@ -1,5 +1,7 @@
 <div class="product-info">
-  <h1 class="text-5xl font-medium text-olive mb-4">{{ productInfo()?.name }}</h1>
+  <h1 class="text-3xl font-medium text-olive mb-4">
+    {{ productInfo()?.name }}
+  </h1>
 
   <div class="flex items-baseline mb-4">
     <span class="text-2xl font-bold" [innerHtml]="getPriceInfo().price | currencySvg"></span>
@@ -12,7 +14,9 @@
 
   <div class="product-brand" *ngIf="brandName !== 'brand'">
     <span class="brand-label">Brand:</span>
-    <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
+    <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{
+      brandName
+    }}</a>
   </div>
 
   <!-- Stock Status Message for Completely Out of Stock -->
@@ -63,8 +67,16 @@
   </div>
 
   <!-- Prompt to Select Variation -->
-  <div *ngIf="!allVariationAttributesSelected && !isCompletelyOutOfStock && productInfo()?.type === 'variable'">
-    <span class="text-gray-500">Please select all options to check availability</span>
+  <div
+    *ngIf="
+      !allVariationAttributesSelected &&
+      !isCompletelyOutOfStock &&
+      productInfo()?.type === 'variable'
+    "
+  >
+    <span class="text-gray-500"
+      >Please select all options to check availability</span
+    >
   </div>
 
   <!-- Quantity Controls and Add to Cart / Buy Now Buttons -->
@@ -72,9 +84,21 @@
     <div class="product-option">
       <label class="option-label">Quantity</label>
       <div class="quantity-control">
-        <button class="quantity-btn" (click)="onQuantityDown()" [disabled]="quantity <= 1">-</button>
+        <button
+          class="quantity-btn"
+          (click)="onQuantityDown()"
+          [disabled]="quantity <= 1"
+        >
+          -
+        </button>
         <span class="quantity-display">{{ quantity }}</span>
-        <button class="quantity-btn" (click)="onQuantityUp()" [disabled]="quantity >= maxLength">+</button>
+        <button
+          class="quantity-btn"
+          (click)="onQuantityUp()"
+          [disabled]="quantity >= maxLength"
+        >
+          +
+        </button>
       </div>
       <span class="text-sm text-gray-500 ml-2" *ngIf="maxLength > 0">
         {{ maxLength }} items available
@@ -148,7 +172,13 @@
   </div>
 
   <!-- Out of Stock for Selected Variation -->
-  <div *ngIf="allVariationAttributesSelected && !isProductInStock && !isCompletelyOutOfStock">
+  <div
+    *ngIf="
+      allVariationAttributesSelected &&
+      !isProductInStock &&
+      !isCompletelyOutOfStock
+    "
+  >
     <span class="text-red-500 font-medium">This variation is out of stock</span>
   </div>
 
@@ -182,16 +212,20 @@
 
   <div class="mt-6 flex flex-col gap-y-1">
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping in UAE For orders above AED 100.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping
+      in UAE For orders above AED 100.
     </p>
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> 7 days easy returns.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> 7 days easy
+      returns.
     </p>
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery within 1-2 working days.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery
+      within 1-2 working days.
     </p>
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide shipping.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide
+      shipping.
     </p>
   </div>
 </div>

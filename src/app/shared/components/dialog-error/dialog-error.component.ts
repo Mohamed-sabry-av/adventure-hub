@@ -1,4 +1,9 @@
-import { Component, inject, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+} from '@angular/core';
 import {
   trigger,
   state,
@@ -15,6 +20,8 @@ import { Observable } from 'rxjs';
   templateUrl: './dialog-error.component.html',
   styleUrls: ['./dialog-error.component.css'],
   imports: [AsyncPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('dialogAnimation', [
       state(

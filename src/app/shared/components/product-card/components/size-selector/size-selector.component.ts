@@ -1,4 +1,12 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -8,23 +16,31 @@ import { trigger, transition, style, animate } from '@angular/animations';
   imports: [CommonModule],
   templateUrl: './size-selector.component.html',
   styleUrls: ['./size-selector.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('slideUpDown', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-30%)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+        animate(
+          '200ms ease-out',
+          style({ opacity: 1, transform: 'translateY(0)' })
+        ),
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(-30%)' }))
-      ])
+        animate(
+          '200ms ease-in',
+          style({ opacity: 0, transform: 'translateY(-30%)' })
+        ),
+      ]),
     ]),
     trigger('fadeIn', [
       transition(':enter', [
         style({ opacity: 0 }),
         animate('150ms ease-out', style({ opacity: 1 })),
-      ])
-    ])
-  ]
+      ]),
+    ]),
+  ],
 })
 export class SizeSelectorComponent implements OnChanges {
   @Input() isHovered: boolean = false;
@@ -46,13 +62,22 @@ export class SizeSelectorComponent implements OnChanges {
   }
 
   updateVisibleSizes(): void {
-    this.maxSizeScrollIndex = Math.max(0, Math.ceil(this.uniqueSizes.length / this.sizesPerPage) - 1);
+    this.maxSizeScrollIndex = Math.max(
+      0,
+      Math.ceil(this.uniqueSizes.length / this.sizesPerPage) - 1
+    );
     const start = this.sizeScrollIndex * this.sizesPerPage;
-    this.visibleSizes = this.uniqueSizes.slice(start, start + this.sizesPerPage);
+    this.visibleSizes = this.uniqueSizes.slice(
+      start,
+      start + this.sizesPerPage
+    );
   }
 
   onScrollSizes(direction: number): void {
-    this.sizeScrollIndex = Math.max(0, Math.min(this.sizeScrollIndex + direction, this.maxSizeScrollIndex));
+    this.sizeScrollIndex = Math.max(
+      0,
+      Math.min(this.sizeScrollIndex + direction, this.maxSizeScrollIndex)
+    );
     this.updateVisibleSizes();
   }
 

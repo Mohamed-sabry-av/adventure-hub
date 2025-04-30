@@ -593,6 +593,7 @@ export class CheckoutFormComponent {
       apartment: '',
       city: '',
       state: '',
+      postCode: '',
     });
 
     this.paymentRadiosValue = 'stripe';
@@ -604,11 +605,13 @@ export class CheckoutFormComponent {
     this.toggleShippingForm();
   }
 
+  // Toggle summary visibility
   onShowSummary() {
     this.isVisible = !this.isVisible;
     this.summaryIsVisible$.next(this.isVisible);
   }
 
+  // Update payment method validators
   toggleCreditCardValidators(method: string) {
     switch (method) {
       case 'stripe':
@@ -629,6 +632,7 @@ export class CheckoutFormComponent {
     }
   }
 
+  // Enable or disable shipping form
   toggleShippingForm() {
     if (this.isShippingDifferent) {
       this.shippingForm.enable();
@@ -637,6 +641,7 @@ export class CheckoutFormComponent {
     }
   }
 
+  // Check if form is valid
   isFormValid(): boolean {
     if (this.isShippingDifferent) {
       return this.billingForm.valid && this.shippingForm.valid;
@@ -644,48 +649,59 @@ export class CheckoutFormComponent {
     return this.billingForm.valid;
   }
 
+  // Update selected shipping country
   onGetSelectedShippingCountry(selectedCountry: string) {
     this.checkoutService.getSelectedShippingCountry(selectedCountry);
   }
 
+  // Update selected billing country
   onGetSelectedBillingCountry(selectedCountry: string) {
     this.checkoutService.getSelectedBillingCountry(selectedCountry);
   }
 
+  // Validate email field
   get emailIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'email');
   }
 
+  // Get email from local storage
   get emailFieldValue() {
     let loadedUserData: any = localStorage.getItem('auth_user');
     loadedUserData = loadedUserData ? JSON.parse(loadedUserData) : null;
     return loadedUserData?.value?.email || '';
   }
 
+  // Validate first name field
   get firstNameIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'firstName');
   }
 
+  // Validate last name field
   get lastNameIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'lastName');
   }
 
+  // Validate address field
   get addressIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'address');
   }
 
+  // Validate city field
   get cityIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'city');
   }
 
+  // Validate state field
   get stateIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'state');
   }
 
+  // Validate phone field
   get phoneIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'phone');
   }
 
+  // Validate postcode field
   get postCodeIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'postCode');
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
@@ -11,15 +11,18 @@ import { ProductCardComponent } from '../../../../shared/components/product-card
   standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent],
   templateUrl: './recently-visited.component.html',
-  styleUrls: ['./recently-visited.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
+  styleUrls: ['./recently-visited.component.css'],
 })
 export class RecentlyVisitedComponent implements OnInit {
   recentlyVisitedProducts$!: Observable<Product[]>;
 
-  constructor(private recentlyVisitedService: RecentlyVisitedService) { }
+  constructor(private recentlyVisitedService: RecentlyVisitedService) {}
 
   ngOnInit(): void {
-    this.recentlyVisitedProducts$ = this.recentlyVisitedService.recentlyVisitedProducts$;
+    this.recentlyVisitedProducts$ =
+      this.recentlyVisitedService.recentlyVisitedProducts$;
   }
 
   clearHistory(): void {

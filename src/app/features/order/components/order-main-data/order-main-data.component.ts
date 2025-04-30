@@ -1,4 +1,9 @@
-import { Component, inject, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+} from '@angular/core';
 import { OrderService } from '../../services/order.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
@@ -8,6 +13,7 @@ import { AsyncPipe, CurrencyPipe } from '@angular/common';
   imports: [AsyncPipe, CurrencyPipe],
   templateUrl: './order-main-data.component.html',
   styleUrl: './order-main-data.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderMainDataComponent {
   private orderService = inject(OrderService);

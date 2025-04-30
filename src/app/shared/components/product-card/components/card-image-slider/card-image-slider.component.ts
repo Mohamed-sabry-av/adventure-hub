@@ -1,4 +1,14 @@
-import { Component, Input, ViewChild, ElementRef, OnInit, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  Input,
+  ViewChild,
+  ElementRef,
+  OnInit,
+  HostListener,
+  Inject,
+  PLATFORM_ID,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Product, Variation } from '../../../../../interfaces/product';
@@ -9,6 +19,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './card-image-slider.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   styleUrls: ['./card-image-slider.component.css'],
   animations: [
     trigger('fadeIn', [
@@ -61,7 +73,9 @@ export class CardImageSliderComponent implements OnInit {
       const width = parseInt(entry.match(/(\d+)w/)?.[1] || '0');
       return width <= maxWidth;
     });
-    return srcsetEntries.length > 0 ? srcsetEntries.join(',') : `${image.src} ${maxWidth}w`;
+    return srcsetEntries.length > 0
+      ? srcsetEntries.join(',')
+      : `${image.src} ${maxWidth}w`;
   }
 
   getProductTags(): string[] {
@@ -95,7 +109,8 @@ export class CardImageSliderComponent implements OnInit {
     // HUB tag
     if (this.product.tags && this.product.tags.length > 0) {
       const hubTag = this.product.tags.find(
-        (tag) => tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
+        (tag) =>
+          tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
       );
       if (hubTag) {
         tags.push('HUB');
@@ -154,7 +169,9 @@ export class CardImageSliderComponent implements OnInit {
       return originalUrl;
     }
 
-    const screenWidth = isPlatformBrowser(this.platformId) ? window.innerWidth : 1024;
+    const screenWidth = isPlatformBrowser(this.platformId)
+      ? window.innerWidth
+      : 1024;
     let imageWidth = 400;
 
     if (screenWidth < 768) {
@@ -167,7 +184,11 @@ export class CardImageSliderComponent implements OnInit {
   }
 
   getSalePercentage(): number {
-    if (!this.product || !this.product.regular_price || !this.product.sale_price) {
+    if (
+      !this.product ||
+      !this.product.regular_price ||
+      !this.product.sale_price
+    ) {
       return 0;
     }
 
