@@ -6,6 +6,5 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   templateUrl: './blog-related-info.component.html',
   styleUrl: './blog-related-info.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogRelatedInfoComponent {}

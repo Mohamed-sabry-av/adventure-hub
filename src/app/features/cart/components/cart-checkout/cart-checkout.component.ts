@@ -16,7 +16,6 @@ import { CartService } from '../../service/cart.service';
   imports: [RouterLink, AsyncPipe, CurrencyPipe],
   templateUrl: './cart-checkout.component.html',
   styleUrl: './cart-checkout.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   animations: [
     trigger('toggleTextarea', [

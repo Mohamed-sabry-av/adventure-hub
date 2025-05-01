@@ -15,7 +15,6 @@ interface Brand {
   selector: 'app-brand-logos',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   template: `
     <div class="brand-logos py-6 px-4 bg-white">

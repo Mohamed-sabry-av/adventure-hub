@@ -4,7 +4,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'app-service-highlights',
   imports: [],
   templateUrl: './service-highlights.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrl: './service-highlights.component.css',
 })

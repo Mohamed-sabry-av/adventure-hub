@@ -12,7 +12,6 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './color-swatches.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./color-swatches.component.css'],
 })

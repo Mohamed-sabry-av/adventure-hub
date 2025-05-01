@@ -9,7 +9,6 @@ import { map } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './history-link.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./history-link.component.css'],
 })

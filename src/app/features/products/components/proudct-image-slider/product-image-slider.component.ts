@@ -17,7 +17,6 @@ import {
   selector: 'app-product-image-slider',
   imports: [CommonModule],
   templateUrl: './product-image-slider.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./product-image-slider.component.css'],
 })

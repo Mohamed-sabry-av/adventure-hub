@@ -14,7 +14,6 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./wishlist.component.css'],
   standalone: true,
   imports: [CommonModule, RouterLink],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WishlistComponent implements OnInit {
   wishlistItems: any[] = [];

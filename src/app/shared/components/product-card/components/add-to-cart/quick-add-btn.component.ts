@@ -24,7 +24,6 @@ import { SideOptionsService } from '../../../../../core/services/side-options.se
   imports: [CommonModule, SizeSelectorComponent, FormsModule],
   templateUrl: './quick-add-btn.component.html',
   styleUrls: ['./quick-add-btn.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

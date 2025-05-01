@@ -19,7 +19,6 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './account-details-edit.component.html',
   styleUrl: './account-details-edit.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountDetailsEditComponent {
   customerDetails: any = null;

@@ -15,7 +15,6 @@ import { CarouselModule } from 'primeng/carousel';
   standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
   templateUrl: './new-products.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./new-products.component.css'],
 })

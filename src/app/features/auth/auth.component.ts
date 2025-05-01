@@ -10,15 +10,10 @@ import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-auth',
-  imports: [
-    CommonModule,
-    LoginComponent,
-    SignupComponent,
-  ],
+  imports: [CommonModule, LoginComponent, SignupComponent],
   standalone: true,
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthComponent {
   loginError: string = '';

@@ -19,7 +19,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './card-image-slider.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./card-image-slider.component.css'],
   animations: [
@@ -83,9 +82,9 @@ export class CardImageSliderComponent implements OnInit {
       console.warn('No product provided to getProductTags');
       return [];
     }
-  
+
     const tags: string[] = [];
-  
+
     // NEW! tag
     if (this.product.date_created) {
       const createdDate = new Date(this.product.date_created);
@@ -97,7 +96,7 @@ export class CardImageSliderComponent implements OnInit {
         tags.push('NEW!');
       }
     }
-  
+
     // Sale tag
     if (this.product.on_sale) {
       const salePercentage = this.getSalePercentage();
@@ -105,7 +104,7 @@ export class CardImageSliderComponent implements OnInit {
         tags.push(`-${salePercentage}%`);
       }
     }
-  
+
     // HUB tag
     if (this.product.tags && this.product.tags.length > 0) {
       const hubTag = this.product.tags.find(
@@ -116,23 +115,28 @@ export class CardImageSliderComponent implements OnInit {
         tags.push('HUB');
       }
     }
-  
+
     // Stock status for variable products
     if (this.product.type === 'variable' && this.variations.length > 0) {
       const anyVariationInStock = this.variations.some(
-        (v:any) => v.stock_status === 'instock' && (v.manage_stock ? v.stock_quantity > 0 : true)
+        (v: any) =>
+          v.stock_status === 'instock' &&
+          (v.manage_stock ? v.stock_quantity > 0 : true)
       );
       if (!anyVariationInStock) {
         tags.push('SOLD OUT');
       }
     } else if (this.product.type === 'simple') {
-      const isInStock = this.product.stock_status === 'instock' && 
-                       (this.product.manage_stock ? (this.product.stock_quantity ?? 0) > 0 : true);
+      const isInStock =
+        this.product.stock_status === 'instock' &&
+        (this.product.manage_stock
+          ? (this.product.stock_quantity ?? 0) > 0
+          : true);
       if (!isInStock) {
         tags.push('SOLD OUT');
       }
     }
-  
+
     // Best Seller tag
     const isBestSeller =
       (this.product.rating_count && this.product.rating_count > 20) ||
@@ -143,12 +147,12 @@ export class CardImageSliderComponent implements OnInit {
     if (isBestSeller) {
       tags.push('BESTSELLER');
     }
-  
+
     // Featured tag
     if (this.product.featured) {
       tags.push('FEATURED');
     }
-  
+
     const bottomTags = tags.filter((tag) => tag !== 'HUB');
     const priorityOrder = [
       bottomTags.find((tag) => tag === 'SOLD OUT'),
@@ -157,7 +161,7 @@ export class CardImageSliderComponent implements OnInit {
       bottomTags.find((tag) => tag === 'FEATURED'),
       bottomTags.find((tag) => tag === 'BESTSELLER'),
     ].filter(Boolean) as string[];
-  
+
     const finalBottomTags = priorityOrder.slice(0, 2);
     return [...finalBottomTags, ...(tags.includes('HUB') ? ['HUB'] : [])];
   }

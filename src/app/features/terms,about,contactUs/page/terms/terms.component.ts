@@ -8,7 +8,6 @@ import { SeoService } from '../../../../core/services/seo.service';
   selector: 'app-terms',
   standalone: true,
   imports: [CommonModule, DecodeHtmlPipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   template: `
     <ng-container *ngIf="schemaData">

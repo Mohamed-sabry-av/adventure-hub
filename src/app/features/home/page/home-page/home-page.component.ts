@@ -28,7 +28,6 @@ import { CartStatus } from '../../../cart/model/cart.model';
   ],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {
   private uiService = inject(UIService);

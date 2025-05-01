@@ -22,7 +22,6 @@ interface BreadcrumbItem {
   imports: [CommonModule, RouterLink],
   templateUrl: './breadcrumb.component.html',
   styleUrls: ['./breadcrumb.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BreadcrumbComponent implements OnInit {
   breadcrumbs$!: Observable<BreadcrumbItem[]>;

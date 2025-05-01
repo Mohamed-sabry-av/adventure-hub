@@ -12,7 +12,6 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FooterComponent {
   currentYear: number = new Date().getFullYear();

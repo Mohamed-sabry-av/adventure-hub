@@ -33,7 +33,6 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
   ],
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   animations: [
     trigger('fadeInOut', [

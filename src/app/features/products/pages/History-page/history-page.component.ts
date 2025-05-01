@@ -7,7 +7,6 @@ import { RecentlyVisitedComponent } from '../../components/recently-visited/rece
   standalone: true,
   imports: [CommonModule, RecentlyVisitedComponent],
   templateUrl: './history-page.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./history-page.component.css'],
 })

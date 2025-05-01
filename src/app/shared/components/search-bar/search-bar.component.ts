@@ -32,7 +32,6 @@ interface Category {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './search-bar.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./search-bar.component.css'],
 })

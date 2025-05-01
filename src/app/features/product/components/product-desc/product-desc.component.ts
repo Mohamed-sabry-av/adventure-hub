@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, SecurityContext, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnInit,
+  SecurityContext,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { KlaviyoService } from '../../services/klaviyo.service';
@@ -21,7 +31,6 @@ interface Attribute {
   imports: [CommonModule, SafeHtmlPipe],
   templateUrl: './product-desc.component.html',
   styleUrls: ['./product-desc.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDescComponent implements OnInit, AfterViewInit {
   @Input() productAdditionlInfo: any;
@@ -59,8 +68,14 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
 
     // Check URL fragment
     const fragment = this.route.snapshot.fragment;
-    if (fragment && ['description', 'additional-info', 'reviews'].includes(fragment)) {
-      this.activeSection = fragment as 'description' | 'additional-info' | 'reviews';
+    if (
+      fragment &&
+      ['description', 'additional-info', 'reviews'].includes(fragment)
+    ) {
+      this.activeSection = fragment as
+        | 'description'
+        | 'additional-info'
+        | 'reviews';
       setTimeout(() => this.scrollToSection(this.activeSection, false), 300);
     }
   }
@@ -68,8 +83,10 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     // Calculate header height including site header
     const siteHeader = document.querySelector('header'); // Adjust selector as needed
-    const stickyHeader = this.elementRef.nativeElement.querySelector('.sticky-tabs');
-    this.headerHeight = (siteHeader?.offsetHeight || 0) + (stickyHeader?.offsetHeight || 70);
+    const stickyHeader =
+      this.elementRef.nativeElement.querySelector('.sticky-tabs');
+    this.headerHeight =
+      (siteHeader?.offsetHeight || 0) + (stickyHeader?.offsetHeight || 70);
 
     // Calculate section positions
     setTimeout(() => {
@@ -84,7 +101,10 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     const observer = new MutationObserver(() => {
       this.calculateSectionPositions();
     });
-    observer.observe(this.elementRef.nativeElement, { childList: true, subtree: true });
+    observer.observe(this.elementRef.nativeElement, {
+      childList: true,
+      subtree: true,
+    });
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -98,11 +118,16 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   onWindowResize() {
     this.calculateSectionPositions();
     const siteHeader = document.querySelector('header');
-    const stickyHeader = this.elementRef.nativeElement.querySelector('.sticky-tabs');
-    this.headerHeight = (siteHeader?.offsetHeight || 0) + (stickyHeader?.offsetHeight || 70);
+    const stickyHeader =
+      this.elementRef.nativeElement.querySelector('.sticky-tabs');
+    this.headerHeight =
+      (siteHeader?.offsetHeight || 0) + (stickyHeader?.offsetHeight || 70);
   }
 
-  scrollToSection(sectionId: 'description' | 'additional-info' | 'reviews', updateUrl: boolean = true): void {
+  scrollToSection(
+    sectionId: 'description' | 'additional-info' | 'reviews',
+    updateUrl: boolean = true
+  ): void {
     this.activeSection = sectionId;
 
     if (updateUrl) {
@@ -116,7 +141,8 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     const element = document.getElementById(sectionId);
     if (element) {
       this.scrolling = true;
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const elementPosition =
+        element.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = elementPosition - this.headerHeight - 20;
 
       window.scrollTo({
@@ -148,8 +174,10 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   private checkActiveSection(): void {
     if (this.scrolling) return;
 
-    const scrollPosition = window.pageYOffset + this.headerHeight + this.offsetBuffer;
-    let activeSection: 'description' | 'additional-info' | 'reviews' = 'description';
+    const scrollPosition =
+      window.pageYOffset + this.headerHeight + this.offsetBuffer;
+    let activeSection: 'description' | 'additional-info' | 'reviews' =
+      'description';
 
     if (
       this.sectionPositions['reviews'] &&
@@ -158,7 +186,8 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
       activeSection = 'reviews';
     } else if (
       this.sectionPositions['additional-info'] &&
-      scrollPosition >= this.sectionPositions['additional-info'] - this.offsetBuffer
+      scrollPosition >=
+        this.sectionPositions['additional-info'] - this.offsetBuffer
     ) {
       activeSection = 'additional-info';
     } else if (this.sectionPositions['description']) {
@@ -184,11 +213,14 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     }
 
     try {
-      this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(description);
+      this.safeDescription =
+        this.sanitizer.bypassSecurityTrustHtml(description);
     } catch (error) {
       console.error('Error sanitizing product description:', error);
-      const sanitizedText = this.sanitizer.sanitize(SecurityContext.HTML, description) || '';
-      this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(sanitizedText);
+      const sanitizedText =
+        this.sanitizer.sanitize(SecurityContext.HTML, description) || '';
+      this.safeDescription =
+        this.sanitizer.bypassSecurityTrustHtml(sanitizedText);
     }
   }
 
@@ -221,7 +253,8 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   private initializeLazyLoading(): void {
     const images = document.querySelectorAll('img[data-src]');
     images.forEach((img) => {
-      if (img instanceof HTMLImageElement) { // Type guard
+      if (img instanceof HTMLImageElement) {
+        // Type guard
         const src = img.getAttribute('data-src');
         if (src) {
           img.src = src;

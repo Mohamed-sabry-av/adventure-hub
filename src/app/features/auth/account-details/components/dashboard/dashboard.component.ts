@@ -16,7 +16,6 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./dashboard.component.css'],
   standalone: true,
   imports: [CommonModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit {
   customerDetails: any = null;

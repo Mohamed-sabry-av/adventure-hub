@@ -20,7 +20,6 @@ import { CartStatus } from '../../model/cart.model';
   imports: [AsyncPipe, FormsModule, CurrencyPipe, RouterLink],
   templateUrl: './cart-products.component.html',
   styleUrl: './cart-products.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartProductsComponent {
   private cartService = inject(CartService);

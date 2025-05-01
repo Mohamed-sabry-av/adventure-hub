@@ -13,6 +13,5 @@ import { BlogSectionsComponent } from '../../components/blog-sections/blog-secti
   templateUrl: './blog-page.component.html',
   styleUrl: './blog-page.component.css',
   host: { ngSkipHydration: '' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogPageComponent {}

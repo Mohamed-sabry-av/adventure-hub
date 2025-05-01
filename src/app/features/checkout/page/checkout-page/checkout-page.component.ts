@@ -27,7 +27,6 @@ import { CartStatus } from '../../../cart/model/cart.model';
   ],
   templateUrl: './checkout-page.component.html',
   styleUrl: './checkout-page.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { ngSkipHydration: '' },
 })
 export class CheckoutPageComponent {

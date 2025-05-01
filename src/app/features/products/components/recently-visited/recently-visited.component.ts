@@ -11,7 +11,6 @@ import { ProductCardComponent } from '../../../../shared/components/product-card
   standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent],
   templateUrl: './recently-visited.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./recently-visited.component.css'],
 })

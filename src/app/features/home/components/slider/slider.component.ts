@@ -25,7 +25,6 @@ interface Slide {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './slider.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./slider.component.css'],
 })

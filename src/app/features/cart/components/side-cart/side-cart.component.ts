@@ -23,7 +23,6 @@ import { CartStatus } from '../../model/cart.model';
   imports: [AsyncPipe, DrawerModule, ButtonModule, CurrencyPipe, RouterLink],
   templateUrl: './side-cart.component.html',
   styleUrl: './side-cart.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   host: { ngSkipHydration: '' },
 })

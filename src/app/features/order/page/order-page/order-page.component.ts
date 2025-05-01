@@ -26,11 +26,10 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
     ServiceHighlightsComponent,
     AsyncPipe,
     DialogErrorComponent,
-    SkeletonLoaderComponent
+    SkeletonLoaderComponent,
   ],
   templateUrl: './order-page.component.html',
   styleUrl: './order-page.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderPageComponent {
   private orderService = inject(OrderService);

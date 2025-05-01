@@ -23,7 +23,6 @@ import { SwipeGestureDirective } from '../../directives/swipe-gesture.directive'
   imports: [RouterLink, AsyncPipe, DrawerModule, SwipeGestureDirective],
   templateUrl: './navbar-main-categories.component.html',
   styleUrls: ['./navbar-main-categories.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('slideInOut', [
       transition(':enter', [
@@ -43,10 +42,16 @@ import { SwipeGestureDirective } from '../../directives/swipe-gesture.directive'
     trigger('visible', [
       transition(':enter', [
         style({ opacity: 0, height: '0px', overflow: 'hidden' }),
-        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 1, height: '*' })),
+        animate(
+          '300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ opacity: 1, height: '*' })
+        ),
       ]),
       transition(':leave', [
-        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 0, height: '0px' })),
+        animate(
+          '300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ opacity: 0, height: '0px' })
+        ),
       ]),
     ]),
   ],
@@ -60,7 +65,8 @@ export class NavbarMainCategoriesComponent {
 
   selectedCategoryId: number | null = null;
   isMobile: boolean = false;
-  sideNavIsVisible$: Observable<boolean> = this.navbarService.getSideNavIsVisible$();
+  sideNavIsVisible$: Observable<boolean> =
+    this.navbarService.getSideNavIsVisible$();
   showNavbar$: Observable<boolean> = this.navbarService.getNavbarIsVisible$();
   headerHeight$: Observable<any> = this.navbarService.getHeaderHeight$();
   drawerTop: any = 88;
