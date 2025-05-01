@@ -134,7 +134,7 @@
     </a>
   </ul>
 </p-drawer>
-}@else { @if (showNavbar$ | async) {
+}@else { @if (showNavbar()) {
 <div class="links-parent" (mouseleave)="selectedCategory(null)" @visible>
   <ul class="links-child bg-[#2E2E2E]">
     <div class="flex-grow flex gap-x-4">
@@ -157,6 +157,9 @@
     <a
       routerLink="/product/sale"
       class="text-white font-semibold bg-orange-600 px-5 py-1 rounded-lg text-sm flex items-center gap-2"
+      [class]="{
+        hidden: !showNavbar()
+      }"
     >
       <i class="pi pi-percentage text-xs"></i>
       <span>Deals</span>

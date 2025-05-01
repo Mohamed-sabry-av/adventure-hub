@@ -2,11 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
   EventEmitter,
   HostListener,
   inject,
   Input,
   Output,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -44,10 +46,10 @@ import { trigger, transition, style, animate } from '@angular/animations';
     trigger('visible', [
       transition(':enter', [
         style({ opacity: 0, height: '0px', overflow: 'hidden' }),
-        animate('0.3s ease-out', style({ opacity: 1, height: '*' })),
+        animate('0.1s ease-out', style({ opacity: 1, height: '*' })),
       ]),
       transition(':leave', [
-        animate('0.3s ease-in', style({ opacity: 0, height: '0px' })),
+        animate('0.1s ease-in', style({ opacity: 0, height: '0px' })),
       ]),
     ]),
   ],
@@ -122,4 +124,15 @@ export class NavbarMainCategoriesComponent {
   }
 
   expandedCategories = new Set<number>();
+
+  // ------------------------------------------------------ Ameen Signals
+
+  showNavbar = signal<boolean>(true);
+  constructor() {
+    effect(() =>
+      this.showNavbar.update((perv) => {
+        return this.navbarService.navBarIsVisible();
+      })
+    );
+  }
 }

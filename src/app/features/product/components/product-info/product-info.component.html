@@ -130,10 +130,17 @@
     <!-- Cart and Buy Buttons -->
     <div class="flex mt-6 mb-4">
       <div class="action-buttons">
-        <button class="cart-btn" (click)="addToCart()">ADD TO CART</button>
+        <button class="cart-btn" (click)="addToCart()">
+          @if ((isSpinnerLoading$ | async).add) {
+          <div
+            class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+          ></div>
+
+          }@else { ADD TO CART}
+        </button>
 
         <button class="buy-btn" (click)="buyNow()">
-          @if (isSpinnerLoading$ | async) {
+          @if ((isSpinnerLoading$ | async).buy) {
           <div
             class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
           ></div>

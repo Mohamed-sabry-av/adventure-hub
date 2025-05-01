@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   OnInit,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -79,6 +80,11 @@ export class HeaderComponent implements OnInit {
   headerHeight: number = 0;
   isFixed: boolean = false;
 
+  // ------------------------------------- Ameen Signals
+  showNavbar2 = signal<boolean>(true);
+  headerHeight2 = signal<number>(0);
+  lastScrollY2 = signal<number>(0);
+
   ngOnInit() {
     this.fetchAllCategories();
 
@@ -92,9 +98,9 @@ export class HeaderComponent implements OnInit {
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
-    const subscription3 = fromEvent(window, 'scroll')
-      .pipe(debounceTime(10))
-      .subscribe(() => this.handleScroll());
+    const subscription3 = fromEvent(window, 'scroll').subscribe(() =>
+      this.handleScroll()
+    );
 
     this.destroyRef.onDestroy(() => {
       subscription.unsubscribe();
@@ -105,20 +111,28 @@ export class HeaderComponent implements OnInit {
 
   handleScroll() {
     const currentScrollY = window.scrollY;
+    const currentScrollY2 = signal<number>(window.scrollY);
 
     if (currentScrollY > this.lastScrollY && currentScrollY > 50) {
       // Scrolling down
       this.showNavbar = false;
+      this.showNavbar2.set(false);
     } else if (currentScrollY < this.lastScrollY) {
       // Scrolling up
+      this.showNavbar2.set(true);
+
       this.showNavbar = true;
     }
 
     if (this.headerElement) {
       this.headerHeight = this.headerElement.nativeElement.offsetHeight;
+      this.headerHeight2.update(
+        (prev) => this.headerElement.nativeElement.offsetHeight
+      );
     }
 
     this.lastScrollY = currentScrollY;
+    this.lastScrollY2.update((prev) => currentScrollY2());
     // -------------------------------- done
 
     if (currentScrollY > 0) {
@@ -128,6 +142,9 @@ export class HeaderComponent implements OnInit {
     }
     this.navbarService.showNavbar(this.showNavbar);
     this.navbarService.handleScroll(this.headerHeight);
+
+    // -------------------------------------- Ameen Signals
+    this.navbarService.showNavbar2(this.showNavbar2());
   }
 
   onSiwtchSideNav(visible: boolean) {

@@ -39,7 +39,7 @@ export class ProductInfoComponent {
   private wishlistSubscription: Subscription | null = null;
   private uiService = inject(UIService);
 
-  isSpinnerLoading$: Observable<boolean> = this.uiService.isSpinnerLoading$;
+  isSpinnerLoading$: Observable<any> = this.uiService.loadingMap$;
 
   @Output() selectedAttributeChange = new EventEmitter<{
     name: string;

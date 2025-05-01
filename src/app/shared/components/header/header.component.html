@@ -4,7 +4,7 @@
 <header
   class="w-full"
   [class]="{
-    'is-scroll': lastScrollY !== 0
+    'is-scroll': lastScrollY2() !== 0
   }"
   #headerEl
 >
@@ -26,7 +26,7 @@
   </div>
   } @else if(currentPage !== 'checkout') {
   <!-- Secondary Info -->
-  @if (lastScrollY === 0) {
+  <!-- @if (lastScrollY === 0) {
   <div
     class="relative mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6"
   >
@@ -37,7 +37,7 @@
       Buy Now & Pay Later with <strong>Tabby</strong>
     </p>
   </div>
-  }
+  } -->
 
   <!-- Main Info -->
   <app-app-container>
@@ -102,7 +102,7 @@
     }
   </app-app-container>
 
-  <div @navbarAnimation>
+  <div>
     @defer (on idle) {
     <app-navbar-container
       [mainCategories]="mainCategories"

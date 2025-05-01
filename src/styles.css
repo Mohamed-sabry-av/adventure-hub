@@ -22,8 +22,8 @@ body {
   height: 100%;
 }
 @font-face {
-  font-family: 'Poppins';
-  src: url('/assets/fonts/poppins-regular-webfont.woff2') format('woff2');
+  font-family: "Poppins";
+  src: url("/assets/fonts/poppins-regular-webfont.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }

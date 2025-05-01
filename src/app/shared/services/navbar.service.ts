@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -24,5 +24,11 @@ export class NavbarService {
   headerHeight$ = new BehaviorSubject<number>(100);
   handleScroll(headerHeight: any) {
     this.headerHeight$.next(headerHeight);
+  }
+
+  // ----------------------------- Ameen Signals
+  navBarIsVisible = signal<boolean>(true);
+  showNavbar2(navbarVisible: boolean) {
+    this.navBarIsVisible.update((prev) => navbarVisible);
   }
 }
