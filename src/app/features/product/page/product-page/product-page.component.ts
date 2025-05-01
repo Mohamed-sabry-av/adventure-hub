@@ -35,7 +35,7 @@ declare var _learnq: any;
     DialogErrorComponent,
   ],
   templateUrl: './product-page.component.html',
-  styleUrl: './product-page.component.css',
+  styleUrls: ['./product-page.component.css'],
   host: { ngSkipHydration: '' },
 
   standalone: true,
@@ -45,6 +45,7 @@ export class ProductPageComponent implements OnInit {
   productData: any;
   productDataForDesc: any;
   selectedColor: string | null = null;
+  selectedVariation: any | null = null;
   isLoading: boolean = true;
 
   private route = inject(ActivatedRoute);
@@ -60,7 +61,7 @@ export class ProductPageComponent implements OnInit {
           const slug = params.get('slug');
           if (!slug) {
             this.router.navigate(['/']);
-            return of(null); // نرجع Observable بـ null بدل []
+            return of(null);
           }
 
           this.isLoading = true;
@@ -69,54 +70,56 @@ export class ProductPageComponent implements OnInit {
           this.schemaData = null;
 
           return this.productService.getProductBySlug(slug).pipe(
-            switchMap((product: any) => {
+            map((product: any) => {
               if (!product) {
                 this.router.navigate(['/']);
-                return of(null);
+                return null;
               }
-              return this.productService.getProductVariations(product.id).pipe(
-                map((variations) => ({
-                  ...product,
-                  variations: variations || [],
-                  brand:
-                    product.attributes?.find(
-                      (attr: any) => attr.name === 'Brand'
-                    )?.options?.[0]?.name ||
-                    product.brand ||
-                    'Unknown',
-                  available_colors: [
-                    ...new Set(
-                      (variations || [])
-                        .map(
-                          (v: any) =>
-                            v.attributes?.find(
-                              (attr: any) => attr.name === 'Color'
-                            )?.option
-                        )
-                        .filter(Boolean)
-                    ),
-                  ],
-                  available_sizes: [
-                    ...new Set(
-                      (variations || [])
-                        .map(
-                          (v: any) =>
-                            v.attributes?.find(
-                              (attr: any) => attr.name === 'Size'
-                            )?.option
-                        )
-                        .filter(Boolean)
-                    ),
-                  ],
-                }))
-              );
+
+              // Variations are now directly included in the product response
+              const variations = product.variations || [];
+
+              return {
+                ...product,
+                variations: variations,
+                brand:
+                  product.attributes?.find(
+                    (attr: any) => attr.name === 'Brand'
+                  )?.options?.[0]?.name ||
+                  product.brand ||
+                  'Unknown',
+                available_colors: [
+                  ...new Set(
+                    variations
+                      .map(
+                        (v: any) =>
+                          v.attributes?.find(
+                            (attr: any) => attr.name === 'Color'
+                          )?.option
+                      )
+                      .filter(Boolean)
+                  ),
+                ],
+                available_sizes: [
+                  ...new Set(
+                    variations
+                      .map(
+                        (v: any) =>
+                          v.attributes?.find(
+                            (attr: any) => attr.name === 'Size'
+                          )?.option
+                      )
+                      .filter(Boolean)
+                  ),
+                ],
+              };
             })
           );
         })
       )
       .subscribe({
         next: (response: any) => {
-          this.isLoading = false; // نوقف التحميل هنا أولاً
+          this.isLoading = false;
           if (response) {
             this.productData = response;
             this.productDataForDesc = {
@@ -165,7 +168,7 @@ export class ProductPageComponent implements OnInit {
           this.schemaData = this.seoService.applySeoTags(null, {
             title: 'Product Page Error',
           });
-          this.router.navigate(['/']); // نعمل توجيه لو حصل خطأ
+          this.router.navigate(['/']);
         },
       });
   }
@@ -187,6 +190,31 @@ export class ProductPageComponent implements OnInit {
           },
         ]);
       }
+    }
+  }
+
+  onVariationSelected(variation: any) {
+    this.selectedVariation = variation;
+    console.log('Selected variation:', variation);
+
+    // You can use this variation for analytics or to update other components
+    if (typeof _learnq !== 'undefined' && this.productData) {
+      _learnq.push([
+        'track',
+        'Selected Variation',
+        {
+          ProductID: this.productData.id,
+          ProductName: this.productData.name,
+          VariationID: variation.id,
+          Price: variation.price,
+          Brand: this.productData.brand || 'Unknown',
+          Categories: this.productData.categories?.map((cat: any) => cat.name) || [],
+          Attributes: variation.attributes?.reduce((obj: any, attr: any) => {
+            obj[attr.name] = attr.option;
+            return obj;
+          }, {}) || {},
+        },
+      ]);
     }
   }
 

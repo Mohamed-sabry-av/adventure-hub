@@ -6,6 +6,8 @@ import { CartService } from '../../../cart/service/cart.service';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
 import { Subscription, BehaviorSubject, Observable, map } from 'rxjs';
 import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
+import { Product, Variation } from '../../../../interfaces/product';
+import { VariationService } from '../../../../core/services/variation.service';
 
 // UI Service for loading states
 class UIService {
@@ -46,15 +48,23 @@ export class ProductInfoComponent {
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
 
+  // Track if we should show out of stock variations
+  showOutOfStockVariations: boolean = true;
+
   // UI Service for loading states
   private uiService = new UIService();
   loadingMap$: Observable<{ [key: string]: boolean }> = this.uiService.loadingMap$;
 
   @Output() selectedAttributeChange = new EventEmitter<{ name: string; value: string | null }>();
+  @Output() variationSelected = new EventEmitter<any>();
 
   linkCopied: boolean = false;
 
-  constructor(private cartService: CartService, private wishlistService: WooCommerceAccountService) {}
+  constructor(
+    private cartService: CartService,
+    private wishlistService: WooCommerceAccountService,
+    private variationService: VariationService
+  ) {}
 
   ngOnInit() {
     const product = this.productInfo();
@@ -125,43 +135,53 @@ export class ProductInfoComponent {
     attributeName: string,
     dependentAttributeValue: string | null = null
   ): { value: string; image?: string; inStock: boolean }[] {
-    const variations = this.productInfo()?.variations || [];
+    const product = this.productInfo();
+    if (!product) return [];
+
+    const variations = product.variations || [];
     if (!Array.isArray(variations) || !variations.length) {
       return [];
     }
 
+    // Using the variation service for consistent handling
+    if (attributeName === 'Color') {
+      const colorOptions = this.variationService.getColorOptions(variations);
+      return colorOptions.map(option => ({
+        value: option.color,
+        image: option.image,
+        inStock: option.inStock
+      }));
+    } else if (attributeName === 'Size' && dependentAttributeValue) {
+      const sizeOptions = this.variationService.getSizesForColor(variations, dependentAttributeValue);
+      return sizeOptions.map(option => ({
+        value: option.size,
+        inStock: option.inStock
+      }));
+    }
+
+    // For other attribute types, or fallback
     const optionMap = new Map<string, { image?: string; inStock: boolean }>();
+
     variations.forEach((v: any) => {
       const attr = v.attributes?.find((attr: any) => attr?.name === attributeName);
       if (!attr) return;
 
-      if (attributeName === 'Color') {
-        if (!optionMap.has(attr.option)) {
-          const isInStock = variations.some(
-            (variation: any) =>
-              variation.attributes?.some(
-                (a: any) => a?.name === 'Color' && a?.option === attr.option
-              ) && variation.stock_status === 'instock'
-          );
+      // Check if this variation matches dependent attribute if specified
+      const matchesDependentAttribute = !dependentAttributeValue ||
+        v.attributes?.some(
+          (a: any) => a.name !== attributeName && a.option === dependentAttributeValue
+        );
+
+      if (matchesDependentAttribute) {
+        const isInStock = v.stock_status === 'instock';
+        const currentValue = optionMap.get(attr.option);
+
+        // Only update if we haven't seen this option before, or if this variation is in stock and the previous one wasn't
+        if (!currentValue || (!currentValue.inStock && isInStock)) {
           optionMap.set(attr.option, {
-            image: v.image?.src,
             inStock: isInStock,
           });
         }
-      } else if (attributeName === 'Size' && dependentAttributeValue) {
-        if (
-          v.attributes?.some(
-            (a: any) => a?.name === 'Color' && a?.option === dependentAttributeValue
-          )
-        ) {
-          optionMap.set(attr.option, {
-            inStock: v.stock_status === 'instock',
-          });
-        }
-      } else {
-        optionMap.set(attr.option, {
-          inStock: v.stock_status === 'instock',
-        });
       }
     });
 
@@ -178,13 +198,28 @@ export class ProductInfoComponent {
 
     if (name === 'Color') {
       this.selectedAttributes['Size'] = null;
-      const availableSizes = this.getVariationOptions('Size', value).filter((opt) => opt.inStock);
+      const availableSizes = this.getVariationOptions('Size', value);
       if (availableSizes.length > 0) {
-        this.selectAttribute('Size', availableSizes[0].value);
+        // First try to find an in-stock size
+        const firstInStockSize = availableSizes.find(size => size.inStock);
+        if (firstInStockSize) {
+          this.selectAttribute('Size', firstInStockSize.value);
+        } else if (this.showOutOfStockVariations) {
+          // If showing out of stock variations, select the first one
+          this.selectAttribute('Size', availableSizes[0].value);
+        }
       }
     }
 
-    this.selectedAttributeChange.emit({ name, value });
+    // Emit variation selected event when all attributes are selected
+    if (this.allVariationAttributesSelected) {
+      const selectedVariation = this.getSelectedVariation();
+      if (selectedVariation) {
+        this.variationService.setSelectedVariation(selectedVariation);
+        this.variationSelected.emit(selectedVariation);
+      }
+    }
+
     this.updateMaxLength();
     this.quantity = 1;
   }
@@ -200,13 +235,8 @@ export class ProductInfoComponent {
       return null;
     }
 
-    return variations.find((v: any) =>
-      variationAttributes.every((attrName: string) =>
-        v.attributes?.some(
-          (attr: any) => attr?.name === attrName && attr?.option === this.selectedAttributes[attrName]
-        )
-      )
-    );
+    // Use the variation service to find the variation
+    return this.variationService.findVariationByAttributes(variations, this.selectedAttributes);
   }
 
   get isProductInStock(): boolean {
@@ -222,7 +252,7 @@ export class ProductInfoComponent {
       return false;
     }
 
-    const selectedVariation = this.getSelectedVariation();
+    const selectedVariation :any= this.getSelectedVariation();
     return (
       !!selectedVariation &&
       selectedVariation.stock_status === 'instock' &&
@@ -247,7 +277,7 @@ export class ProductInfoComponent {
     if (selectedVariation) {
       const price = selectedVariation.price || product.price || '';
       const regularPrice = selectedVariation.regular_price || price;
-      const isOnSale =
+      const isOnSale:any =
         selectedVariation.on_sale &&
         price !== regularPrice &&
         parseFloat(price) < parseFloat(regularPrice);
@@ -273,7 +303,6 @@ export class ProductInfoComponent {
     this.uiService.setLoading(buyItNow ? 'buy' : 'add', true);
 
     let cartProduct: any;
-    let variationId: number | undefined;
 
     if (product.type === 'simple') {
       if (product.stock_status !== 'instock') {
@@ -302,8 +331,12 @@ export class ProductInfoComponent {
         return;
       }
 
-      variationId = selectedVariation.id;
-      cartProduct = { ...selectedVariation, quantity: this.quantity };
+      // Use the variation service to prepare cart product
+      cartProduct = this.variationService.prepareProductForCart(
+        product,
+        selectedVariation,
+        this.quantity
+      );
     }
 
     if (!this.cartService) {
@@ -325,7 +358,7 @@ export class ProductInfoComponent {
             ProductID: product.id,
             ProductName: product.name,
             Price: cartProduct.price || product.price,
-            VariationID: variationId || null,
+            VariationID: cartProduct.id !== product.id ? cartProduct.id : null,
             Attributes: { ...this.selectedAttributes },
             Brand: this.brandName,
             Categories: product.categories?.map((cat: any) => cat.name) || [],
@@ -373,7 +406,7 @@ export class ProductInfoComponent {
           attrName === 'Size' ? this.selectedAttributes['Color'] : null
         ).find(
           (opt) =>
-            opt.value.toLowerCase() === defaultAttr.option.toLowerCase() && opt.inStock
+            opt.value.toLowerCase() === defaultAttr.option.toLowerCase() && (opt.inStock || this.showOutOfStockVariations)
         );
       }
 
@@ -381,7 +414,7 @@ export class ProductInfoComponent {
         selectedOption = this.getVariationOptions(
           attrName,
           attrName === 'Size' ? this.selectedAttributes['Color'] : null
-        ).find((opt) => opt.inStock);
+        ).find((opt) => opt.inStock || this.showOutOfStockVariations);
       }
 
       if (selectedOption) {
@@ -500,5 +533,10 @@ export class ProductInfoComponent {
 
   private getCurrentProductUrl(): string {
     return window.location.href;
+  }
+
+  // Format a color name for display
+  formatColorName(colorName: string): string {
+    return this.variationService.formatColorName(colorName);
   }
 }

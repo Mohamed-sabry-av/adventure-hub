@@ -98,7 +98,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.product) return;
-    this.fetchVariations();
+    this.initializeWithProduct();
     this.checkIfMobile();
     this.modifiedProduct = { ...this.product };
     this.setupResizeListener();
@@ -138,17 +138,31 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     }
   }
 
+  private initializeWithProduct(): void {
+    // Check if product has variations directly
+    if (this.product.variations && Array.isArray(this.product.variations) && this.product.variations.length > 0) {
+      this.variations = this.product.variations;
+      this.processVariations();
+    } else {
+      this.fetchVariations();
+    }
+  }
+
+  private processVariations(): void {
+    this.colorOptions = this.getColorOptions();
+    this.uniqueSizes = this.getSizesForColor('');
+    this.setDefaultVariation();
+    this.updateVisibleColors();
+    this.updateVisibleSizes();
+    this.variationsLoaded = true;
+    this.cdr.markForCheck();
+  }
+
   private fetchVariations(): void {
     this.productService.getProductVariations(this.product.id).subscribe({
       next: (variations: Variation[]) => {
         this.variations = variations || [];
-        this.colorOptions = this.getColorOptions();
-        this.uniqueSizes = this.getSizesForColor('');
-        this.setDefaultVariation();
-        this.updateVisibleColors();
-        this.updateVisibleSizes();
-        this.variationsLoaded = true;
-        this.cdr.markForCheck();
+        this.processVariations();
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);

@@ -1,10 +1,4 @@
 import { Routes } from '@angular/router';
-import { blogRoutes } from './features/blog/blog.routes';
-import { productsRoutes } from './features/products/products.routes';
-import { pagesRoutes } from './features/terms,about,contactUs/pages.routes';
-import { categoryRoutes } from './features/products/categories.routes';
-import { authroutes } from './features/auth/auth.route';
-import { HistoryPageComponent } from './features/products/pages/History-page/history-page.component';
 
 export const routes: Routes = [
   {
@@ -17,7 +11,7 @@ export const routes: Routes = [
   },
   {
     path: 'user',
-    children: authroutes,
+    loadChildren: () => import('./features/auth/auth.route').then(m => m.authroutes),
   },
   {
     path: 'order-received/:orderId',
@@ -38,26 +32,26 @@ export const routes: Routes = [
   {
     path: 'checkout',
     loadComponent: () =>
-      import(
-        './features/checkout/page/checkout-page/checkout-page.component'
-      ).then((m) => m.CheckoutPageComponent),
+      import('./features/checkout/page/checkout-page/checkout-page.component').then(
+        (m) => m.CheckoutPageComponent
+      ),
     pathMatch: 'full',
   },
   {
     path: 'blog',
-    children: blogRoutes,
+    loadChildren: () => import('./features/blog/blog.routes').then(m => m.blogRoutes),
   },
   {
     path: 'product',
-    children: productsRoutes,
+    loadChildren: () => import('./features/products/products.routes').then(m => m.productsRoutes),
   },
   {
     path: 'pages',
-    children: pagesRoutes,
+    loadChildren: () => import('./features/terms,about,contactUs/pages.routes').then(m => m.pagesRoutes),
   },
   {
     path: 'category',
-    children: categoryRoutes,
+    loadChildren: () => import('./features/products/categories.routes').then(m => m.categoryRoutes),
   },
   {
     path: 'history',

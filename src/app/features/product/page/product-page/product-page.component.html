@@ -50,7 +50,11 @@
         <!-- Product Info - Right side -->
         <div class="md:w-1/2 lg:w-2/5 sticky-wrapper">
           <div class="sticky-info">
-            <app-product-info [productInfo]="productData" />
+            <app-product-info
+              [productInfo]="productData"
+              (selectedAttributeChange)="onSelectedColorChange($event)"
+              (variationSelected)="onVariationSelected($event)"
+            />
           </div>
           <!-- Mobile Description -->
           <div class="full-width-product-description mobile-description">

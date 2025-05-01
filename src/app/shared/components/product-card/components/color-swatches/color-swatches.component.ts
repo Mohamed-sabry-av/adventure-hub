@@ -12,14 +12,12 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './color-swatches.component.html',
-
   styleUrls: ['./color-swatches.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ColorSwatchesComponent {
-  @Input() colorOptions: { color: string; image: string; inStock: boolean }[] =
-    [];
-  @Input() visibleColors: { color: string; image: string; inStock: boolean }[] =
-    [];
+  @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
+  @Input() visibleColors: { color: string; image: string; inStock: boolean }[] = [];
   @Input() selectedColor: string | null = null;
   @Input() colorScrollIndex: number = 0;
   @Input() maxColorScrollIndex: number = 0;
@@ -27,8 +25,10 @@ export class ColorSwatchesComponent {
   @Output() selectColor = new EventEmitter<{ color: string; image: string }>();
   @Output() scrollColors = new EventEmitter<number>();
 
-  onSelectColor(color: string, image: string): void {
-    this.selectColor.emit({ color, image });
+  onSelectColor(color: string, image: string, inStock: boolean): void {
+    if (inStock) {
+      this.selectColor.emit({ color, image });
+    }
   }
 
   onScrollColors(direction: number): void {
@@ -40,5 +40,16 @@ export class ColorSwatchesComponent {
     return colorName.length > 10
       ? colorName.substring(0, 7) + '...'
       : colorName;
+  }
+
+  // Format the color name to be more readable
+  formatColorName(colorName: string): string {
+    if (!colorName) return '';
+    // Convert slug format to readable format
+    return colorName
+      .replace(/-/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 }

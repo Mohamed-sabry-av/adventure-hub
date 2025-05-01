@@ -1,13 +1,35 @@
-<!-- Blue circular add button (similar to mumzworld) -->
+<!-- Quick Add Container -->
 <div class="add-button-container">
+  <!-- Success state shows a checkmark briefly when added to cart -->
   <button
+    *ngIf="!addSuccess"
     class="circular-add-button"
-    [class.add-success]="addSuccess"
-    (click)="onToggleOptionsPanel()"
+    [class.disabled]="selectedVariation && selectedVariation.stock_status !== 'instock'"
+    (click)="product?.type === 'simple' || selectedVariation ? onAddToCart() : onToggleOptionsPanel()"
     aria-label="Add to cart">
-    <svg class="plus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg *ngIf="!(selectedVariation && selectedVariation.stock_status !== 'instock')" class="plus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
+    <span *ngIf="selectedVariation && selectedVariation.stock_status !== 'instock'" class="out-of-stock-text">Out of Stock</span>
+  </button>
+
+  <!-- Success confirmation -->
+  <button
+    *ngIf="addSuccess"
+    class="circular-add-button add-success"
+    disabled>
+    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
   </button>
 </div>
+
+<!-- Optional Quick View Button - can be uncommented if needed -->
+<!-- <div class="quick-view-button">
+  <button
+    class="quick-view-btn"
+    (click)="onToggleOptionsPanel()">
+    Quick View
+  </button>
+</div> -->

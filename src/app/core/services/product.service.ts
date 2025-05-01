@@ -40,7 +40,7 @@ export class ProductService {
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
-         
+
           const products = this.getUniqueProducts(
             response.body.map((product: any) => ({
               ...product,
@@ -115,7 +115,7 @@ export class ProductService {
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
-         
+
           const products = this.getUniqueProducts(
             response.body.map((product: any) => ({
               ...product,
@@ -125,7 +125,7 @@ export class ProductService {
           return products;
         }),
         catchError((error) => {
-       
+
           return of([]); // إرجاع مصفوفة فريدة فارغة في حالة الخطأ
         }),
         shareReplay(1)
@@ -157,7 +157,7 @@ export class ProductService {
             );
             return 0;
           }
-      
+
           return total;
         }),
         catchError((error) => {
@@ -193,7 +193,7 @@ export class ProductService {
     );
   }
 
- 
+
   getUniqueProducts(products: any[]): any[] {
     const uniqueProducts = [];
     const seenIds = new Set();
@@ -206,14 +206,30 @@ export class ProductService {
     return uniqueProducts;
   }
 
+  /**
+   * Get product variations using the new structure where variations are included directly in the product response.
+   * This method first fetches the product, then extracts the variations from the product object.
+   */
   getProductVariations(productId: number): Observable<Variation[]> {
     const cacheKey = `product_variations_${productId}`;
     return this.cachingService.cacheObservable(
       cacheKey,
-      this.WooAPI.getRequestProducts<Variation[]>(
-        `products/${productId}/variations`
+      this.getProductById(productId).pipe(
+        map((product: Product) => this.extractVariationsFromProduct(product)),
+        catchError(error => {
+          console.error(`Error extracting variations for product ${productId}:`, error);
+          return of([]);
+        })
       )
     );
+  }
+
+  // Helper method to extract variations from product when they're directly included
+  extractVariationsFromProduct(product: any): Variation[] {
+    if (!product || !product.variations || !Array.isArray(product.variations)) {
+      return [];
+    }
+    return product.variations;
   }
 
   getImageById(mediaId: number): Observable<any> {
