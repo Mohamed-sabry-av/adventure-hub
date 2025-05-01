@@ -30,7 +30,7 @@ export class HomeService {
           .set('after', afterDate)
           .set(
             '_fields',
-            'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+            'id,name,price,images,categories,description,slug,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('page', page.toString())
           .set('per_page', perPage.toString())
@@ -62,7 +62,7 @@ export class HomeService {
           .set('featured', true)
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+            'default_attributes,id,name,price,images,categories,description,slug,attributes,quantity_limits,yoast_head,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('page', page.toString())
           .set('per_page', perPage.toString())
@@ -94,7 +94,7 @@ export class HomeService {
           .set('on_sale', true)
           .set(
             '_fields',
-            'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+            'id,name,price,images,categories,description,slug,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('page', page.toString())
           .set('per_page', perPage.toString())

@@ -65,19 +65,22 @@
           [relatedIds]="productData.related_ids"
           class="relatedProducts"
         />
+
+        <app-recent-products-mini></app-recent-products-mini>
+
       }
     } @else {
       <!-- Error State -->
       <div class="text-center py-8">
         <p class="text-lg text-gray-600">
-          المنتج غير موجود أو حدث خطأ.
+          No available roducts
         </p>
         <a
           routerLink="/"
           class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded"
         >
-          العودة للرئيسية
-        </a>
+        Back to Home page
+      </a>
       </div>
     }
   }

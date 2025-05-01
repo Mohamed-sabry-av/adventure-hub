@@ -24,7 +24,6 @@ import { CartStatus } from '../../../cart/model/cart.model';
     RecommendedProductsComponent,
     SaleProductsComponent,
     DialogErrorComponent,
-    AsyncPipe,
   ],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.css'],

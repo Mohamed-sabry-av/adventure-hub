@@ -20,8 +20,6 @@ import { SeoService } from '../../../../core/services/seo.service';
   standalone: true,
   imports: [
     CommonModule,
-    FilterSidebarComponent,
-    BreadcrumbComponent,
     FilterDrawerComponent,
     SortMenuComponent,
     ProductsGridComponent,

@@ -11,7 +11,7 @@
       <!-- Category Header Section -->
       <div class="py-2 border-b border-gray-200">
         <div class="mb-4">
-          <h1 class="text-3xl font-medium text-gray-900">
+          <h1 class="text-3xl font-medium text-gray-900" [innerHTML]="currentCategory.name">
             {{ currentCategory?.name }}
           </h1>
           <div class="text-sm text-gray-500">
@@ -20,7 +20,7 @@
         </div>
 
         @if (currentCategory?.description) {
-        <div class="mt-2 text-sm text-gray-700 max-w-3xl">
+        <div class="mt-2 text-sm text-gray-700 max-w-3xl" >
           {{ currentCategory.description }}
         </div>
         }

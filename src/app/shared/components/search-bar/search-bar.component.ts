@@ -5,6 +5,8 @@ import {
   ElementRef,
   HostListener,
   ChangeDetectionStrategy,
+  Inject,
+  PLATFORM_ID,
 } from '@angular/core';
 import {
   debounceTime,
@@ -14,7 +16,7 @@ import {
   of,
 } from 'rxjs';
 import { SearchBarService } from '../../services/search-bar.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 
 interface Category {
@@ -48,13 +50,16 @@ export class SearchBarComponent implements OnInit {
   @ViewChild('searchInput') searchInput!: ElementRef;
   @ViewChild('resultsContainer') resultsContainer!: ElementRef;
 
-  constructor(private searchService: SearchBarService, private router: Router) {
+  constructor(private searchService: SearchBarService, private router: Router,  @Inject(PLATFORM_ID) private platformId: Object
+) {
+  if (isPlatformBrowser(this.platformId)) {
     const savedSearches = localStorage.getItem('recentSearches');
     if (savedSearches) {
       this.recentSearches = JSON.parse(savedSearches).slice(0, 5);
     }
   }
-
+}
+  
   ngOnInit() {
     this.handleSearch();
   }

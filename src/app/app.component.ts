@@ -1,10 +1,10 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, Inject, inject, PLATFORM_ID } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { SideCartComponent } from './features/cart/components/side-cart/side-cart.component';
 import { SideOptionsComponent } from './shared/components/side-options/side-options.component';
-import { NgIf } from '@angular/common';
+import { isPlatformBrowser, NgIf } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { BackToTopComponent } from './shared/components/BackToTop/back-to-top.component';
 import { CartService } from './features/cart/service/cart.service';
@@ -25,7 +25,6 @@ declare global {
     FooterComponent,
     SideCartComponent,
     SideOptionsComponent,
-    BackToTopComponent,
     NgIf,
   ],
   templateUrl: './app.component.html',
@@ -37,6 +36,8 @@ export class AppComponent {
   private router = inject(Router);
   isCheckoutPage = false;
   private previousUrl: string | null = null;
+  constructor(  @Inject(PLATFORM_ID) private platformId: Object
+) {}
 
   ngOnInit() {
     const navEndEvents = this.router.events.pipe(
@@ -51,11 +52,13 @@ export class AppComponent {
 
       // Scroll to top only if the path has changed (not just fragment)
       if (this.previousUrl !== currentPath) {
-        console.log('Scrolling to top for path:', currentPath); // للاختبار
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth', // Smooth scroll
-        });
+        if (isPlatformBrowser(this.platformId)) {
+
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth', // Smooth scroll
+          });
+        }
       }
 
       this.previousUrl = currentPath;

@@ -7,36 +7,32 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { Category } from '../../../interfaces/category.model';
-import { filter, map, Observable } from 'rxjs';
-import {
-  animate,
-  state,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
-import { AsyncPipe, CommonModule, NgIf } from '@angular/common';
+import { Observable } from 'rxjs';
+import { animate, transition, trigger, style } from '@angular/animations';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-navbar-sub-categories',
-  imports: [CommonModule, RouterLink, AsyncPipe],
+  standalone: true,
+  imports: [CommonModule, RouterLink],
   templateUrl: './navbar-sub-categories.component.html',
-  styleUrl: './navbar-sub-categories.component.css',
-
+  styleUrls: ['./navbar-sub-categories.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('visible', [
       transition(':enter', [
-        style({ opacity: 0, height: '0px', overflow: 'hidden' }),
+        style({ transform: 'translateY(-10px)', opacity: 0 }),
         animate(
-          '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          style({ opacity: 1, height: '*' })
+          '300ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+          style({ transform: 'translateY(0)', opacity: 1 })
         ),
       ]),
       transition(':leave', [
+        style({ transform: 'translateY(0)', opacity: 1 }),
         animate(
-          '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          style({ opacity: 0, height: '0px' })
+          '300ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+          style({ transform: 'translateY(-10px)', opacity: 0 })
         ),
       ]),
     ]),
@@ -51,50 +47,24 @@ export class NavbarSubCategoriesComponent {
 
   categoriesData: Category[] = [];
   keepOpen: boolean = false;
-  selectedCategoryId: number | null = null;
-  hoverDelay: any = null;
 
   ngOnInit() {
     const subscription = this.subCategories$.subscribe((data) => {
-      if (data.length > 0) {
-        this.categoriesData = data;
-        this.keepOpen = true;
-        this.cdr.markForCheck();
-      } else {
-        // Don't close immediately, wait to see if it's a hover interaction
-        if (!this.hoverDelay) {
-          this.hoverDelay = setTimeout(() => {
-            this.keepOpen = false;
-            this.cdr.markForCheck();
-            this.hoverDelay = null;
-          }, 100);
-        }
-      }
+      this.categoriesData = data;
+      this.keepOpen = data.length > 0;
+      this.cdr.markForCheck();
     });
     this.destroyRef.onDestroy(() => {
       subscription.unsubscribe();
-      if (this.hoverDelay) {
-        clearTimeout(this.hoverDelay);
-      }
     });
   }
 
   onLeave() {
-    // Add a small delay before closing to allow smooth transitions between items
-    setTimeout(() => {
-      this.keepOpen = false;
-      this.selectedCategoryId = null;
-      this.cdr.markForCheck();
-    }, 300);
+    this.keepOpen = false;
+    this.cdr.markForCheck();
   }
 
   onEnter() {
-    // Clear any pending close operations
-    if (this.hoverDelay) {
-      clearTimeout(this.hoverDelay);
-      this.hoverDelay = null;
-    }
-
     this.keepOpen = true;
     this.cdr.markForCheck();
   }

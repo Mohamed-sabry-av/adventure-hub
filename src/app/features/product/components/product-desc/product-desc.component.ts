@@ -28,7 +28,7 @@ interface Attribute {
 @Component({
   selector: 'app-product-desc',
   standalone: true,
-  imports: [CommonModule, SafeHtmlPipe],
+  imports: [CommonModule],
   templateUrl: './product-desc.component.html',
   styleUrls: ['./product-desc.component.css'],
 })

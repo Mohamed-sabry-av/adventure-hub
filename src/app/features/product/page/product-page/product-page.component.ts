@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
@@ -32,7 +37,6 @@ declare var _learnq: any;
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
   host: { ngSkipHydration: '' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   standalone: true,
 })
@@ -49,7 +53,6 @@ export class ProductPageComponent implements OnInit {
   private recentlyVisitedService = inject(RecentlyVisitedService);
   private router = inject(Router);
 
-
   ngOnInit() {
     this.route.paramMap
       .pipe(
@@ -59,12 +62,12 @@ export class ProductPageComponent implements OnInit {
             this.router.navigate(['/']);
             return of(null); // نرجع Observable بـ null بدل []
           }
-  
+
           this.isLoading = true;
           this.productData = null;
           this.productDataForDesc = null;
           this.schemaData = null;
-  
+
           return this.productService.getProductBySlug(slug).pipe(
             switchMap((product: any) => {
               if (!product) {
@@ -76,15 +79,19 @@ export class ProductPageComponent implements OnInit {
                   ...product,
                   variations: variations || [],
                   brand:
-                    product.attributes?.find((attr: any) => attr.name === 'Brand')
-                      ?.options?.[0]?.name || product.brand || 'Unknown',
+                    product.attributes?.find(
+                      (attr: any) => attr.name === 'Brand'
+                    )?.options?.[0]?.name ||
+                    product.brand ||
+                    'Unknown',
                   available_colors: [
                     ...new Set(
                       (variations || [])
                         .map(
                           (v: any) =>
-                            v.attributes?.find((attr: any) => attr.name === 'Color')
-                              ?.option
+                            v.attributes?.find(
+                              (attr: any) => attr.name === 'Color'
+                            )?.option
                         )
                         .filter(Boolean)
                     ),
@@ -94,8 +101,9 @@ export class ProductPageComponent implements OnInit {
                       (variations || [])
                         .map(
                           (v: any) =>
-                            v.attributes?.find((attr: any) => attr.name === 'Size')
-                              ?.option
+                            v.attributes?.find(
+                              (attr: any) => attr.name === 'Size'
+                            )?.option
                         )
                         .filter(Boolean)
                     ),
@@ -123,9 +131,9 @@ export class ProductPageComponent implements OnInit {
               description: this.productData?.short_description,
               image: this.productData?.images?.[0]?.src,
             });
-  
+
             this.recentlyVisitedService.addProduct(this.productData);
-  
+
             if (typeof _learnq !== 'undefined' && this.productData) {
               _learnq.push([
                 'track',
@@ -136,7 +144,8 @@ export class ProductPageComponent implements OnInit {
                   Price: this.productData.price,
                   Brand: this.productData.brand || 'Unknown',
                   Categories:
-                    this.productData.categories?.map((cat: any) => cat.name) || [],
+                    this.productData.categories?.map((cat: any) => cat.name) ||
+                    [],
                   AvailableColors: this.productData.available_colors || [],
                   AvailableSizes: this.productData.available_sizes || [],
                 },

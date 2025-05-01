@@ -21,7 +21,7 @@ import { SideOptionsService } from '../../../../../core/services/side-options.se
 @Component({
   selector: 'app-mobile-quick-add',
   standalone: true,
-  imports: [CommonModule, SizeSelectorComponent, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './quick-add-btn.component.html',
   styleUrls: ['./quick-add-btn.component.css'],
   animations: [

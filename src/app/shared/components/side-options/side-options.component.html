@@ -11,11 +11,7 @@
   *ngIf="(stateIsOpen$ | async).isOpen && !(stateIsOpen$ | async).isMobile"
   class="options-side-panel"
   [@slideInFromRight]
-  appSwipeGesture
-  swipeDirection="right"
-  (swipe)="closeSideOptions()"
 >
-  <div class="swipe-indicator"></div>
   <div class="options-panel-header">
     @if ( (spinnerIsLoading$ | async).buy || (spinnerIsLoading$ | async).add) {
     <div
@@ -169,9 +165,6 @@
   *ngIf="(stateIsOpen$ | async).isOpen && (stateIsOpen$ | async).isMobile"
   class="mobile-options-panel"
   [@slideUpFromBottom]
-  appSwipeGesture
-  swipeDirection="down"
-  (swipe)="closeSideOptions()"
 >
   <div class="mobile-panel-header">
     <div class="pull-handle"></div>

@@ -54,6 +54,7 @@ export class ProductsGridComponent implements OnChanges {
   @Input() products: any[] = [];
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
+  hasFetched: boolean = false;
 
   skeletonCount = 8;
   showEmptyState: boolean = false;
@@ -61,22 +62,13 @@ export class ProductsGridComponent implements OnChanges {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (
-      changes['isLoading'] ||
-      changes['products'] ||
-      changes['isLoadingMore']
-    ) {
-      if (
-        !this.isLoading &&
-        !this.isLoadingMore &&
-        this.products.length === 0
-      ) {
-        setTimeout(() => {
-          this.showEmptyState = true;
-          this.cdr.markForCheck();
-        }, 1000);
+    if (changes['isLoading'] || changes['products'] || changes['isLoadingMore']) {
+      if (!this.isLoading && !this.isLoadingMore) {
+        this.hasFetched = true; 
+        this.showEmptyState = this.products.length === 0;
+        this.cdr.markForCheck();
       } else {
-        this.showEmptyState = false;
+        this.showEmptyState = false; 
       }
     }
   }
@@ -102,5 +94,6 @@ export class ProductsGridComponent implements OnChanges {
     this.isLoadingMore = false;
     this.skeletonCount = 0;
     this.showEmptyState = false;
+    this.hasFetched = false;
   }
 }

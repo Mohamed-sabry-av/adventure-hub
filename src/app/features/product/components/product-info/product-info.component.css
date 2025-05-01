@@ -1,20 +1,22 @@
+/* Basic Styling */
 .product-info {
   max-width: 500px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* Add responsive styling for product title */
+/* Product Title */
 @media (max-width: 767px) {
   .product-info h1 {
-    font-size: 1.5rem !important; /* Smaller font size on mobile */
+    font-size: 1.5rem !important;
     line-height: 1.2;
     margin-bottom: 0.75rem;
-    word-break: break-word; /* Ensure long titles wrap properly */
+    word-break: break-word;
     overflow-wrap: break-word;
   }
 }
 
+/* Brand Styles */
 .product-brand {
   margin-bottom: 16px;
 }
@@ -29,6 +31,7 @@
   text-decoration: underline;
 }
 
+/* Product Options */
 .product-option {
   margin-bottom: 20px;
 }
@@ -40,21 +43,40 @@
 }
 
 /* Quantity Controls */
-.quantity-control {
-  display: inline-flex;
+.quantity-selector {
+  display: flex;
   align-items: center;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   overflow: hidden;
+  height: 44px;
+  min-width: 120px;
 }
 
-.quantity-btn {
-  background-color: #f9fafb;
+.quantity-selector .quantity-btn {
+  background-color: #f4663c;
+  color: white;
   border: none;
   width: 36px;
-  height: 36px;
-  font-size: 16px;
+  height: 44px;
+  font-size: 18px;
+  font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-selector .quantity-display {
+  background: white;
+  color: black;
+  min-width: 44px;
+  height: 44px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
 }
 
 .quantity-btn:disabled {
@@ -62,262 +84,69 @@
   cursor: not-allowed;
 }
 
-.quantity-display {
-  width: 40px;
-  text-align: center;
-  font-weight: 500;
-}
-
 /* Action Buttons */
-.action-buttons {
+.cart-action-row {
   display: flex;
-  gap: 12px;
-  margin-bottom: 0;
+  align-items: center;
+  gap: 10px;
   width: 100%;
 }
 
-.cart-btn, .buy-btn {
+.cart-btn {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 8px;
+  height: 44px;
+  background-color: #f4663c;
+  color: white;
+  border: none;
+  border-radius: 4px;
   font-weight: 600;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
-  border: none;
   cursor: pointer;
-}
-
-.cart-btn {
-  background-color: #f4663c;
-  color: white;
-  border: none;
 }
 
 .cart-btn:hover {
   background-color: #e35632;
 }
 
+.buy-now-container {
+  width: 100%;
+}
+
 .buy-btn {
+  width: 100%;
+  height: 44px;
   background-color: #525d45;
   color: white;
   border: none;
-}
-
-.product-info {
-  padding: 20px;
-}
-
-.cart-btn,
-.buy-btn,
-.wallet-btn {
-  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: 600;
   font-size: 14px;
-  font-weight: 500;
-  border-radius: 4px;
-  margin-right: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
   cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.cart-btn {
-  background-color: #f5f5f5;
-  color: #333;
-  border: 1px solid #ddd;
-}
-
-.cart-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.buy-btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
-}
-
-.buy-btn:hover {
-  background-color: #218838;
-}
-
-.wallet-btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-}
-
-.wallet-btn:hover {
-  background-color: #0056b3;
-}
-
-.action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: fit-content;
-}
-
-.quantity-btn {
-  background: #f5f5f5;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.quantity-display {
-  padding: 8px 16px;
-  border-left: 1px solid #ddd;
-  border-right: 1px solid #ddd;
-}
-
-.color-options,
-.size-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.color-option,
-.size-option {
-  cursor: pointer;
-  position: relative;
-}
-
-.color-swatch {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  background-size: cover;
-}
-
-.color-option.active .color-swatch {
-  border: 2px solid #333;
-}
-
-.size-option {
-  padding: 8px 16px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.size-option.active {
-  border: 2px solid #333;
-}
-
-.out-of-stock {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.out-of-stock-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: #ff0000;
-  color: white;
-  font-size: 10px;
-  padding: 2px 4px;
-  border-radius: 2px;
-}
-
-.payment-options {
-  margin-top: 20px;
-}
-
-.payment-title {
-  font-weight: 500;
-  margin-bottom: 10px;
-}
-
-.payment-methods {
-  display: flex;
-  gap: 10px;
-}
-
-.payment-icon {
-  height: 24px;
-}
-
-.social-share {
-  margin-top: 20px;
-}
-
-.share-title {
-  font-weight: 500;
-  margin-bottom: 10px;
-}
-
-.share-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.share-button {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #f5f5f5;
-  color: #333;
-}
-
-.share-button.facebook {
-  background: #3b5998;
-  color: white;
-}
-
-.share-button.twitter {
-  background: #1da1f2;
-  color: white;
-}
-
-.share-button.whatsapp {
-  background: #25d366;
-  color: white;
-}
-
-.copy-toast {
-  position: absolute;
-  top: -30px;
-  background: #333;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
 }
 
 .buy-btn:hover {
   background-color: #414b35;
 }
 
-.cart-btn i, .buy-btn i {
-  font-size: 16px;
-}
-
-/* Wishlist button styles */
+/* Wishlist button */
 .wishlist-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   background-color: white;
   color: #525d45;
   transition: all 0.2s ease;
@@ -335,45 +164,13 @@
   font-size: 18px;
 }
 
-/* Payment Options */
-.payment-options {
-  margin: 15px 0 25px;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  border: 1px solid #eee;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.payment-title {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
-.payment-methods {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.payment-icon {
-  height: 30px;
-  object-fit: contain;
-  transition: transform 0.2s ease;
-}
-
-.payment-icon:hover {
-  transform: translateY(-2px);
-}
-
-/* Mobile Adjustments */
-@media (max-width: 480px) {
-  .action-buttons {
-    flex-direction: column;
-  }
+/* Stock Status */
+.stock-status {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #fee2e2;
+  border-radius: 4px;
+  text-align: center;
 }
 
 /* Color Options */
@@ -470,122 +267,104 @@
   background-color: #9ca3af;
 }
 
-/* Stock status */
-.stock-status {
-  margin: 10px 0;
-  padding: 8px 12px;
-  background-color: #fee2e2;
-  border-radius: 4px;
-  text-align: center;
+/* Payment Options */
+.payment-options {
+  margin: 15px 0 25px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.wishlist-container {
+.payment-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.payment-methods {
   display: flex;
+  gap: 15px;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.wishlist-container:hover .text-sm {
-  text-decoration: underline;
-}
-
-.wishlist-message {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.text-green-500 {
-  color: #10b981;
-}
-
-.text-red-500 {
-  color: #ef4444;
-}
-
-/* Social Share Buttons */
-.social-share {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #eee;
-}
-
-.share-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.share-buttons {
-  display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
 }
 
-.share-button {
+.payment-icon {
+  height: 30px;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.payment-icon:hover {
+  transform: translateY(-2px);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 767px) {
+  .cart-action-row {
+    gap: 8px;
+  }
+
+  .quantity-selector {
+    min-width: 100px;
+  }
+
+  .quantity-selector .quantity-btn {
+    width: 32px;
+    font-size: 16px;
+  }
+
+  .quantity-selector .quantity-display {
+    min-width: 36px;
+  }
+}
+
+/* Spinner Styles */
+.spinner-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 100%;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: relative;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
 }
 
-.share-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.facebook {
-  background-color: #3b5998;
+/* Disabled button styles */
+.cart-btn:disabled,
+.buy-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
 }
 
-.twitter {
-  background-color: #1da1f2;
+/* Wallet Payment Styles */
+.wallet-payment-wrapper {
+  display: block;
+  width: 100%;
+  margin-bottom: 15px;
 }
 
-.whatsapp {
-  background-color: #25d366;
-}
-
-.copy-link {
-  background-color: #333;
-}
-
-.copy-toast {
-  position: absolute;
-  top: -35px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  animation: fadeInOut 2s ease forwards;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* Responsive design for share buttons */
-@media (max-width: 768px) {
-  .share-buttons {
-    justify-content: center;
-  }
-
-  .share-title {
-    text-align: center;
-  }
+/* Payment divider line */
+.wallet-payment-wrapper::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 15px 0;
+  width: 100%;
 }

@@ -26,7 +26,6 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
     ServiceHighlightsComponent,
     AsyncPipe,
     DialogErrorComponent,
-    SkeletonLoaderComponent,
   ],
   templateUrl: './order-page.component.html',
   styleUrl: './order-page.component.css',
