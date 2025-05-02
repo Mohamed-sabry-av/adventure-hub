@@ -1,13 +1,13 @@
-.main-page {
-  @apply uppercase font-semibold text-base mb-2 cursor-pointer;
+.section {
+  @apply col-span-12 md:col-span-6 lg:col-span-4;
 }
 
-ul {
-  @apply text-sm gap-y-2 flex flex-col justify-center;
+.main-page {
+  @apply font-semibold text-base mb-2 cursor-pointer;
 }
 
 li {
-  color: rgb(204, 204, 204);
+  @apply text-gray-300 text-sm;
 }
 
 a:not(.no-style) {
@@ -23,7 +23,7 @@ a:not(.no-style):hover::after {
   @apply w-full;
 }
 
-a:not(.no-style):hover {
+a:hover {
   @apply text-white cursor-pointer;
 }
 
@@ -32,8 +32,7 @@ a:not(.no-style):hover {
 }
 
 i {
-  cursor: pointer;
-  margin-right: 10px;
+  @apply text-2xl;
 }
 
 .social-image {

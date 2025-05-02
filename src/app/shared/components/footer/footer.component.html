@@ -1,27 +1,116 @@
-<footer class="bg-[#212122] text-[#fbfbfb] pb-8 pt-[64px] overflow-hidden">
-  <div
-    class="flex md:flex-row flex-col justify-center items-start gap-8 md:ml-0 ml-8"
-  >
-    <div>
-      <p class="main-page">about</p>
-      <ul>
-        <li>Online Trade Hub LLC</li>
-        <li>2220615.01</li>
-        <li>Shams Business Center, Sharjah, UAE.</li>
-      </ul>
+<footer
+  class="bg-[#212122] text-[#fbfbfb] md:pb-[64px] md:pt-[72px] pb-10 pt-[20px] overflow-hidden"
+>
+  <app-app-container>
+    <div
+      class="grid grid-cols-12 lg:gap-y-0 gap-y-9 lg:gap-x-16 xl:gap-x-24 2xl:gap-x-32"
+    >
+      <div class="section">
+        <div class="flex flex-col justify-start gap-8">
+          <a class="block" [routerLink]="''" class="no-style">
+            <img
+              src="header/White logo-01.webp"
+              alt="Adventures hub logo"
+              routerLink="/home"
+              class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer -ml-3"
+              loading="lazy"
+            />
+          </a>
+          <p>From enthusiasts. To enthusiasts.</p>
+          <ul class="flex items-center gap-x-6">
+            <li class="social-link">
+              <a
+                href="https://www.facebook.com/adventureshubme"
+                target="_blank"
+                class="no-style"
+              >
+                <i class="pi pi-facebook"></i
+              ></a>
+            </li>
+            <li class="social-link">
+              <a
+                href="https://www.instagram.com/adventures_hub_dxb/"
+                target="_blank"
+                class="no-style"
+                ><i class="pi pi-instagram"></i
+              ></a>
+            </li>
+            <li class="social-link">
+              <a
+                href="https://www.youtube.com/@adventures-hub"
+                target="_blank"
+                class="no-style"
+                ><i class="pi pi-youtube"></i
+              ></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="section">
+        <div
+          class="flex items-start justify-between md:border-none border-t border-b border-[#3f3c3c] py-4 md:py-0"
+        >
+          <div>
+            <p class="main-page !mb-3">Support</p>
+            @if (showSupportSection()) {
+            <div @slideInOut>
+              <ul class="flex flex-col justify-center gap-4">
+                <li>
+                  <a [routerLink]="['/user']"> My Account </a>
+                </li>
+                <li>
+                  <a [routerLink]="['pages', 'about-us']"> About Us </a>
+                </li>
+                <li>
+                  <a [routerLink]="['pages', 'contact-us']"> Contact Us </a>
+                </li>
+                <li>
+                  <a [routerLink]="['blog']"> Blogs </a>
+                </li>
+                <li>
+                  <a [routerLink]="['product', 'sale']"> Deals </a>
+                </li>
+              </ul>
+            </div>
+            }
+          </div>
+          <i
+            class="pi {{
+              !supportVisible() ? 'pi-angle-up' : 'pi-angle-down'
+            }} text-white cursor-pointer !text-base md:hidden block"
+            (click)="onShowSupportData()"
+          ></i>
+        </div>
+      </div>
+      <div class="section">
+        <p class="main-page">Need help with your order?</p>
+        <p class="text-gray-300">Call: 050 460 6671</p>
+      </div>
     </div>
-    <div>
-      <p class="main-page">help</p>
-      <ul>
-        <li>
-          <a [routerLink]="['/user']"> My Account </a>
-        </li>
-        <li>
-          <a [routerLink]="['pages', 'about-us']"> About Us </a>
-        </li>
-        <li>
-          <a [routerLink]="['pages', 'contact-us']"> Contact Us </a>
-        </li>
+    <div class="flex gap-5 pt-12 pb-8">
+      <img
+        class="credit-image"
+        data-src="/wp-content/uploads/2024/11/positivessl_trust_seal_lg.png"
+        alt="positivessl_trust_seal_lg"
+        src="https://adventures-hub.com//wp-content/uploads/2024/11/positivessl_trust_seal_lg.png"
+      />
+      <img
+        class="credit-image"
+        data-src="https://themedemo.commercegurus.com/shoptimizer-demodata/wp-content/uploads/sites/53/2018/05/credit-cards.png"
+        alt="credit-cards"
+        src="https://themedemo.commercegurus.com/shoptimizer-demodata/wp-content/uploads/sites/53/2018/05/credit-cards.png"
+      />
+    </div>
+    <hr class="bg-[#3f3c3c] h-[2px] border-0" />
+
+    <div
+      class="mt-4 flex md:flex-row flex-col md:items-center md:justify-between justify-start md:gap-y-0 gap-y-3"
+    >
+      <p class="text-sm text-gray-300">
+        © Adventures HUB {{ currentYear }}, All rights reserved.
+      </p>
+
+      <ul class="flex items-center gap-6">
         <li>
           <a [routerLink]="['pages', 'terms']"> Terms and Conditions </a>
         </li>
@@ -33,90 +122,7 @@
         <li>
           <a [routerLink]="['pages', 'Cookies-Policy']"> Cookies Policy </a>
         </li>
-        <li>
-          <a [routerLink]="['pages', 'vendor-dashboard']"> Vendor Dashboard </a>
-        </li>
       </ul>
     </div>
-    <div>
-      <p class="main-page">follow</p>
-      <ul>
-        <li class="social-link">
-          <i class="pi pi-facebook"></i>
-          <a href="https://www.facebook.com/adventureshubme" target="_blank"
-            >Facebook</a
-          >
-        </li>
-        <li class="social-link">
-          <i class="pi pi-instagram"></i>
-          <a
-            href="https://www.instagram.com/adventures_hub_dxb/"
-            target="_blank"
-            >Instagram</a
-          >
-        </li>
-        <li class="social-link">
-          <i class="pi pi-youtube"></i>
-          <a href="https://www.youtube.com/@adventures-hub" target="_blank"
-            >Youtube</a
-          >
-        </li>
-        <li class="main-page !text-white">Send a message</li>
-        <li class="social-link !-mt-1">
-          <a
-            href="['https://m.me/adventureshubme']"
-            target="_blank"
-            class="no-style"
-          >
-            <img
-              class="social-image"
-              data-src="https://adventures-hub.com/wp-content/uploads/2023/03/messenger-icon.svg"
-              alt="messenger-icon"
-              src="https://adventures-hub.com/wp-content/uploads/2023/03/messenger-icon.svg"
-            />
-          </a>
-
-          <a
-            href="'https://web.whatsapp.com/send?phone=+971508388874'"
-            target="_blank"
-            class="no-style"
-          >
-            <img
-              class="social-image"
-              data-src="https://adventures-hub.com/wp-content/uploads/2023/03/whatsapp-icon.svg"
-              alt="whatsapp-icon"
-              src="https://adventures-hub.com/wp-content/uploads/2023/03/whatsapp-icon.svg"
-            />
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Brands -->
-
-  <div class="w-full md:ml-0 ml-8">
-    <p class="main-page md:!text-center !mt-8">shop by brand</p>
-    <div
-      class="flex md:flex-row flex-col md:gap-0 gap-6 md:mt-0 mt-4 items-start md:items-center justify-around"
-    >
-      <p>© Adventures HUB {{ currentYear }}, All rights reserved.</p>
-      <div
-        class="flex flex-wrap flex-row md:flex-col lg:flex-row items-center gap-5"
-      >
-        <img
-          class="credit-image"
-          data-src="/wp-content/uploads/2024/11/positivessl_trust_seal_lg.png"
-          alt="positivessl_trust_seal_lg"
-          src="https://adventures-hub.com//wp-content/uploads/2024/11/positivessl_trust_seal_lg.png"
-        />
-        <img
-          class="credit-image"
-          data-src="https://themedemo.commercegurus.com/shoptimizer-demodata/wp-content/uploads/sites/53/2018/05/credit-cards.png"
-          alt="credit-cards"
-          src="https://themedemo.commercegurus.com/shoptimizer-demodata/wp-content/uploads/sites/53/2018/05/credit-cards.png"
-        />
-      </div>
-    </div>
-  </div>
+  </app-app-container>
 </footer>
