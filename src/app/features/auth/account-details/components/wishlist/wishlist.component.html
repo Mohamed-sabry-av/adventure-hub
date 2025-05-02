@@ -1,5 +1,5 @@
 <div class="wishlist-content">
-  <h2 class="text-2xl font-semibold mb-4">Mi Lista de Deseos</h2>
+  <h2 class="text-2xl font-semibold mb-4">My Wishlist</h2>
 
   <div *ngIf="isLoading" class="loading p-4 text-center">
     <p>Loading your wishlist...</p>
@@ -75,7 +75,6 @@
               <h3 class="product-title">{{ item.name }}</h3>
               <p class="product-price">{{ item.price }}</p>
 
-              <!-- Botones de acción -->
               <div class="product-actions">
                 <a [routerLink]="['/product', item.product_id]" class="view-btn">
                   <i class="pi pi-eye"></i>
@@ -85,7 +84,7 @@
                   class="add-to-cart-btn"
                   (click)="addToCart(item.product_id)">
                   <i class="pi pi-shopping-cart"></i>
-                  <span>Añadir al Carrito</span>
+                  <span></span>
                 </button>
               </div>
             </div>

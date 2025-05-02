@@ -7,12 +7,18 @@
       class="auth-background-image"
       src="authBackground/authBackground.webp"
       alt="Mountain climber"
-      loading="lazy"
     />
     <div class="auth-background-overlay"></div>
   </div>
 
-  <div class="auth-card-container">
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div
+      class="block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black absolute top-4 right-4"
+    ></div>  </div>
+
+  <!-- Auth Card Container (يظهر بس لما isLoading = false) -->
+  <div class="auth-card-container" *ngIf="!isLoading">
     <!-- Brand Logo and Title -->
     <div class="auth-header">
       <div class="logo-container">

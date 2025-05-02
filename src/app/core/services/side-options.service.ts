@@ -74,6 +74,23 @@ export class SideOptionsService {
     });
   }
 
+  updateVariation(): void {
+    const { selectedColor, selectedSize, variations } = this.currentState;
+    if (selectedColor && selectedSize) {
+      const variation = variations.find((v) =>
+        v.attributes.every(
+          (attr: any) =>
+            (attr.name === 'Color' && attr.option === selectedColor) ||
+            (attr.name === 'Size' && attr.option === selectedSize)
+        )
+      );
+      this.stateSubject.next({
+        ...this.currentState,
+        selectedVariation: variation || null,
+      });
+    }
+  }
+
   selectSize(size: string): void {
     this.stateSubject.next({
       ...this.currentState,

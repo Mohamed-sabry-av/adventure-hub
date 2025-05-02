@@ -19,12 +19,11 @@ import { CartService } from '../../../features/cart/service/cart.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { map, Observable, Subject, takeUntil } from 'rxjs';
 import { UIService } from '../../services/ui.service';
-import { CurrencySvgPipe } from '../../pipes/currency.pipe';
 
 @Component({
   selector: 'app-side-options',
   standalone: true,
-  imports: [CommonModule, FormsModule, AsyncPipe,CurrencySvgPipe],
+  imports: [CommonModule, FormsModule, AsyncPipe],
   templateUrl: './side-options.component.html',
   styleUrls: ['./side-options.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -99,16 +98,23 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.uiService.loadingMap$.subscribe((res) => console.log(res));
-
     this.sideOptionsService.state$
       .pipe(takeUntil(this.destroy$))
       .subscribe((state) => {
-        console.log(state);
         this.state = state;
+        if (state.product?.default_attributes?.length) {
+          state.product.default_attributes.forEach((attr: any) => {
+            if (attr.name === 'Color') {
+              this.selectColor(attr.option, '');
+            } else if (attr.name === 'Size') {
+              this.selectSize(attr.option);
+            }
+          });
+        }
         this.cdr.markForCheck();
       });
   }
+
   stateIsOpen$: Observable<any> = this.sideOptionsService.state$.pipe(
     map((response: SideOptionsState) => {
       return { isOpen: response.isOpen, isMobile: response.isMobile };
@@ -216,24 +222,27 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  increaseQuantity() {
+increaseQuantity() {
+  const max = this.state.product?.quantity_limits?.maximum || Infinity;
+  if (this.quantity < max) {
     this.quantity++;
     this.cdr.markForCheck();
   }
+}
 
-  onQuantityChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = parseInt(input.value);
+onQuantityChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const value = parseInt(input.value);
+  const max = this.state.product?.quantity_limits?.maximum || Infinity;
 
-    if (!isNaN(value) && value > 0) {
-      this.quantity = value;
-    } else {
-      this.quantity = 1;
-      input.value = '1';
-    }
-
-    this.cdr.markForCheck();
+  if (!isNaN(value) && value > 0 && value <= max) {
+    this.quantity = value;
+  } else {
+    this.quantity = 1;
+    input.value = '1';
   }
+  this.cdr.markForCheck();
+}
 
   // Information getters
   getProductName(): string {
@@ -249,17 +258,17 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     if (!product) return '';
 
     if (product.on_sale && product.sale_price) {
-      return `${ CurrencySvgPipe} ${product.sale_price}`;
+      return `${product.currency || 'AED'} ${product.sale_price}`;
     }
 
-    return `${CurrencySvgPipe} ${product.price}`;
+    return `${product.currency || 'AED'} ${product.price}`;
   }
 
   getOldPrice(): string {
     const product = this.state.product;
     if (!product || !product.on_sale) return '';
 
-    return `${CurrencySvgPipe} ${product.regular_price}`;
+    return `${product.currency || 'AED'} ${product.regular_price}`;
   }
 
   getSelectedColorImage(): string {

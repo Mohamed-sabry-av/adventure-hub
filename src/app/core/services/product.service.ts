@@ -3,10 +3,9 @@ import { inject, Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable, of } from 'rxjs';
 import { CacheService } from './cashing.service';
-import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { Product, Variation } from '../../interfaces/product';
 import { HandleErrorsService } from './handel-errors.service';
-import { error } from 'console';
 
 @Injectable({
   providedIn: 'root',

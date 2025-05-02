@@ -1,31 +1,13 @@
-import { Component, EventEmitter, input, Output } from '@angular/core';
+import { Component, EventEmitter, input, Output, OnInit, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../../cart/service/cart.service';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
-import { Subscription, BehaviorSubject, Observable, map } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
-import { Product, Variation } from '../../../../interfaces/product';
 import { VariationService } from '../../../../core/services/variation.service';
-
-// UI Service for loading states
-class UIService {
-  private loadingMapSubject = new BehaviorSubject<{ [key: string]: boolean }>({
-    add: false,
-    buy: false,
-  });
-
-  loadingMap$ = this.loadingMapSubject.asObservable();
-
-  setLoading(key: string, isLoading: boolean) {
-    const currentState = this.loadingMapSubject.getValue();
-    this.loadingMapSubject.next({
-      ...currentState,
-      [key]: isLoading,
-    });
-  }
-}
+import { UIService } from '../../../../shared/services/ui.service';
 
 declare var _learnq: any;
 
@@ -36,7 +18,7 @@ declare var _learnq: any;
   styleUrls: ['./product-info.component.css'],
   standalone: true,
 })
-export class ProductInfoComponent {
+export class ProductInfoComponent implements OnInit, OnDestroy {
   productInfo = input<any>();
   images: string[] = ['slider/1.webp', 'slider/2.webp'];
   maxLength: number = 10;
@@ -47,14 +29,12 @@ export class ProductInfoComponent {
   wishlistMessage: string | null = null;
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
-  
 
   // Track if we should show out of stock variations
   showOutOfStockVariations: boolean = true;
 
-  // UI Service for loading states
-  private uiService = new UIService();
-  loadingMap$: Observable<{ [key: string]: boolean }> = this.uiService.loadingMap$;
+  // Loading states from injected UIService
+  loadingMap$: Observable<{ [key: string]: boolean }>;
 
   @Output() selectedAttributeChange = new EventEmitter<{ name: string; value: string | null }>();
   @Output() variationSelected = new EventEmitter<any>();
@@ -64,8 +44,11 @@ export class ProductInfoComponent {
   constructor(
     private cartService: CartService,
     private wishlistService: WooCommerceAccountService,
-    private variationService: VariationService
-  ) {}
+    private variationService: VariationService,
+    private uiService: UIService // Injected singleton UIService
+  ) {
+    this.loadingMap$ = this.uiService.loadingMap$; // Set loadingMap$ from UIService
+  }
 
   ngOnInit() {
     const product = this.productInfo();
@@ -73,7 +56,6 @@ export class ProductInfoComponent {
       this.quantity = 1;
       this.setDefaultAttributes();
       this.updateMaxLength();
-
       this.checkWishlistStatus(product.id);
     }
   }
@@ -139,7 +121,6 @@ export class ProductInfoComponent {
       return [];
     }
 
-    // Using the variation service for consistent handling
     if (attributeName === 'Color') {
       const colorOptions = this.variationService.getColorOptions(variations);
       return colorOptions.map(option => ({
@@ -155,14 +136,12 @@ export class ProductInfoComponent {
       }));
     }
 
-    // For other attribute types, or fallback
     const optionMap = new Map<string, { image?: string; inStock: boolean }>();
 
     variations.forEach((v: any) => {
       const attr = v.attributes?.find((attr: any) => attr?.name === attributeName);
       if (!attr) return;
 
-      // Check if this variation matches dependent attribute if specified
       const matchesDependentAttribute = !dependentAttributeValue ||
         v.attributes?.some(
           (a: any) => a.name !== attributeName && a.option === dependentAttributeValue
@@ -172,7 +151,6 @@ export class ProductInfoComponent {
         const isInStock = v.stock_status === 'instock';
         const currentValue = optionMap.get(attr.option);
 
-        // Only update if we haven't seen this option before, or if this variation is in stock and the previous one wasn't
         if (!currentValue || (!currentValue.inStock && isInStock)) {
           optionMap.set(attr.option, {
             inStock: isInStock,
@@ -196,18 +174,15 @@ export class ProductInfoComponent {
       this.selectedAttributes['Size'] = null;
       const availableSizes = this.getVariationOptions('Size', value);
       if (availableSizes.length > 0) {
-        // First try to find an in-stock size
         const firstInStockSize = availableSizes.find(size => size.inStock);
         if (firstInStockSize) {
           this.selectAttribute('Size', firstInStockSize.value);
         } else if (this.showOutOfStockVariations) {
-          // If showing out of stock variations, select the first one
           this.selectAttribute('Size', availableSizes[0].value);
         }
       }
     }
 
-    // Emit variation selected event when all attributes are selected
     if (this.allVariationAttributesSelected) {
       const selectedVariation = this.getSelectedVariation();
       if (selectedVariation) {
@@ -231,7 +206,6 @@ export class ProductInfoComponent {
       return null;
     }
 
-    // Use the variation service to find the variation
     return this.variationService.findVariationByAttributes(variations, this.selectedAttributes);
   }
 
@@ -248,7 +222,7 @@ export class ProductInfoComponent {
       return false;
     }
 
-    const selectedVariation :any= this.getSelectedVariation();
+    const selectedVariation: any = this.getSelectedVariation();
     return (
       !!selectedVariation &&
       selectedVariation.stock_status === 'instock' &&
@@ -261,12 +235,11 @@ export class ProductInfoComponent {
     if (!product) {
       return { price: '0', regularPrice: '0', isOnSale: false };
     }
-  
-    // Helper function to normalize price
+
     const normalizePrice = (value: any): string => {
       return value ? String(value).replace(/[^0-9.]/g, '') : '0';
     };
-  
+
     if (product.type === 'simple' || !this.allVariationAttributesSelected) {
       const price = normalizePrice(product.price);
       const regularPrice = normalizePrice(product.regular_price || price);
@@ -274,10 +247,10 @@ export class ProductInfoComponent {
       const isOnSale =
         (product.sale_price && salePrice !== regularPrice) ||
         (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
-  
+
       return { price, regularPrice, isOnSale };
     }
-  
+
     const selectedVariation = this.getSelectedVariation();
     if (selectedVariation) {
       const price = normalizePrice(selectedVariation.price || product.price);
@@ -286,51 +259,43 @@ export class ProductInfoComponent {
       const isOnSale =
         (selectedVariation.sale_price && salePrice !== regularPrice) ||
         (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
-  
+
       return { price, regularPrice, isOnSale };
     }
-  
+
     const price = normalizePrice(product.price);
     const regularPrice = normalizePrice(product.regular_price || price);
     const salePrice = normalizePrice(product.sale_price);
     const isOnSale =
       (product.sale_price && salePrice !== regularPrice) ||
       (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
-  
-   
+
     return { price, regularPrice, isOnSale };
   }
 
   addToCart(buyItNow: boolean = false): void {
     const product = this.productInfo();
     if (!product) {
-      this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
       return;
     }
-  
-    this.uiService.setLoading(buyItNow ? 'buy' : 'add', true);
-  
+
     let cartProduct: any;
     if (product.type === 'simple') {
       if (product.stock_status !== 'instock') {
-        this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
       cartProduct = { ...product, quantity: this.quantity };
     } else {
       if (!this.allVariationAttributesSelected) {
-        this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
       const selectedVariation = this.getSelectedVariation();
       if (!selectedVariation) {
         console.error('Cannot add to cart: No valid variation selected');
-        this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
       if (selectedVariation.stock_status !== 'instock') {
         console.error('Cannot add to cart: Selected variation is out of stock');
-        this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
       cartProduct = this.variationService.prepareProductForCart(
@@ -339,39 +304,30 @@ export class ProductInfoComponent {
         this.quantity
       );
     }
-  
+
     if (!this.cartService) {
       console.error('CartService is not initialized');
-      this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
       return;
     }
-  
-    // استخدام Promise بدل setTimeout
-    Promise.resolve().then(() => {
-      this.cartService.addProductToCart(cartProduct, buyItNow);
-      console.log('Product added to cart:', cartProduct);
-  
-      if (typeof _learnq !== 'undefined') {
-        _learnq.push([
-          'track',
-          buyItNow ? 'Buy Now' : 'Added to Cart',
-          {
-            ProductID: product.id,
-            ProductName: product.name,
-            Price: cartProduct.price || product.price,
-            VariationID: cartProduct.id !== product.id ? cartProduct.id : null,
-            Attributes: { ...this.selectedAttributes },
-            Brand: this.brandName,
-            Categories: product.categories?.map((cat: any) => cat.name) || [],
-          },
-        ]);
-      }
-  
-      // Reset loading state بعد 500ms بدل 1000ms
-      setTimeout(() => {
-        this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
-      }, 500);
-    });
+
+    this.cartService.addProductToCart(cartProduct, buyItNow);
+    console.log('Product added to cart:', cartProduct);
+
+    if (typeof _learnq !== 'undefined') {
+      _learnq.push([
+        'track',
+        buyItNow ? 'Buy Now' : 'Added to Cart',
+        {
+          ProductID: product.id,
+          ProductName: product.name,
+          Price: cartProduct.price || product.price,
+          VariationID: cartProduct.id !== product.id ? cartProduct.id : null,
+          Attributes: { ...this.selectedAttributes },
+          Brand: this.brandName,
+          Categories: product.categories?.map((cat: any) => cat.name) || [],
+        },
+      ]);
+    }
   }
 
   buyNow(): void {
@@ -531,7 +487,6 @@ export class ProductInfoComponent {
     return window.location.href;
   }
 
-  // Format a color name for display
   formatColorName(colorName: string): string {
     return this.variationService.formatColorName(colorName);
   }

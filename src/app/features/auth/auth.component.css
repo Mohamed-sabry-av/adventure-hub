@@ -9,6 +9,15 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
   }
+
+  .loading-container{
+    display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #fff; /* أو أي لون يناسب الـ background */
+  font-size: 1.5rem;
+  }
   
   /* Background Container for the Image */
   .auth-background-container {
