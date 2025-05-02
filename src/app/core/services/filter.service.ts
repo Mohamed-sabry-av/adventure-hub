@@ -143,7 +143,8 @@ export class FilterService {
       .set('status', 'publish')
       .set('stock_status', 'instock')
       .set('per_page', perPage.toString())
-      .set('_fields', 'id,name,price,slug,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type');
+      .set('_fields','default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+      );
 
     if (categoryId) {
       params = params.set('category', categoryId.toString());
