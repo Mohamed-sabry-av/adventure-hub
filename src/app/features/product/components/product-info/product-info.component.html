@@ -3,10 +3,10 @@
     {{ productInfo()?.name }}
   </h1>
 
-  <div class="flex items-baseline-rule mb-4 gap-2">
+  <div class="flex items-baseline mb-4 gap-2">
     <span class="text-2xl font-bold" [innerHtml]="getPriceInfo().price | currencySvg"></span>
     <ng-container *ngIf="getPriceInfo().isOnSale">
-      <span class="text-gray-500 line-through text-lg ml-2" [innerHtml]="getPriceInfo().regularPrice "></span>
+      <span class="text-gray-500 line-through text-lg ml-2" [innerHtml]="getPriceInfo().regularPrice"></span>
       <span class="text-green-600 text-sm font-medium ml-2">(On Sale!)</span>
     </ng-container>
   </div>
@@ -136,7 +136,7 @@
 
     <!-- Wallet Payment Button -->
     <div class="wallet-payment-container mb-4">
-      <app-wallet-payment (paymentSucceeded)="onWalletPaymentSucceeded($event)"></app-wallet-payment>
+      <app-wallet-payment [product]="getCartProduct()" (paymentSucceeded)="onWalletPaymentSucceeded($event)"></app-wallet-payment>
     </div>
 
     <span class="text-sm text-gray-500 mb-4 block" *ngIf="maxLength > 0">

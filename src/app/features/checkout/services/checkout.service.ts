@@ -7,6 +7,7 @@ import {
   combineLatest,
   map,
   Observable,
+  of,
   switchMap,
   take,
   throwError,
@@ -35,6 +36,7 @@ export interface PaymentIntentRequest {
     shipping: any;
     line_items: any[];
     coupon_lines?: any[];
+    is_single_product?: boolean;
   };
 }
 
@@ -158,9 +160,16 @@ export class CheckoutService {
         response?.userCart?.items.map((item: any) => ({
           product_id: item.id,
           quantity: item.quantity,
+          variation_id: item.variation_id || null,
         }))
       )
     );
+  }
+
+  getCartItemsSync(): any[] {
+    let cartItems: any[] = [];
+    this.getCartItems().pipe(take(1)).subscribe(items => cartItems = items);
+    return cartItems;
   }
 
   getCartTotalPrice(): Observable<{ total: number; currency: string }> {
@@ -173,14 +182,18 @@ export class CheckoutService {
         }
         console.log('Cart totals:', totals);
         return {
-          total: totals.total_price,
+          total: parseFloat(totals.total_price) || 0,
           currency: totals.currency_code || 'AED',
         };
       })
     );
   }
 
-  private getCoupons(form: FormGroup): Observable<{ isValid: boolean; coupon: any[] }> {
+  private getCoupons(form: FormGroup | null): Observable<{ isValid: boolean; coupon: any[] }> {
+    if (!form) {
+      // For single-product purchases, assume no coupons unless provided
+      return of({ isValid: true, coupon: [] });
+    }
     return this.appliedCouponValue$.pipe(
       take(1),
       map((response: any) => {
@@ -215,28 +228,34 @@ export class CheckoutService {
   createPaymentIntent(
     amount: number,
     currency: string,
-    orderData: { billing: any; shipping: any; line_items: any[] }
+    orderData: { billing: any; shipping: any; line_items: any[]; is_single_product?: boolean }
   ): Observable<PaymentIntentResponse> {
-    if (!this.billingForm) {
-      return throwError(() => new Error('Billing form is not available for coupon validation'));
-    }
-
     return combineLatest([
-      this.getCoupons(this.billingForm),
-      this.getCartItems(),
+      this.getCoupons(orderData.is_single_product ? null : this.billingForm),
+      orderData.is_single_product ? [] : this.getCartItems(),
     ]).pipe(
-      switchMap(([couponData, lineItems]) => {
+      switchMap(([couponData, cartItems]) => {
         if (!couponData.isValid && couponData.coupon.length > 0) {
           return throwError(() => new Error('Coupon already used'));
         }
 
+        const lineItems = orderData.is_single_product && orderData.line_items.length > 0
+          ? orderData.line_items
+          : cartItems;
+
+        if (!lineItems || lineItems.length === 0) {
+          return throwError(() => new Error('No line items provided for payment intent'));
+        }
+
         const payload: PaymentIntentRequest = {
-          amount,
-          currency,
+          amount: Math.round(amount * 100), // Convert to fils/cents
+          currency: currency.toLowerCase(),
           orderData: {
-            ...orderData,
+            billing: orderData.billing,
+            shipping: orderData.shipping,
             line_items: lineItems,
             coupon_lines: couponData.coupon || [],
+            is_single_product: orderData.is_single_product || false,
           },
         };
 

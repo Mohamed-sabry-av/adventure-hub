@@ -25,8 +25,10 @@
   } @else if(currentPage !== 'checkout') {
   <!-- Secondary Info -->
 
+  @if (showNavbar()) {
   <div
     class="relative mt-1 lg:mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6 transform duration-150 translate-y-1"
+    @navbarAnimation
   >
     <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
       <strong>Free Delivery</strong> for orders over AED 100
@@ -35,6 +37,7 @@
       Buy Now & Pay Later with <strong>Tabby</strong>
     </p>
   </div>
+  }
 
   <!-- Main Info -->
   <app-app-container>

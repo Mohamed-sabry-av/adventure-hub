@@ -345,16 +345,40 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     const product = this.productInfo();
     if (!product) return null;
 
+    const normalizePrice = (value: any): string => {
+      return value ? String(value).replace(/[^0-9.]/g, '') : '0';
+    };
+
     if (product.type === 'simple') {
-      return { ...product, quantity: this.quantity };
+      return {
+        id: product.id,
+        price: normalizePrice(product.price),
+        quantity: this.quantity,
+        name: product.name,
+        stock_status: product.stock_status,
+      };
     }
 
-    if (!this.allVariationAttributesSelected) return null;
+    if (!this.allVariationAttributesSelected) {
+      // this.uiService.showMessage('Please select all variation options.', false);
+      return null;
+    }
 
     const selectedVariation = this.getSelectedVariation();
-    if (!selectedVariation) return null;
+    if (!selectedVariation) {
+      // this.uiService.showMessage('No valid variation selected.', false);
+      return null;
+    }
 
-    return this.variationService.prepareProductForCart(product, selectedVariation, this.quantity);
+    const cartProduct = this.variationService.prepareProductForCart(product, selectedVariation, this.quantity);
+    return {
+      id: cartProduct.id,
+      price: normalizePrice(cartProduct.price || selectedVariation.price || product.price),
+      quantity: this.quantity,
+      name: cartProduct.name || product.name,
+      variation_id: selectedVariation.id,
+      stock_status: selectedVariation.stock_status,
+    };
   }
 
   onWalletPaymentSucceeded(paymentIntentId: string) {
