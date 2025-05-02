@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   EventEmitter,
@@ -9,23 +10,20 @@ import {
   Input,
   Output,
   signal,
-  ViewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Category } from '../../../interfaces/category.model';
 import { NavbarService } from '../../services/navbar.service';
-import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
-
 import { trigger, transition, style, animate } from '@angular/animations';
+
 @Component({
   selector: 'app-navbar-main-categories',
+  standalone: true,
   imports: [RouterLink, AsyncPipe, DrawerModule],
   templateUrl: './navbar-main-categories.component.html',
   styleUrl: './navbar-main-categories.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
   animations: [
     trigger('slideInOut', [
       transition(':enter', [
@@ -42,7 +40,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
         ),
       ]),
     ]),
-
     trigger('visible', [
       transition(':enter', [
         style({ opacity: 0, height: '0px', overflow: 'hidden' }),
@@ -55,33 +52,45 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
 })
 export class NavbarMainCategoriesComponent {
-  private navbarService = inject(NavbarService);
-  private destroyRef = inject(DestroyRef);
   @Input({ required: true }) categories: Category[] = [];
   @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
+  private navbarService = inject(NavbarService);
+
+  expandedCategories = new Set<number>();
+  sidenavIsVisible = signal<boolean>(false);
+  showNavbar = signal<boolean>(true);
+  isMobile = signal<boolean>(false);
 
   selectedCategoryId: number | null = null;
-  isMobile: boolean = false;
-  sideNavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
 
-  // ----------------------------- Done
-  showNavbar$: Observable<boolean> = this.navbarService.navbarIsVisible$;
-  drawerTop: number = 100;
+  drawerTop = computed(() => {
+    return this.navbarService.headerHeight();
+  });
+
+  constructor() {
+    effect(() => {
+      console.log(this.navbarService.headerHeight());
+      this.showNavbar.set(this.navbarService.navBarIsVisible());
+      this.sidenavIsVisible.set(this.navbarService.sideNavIsVisible());
+      // Reset expandedCategories when sidenav is closed
+      if (!this.navbarService.sideNavIsVisible()) {
+        this.expandedCategories.clear();
+      }
+    });
+  }
 
   ngOnInit() {
-    const subscription = this.navbarService.headerHeight$.subscribe(
-      (response: any) => {
-        this.drawerTop = response;
-      }
-    );
-
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+    this.checkIfMobile();
   }
 
   @HostListener('window:resize')
   checkIfMobile() {
-    this.isMobile = window.innerWidth <= 960;
+    this.isMobile.set(window.innerWidth <= 960);
+  }
+
+  onSiwtchSideNav(visible: boolean) {
+    this.navbarService.toggleSideNav(visible);
   }
 
   getSubCategories(categoryId: number): Category[] {
@@ -121,18 +130,5 @@ export class NavbarMainCategoriesComponent {
       }
     }
     path.push(category.slug);
-  }
-
-  expandedCategories = new Set<number>();
-
-  // ------------------------------------------------------ Ameen Signals
-
-  showNavbar = signal<boolean>(true);
-  constructor() {
-    effect(() =>
-      this.showNavbar.update((perv) => {
-        return this.navbarService.navBarIsVisible();
-      })
-    );
   }
 }

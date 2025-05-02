@@ -3,32 +3,23 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class NavbarService {
-  sideNavIsVisible$ = new BehaviorSubject<boolean>(false);
-  searcBarIsVisible$ = new BehaviorSubject<boolean>(false);
-
-  siwtchSideNav(visible: boolean) {
-    this.sideNavIsVisible$.next(visible);
-  }
-
-  showSearchBar(isVisible: boolean) {
-    this.searcBarIsVisible$.next(isVisible);
-  }
-
-  // -------------------- show navbar or no
-  navbarIsVisible$ = new BehaviorSubject<boolean>(true);
-  showNavbar(isVisible: boolean) {
-    this.navbarIsVisible$.next(isVisible);
-  }
-
-  // -------------------- header height
-  headerHeight$ = new BehaviorSubject<number>(100);
-  handleScroll(headerHeight: any) {
-    this.headerHeight$.next(headerHeight);
-  }
-
-  // ----------------------------- Ameen Signals
   navBarIsVisible = signal<boolean>(true);
-  showNavbar2(navbarVisible: boolean) {
+  showNavbar(navbarVisible: boolean) {
     this.navBarIsVisible.update((prev) => navbarVisible);
+  }
+
+  headerHeight = signal<number>(92);
+  setHeaderHeight(headerHeight: any) {
+    this.headerHeight.set(headerHeight);
+  }
+
+  showSearchBar = signal<boolean>(false);
+  toggleSearchBar(isVisible: boolean) {
+    this.showSearchBar.set(isVisible);
+  }
+
+  sideNavIsVisible = signal<boolean>(false);
+  toggleSideNav(visible: boolean) {
+    this.sideNavIsVisible.update((prev) => visible);
   }
 }
