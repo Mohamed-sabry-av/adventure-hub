@@ -19,10 +19,11 @@ import { RouterLink } from '@angular/router';
 import { Product } from '../../../../interfaces/product';
 import { UIService } from '../../../../shared/services/ui.service';
 import { CartStatus } from '../../model/cart.model';
+import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 
 @Component({
   selector: 'app-side-cart',
-  imports: [AsyncPipe, DrawerModule, ButtonModule, CurrencyPipe, RouterLink],
+  imports: [AsyncPipe, DrawerModule, ButtonModule, CurrencySvgPipe, RouterLink],
   templateUrl: './side-cart.component.html',
   styleUrl: './side-cart.component.css',
 

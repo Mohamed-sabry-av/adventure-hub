@@ -107,15 +107,6 @@ export class CartEffect {
             console.log('2- Done');
             if (isLoggedIn) {
               console.log('Product Added To Cart Online');
-              response.items = response.items.map((item: any) => {
-                return {
-                  ...item,
-                  images: {
-                    imageSrc: item.images[0].thumbnail,
-                    imageAlt: item.images[0].alt,
-                  },
-                };
-              });
 
               this.store.dispatch(
                 stopLoadingSpinnerAction({
@@ -299,10 +290,7 @@ export class CartEffect {
                 return {
                   key: item.key,
                   id: item.id,
-                  images: {
-                    imageSrc: item.images[0]?.thumbnail || '',
-                    imageAlt: item.images[0]?.alt || 'product-image',
-                  },
+                  image: item.image,
                   name: item.name,
                   permalink: item.permalink,
                   type: item.type,
@@ -423,15 +411,7 @@ export class CartEffect {
                       error: null,
                     })
                   );
-                  response.items = response.items.map((item: any) => {
-                    return {
-                      ...item,
-                      images: {
-                        imageSrc: item.images[0].thumbnail,
-                        imageAlt: item.images[0].alt,
-                      },
-                    };
-                  });
+
                   return getUserCartAction({ userCart: response });
                 }),
                 catchError((error) => {
@@ -507,22 +487,7 @@ export class CartEffect {
             .pipe(
               map((response: any) => {
                 console.log('DELETED From Online Cart');
-                const updatedItems = response.items.map((item: any) => {
-                  return {
-                    ...item,
-                    images: {
-                      imageSrc: item.images[0].thumbnail,
-                      imageAlt: item.images[0].alt,
-                    },
-                  };
-                });
 
-                const updatedCart = {
-                  items: updatedItems,
-                  coupons: response.coupons,
-                  payment_methods: response.payment_methods,
-                  totals: response.totals,
-                };
                 this.store.dispatch(
                   cartStatusAction({
                     mainPageLoading: false,
@@ -530,7 +495,7 @@ export class CartEffect {
                     error: null,
                   })
                 );
-                return getUserCartAction({ userCart: updatedCart });
+                return getUserCartAction({ userCart: response });
               }),
               catchError((error: any) => {
                 this.uiService.showError(

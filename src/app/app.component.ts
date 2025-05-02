@@ -26,6 +26,7 @@ declare global {
     SideCartComponent,
     SideOptionsComponent,
     NgIf,
+    BackToTopComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -53,7 +54,6 @@ export class AppComponent {
       // Scroll to top only if the path has changed (not just fragment)
       if (this.previousUrl !== currentPath) {
         if (isPlatformBrowser(this.platformId)) {
-
           window.scrollTo({
             top: 0,
             behavior: 'smooth', // Smooth scroll

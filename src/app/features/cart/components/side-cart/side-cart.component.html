@@ -35,23 +35,13 @@
                 } @else if (progressValue !== 0) {
                 <span>
                   Spend
-                  <strong>{{
-                    100 - progressValue
-                      | currency
-                        : (loadedCart$ | async)?.userCart?.totals
-                            ?.currency_code || "AED"
-                  }}</strong>
+                  <strong>{{ 100 - progressValue }}</strong>
                   more for <strong>free shipping!</strong>
                 </span>
                 } @else {
                 <span>
                   Spend
-                  <strong>{{
-                    100
-                      | currency
-                        : (loadedCart$ | async)?.userCart?.totals
-                            ?.currency_code || "AED"
-                  }}</strong>
+                  <strong>{{ 100 }}</strong>
                   for <strong>free shipping!</strong>
                 </span>
                 }
@@ -79,8 +69,8 @@
                   <a [routerLink]="[`/${product.permalink}`]">
                     <img
                       loading="lazy"
-                      [src]="product.images.imageSrc"
-                      [alt]="product.images.imageAlt"
+                      [src]="product.image.thumbnail"
+                      [alt]="product.image.alt"
                       class="w-full h-full object-cover cursor-pointer"
                     />
                   </a>
@@ -105,18 +95,14 @@
                   <p class="text-xs">
                     <span>{{ product.quantity }} &#215; </span>
                     <span class="font-semibold text-black">{{
-                      product.totals.line_total | currency : "AED"
+                      product.prices.price
                     }}</span>
                   </p>
                 </div>
               </div>
               <!-- Price -->
               <p class="text-sm">
-                {{
-                  product.totals.line_total
-                    | currency
-                      : (loadedCart$ | async)?.userCart?.totals.currency_code
-                }}
+                {{ product.totals.line_subtotal }}
               </p>
             </div>
             }
@@ -129,13 +115,13 @@
           <div class="flex flex-col gap-y-2">
             <div class="flex justify-between items-center">
               <p class="font-semibold">Subtotal :</p>
-              <p class="font-semibold">
-                {{
+              <p
+                class="font-semibold"
+                [innerHTML]="
                   (loadedCart$ | async)?.userCart?.totals?.total_price
-                    | currency
-                      : (loadedCart$ | async)?.userCart?.totals?.currency_code
-                }}
-              </p>
+                    | currencySvg
+                "
+              ></p>
             </div>
             <button
               class="font-semibold w-full py-2 md:py-3 text-center text-white rounded-lg transition-all duration-150 bg-orange-500 hover:bg-orange-600 cursor-pointer"

@@ -5,15 +5,16 @@ import {
   transition,
   animate,
 } from '@angular/animations';
-import { AsyncPipe, CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { CartService } from '../../service/cart.service';
+import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 
 @Component({
   selector: 'app-cart-checkout',
-  imports: [RouterLink, AsyncPipe, CurrencyPipe],
+  imports: [RouterLink, AsyncPipe, CurrencySvgPipe],
   templateUrl: './cart-checkout.component.html',
   styleUrl: './cart-checkout.component.css',
 

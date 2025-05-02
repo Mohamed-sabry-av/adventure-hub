@@ -14,12 +14,12 @@
   </div>
   <div class="flex justify-between font-semibold">
     <p class="text-lg">Total:</p>
-    <p>
-      {{
-        (loadedCart$ | async)?.userCart?.totals?.sub_total
-          | currency : (loadedCart$ | async)?.userCart?.totals?.currency_code
-      }}
-    </p>
+    <p
+      [innerHTML]="
+        (loadedCart$ | async)?.userCart?.totals?.sub_total | currencySvg
+      "
+      class="text-black"
+    ></p>
   </div>
 
   <div>

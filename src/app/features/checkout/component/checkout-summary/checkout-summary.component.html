@@ -23,8 +23,8 @@
         <div class="flex items-center gap-x-2 relative">
           <img
             loading="lazy"
-            [src]="product.images.imageSrc"
-            [alt]="product.images.imageAlt"
+            [src]="product.image.thumbnail"
+            [alt]="product.image.alt"
             class="w-[55px] h-[55px] object-cover border rounded-lg p-1"
           />
           <div class="absolute -top-2 left-[40px]">
@@ -38,12 +38,10 @@
         </div>
 
         <!-- Price -->
-        <p class="text-sm">
-          {{
-            product.totals.line_total
-              | currency : (loadedCart$ | async)?.userCart.totals.currency_code
-          }}
-        </p>
+        <p
+          class="text-sm"
+          [innerHTML]="product.totals.line_total | currencySvg"
+        ></p>
       </div>
       }
     </div>
@@ -107,12 +105,11 @@
         <span class="font-semibold"> Subtotal · </span>
         <span>{{ (loadedCart$ | async)?.userCart?.items_count }} items</span>
       </p>
-      <p>
-        {{
-          (loadedCart$ | async)?.userCart.totals?.sub_total
-            | currency : (loadedCart$ | async)?.userCart.totals?.currency_code
-        }}
-      </p>
+      <p
+        [innerHTML]="
+          (loadedCart$ | async)?.userCart.totals?.sub_total | currencySvg
+        "
+      ></p>
     </div>
 
     <!-- Coupon Data -->
@@ -121,12 +118,12 @@
       <p>
         <span class="font-semibold"> Discount</span>
       </p>
-      <p>
+      <p
+        [innerHTML]="
+          (loadedCart$ | async)?.userCart.totals?.total_discount | currencySvg
+        "
+      >
         -
-        {{
-          (loadedCart$ | async)?.userCart.totals?.total_discount
-            | currency : (loadedCart$ | async)?.userCart.totals?.currency_code
-        }}
       </p>
     </div>
     }
@@ -162,14 +159,15 @@
     <div class="flex justify-between text-xl text-black/80 font-semibold">
       <p>Total</p>
       @if ((loadedCart$ | async)?.userCart.totals?.total_price) {
-      <p class="uppercase">
-        {{
+      <p
+        class="uppercase"
+        [innerHTML]="
           ((loadedCart$ | async)?.userCart.totals?.total_price > 100
             ? (loadedCart$ | async)?.userCart.totals?.total_price
             : (loadedCart$ | async)?.userCart.totals?.total_price + 20
-          ) | currency : (loadedCart$ | async)?.userCart.totals?.currency_code
-        }}
-      </p>
+          ) | currencySvg
+        "
+      ></p>
       }
     </div>
   </div>
