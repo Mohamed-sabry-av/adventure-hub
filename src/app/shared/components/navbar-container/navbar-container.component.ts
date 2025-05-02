@@ -1,20 +1,23 @@
-import { Component, Input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  Input,
+} from '@angular/core';
+import { AppContainerComponent } from '../app-container/app-container.component';
 import { Category } from '../../../interfaces/category.model';
 import { RouterLink } from '@angular/router';
 import { NavbarMainCategoriesComponent } from '../navbar-main-categories/navbar-main-categories.component';
 import { NavbarSubCategoriesComponent } from '../navbar-sub-categories/navbar-sub-categories.component';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
+import { FilterSidebarComponent } from '../../../features/products/components/filter-sidebar/filter-sidebar.component';
 
 @Component({
   selector: 'app-navbar-container',
-  standalone: true,
-  imports: [
-    NavbarMainCategoriesComponent,
-    NavbarSubCategoriesComponent,
-    CommonModule,
-    AsyncPipe,
-  ],
+  imports: [NavbarMainCategoriesComponent, NavbarSubCategoriesComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   templateUrl: './navbar-container.component.html',
   styleUrl: './navbar-container.component.css',
 })
@@ -23,7 +26,8 @@ export class NavbarContainerComponent {
   @Input() allCategories: Category[] = [];
 
   private subCategoriesSubject = new BehaviorSubject<Category[]>([]);
-  filterdCategories$: Observable<Category[]> = this.subCategoriesSubject.asObservable();
+  filterdCategories$: Observable<Category[]> =
+    this.subCategoriesSubject.asObservable();
 
   getSubCategories(categoryId: number | null) {
     const filteredCategories =

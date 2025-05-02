@@ -1,11 +1,13 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
   inject,
-  NgZone,
   OnInit,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -17,9 +19,8 @@ import { NavbarService } from '../../services/navbar.service';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
-import { debounceTime, filter, fromEvent, Observable } from 'rxjs';
+import { debounceTime, filter, fromEvent, Observable, take } from 'rxjs';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { InViewportDirective } from '../../directives/in-viewport.directive';
 
 @Component({
   selector: 'app-header',
@@ -32,23 +33,24 @@ import { InViewportDirective } from '../../directives/in-viewport.directive';
     RouterLink,
     SearchBarComponent,
     AsyncPipe,
-    InViewportDirective
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('navbarAnimation', [
       transition(':enter', [
         style({ transform: 'translateY(-100%)', opacity: 0 }),
         animate(
-          '400ms cubic-bezier(0.4, 0, 0.2, 1)',
+          '300ms ease-in-out',
           style({ transform: 'translateY(0)', opacity: 1 })
         ),
       ]),
       transition(':leave', [
         style({ transform: 'translateY(0)', opacity: 1 }),
         animate(
-          '400ms cubic-bezier(0.4, 0, 0.2, 1)',
+          '300ms ease-in-out',
           style({ transform: 'translateY(-100%)', opacity: 0 })
         ),
       ]),
@@ -61,110 +63,88 @@ export class HeaderComponent implements OnInit {
   private categoriesService = inject(CategoriesService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-  private ngZone = inject(NgZone);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
-  sidenavIsVisible$: Observable<boolean> = this.navbarService.getSideNavIsVisible$();
-  isNavbarAnimating$: Observable<boolean> = this.navbarService.getIsNavbarAnimating$();
-  isDrawerOpen$: Observable<boolean> = this.navbarService.getIsDrawerOpen$();
+  sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
   @ViewChild('headerEl') headerElement!: ElementRef;
+  @ViewChild('placeholderEl') placeholderEl!: ElementRef;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
-  showNavbar: boolean = true;
   showSearchbar: boolean = false;
+  isProductPage: boolean = false; // New property to track product page
+
+  // ------------------------- Done
+  showNavbar: boolean = true;
   lastScrollY: number = 0;
-  headerHeight: number = 88; // Default height
+  headerHeight: number = 0;
   isFixed: boolean = false;
-  isProductPage: boolean = false;
-  scrollDelta: number = 0; // Track scroll distance for threshold
-  navbarVisible: boolean = false;
-  ticking: boolean = false; // For requestAnimationFrame to optimize scroll
+
+  // ------------------------------------- Ameen Signals
+  showNavbar2 = signal<boolean>(true);
+  headerHeight2 = signal<number>(0);
+  lastScrollY2 = signal<number>(0);
 
   ngOnInit() {
     this.fetchAllCategories();
 
     const subscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
+      .subscribe((event: NavigationEnd) => {
         this.currentPage = event.url === '/checkout' ? 'checkout' : '';
-        this.isProductPage = event.url.startsWith('/product') || event.url.includes('/product/');
-        this.showNavbar = true;
-        this.navbarService.showNavbar(true);
-        this.scrollDelta = 0; // Reset scroll delta on navigation
       });
 
     const subscription2 = this.sidenavIsVisible$.subscribe((visible) => {
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
-    // Use passive listener for better scroll performance
-    this.ngZone.runOutsideAngular(() => {
-      window.addEventListener('scroll', this.onScroll, { passive: true });
-    });
+    const subscription3 = fromEvent(window, 'scroll').subscribe(() =>
+      this.handleScroll()
+    );
 
     this.destroyRef.onDestroy(() => {
       subscription.unsubscribe();
       subscription2.unsubscribe();
-      window.removeEventListener('scroll', this.onScroll);
+      subscription3.unsubscribe();
     });
   }
 
-  // Bound method for scroll handler
-  private onScroll = () => {
-    if (!this.ticking) {
-      window.requestAnimationFrame(() => {
-        this.handleScroll();
-        this.ticking = false;
-      });
-      this.ticking = true;
-    }
-  };
-
   handleScroll() {
     const currentScrollY = window.scrollY;
+    const currentScrollY2 = signal<number>(window.scrollY);
 
-    // Skip sticky behavior for product page or checkout
-    if (this.isProductPage || this.currentPage === 'checkout') {
-      this.isFixed = false;
+    if (currentScrollY > this.lastScrollY && currentScrollY > 50) {
+      // Scrolling down
+      this.showNavbar = false;
+      this.showNavbar2.set(false);
+    } else if (currentScrollY < this.lastScrollY) {
+      // Scrolling up
+      this.showNavbar2.set(true);
+
       this.showNavbar = true;
-      this.navbarService.showNavbar(true);
-      this.navbarService.handleScroll(0);
-      this.scrollDelta = 0;
-      return;
     }
 
-    // Update header height
     if (this.headerElement) {
-      this.headerHeight = this.headerElement.nativeElement.offsetHeight || 88;
-      this.navbarService.handleScroll(this.headerHeight);
+      this.headerHeight = this.headerElement.nativeElement.offsetHeight;
+      this.headerHeight2.update(
+        (prev) => this.headerElement.nativeElement.offsetHeight
+      );
     }
-
-    // Calculate scroll delta for threshold
-    const delta = currentScrollY - this.lastScrollY;
-    this.scrollDelta += Math.abs(delta);
-
-    // Smart scroll handling with reduced threshold for smoother experience
-    if (delta > 0 && currentScrollY > 80 && this.scrollDelta > 30) {
-      // Scrolling down, hide navbar after threshold
-      this.ngZone.run(() => {
-        this.showNavbar = false;
-        this.navbarService.showNavbar(false);
-      });
-      this.scrollDelta = 0; // Reset delta after hiding
-    } else if (delta < 0 && this.scrollDelta > 20) {
-      // Scrolling up, show navbar after threshold - reduced for faster response
-      this.ngZone.run(() => {
-        this.showNavbar = true;
-        this.navbarService.showNavbar(true);
-      });
-      this.scrollDelta = 0; // Reset delta after showing
-    }
-
-    // Fix header only when scrolled
-    this.isFixed = currentScrollY > 0;
 
     this.lastScrollY = currentScrollY;
+    this.lastScrollY2.update((prev) => currentScrollY2());
+    // -------------------------------- done
+
+    if (currentScrollY > 0) {
+      this.isFixed = true;
+    } else {
+      this.isFixed = false;
+    }
+    this.navbarService.showNavbar(this.showNavbar);
+    this.navbarService.handleScroll(this.headerHeight);
+
+    // -------------------------------------- Ameen Signals
+    this.navbarService.showNavbar2(this.showNavbar2());
   }
 
   onSiwtchSideNav(visible: boolean) {
@@ -183,10 +163,5 @@ export class HeaderComponent implements OnInit {
   onShowSearchbar() {
     this.showSearchbar = !this.showSearchbar;
     this.navbarService.showSearchBar(this.showSearchbar);
-  }
-
-  // For the InViewportDirective
-  onNavbarVisible(isVisible: boolean) {
-    this.navbarVisible = isVisible;
   }
 }

@@ -29,7 +29,7 @@
       </ng-container>
     }
 
-    <app-breadcrumb></app-breadcrumb>
+    <app-breadcrumb [productName]="productData?.name"></app-breadcrumb>
 
     <!-- Product or Error State -->
     @if (productData) {
@@ -37,10 +37,10 @@
         <!-- Product Images - Left side -->
         <div class="md:w-1/2 lg:w-3/5">
           <app-product-images
-            [productImages]="productData.images"
-            [selectedColor]="selectedColor"
-            [variations]="productData.variations"
-          />
+          [productImages]="productData?.images"
+          [selectedVariation]="selectedColorVariation"
+          [productName]="productData?.name"
+        ></app-product-images>
           <!-- Desktop Description -->
           <div class="full-width-product-description desktop-description">
             <app-product-desc [productAdditionlInfo]="productDataForDesc" />
@@ -69,26 +69,22 @@
           [relatedIds]="productData.related_ids"
           class="relatedProducts"
         />
-
         <app-recent-products-mini></app-recent-products-mini>
-
       }
     } @else {
       <!-- Error State -->
       <div class="text-center py-8">
         <p class="text-lg text-gray-600">
-          No available roducts
+          No products available
         </p>
         <a
           routerLink="/"
           class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded"
         >
-        Back to Home page
-      </a>
+          Back to Home page
+        </a>
       </div>
     }
   }
-
-  <!-- Recently Viewed Products -->
 </app-app-container>
 <app-dialog-error />

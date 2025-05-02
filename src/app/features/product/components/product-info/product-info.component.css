@@ -42,6 +42,109 @@
   margin-bottom: 8px;
 }
 
+/* Color Options */
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.color-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.color-option.out-of-stock {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.color-swatch {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.color-option.active .color-swatch {
+  border: 2px solid #000;
+}
+
+.color-name {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+/* Size Options */
+.size-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.size-option {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 8px 12px;
+  min-width: 48px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.size-option.active {
+  border-color: #000;
+  background-color: #f9fafb;
+}
+
+.size-option.out-of-stock {
+  background-color: #fff2f2;
+  color: #9ca3af;
+  border-color: #ffcccb;
+  cursor: not-allowed;
+  position: relative;
+}
+
+/* Out of Stock X (for both Color and Size) */
+.out-of-stock-x {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.out-of-stock-x::before,
+.out-of-stock-x::after {
+  content: '';
+  position: absolute;
+  width: 70%;
+  height: 1px;
+  background-color: rgba(255, 0, 0, 0.4);
+}
+
+.out-of-stock-x::before {
+  transform: rotate(45deg);
+}
+
+.out-of-stock-x::after {
+  transform: rotate(-45deg);
+}
+
 /* Quantity Controls */
 .quantity-selector {
   display: flex;
@@ -173,154 +276,6 @@
   text-align: center;
 }
 
-/* Color Options */
-.color-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.color-option {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  margin-bottom: 8px;
-}
-
-.color-option.out-of-stock {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.color-swatch {
-  width: 50px;
-  height: 50px;
-  border-radius: 4px;
-  margin-bottom: 4px;
-  background-size: cover;
-  background-position: center;
-  border: 1px solid #e5e7eb;
-}
-
-.color-option.active .color-swatch {
-  border: 2px solid #000;
-}
-
-.color-name {
-  font-size: 12px;
-  color: #4b5563;
-}
-
-.out-of-stock-badge {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-size: 10px;
-  padding: 2px 4px;
-  border-radius: 2px;
-  white-space: nowrap;
-}
-
-/* Size Options */
-.size-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.size-option {
-  position: relative;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  padding: 8px 12px;
-  min-width: 48px;
-  text-align: center;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.size-option.active {
-  border-color: #000;
-  background-color: #f9fafb;
-}
-
-.size-option.out-of-stock {
-  color: #9ca3af;
-  border-color: #e5e7eb;
-  cursor: not-allowed;
-}
-
-.size-option.out-of-stock::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #9ca3af;
-}
-
-/* Payment Options */
-.payment-options {
-  margin: 15px 0 25px;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  border: 1px solid #eee;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.payment-title {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
-.payment-methods {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.payment-icon {
-  height: 30px;
-  object-fit: contain;
-  transition: transform 0.2s ease;
-}
-
-.payment-icon:hover {
-  transform: translateY(-2px);
-}
-
-/* Mobile Adjustments */
-@media (max-width: 767px) {
-  .cart-action-row {
-    gap: 8px;
-  }
-
-  .quantity-selector {
-    min-width: 100px;
-  }
-
-  .quantity-selector .quantity-btn {
-    width: 32px;
-    font-size: 16px;
-  }
-
-  .quantity-selector .quantity-display {
-    min-width: 36px;
-  }
-}
-
 /* Spinner Styles */
 .spinner-container {
   display: flex;
@@ -352,19 +307,22 @@
   opacity: 0.8;
 }
 
-/* Wallet Payment Styles */
-.wallet-payment-wrapper {
-  display: block;
-  width: 100%;
-  margin-bottom: 15px;
-}
+/* Mobile Adjustments */
+@media (max-width: 767px) {
+  .cart-action-row {
+    gap: 8px;
+  }
 
-/* Payment divider line */
-.wallet-payment-wrapper::before {
-  content: '';
-  display: block;
-  height: 1px;
-  background: #e5e7eb;
-  margin: 15px 0;
-  width: 100%;
+  .quantity-selector {
+    min-width: 100px;
+  }
+
+  .quantity-selector .quantity-btn {
+    width: 32px;
+    font-size: 16px;
+  }
+
+  .quantity-selector .quantity-display {
+    min-width: 36px;
+  }
 }

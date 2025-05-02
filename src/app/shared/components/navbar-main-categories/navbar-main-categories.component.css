@@ -1,14 +1,18 @@
 .links-parent {
-  @apply block bg-[#2E2E2E] transition-all duration-300 ease-in-out;
+  @apply block bg-[#2E2E2E];
 }
 
 .links-child {
-  @apply px-8 lg:px-8 xl:px-16 w-full flex flex-wrap items-center gap-x-4 pt-3 pb-1;
+  @apply px-8 lg:px-8 xl:px-16  w-full flex flex-wrap items-center gap-x-4 pt-3 pb-1;
 }
 
 .links-name {
   @apply text-white text-base font-semibold relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-white after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100;
 }
+
+/* .links-name.active {
+  @apply bg-red-600;
+} */
 
 @media (min-width: 1500px) {
   .links-parent {
@@ -25,7 +29,6 @@
     @apply hidden;
   }
 }
-
 @media (min-width: 960px) {
   ::ng-deep .sidenav-drawer {
     @apply hidden;
@@ -39,9 +42,8 @@
 }
 
 ::ng-deep .sidenav-drawer {
-  @apply w-full bg-[#2E2E2E] shadow-lg;
+  @apply w-full;
   z-index: 500000 !important;
-  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 ::ng-deep .sidenav-drawer .p-drawer-header {
@@ -49,40 +51,7 @@
 }
 
 ::ng-deep .sidenav-drawer .p-drawer-content {
-  @apply bg-[#2E2E2E] p-0;
-  overflow-y: auto;
-  max-height: calc(100vh - 100px);
-}
-
-
-.drawer-content {
-  @apply p-4;
-  position: relative;
-  overflow-y: auto;
-  height: 100%;
-  touch-action: pan-y;
-}
-
-.drawer-handle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 20px;
-  height: 100%;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05));
-  pointer-events: none;
-}
-
-.drawer-handle::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 5px;
-  width: 4px;
-  height: 50px;
-  border-radius: 2px;
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-50%);
+  @apply bg-[#2E2E2E];
 }
 
 .haveChilds {

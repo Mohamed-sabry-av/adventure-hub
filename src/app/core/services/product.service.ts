@@ -224,6 +224,27 @@ export class ProductService {
     );
   }
 
+  // في ProductService
+getVariationById(productId: number, variationId: number): Observable<Variation> {
+  const cacheKey = `variation_${productId}_${variationId}`;
+  return this.cachingService.cacheObservable(
+    cacheKey,
+    this.WooAPI.getRequestProducts<any>(`products/${productId}/variations/${variationId}`, {
+      observe: 'response',
+    }).pipe(
+      map((response: HttpResponse<any>) => {
+        return response.body as Variation;
+      }),
+      catchError((error) => {
+        console.error(`Error fetching variation ${variationId} for product ${productId}:`, error);
+        return this.handleErrorsService.handelError(error);
+      }),
+      shareReplay(1)
+    ),
+    300000 // TTL 5 دقائق
+  );
+}
+
   // Helper method to extract variations from product when they're directly included
   extractVariationsFromProduct(product: any): Variation[] {
     if (!product || !product.variations || !Array.isArray(product.variations)) {
@@ -292,19 +313,14 @@ export class ProductService {
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
-          .set('slug', slug)
-          .set(
-            '_fields',
-            'default_attributes,id,name,slug,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type,related_ids'
-          )
-          .set('stock_status', 'instock')
-          .set('status', 'publish'),
+          .set('slug', slug),
+
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
           const product = response.body[0];
           if (!product) {
-            return null; // لو المنتج مش موجود، نرجع null
+            return null;
           }
           return {
             ...product,

@@ -1,6 +1,6 @@
 <div class="products-grid-container">
   <!-- Skeleton Loading State -->
-  @if (isLoading) {
+  @if (isLoading || isLoadingMore) {
     <div 
       class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3"
       @fadeIn
@@ -22,7 +22,7 @@
   }
 
   <!-- Products Grid -->
-  @if (!isLoading && products.length > 0) {
+  @if (!isLoading && !isLoadingMore && products.length > 0) {
     <div 
       class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3"
       @staggerFadeIn
@@ -36,25 +36,28 @@
   }
 
   <!-- Empty State -->
-@if (!isLoading && products.length === 0 && showEmptyState && hasFetched && !isLoadingMore) {
-  <div class="flex flex-col items-center justify-center py-16 text-center" @fadeIn>
-    <svg class="size-16 text-gray-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.25m0 0a2.25 2.25 0 002.25 2.25m0 0v1.5m-4.5-1.5h.008M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-    <h3 class="mt-2 text-lg font-medium text-gray-900">No products found</h3>
-    <p class="mt-1 text-sm text-gray-500 max-w-md">
-      We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
-    </p>
-  </div>
-}
+  @if (!isLoading && !isLoadingMore && products.length === 0 && !isError) {
+    <div class="flex flex-col items-center justify-center py-16 text-center" @fadeIn>
+      <svg class="size-16 text-gray-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.25m0 0a2.25 2.25 0 002.25 2.25m0 0v1.5m-4.5-1.5h.008M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="mt-2 text-lg font-medium text-gray-900">No products found</h3>
+      <p class="mt-1 text-sm text-gray-500 max-w-md">
+        We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
+      </p>
+    </div>
+  }
 
-  <!-- Load More Indicator -->
-  @if (isLoadingMore) {
-    <div class="flex justify-center items-center py-8 mt-4" @fadeIn>
-      <div class="relative">
-        <div class="size-8 border-2 border-gray-300 border-t-indigo-600 rounded-full animate-spin"></div>
-        <span class="sr-only">Loading more products...</span>
-      </div>
+  <!-- Error State -->
+  @if (!isLoading && !isLoadingMore && isError) {
+    <div class="flex flex-col items-center justify-center py-16 text-center" @fadeIn>
+      <svg class="size-16 text-red-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="mt-2 text-lg font-medium text-gray-900">Something went wrong</h3>
+      <p class="mt-1 text-sm text-gray-500 max-w-md">
+        There was an error loading the products. Please try again later.
+      </p>
     </div>
   }
 </div>

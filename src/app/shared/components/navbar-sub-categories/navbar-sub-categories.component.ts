@@ -4,69 +4,66 @@ import {
   DestroyRef,
   inject,
   Input,
-  ChangeDetectorRef,
 } from '@angular/core';
 import { Category } from '../../../interfaces/category.model';
-import { Observable } from 'rxjs';
-import { animate, transition, trigger, style } from '@angular/animations';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { filter, map, Observable } from 'rxjs';
+import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
+import { AsyncPipe, CommonModule, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-navbar-sub-categories',
-  standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './navbar-sub-categories.component.html',
-  styleUrls: ['./navbar-sub-categories.component.css'],
+  styleUrl: './navbar-sub-categories.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+
   animations: [
     trigger('visible', [
       transition(':enter', [
-        style({ transform: 'translateY(-10px)', opacity: 0 }),
-        animate(
-          '300ms cubic-bezier(0.25, 0.8, 0.25, 1)',
-          style({ transform: 'translateY(0)', opacity: 1 })
-        ),
+        style({ opacity: 0, height: '0px', overflow: 'hidden' }),
+        animate('0.3s ease-out', style({ opacity: 1, height: '*' })),
       ]),
       transition(':leave', [
-        style({ transform: 'translateY(0)', opacity: 1 }),
-        animate(
-          '300ms cubic-bezier(0.25, 0.8, 0.25, 1)',
-          style({ transform: 'translateY(-10px)', opacity: 0 })
-        ),
+        animate('0.3s ease-in', style({ opacity: 0, height: '0px' })),
       ]),
     ]),
   ],
 })
 export class NavbarSubCategoriesComponent {
   private destroyRef = inject(DestroyRef);
-  private cdr = inject(ChangeDetectorRef);
-
   @Input() allCategoriesData: Category[] = [];
   @Input({ required: true }) subCategories$!: Observable<Category[]>;
 
   categoriesData: Category[] = [];
   keepOpen: boolean = false;
+  selectedCategoryId: number | null = null;
 
   ngOnInit() {
     const subscription = this.subCategories$.subscribe((data) => {
-      this.categoriesData = data;
-      this.keepOpen = data.length > 0;
-      this.cdr.markForCheck();
+      if (data.length > 0) {
+        this.categoriesData = data;
+        this.keepOpen = true;
+      } else {
+        this.keepOpen = false;
+      }
     });
-    this.destroyRef.onDestroy(() => {
-      subscription.unsubscribe();
-    });
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   onLeave() {
     this.keepOpen = false;
-    this.cdr.markForCheck();
+    this.selectedCategoryId = null;
   }
 
   onEnter() {
     this.keepOpen = true;
-    this.cdr.markForCheck();
   }
 
   getSubCategories(categoryId: number | null): Category[] {

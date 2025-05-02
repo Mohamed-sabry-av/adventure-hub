@@ -19,11 +19,12 @@ import { CartService } from '../../../features/cart/service/cart.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { map, Observable, Subject, takeUntil } from 'rxjs';
 import { UIService } from '../../services/ui.service';
+import { CurrencySvgPipe } from '../../pipes/currency.pipe';
 
 @Component({
   selector: 'app-side-options',
   standalone: true,
-  imports: [CommonModule, FormsModule, AsyncPipe],
+  imports: [CommonModule, FormsModule, AsyncPipe,CurrencySvgPipe],
   templateUrl: './side-options.component.html',
   styleUrls: ['./side-options.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -248,17 +249,17 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     if (!product) return '';
 
     if (product.on_sale && product.sale_price) {
-      return `${product.currency || 'AED'} ${product.sale_price}`;
+      return `${ CurrencySvgPipe} ${product.sale_price}`;
     }
 
-    return `${product.currency || 'AED'} ${product.price}`;
+    return `${CurrencySvgPipe} ${product.price}`;
   }
 
   getOldPrice(): string {
     const product = this.state.product;
     if (!product || !product.on_sale) return '';
 
-    return `${product.currency || 'AED'} ${product.regular_price}`;
+    return `${CurrencySvgPipe} ${product.regular_price}`;
   }
 
   getSelectedColorImage(): string {

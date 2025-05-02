@@ -47,6 +47,7 @@ export class ProductInfoComponent {
   wishlistMessage: string | null = null;
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
+  
 
   // Track if we should show out of stock variations
   showOutOfStockVariations: boolean = true;
@@ -69,13 +70,8 @@ export class ProductInfoComponent {
   ngOnInit() {
     const product = this.productInfo();
     if (product) {
-      console.log('Product Info:', product);
-      console.log('Variations:', product.variations);
-      console.log('Default Attributes:', product.default_attributes);
-
       this.quantity = 1;
       this.setDefaultAttributes();
-      console.log('Selected Attributes:', this.selectedAttributes);
       this.updateMaxLength();
 
       this.checkWishlistStatus(product.id);
@@ -263,93 +259,98 @@ export class ProductInfoComponent {
   getPriceInfo(): { price: string; regularPrice: string; isOnSale: boolean } {
     const product = this.productInfo();
     if (!product) {
-      return { price: '', regularPrice: '', isOnSale: false };
+      return { price: '0', regularPrice: '0', isOnSale: false };
     }
-
+  
+    // Helper function to normalize price
+    const normalizePrice = (value: any): string => {
+      return value ? String(value).replace(/[^0-9.]/g, '') : '0';
+    };
+  
     if (product.type === 'simple' || !this.allVariationAttributesSelected) {
-      const price = product.price || '';
-      const regularPrice = product.regular_price || price;
-      const isOnSale = product.on_sale && price !== regularPrice && parseFloat(price) < parseFloat(regularPrice);
+      const price = normalizePrice(product.price);
+      const regularPrice = normalizePrice(product.regular_price || price);
+      const salePrice = normalizePrice(product.sale_price);
+      const isOnSale =
+        (product.sale_price && salePrice !== regularPrice) ||
+        (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
+  
       return { price, regularPrice, isOnSale };
     }
-
+  
     const selectedVariation = this.getSelectedVariation();
     if (selectedVariation) {
-      const price = selectedVariation.price || product.price || '';
-      const regularPrice = selectedVariation.regular_price || price;
-      const isOnSale:any =
-        selectedVariation.on_sale &&
-        price !== regularPrice &&
-        parseFloat(price) < parseFloat(regularPrice);
+      const price = normalizePrice(selectedVariation.price || product.price);
+      const regularPrice = normalizePrice(selectedVariation.regular_price || price);
+      const salePrice = normalizePrice(selectedVariation.sale_price);
+      const isOnSale =
+        (selectedVariation.sale_price && salePrice !== regularPrice) ||
+        (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
+  
       return { price, regularPrice, isOnSale };
     }
-
-    return {
-      price: product.price || '',
-      regularPrice: product.regular_price || product.price || '',
-      isOnSale: false,
-    };
+  
+    const price = normalizePrice(product.price);
+    const regularPrice = normalizePrice(product.regular_price || price);
+    const salePrice = normalizePrice(product.sale_price);
+    const isOnSale =
+      (product.sale_price && salePrice !== regularPrice) ||
+      (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
+  
+   
+    return { price, regularPrice, isOnSale };
   }
 
   addToCart(buyItNow: boolean = false): void {
     const product = this.productInfo();
     if (!product) {
-      console.error('No product info available');
       this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
       return;
     }
-
-    // Set loading state
+  
     this.uiService.setLoading(buyItNow ? 'buy' : 'add', true);
-
+  
     let cartProduct: any;
-
     if (product.type === 'simple') {
       if (product.stock_status !== 'instock') {
-        console.error('Cannot add to cart: Product is out of stock');
         this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
       cartProduct = { ...product, quantity: this.quantity };
     } else {
       if (!this.allVariationAttributesSelected) {
-        console.error('Cannot add to cart: Not all variation attributes are selected');
         this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
-
       const selectedVariation = this.getSelectedVariation();
       if (!selectedVariation) {
         console.error('Cannot add to cart: No valid variation selected');
         this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
-
       if (selectedVariation.stock_status !== 'instock') {
         console.error('Cannot add to cart: Selected variation is out of stock');
         this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
         return;
       }
-
-      // Use the variation service to prepare cart product
       cartProduct = this.variationService.prepareProductForCart(
         product,
         selectedVariation,
         this.quantity
       );
     }
-
+  
     if (!this.cartService) {
       console.error('CartService is not initialized');
       this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
       return;
     }
-
-    // Add product to cart with a delay to show spinner
-    setTimeout(() => {
+  
+    // استخدام Promise بدل setTimeout
+    Promise.resolve().then(() => {
       this.cartService.addProductToCart(cartProduct, buyItNow);
       console.log('Product added to cart:', cartProduct);
-
+  
       if (typeof _learnq !== 'undefined') {
         _learnq.push([
           'track',
@@ -364,14 +365,13 @@ export class ProductInfoComponent {
             Categories: product.categories?.map((cat: any) => cat.name) || [],
           },
         ]);
-        console.log('Klaviyo:', buyItNow ? 'Buy Now tracked' : 'Added to Cart tracked');
       }
-
-      // Reset loading state after 1 second to show success
+  
+      // Reset loading state بعد 500ms بدل 1000ms
       setTimeout(() => {
         this.uiService.setLoading(buyItNow ? 'buy' : 'add', false);
-      }, 1000);
-    }, 1000); // 1 second delay for demonstration
+      }, 500);
+    });
   }
 
   buyNow(): void {
@@ -442,13 +442,11 @@ export class ProductInfoComponent {
 
   addToWishList(productId: number) {
     if (!productId) {
-      console.error('Invalid product ID');
       this.showWishlistMessage('Failed to add to wishlist: Invalid product ID', false);
       return;
     }
 
     if (!this.wishlistService.isLoggedIn()) {
-      console.warn('User not logged in, cannot add to wishlist');
       this.showWishlistMessage('Please log in to add to wishlist', false);
       return;
     }
@@ -474,7 +472,6 @@ export class ProductInfoComponent {
                 Categories: this.productInfo()?.categories?.map((cat: any) => cat.name) || [],
               },
             ]);
-            console.log('Klaviyo: Added to Wishlist tracked');
           }
         } else {
           this.showWishlistMessage(response.message || 'Failed to add to wishlist', false);
@@ -505,7 +502,6 @@ export class ProductInfoComponent {
         }
       },
       error: (error) => {
-        console.error('Error checking wishlist status:', error);
         this.isInWishlist = false;
       },
     });

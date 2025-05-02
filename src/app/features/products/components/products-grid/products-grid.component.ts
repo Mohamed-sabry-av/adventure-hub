@@ -49,27 +49,20 @@ import {
       ]),
     ]),
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsGridComponent implements OnChanges {
   @Input() products: any[] = [];
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
-  hasFetched: boolean = false;
-
+  @Input() isError: boolean = false;
   skeletonCount = 8;
-  showEmptyState: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['isLoading'] || changes['products'] || changes['isLoadingMore']) {
-      if (!this.isLoading && !this.isLoadingMore) {
-        this.hasFetched = true; 
-        this.showEmptyState = this.products.length === 0;
-        this.cdr.markForCheck();
-      } else {
-        this.showEmptyState = false; 
-      }
+      this.cdr.markForCheck();
     }
   }
 
@@ -87,13 +80,10 @@ export class ProductsGridComponent implements OnChanges {
     return index;
   }
 
-  // destroy
   ngOnDestroy() {
     this.products = [];
     this.isLoading = false;
     this.isLoadingMore = false;
     this.skeletonCount = 0;
-    this.showEmptyState = false;
-    this.hasFetched = false;
   }
 }

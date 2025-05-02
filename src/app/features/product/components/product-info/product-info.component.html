@@ -3,17 +3,16 @@
     {{ productInfo()?.name }}
   </h1>
 
-  <div class="flex items-baseline mb-4">
+  <div class="flex items-baseline mb-4 gap-2">
     <span class="text-2xl font-bold" [innerHtml]="getPriceInfo().price | currencySvg"></span>
-    <span
-      class="text-gray-500 line-through ml-2"
-      *ngIf="getPriceInfo().isOnSale"
-      [innerHtml]="getPriceInfo().regularPrice | currencySvg"
-    ></span>
+    <ng-container *ngIf="getPriceInfo().isOnSale">
+      <span class="text-gray-500 line-through text-lg ml-2" [innerHtml]="getPriceInfo().regularPrice "></span>
+      <span class="text-green-600 text-sm font-medium ml-2">(On Sale!)</span>
+    </ng-container>
   </div>
 
   <div class="product-brand" *ngIf="brandName !== 'brand'">
-    <span class="brand-label">Brand:</span>
+    <span class="brand-label"></span>
     <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{
       brandName
     }}</a>
@@ -38,9 +37,10 @@
             [class.out-of-stock]="!option.inStock"
             (click)="option.inStock && selectAttribute('Color', option.value)"
           >
-            <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'" [title]="option.value"></div>
+            <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'" [title]="option.value">
+              <div class="out-of-stock-x" *ngIf="!option.inStock"></div>
+            </div>
             <span class="color-name">{{ option.value }}</span>
-            <span class="out-of-stock-badge" *ngIf="!option.inStock">Out of Stock</span>
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@
             (click)="option.inStock && selectAttribute('Size', option.value)"
           >
             {{ option.value }}
-            <span class="out-of-stock-badge" *ngIf="!option.inStock">Out of Stock</span>
+            <div class="out-of-stock-x" *ngIf="!option.inStock"></div>
           </div>
         </div>
       </div>
@@ -165,33 +165,6 @@
   >
     {{ wishlistMessage }}
   </div>
-
-  <!-- <div
-    *ngIf="isProductInStock"
-    class="bg-gray-50 p-4 rounded-md mb-6 flex items-center justify-between"
-  >
-    <div>
-      <p class="text-sm">
-        4 interest-free payments or as low as
-        <strong [innerHtml]="(parseFloatValue(getPriceInfo().price) / 10.45).toFixed(2) | currencySvg"></strong>/month
-      </p>
-      <p class="text-sm text-gray-500">More options</p>
-    </div>
-    <img
-      src="https://ext.same-assets.com/1752825376/3628814952.png"
-      alt="Tabby"
-      class="h-8"
-    />
-  </div> -->
-
-  <!-- <div class="payment-options">
-    <div class="payment-title">Pay with</div>
-    <div class="payment-methods">
-      <img src="https://ext.same-assets.com/1752825376/3628814952.png" alt="Tabby" class="payment-icon">
-      <img src="https://ext.same-assets.com/1752825376/2635905792.png" alt="Card" class="payment-icon">
-      <img src="https://ext.same-assets.com/1687448576/8956612608.png" alt="Google Pay" class="payment-icon">
-    </div>
-  </div> -->
 
   <div class="mt-6 flex flex-col gap-y-1">
     <p class="text-sm">

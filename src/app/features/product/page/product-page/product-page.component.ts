@@ -18,6 +18,7 @@ import { BreadcrumbComponent } from '../../../products/components/breadcrumb/bre
 import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 declare var _learnq: any;
 
@@ -37,22 +38,24 @@ declare var _learnq: any;
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.css'],
   host: { ngSkipHydration: '' },
-
   standalone: true,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent implements OnInit {
-  schemaData: any;
+  schemaData: SafeHtml | null = null;
   productData: any;
   productDataForDesc: any;
   selectedColor: string | null = null;
   selectedVariation: any | null = null;
   isLoading: boolean = true;
+  selectedColorVariation: any | null = null;
 
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private seoService = inject(SeoService);
   private recentlyVisitedService = inject(RecentlyVisitedService);
   private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
 
   ngOnInit() {
     this.route.paramMap
@@ -76,7 +79,6 @@ export class ProductPageComponent implements OnInit {
                 return null;
               }
 
-              // Variations are now directly included in the product response
               const variations = product.variations || [];
 
               return {
@@ -129,6 +131,7 @@ export class ProductPageComponent implements OnInit {
               variations: response.variations || [],
               brand: response.brand || 'Unknown',
             };
+
             this.schemaData = this.seoService.applySeoTags(this.productData, {
               title: this.productData?.name,
               description: this.productData?.short_description,
@@ -173,7 +176,7 @@ export class ProductPageComponent implements OnInit {
       });
   }
 
-  onSelectedColorChange(event: { name: string; value: string | null }) {
+  onSelectedColorChange(event: { name: string; value: any | null }) {
     if (event.name === 'Color') {
       this.selectedColor = event.value;
       if (typeof _learnq !== 'undefined' && event.value && this.productData) {
@@ -190,6 +193,35 @@ export class ProductPageComponent implements OnInit {
           },
         ]);
       }
+  
+      if (event.value) {
+        // ابحث عن أي variation ليها اللون ده
+        const variation = this.productData.variations.find((v: any) =>
+          v.attributes.some(
+            (attr: any) =>
+              attr.name === 'Color' &&
+              attr.option.toLowerCase() === event.value.toLowerCase()
+          )
+        );
+  
+        if (variation) {
+          this.productService
+            .getVariationById(this.productData.id, variation.id)
+            .subscribe({
+              next: (fullVariation) => {
+                this.selectedColorVariation = fullVariation;
+              },
+              error: (err) => {
+                console.error('Error fetching variation:', err);
+                this.selectedColorVariation = null;
+              },
+            });
+        } else {
+          this.selectedColorVariation = null;
+        }
+      } else {
+        this.selectedColorVariation = null;
+      }
     }
   }
 
@@ -197,7 +229,6 @@ export class ProductPageComponent implements OnInit {
     this.selectedVariation = variation;
     console.log('Selected variation:', variation);
 
-    // You can use this variation for analytics or to update other components
     if (typeof _learnq !== 'undefined' && this.productData) {
       _learnq.push([
         'track',

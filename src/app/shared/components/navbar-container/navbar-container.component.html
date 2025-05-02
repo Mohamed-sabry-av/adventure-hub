@@ -1,13 +1,10 @@
-<nav class="navbar-hover-container">
+<nav class="relative">
   <app-navbar-main-categories
     [categories]="mainCategories"
     [allCategories]="allCategories"
     (select)="getSubCategories($event)"
   />
-  <div
-    *ngIf="(filterdCategories$ | async)?.length"
-    class="navbar-dropdown absolute w-full shadow-lg z-50 bg-[#2E2E2E]"
-  >
+  <div class="absolute top-full left-0 w-full shadow-lg z-50 group-hover:block">
     <app-navbar-sub-categories
       [subCategories$]="filterdCategories$"
       [allCategoriesData]="allCategories"
