@@ -6,6 +6,5 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
   imports: [AppContainerComponent],
   templateUrl: './about.component.html',
   styleUrl: './about.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutComponent {}

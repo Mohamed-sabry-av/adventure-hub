@@ -38,7 +38,6 @@ import { AccountDetailsEditComponent } from './components/account-details-edit/a
     WishlistComponent,
     AccountDetailsEditComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountDetailsComponent implements OnInit {
   activeSection: string = 'dashboard';

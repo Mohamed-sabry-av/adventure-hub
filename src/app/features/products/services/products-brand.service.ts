@@ -30,7 +30,8 @@ export class ProductsBrandService {
       .set('attribute_term', brandTermId.toString())
       .set(
         '_fields',
-        'id,name,price,images,sale_price,regular_price,on_sale,attributes'
+        'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+
       )
       .set('per_page', perPage.toString())
       .set('page', page.toString())

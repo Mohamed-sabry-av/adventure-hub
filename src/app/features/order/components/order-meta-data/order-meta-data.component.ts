@@ -13,7 +13,6 @@ import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
   imports: [DatePipe, AsyncPipe, CurrencyPipe],
   templateUrl: './order-meta-data.component.html',
   styleUrl: './order-meta-data.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderMetaDataComponent {
   private orderService = inject(OrderService);

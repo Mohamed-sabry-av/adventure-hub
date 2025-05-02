@@ -14,7 +14,6 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   styleUrls: ['./downloads.component.css'],
   standalone: true,
   imports: [CommonModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DownloadsComponent implements OnInit {
   downloads: any[] = [];

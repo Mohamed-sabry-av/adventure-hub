@@ -14,7 +14,6 @@ import { CarouselModule } from 'primeng/carousel';
   selector: 'app-recommended-products',
   standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   templateUrl: './recommended-products.component.html',
   styleUrls: ['./recommended-products.component.css'],

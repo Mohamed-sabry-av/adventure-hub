@@ -20,7 +20,6 @@ import { ActivatedRoute } from '@angular/router';
   ],
   templateUrl: './blog-section-page.component.html',
   styleUrl: './blog-section-page.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogSectionPageComponent {
   private activatedRoute = inject(ActivatedRoute);

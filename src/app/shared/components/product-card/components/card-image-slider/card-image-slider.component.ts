@@ -19,7 +19,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './card-image-slider.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./card-image-slider.component.css'],
   animations: [

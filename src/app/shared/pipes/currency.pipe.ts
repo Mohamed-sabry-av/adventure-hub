@@ -13,7 +13,18 @@ export class CurrencySvgPipe implements PipeTransform {
       return this.sanitizer.bypassSecurityTrustHtml('<span>Unavailable</span>');
     }
 
-    const formattedValue = typeof value === 'number' ? value.toString() : value;
+    // تحويل القيمة لنص منسق بفاصلة آلاف
+    const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(numericValue)) {
+      return this.sanitizer.bypassSecurityTrustHtml('<span>Invalid Price</span>');
+    }
+
+    // تنسيق السعر بفاصلة آلاف بدون جزء عشري
+    const formattedValue = numericValue.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+
     const html = `
       <span class="flex items-center">
         <img src="/icons/UAE_Dirham_Symbol.svg" alt="UAE Dirham" class="h-4 w-4 mr-1">

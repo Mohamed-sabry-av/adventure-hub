@@ -13,7 +13,6 @@ import { AsyncPipe, CurrencyPipe } from '@angular/common';
   imports: [AsyncPipe, CurrencyPipe],
   templateUrl: './order-main-data.component.html',
   styleUrl: './order-main-data.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderMainDataComponent {
   private orderService = inject(OrderService);

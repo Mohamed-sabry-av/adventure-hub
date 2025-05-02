@@ -14,7 +14,6 @@ import { Meta, Title } from '@angular/platform-browser';
   standalone: true,
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthComponent {
   loginError: string = '';
@@ -37,6 +36,7 @@ export class AuthComponent {
         this.router.navigate(['/user/Useraccount']);
       },
       error: () => {
+        this.isLoading = false; // حطيناه هنا بدل الـ complete
         this.route.queryParams.subscribe((params) => {
           if (params['tab'] === 'signup') {
             this.activeTab = 'signup';
@@ -48,9 +48,7 @@ export class AuthComponent {
           content: 'noindex, nofollow',
         });
       },
-      complete: () => {
-        this.isLoading = false; // لما الـ verifyToken يخلّص، نخلّي isLoading = false
-      },
+      // مش محتاجين الـ complete handler خلاص
     });
   }
 

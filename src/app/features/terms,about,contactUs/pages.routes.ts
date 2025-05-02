@@ -25,16 +25,15 @@ export const pagesRoutes: Routes = [
   {
     path: 'return-Policy',
     loadComponent: () =>
-      import(
-        '../terms,about,contactUs/page/return-policy/return-policy.component'
-      ).then((m) => m.RefundPolicyComponent),
+      import('../terms,about,contactUs/page/return-policy/return-policy.component').then(
+        (m) => m.RefundPolicyComponent
+      ),
   },
-
   {
     path: 'contact-us',
     loadComponent: () =>
-      import(
-        '../terms,about,contactUs/page/contactUs/contact-us.component'
-      ).then((m) => m.ContactUsComponent),
+      import('../terms,about,contactUs/page/contactUs/contact-us.component').then(
+        (m) => m.ContactUsComponent
+      ),
   },
 ];

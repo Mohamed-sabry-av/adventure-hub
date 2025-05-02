@@ -20,7 +20,6 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   styleUrls: ['./addresses.component.css'],
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddressesComponent implements OnInit {
   customerDetails: any = null;

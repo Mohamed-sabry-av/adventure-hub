@@ -14,7 +14,6 @@ import { LocalStorageService } from '../../../../../core/services/local-storage.
   styleUrls: ['./orders.component.css'],
   standalone: true,
   imports: [CommonModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrdersComponent implements OnInit {
   orders: any[] = [];

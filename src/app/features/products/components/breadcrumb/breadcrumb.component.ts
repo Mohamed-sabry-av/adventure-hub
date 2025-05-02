@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
+  Input,
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
@@ -13,7 +14,7 @@ import { CategoriesService } from '../../../../core/services/categories.service'
 
 interface BreadcrumbItem {
   label: string;
-  url: string[];
+  url?: string[]; // Make url optional for product name
 }
 
 @Component({
@@ -25,6 +26,7 @@ interface BreadcrumbItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BreadcrumbComponent implements OnInit {
+  @Input() productName: string | null = null;
   breadcrumbs$!: Observable<BreadcrumbItem[]>;
   currentCategoryId: number | null = null;
   @Output() categoryIdChange = new EventEmitter<number | null>();
@@ -45,7 +47,11 @@ export class BreadcrumbComponent implements OnInit {
         if (slugs.length === 0) {
           this.currentCategoryId = null;
           this.categoryIdChange.emit(null);
-          return of([{ label: 'Home', url: ['/'] }]);
+          const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Home', url: ['/'] }];
+          if (this.productName) {
+            breadcrumbItems.push({ label: this.productName });
+          }
+          return of(breadcrumbItems);
         }
 
         return this.buildBreadcrumbs(slugs);
@@ -76,7 +82,6 @@ export class BreadcrumbComponent implements OnInit {
               url: ['/', ...pathSegments],
             });
             currentParentId = category.id;
-            // console.log(`Breadcrumb step: ${category.name} (ID: ${category.id})`);
           } else {
             console.warn(
               `Category with slug "${slug}" not found or not a child of parent ${currentParentId}`

@@ -1,0 +1,78 @@
+@if ((confirmedOrder$ | async)) {
+  @if ((confirmedOrder$ | async)?.id) {
+  <div class="order-details">
+    <h2 class="section-title">Order Details</h2>
+
+    <div class="card">
+      <!-- Products Table -->
+      <div class="products-table">
+        <!-- Table Header -->
+        <div class="table-header">
+          <div class="header-product">Product</div>
+          <div class="header-total">Total</div>
+        </div>
+
+        <!-- Table Body: Product Items -->
+        <div class="table-body">
+          @for (item of (confirmedOrder$ | async)?.line_items; track $index) {
+          <div class="item-row">
+            <div class="item-details">
+              <div class="item-name">
+                {{ item.name }} <span class="item-quantity">× {{ item.quantity }}</span>
+              </div>
+
+              @for (variation of item.meta_data; track $index) {
+              <div class="item-variation">
+                {{ variation.display_key }}: {{ variation.display_value }}
+              </div>
+              }
+            </div>
+
+            <div class="item-price">
+              {{ item.total | currency: (confirmedOrder$ | async)?.currency_symbol }}
+            </div>
+          </div>
+          }
+        </div>
+
+        <!-- Table Footer: Order Summary -->
+        <div class="table-footer">
+          <!-- Subtotal -->
+          <div class="summary-row">
+            <div class="summary-label">Subtotal:</div>
+            <div class="summary-value">
+              {{ (confirmedOrder$ | async)?.total | currency: (confirmedOrder$ | async)?.currency_symbol }}
+            </div>
+          </div>
+
+          <!-- Shipping -->
+          <div class="summary-row">
+            <div class="summary-label">Shipping:</div>
+            <div class="summary-value">
+              {{ (confirmedOrder$ | async)?.shipping_total === "0" ?
+                 "Free shipping" :
+                 ((confirmedOrder$ | async)?.shipping_total | currency: (confirmedOrder$ | async)?.currency_symbol) }}
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="summary-row">
+            <div class="summary-label">Payment Method:</div>
+            <div class="summary-value">
+              {{ (confirmedOrder$ | async)?.payment_method_title }}
+            </div>
+          </div>
+
+          <!-- Total -->
+          <div class="summary-row total">
+            <div class="summary-label">Total:</div>
+            <div class="summary-value">
+              {{ (confirmedOrder$ | async)?.total | currency: (confirmedOrder$ | async)?.currency_symbol }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+}

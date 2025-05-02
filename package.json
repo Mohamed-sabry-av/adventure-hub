@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:advhub": "node dist/advhub/server/server.mjs"
+    "serve:ssr:advhub": "node dist/advhub/server/server.mjs",
+    "analyze": "ng build --prod --stats-json && webpack-bundle-analyzer dist/advhub/stats.json"
   },
   "private": true,
   "dependencies": {
@@ -48,7 +49,6 @@
     "@angular-devkit/build-angular": "^19.0.7",
     "@angular/cli": "^19.0.7",
     "@angular/compiler-cli": "^19.0.0",
-    "@types/crypto-js": "^4.2.2",
     "@types/express": "^4.17.17",
     "@types/jasmine": "~5.1.0",
     "@types/lodash": "^4.17.16",
@@ -60,5 +60,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "tailwindcss": "^3.4.17",
-    "typescript": "~5.6.2"  }
+    "typescript": "~5.6.2",
+    "webpack-bundle-analyzer": "^4.10.2"
+  }
 }

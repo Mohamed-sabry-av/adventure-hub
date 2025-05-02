@@ -18,7 +18,6 @@ import { PaginatorModule } from 'primeng/paginator';
   imports: [RouterLink, AsyncPipe, DatePipe, PaginatorModule],
   templateUrl: './blog-sections.component.html',
   styleUrls: ['./blog-sections.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogSectionsComponent implements OnInit {
   private destroyRef = inject(DestroyRef);

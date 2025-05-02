@@ -7,7 +7,6 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink, DatePipe],
   templateUrl: './blog-article.component.html',
   styleUrl: './blog-article.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogArticleComponent {
   @Input({ required: true }) articleData!: any;

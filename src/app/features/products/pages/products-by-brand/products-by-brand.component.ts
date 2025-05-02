@@ -20,15 +20,12 @@ import { SeoService } from '../../../../core/services/seo.service';
   standalone: true,
   imports: [
     CommonModule,
-    FilterSidebarComponent,
-    BreadcrumbComponent,
     FilterDrawerComponent,
     SortMenuComponent,
     ProductsGridComponent,
   ],
   templateUrl: './products-by-brand.component.html',
   styleUrls: ['./products-by-brand.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   providers: [ProductsBrandService], // استخدام ProductsBrandService مباشرة
 })

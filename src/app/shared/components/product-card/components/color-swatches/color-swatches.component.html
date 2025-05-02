@@ -16,10 +16,10 @@
            class="swatch"
            [class.selected]="selectedColor === option.color"
            [class.out-of-stock]="!option.inStock"
-           [attr.title]="option.color + (option.inStock ? '' : ' (Out of Stock)')"
-           (click)="option.inStock && onSelectColor(option.color, option.image)">
+           [attr.title]="formatColorName(option.color) + (option.inStock ? '' : ' (Out of Stock)')"
+           (click)="onSelectColor(option.color, option.image, option.inStock)">
         <div class="swatch-inner" [style.background-image]="'url(' + option.image + ')'"></div>
-        <span class="color-tooltip">{{ getShortColorName(option.color) }}</span>
+        <span class="color-tooltip">{{ formatColorName(getShortColorName(option.color)) }}</span>
       </div>
     </div>
 

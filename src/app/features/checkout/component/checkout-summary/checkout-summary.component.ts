@@ -7,18 +7,18 @@ import {
 } from '@angular/core';
 import { filter, map, Observable } from 'rxjs';
 import { CartService } from '../../../cart/service/cart.service';
-import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { CheckoutService } from '../../services/checkout.service';
 import { FormsModule } from '@angular/forms';
 import { UIService } from '../../../../shared/services/ui.service';
 import { CartStatus } from '../../../cart/model/cart.model';
+import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 
 @Component({
   selector: 'app-checkout-summary',
-  imports: [FormsModule, AsyncPipe, CurrencyPipe],
+  imports: [FormsModule, AsyncPipe, CurrencySvgPipe],
   templateUrl: './checkout-summary.component.html',
   styleUrl: './checkout-summary.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckoutSummaryComponent {
   private cartService = inject(CartService);

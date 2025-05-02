@@ -73,12 +73,19 @@ export class CartService {
         );
       } else {
         let loadedCart: any = localStorage.getItem('Cart');
-        loadedCart = loadedCart ? JSON.parse(loadedCart) : [];
+        loadedCart = loadedCart ? JSON.parse(loadedCart) : { items: [], coupons: [] };
         const coupons = loadedCart.coupons || {};
         const couponKeys = Object.keys(coupons);
 
-        const couponData =
-          couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+        const couponData = couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+
+        // If a coupon exists in local storage, apply it
+        if (couponData) {
+          this.store.dispatch(fetchCouponsAction({
+            enteredCouponValue: couponData.code,
+            isLoggedIn: false,
+          }));
+        }
 
         this.store.dispatch(
           fetchUserCartAction({
@@ -90,6 +97,7 @@ export class CartService {
       }
     });
   }
+
   savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
 
   updateQuantityOfProductInCart(

@@ -17,7 +17,6 @@ import { CarouselModule } from 'primeng/carousel';
   imports: [CommonModule, ProductCardComponent, CarouselModule],
   templateUrl: './product-related.component.html',
   styleUrls: ['./product-related.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductRelatedComponent implements OnInit {
   private productService = inject(ProductService);

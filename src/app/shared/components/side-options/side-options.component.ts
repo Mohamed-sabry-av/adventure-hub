@@ -17,8 +17,9 @@ import {
 } from '../../../core/services/side-options.service';
 import { CartService } from '../../../features/cart/service/cart.service';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { map, Observable, Subject, takeUntil } from 'rxjs';
+import { map, Observable, Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 import { UIService } from '../../services/ui.service';
+import { VariationService } from '../../../core/services/variation.service';
 
 @Component({
   selector: 'app-side-options',
@@ -27,7 +28,6 @@ import { UIService } from '../../services/ui.service';
   templateUrl: './side-options.component.html',
   styleUrls: ['./side-options.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-
   animations: [
     trigger('slideInFromRight', [
       transition(':enter', [
@@ -80,13 +80,16 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     visibleColors: [],
     isMobile: false,
     variations: [],
+    showOutOfStockVariations: true,
   };
 
   quantity: number = 1;
   addSuccess: boolean = false;
+  errorMessage: string | null = null;
   private destroy$ = new Subject<void>();
   private uiService = inject(UIService);
   private sideOptionsService = inject(SideOptionsService);
+  private variationService = inject(VariationService);
 
   spinnerIsLoading$: Observable<any> = this.uiService.loadingMap$;
 
@@ -98,16 +101,17 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.uiService.loadingMap$.subscribe((res) => console.log(res));
-
     this.sideOptionsService.state$
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)) // Prevent unnecessary updates
+      )
       .subscribe((state) => {
-        console.log(state);
         this.state = state;
         this.cdr.markForCheck();
       });
   }
+
   stateIsOpen$: Observable<any> = this.sideOptionsService.state$.pipe(
     map((response: SideOptionsState) => {
       return { isOpen: response.isOpen, isMobile: response.isMobile };
@@ -132,28 +136,30 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   }
 
   onAddToCart(buyItNow?: boolean): void {
-    if (this.isAddToCartDisabled()) return;
+    if (this.isAddToCartDisabled()) {
+      this.showError('Please select a valid variation or the selected variation is out of stock');
+      return;
+    }
 
-    if (!this.state.product) return;
+    if (!this.state.product) {
+      this.showError('No product provided');
+      return;
+    }
 
-    const productToAdd = {
-      id: this.state.selectedVariation
-        ? this.state.selectedVariation.id
-        : this.state.product.id,
-      name: this.state.product.name,
-      quantity: this.quantity,
-      price: this.state.selectedVariation
-        ? this.state.selectedVariation.price
-        : this.state.product.price,
-      image:
-        this.state.selectedVariation?.image?.src ??
-        this.state.product.images?.[0]?.src,
-    };
+    const productToAdd = this.variationService.prepareProductForCart(
+      this.state.product,
+      this.state.selectedVariation,
+      this.quantity
+    );
 
-    // Call addProductToCart
+    if (!productToAdd) {
+      this.showError('Unable to add product to cart');
+      return;
+    }
+
     this.cartService.addProductToCart(productToAdd, buyItNow);
+    // this.uiService.showMessage('Product added to cart!', true);
 
-    // Show success indication
     this.addSuccess = true;
     setTimeout(() => {
       this.addSuccess = false;
@@ -162,7 +168,12 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   }
 
   isAddToCartDisabled(): boolean {
-    // Check if required selections are missing
+    if (!this.state.product) return true;
+
+    if (this.state.product.type === 'simple') {
+      return this.state.product.stock_status !== 'instock';
+    }
+
     const needsSize = this.hasSizes() && !this.state.selectedSize;
     const needsColor = this.hasColors() && !this.state.selectedColor;
 
@@ -170,33 +181,8 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    if (
-      this.hasSizes() &&
-      this.hasColors() &&
-      this.state.selectedSize &&
-      this.state.selectedColor
-    ) {
-      const selectedSizeObj = this.state.uniqueSizes.find(
-        (size) => size.size === this.state.selectedSize
-      );
-      return !selectedSizeObj?.inStock;
-    }
-
-    if (this.hasSizes() && this.state.selectedSize) {
-      const selectedSizeObj = this.state.uniqueSizes.find(
-        (size) => size.size === this.state.selectedSize
-      );
-      return !selectedSizeObj?.inStock;
-    }
-
-    if (this.hasColors() && this.state.selectedColor) {
-      const selectedColorObj = this.state.colorOptions.find(
-        (color) => color.color === this.state.selectedColor
-      );
-      return !selectedColorObj?.inStock;
-    }
-
-    return false;
+    return !this.state.selectedVariation?.stock_status || 
+           this.state.selectedVariation.stock_status !== 'instock';
   }
 
   hasSizes(): boolean {
@@ -207,7 +193,6 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
     return this.state.colorOptions.length > 0;
   }
 
-  // Quantity functions
   decreaseQuantity() {
     if (this.quantity > 1) {
       this.quantity--;
@@ -216,25 +201,29 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   }
 
   increaseQuantity() {
-    this.quantity++;
-    this.cdr.markForCheck();
+    const max = this.state.selectedVariation?.stock_quantity || 
+                this.state.product?.quantity_limits?.maximum || 10;
+    if (this.quantity < max) {
+      this.quantity++;
+      this.cdr.markForCheck();
+    }
   }
 
   onQuantityChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const value = parseInt(input.value);
+    const max = this.state.selectedVariation?.stock_quantity || 
+                this.state.product?.quantity_limits?.maximum || 10;
 
-    if (!isNaN(value) && value > 0) {
+    if (!isNaN(value) && value > 0 && value <= max) {
       this.quantity = value;
     } else {
       this.quantity = 1;
       input.value = '1';
     }
-
     this.cdr.markForCheck();
   }
 
-  // Information getters
   getProductName(): string {
     return this.state.product?.name || '';
   }
@@ -245,7 +234,12 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
 
   getCurrentPrice(): string {
     const product = this.state.product;
+    const variation = this.state.selectedVariation;
     if (!product) return '';
+
+    if (variation && this.state.product.type === 'variable') {
+      return `${product.currency || 'AED'} ${variation.price}`;
+    }
 
     if (product.on_sale && product.sale_price) {
       return `${product.currency || 'AED'} ${product.sale_price}`;
@@ -256,7 +250,14 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
 
   getOldPrice(): string {
     const product = this.state.product;
+    const variation = this.state.selectedVariation;
     if (!product || !product.on_sale) return '';
+
+    if (variation && this.state.product.type === 'variable') {
+      return variation.regular_price && variation.regular_price !== variation.price
+        ? `${product.currency || 'AED'} ${variation.regular_price}`
+        : '';
+    }
 
     return `${product.currency || 'AED'} ${product.regular_price}`;
   }
@@ -283,7 +284,15 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
   }
 
   onBuyItNow() {
-    const buyItNow = true;
-    this.onAddToCart(buyItNow);
+    this.onAddToCart(true);
+  }
+
+  private showError(message: string) {
+    this.errorMessage = message;
+    // this.uiService.showMessage(message, false);
+    setTimeout(() => {
+      this.errorMessage = null;
+      this.cdr.markForCheck();
+    }, 3000);
   }
 }

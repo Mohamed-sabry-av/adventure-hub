@@ -34,6 +34,7 @@ export interface PaymentIntentRequest {
     billing: any;
     shipping: any;
     line_items: any[];
+    coupon_lines?: any[];
   };
 }
 
@@ -61,62 +62,46 @@ export class CheckoutService {
 
   private readonly BACKEND_URL = environment.apiUrl;
 
-  paymentIntentClientSecret$: BehaviorSubject<string | null> =
-    new BehaviorSubject<string | null>(null);
-  paymentIntentId$: BehaviorSubject<string | null> = new BehaviorSubject<
-    string | null
-  >(null);
-  paymentProcessing$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
-    false
-  );
-  paymentError$: BehaviorSubject<string | null> = new BehaviorSubject<
-    string | null
-  >(null);
+  paymentIntentClientSecret$: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  paymentIntentId$: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  paymentProcessing$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  paymentError$: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  selectedShippingCountry$: BehaviorSubject<string> =
-    new BehaviorSubject<string>('');
-  selectedBillingCountry$: BehaviorSubject<string> =
-    new BehaviorSubject<string>('');
+  selectedShippingCountry$: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  selectedBillingCountry$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   emailIsUsed$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   productsOutStock$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
-  appliedCouponStatus$: Observable<any> = this.store.select(
-    copuponStatusSelector
-  );
+  appliedCouponStatus$: Observable<any> = this.store.select(copuponStatusSelector);
   appliedCouponValue$: Observable<any> = this.store.select(copuponDataSelector);
+
+  // لتخزين billingForm مؤقتاً (سيتم تمريره من الكومبوننت)
+  private billingForm: FormGroup | null = null;
+
+  setBillingForm(form: FormGroup) {
+    this.billingForm = form;
+  }
 
   applyCoupon(couponValue: string) {
     couponValue = couponValue.trim();
-    this.accountAuthService.isLoggedIn$
-      .pipe(take(1))
-      .subscribe((isLoggedIn: boolean) => {
-        this.store.dispatch(
-          fetchCouponsAction({ enteredCouponValue: couponValue, isLoggedIn })
-        );
-      });
+    this.accountAuthService.isLoggedIn$.pipe(take(1)).subscribe((isLoggedIn: boolean) => {
+      this.store.dispatch(fetchCouponsAction({ enteredCouponValue: couponValue, isLoggedIn }));
+    });
   }
 
   removeCoupon(couponValue: string) {
-    this.accountAuthService.isLoggedIn$
-      .pipe(take(1))
-      .subscribe((isLoggedIn: boolean) => {
-        this.store.dispatch(
-          removeCouponAction({ validCoupon: couponValue, isLoggedIn })
-        );
-      });
+    this.accountAuthService.isLoggedIn$.pipe(take(1)).subscribe((isLoggedIn: boolean) => {
+      this.store.dispatch(removeCouponAction({ validCoupon: couponValue, isLoggedIn }));
+    });
   }
 
   getAvaliableCountries(): Observable<any> {
     return this.httpClient
-      .get(
-        'https://adventures-hub.com/wp-json/custom/v1/shipping-countries-with-states'
-      )
+      .get('https://adventures-hub.com/wp-json/custom/v1/shipping-countries-with-states')
       .pipe(
         map((response: any) => response),
         catchError((error: any) => {
           console.error('Error fetching countries:', error);
-          return throwError(
-            () => new Error(error.error?.message || 'Failed to fetch countries')
-          );
+          return throwError(() => new Error(error.error?.message || 'Failed to fetch countries'));
         })
       );
   }
@@ -128,16 +113,7 @@ export class CheckoutService {
     this.selectedBillingCountry$,
   ]).pipe(
     map(([countries, selectedCountryCode]) => {
-      const selectedCountry = countries.find(
-        (country: any) => country.code === selectedCountryCode
-      );
-
-      console.log(
-        selectedCountry && selectedCountry.payment_methods
-          ? selectedCountry.payment_methods.map((method: any) => method.id)
-          : []
-      );
-
+      const selectedCountry = countries.find((country: any) => country.code === selectedCountryCode);
       return selectedCountry && selectedCountry.payment_methods
         ? selectedCountry.payment_methods.map((method: any) => method.id)
         : [];
@@ -154,35 +130,25 @@ export class CheckoutService {
 
   private getPaymentMethodTitle(paymentMethod: string): string {
     switch (paymentMethod) {
-      case 'cod':
-        return 'Cash on delivery';
-      case 'stripe':
-        return 'Credit Card (Stripe)';
-      case 'googlePay':
-        return 'Google Pay';
-      case 'applePay':
-        return 'Apple Pay';
-      case 'walletPayment':
-        return 'Wallet Payment';
-      case 'tabby':
-        return 'Tabby Installments';
-      default:
-        return 'Unknown Payment Method';
+      case 'cod': return 'Cash on delivery';
+      case 'stripe': return 'Credit Card (Stripe)';
+      case 'googlePay': return 'Google Pay';
+      case 'applePay': return 'Apple Pay';
+      case 'walletPayment': return 'Wallet Payment';
+      case 'tabby': return 'Tabby Installments';
+      default: return 'Unknown Payment Method';
     }
   }
 
   private getSetPaid(paymentMethod: string): boolean {
     switch (paymentMethod) {
-      case 'cod':
-        return false;
+      case 'cod': return false;
       case 'stripe':
       case 'googlePay':
       case 'applePay':
       case 'walletPayment':
-      case 'tabby':
-        return true;
-      default:
-        return false;
+      case 'tabby': return true;
+      default: return false;
     }
   }
 
@@ -199,22 +165,31 @@ export class CheckoutService {
 
   getCartTotalPrice(): Observable<{ total: number; currency: string }> {
     return this.cartService.savedUserCart$.pipe(
-      map((response: any) => ({
-        total: response.userCart.totals.total_price,
-        currency: response.userCart.totals.currency_code,
-      }))
+      map((response: any) => {
+        console.log('Cart data in getCartTotalPrice:', response);
+        const totals = response?.userCart?.totals;
+        if (!totals) {
+          throw new Error('Cart totals are not available');
+        }
+        console.log('Cart totals:', totals);
+        return {
+          total: totals.total_price,
+          currency: totals.currency_code || 'AED',
+        };
+      })
     );
   }
 
-  private getCoupons(
-    form: FormGroup
-  ): Observable<{ isValid: boolean; coupon: any[] }> {
+  private getCoupons(form: FormGroup): Observable<{ isValid: boolean; coupon: any[] }> {
     return this.appliedCouponValue$.pipe(
       take(1),
       map((response: any) => {
+        console.log('Coupon data:', response);
         if (response?.code) {
           const coupon = [{ code: response.code }];
+          console.log('Applied coupon:', coupon);
           const isUsed = response.used_by?.includes(form.value.email);
+          console.log('Is coupon already used:', isUsed);
           this.emailIsUsed$.next(isUsed);
           return { isValid: !isUsed, coupon };
         }
@@ -242,35 +217,54 @@ export class CheckoutService {
     currency: string,
     orderData: { billing: any; shipping: any; line_items: any[] }
   ): Observable<PaymentIntentResponse> {
-    const payload: PaymentIntentRequest = { amount, currency, orderData };
+    if (!this.billingForm) {
+      return throwError(() => new Error('Billing form is not available for coupon validation'));
+    }
 
-    return this.httpClient
-      .post<PaymentIntentResponse>(
-        `${this.BACKEND_URL}/api/payment/create-intent`,
-        payload
-      )
-      .pipe(
-        map((response) => {
-          if (response.success && response.clientSecret) {
-            this.paymentIntentClientSecret$.next(response.clientSecret);
-            this.paymentIntentId$.next(response.paymentIntentId || null);
-            return response;
-          }
-          throw new Error(response.error || 'Failed to create payment intent');
-        }),
-        catchError((error: HttpErrorResponse) => {
-          console.error('Error creating payment intent:', {
-            status: error.status,
-            statusText: error.statusText,
-            message: error.message,
-            error: error.error,
-          });
-          const errorMessage =
-            error.error?.error || error.message || 'Payment system error';
-          this.paymentError$.next(errorMessage);
-          return throwError(() => new Error(errorMessage));
-        })
-      );
+    return combineLatest([
+      this.getCoupons(this.billingForm),
+      this.getCartItems(),
+    ]).pipe(
+      switchMap(([couponData, lineItems]) => {
+        if (!couponData.isValid && couponData.coupon.length > 0) {
+          return throwError(() => new Error('Coupon already used'));
+        }
+
+        const payload: PaymentIntentRequest = {
+          amount,
+          currency,
+          orderData: {
+            ...orderData,
+            line_items: lineItems,
+            coupon_lines: couponData.coupon || [],
+          },
+        };
+
+        console.log('Payment Intent payload:', payload);
+
+        return this.httpClient.post<PaymentIntentResponse>(`${this.BACKEND_URL}/api/payment/create-intent`, payload).pipe(
+          map(response => {
+            if (response.success && response.clientSecret) {
+              this.paymentIntentClientSecret$.next(response.clientSecret);
+              this.paymentIntentId$.next(response.paymentIntentId || null);
+              return response;
+            }
+            throw new Error(response.error || 'Failed to create payment intent');
+          }),
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error creating payment intent:', {
+              status: error.status,
+              statusText: error.statusText,
+              message: error.message,
+              error: error.error
+            });
+            const errorMessage = error.error?.error || error.message || 'Payment system error';
+            this.paymentError$.next(errorMessage);
+            return throwError(() => new Error(errorMessage));
+          })
+        );
+      })
+    );
   }
 
   checkOrderStatus(paymentIntentId: string): Observable<any> {
@@ -278,63 +272,17 @@ export class CheckoutService {
       return throwError(() => new Error('Missing payment intent ID'));
     }
 
-    return this.httpClient
-      .get(`${this.BACKEND_URL}/api/order/status/${paymentIntentId}`)
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          console.error('Error checking order status:', {
-            status: error.status,
-            statusText: error.statusText,
-            message: error.message,
-            error: error.error,
-          });
-          return throwError(() => new Error('Failed to check order status'));
-        })
-      );
-  }
-
-  prepareOrderData(forms: {
-    billingForm: FormGroup;
-    shippingForm: FormGroup;
-    isShippingDifferent: boolean;
-  }): { billing: any; shipping: any; line_items: any[] } {
-    const billingFirstName =
-      forms.billingForm.get('firstName')?.value ||
-      forms.billingForm.get('email')?.value?.split('@')[0] ||
-      'Customer';
-    const billingLastName = forms.billingForm.get('lastName')?.value || '';
-
-    const billingAddress = {
-      first_name: billingFirstName,
-      last_name: billingLastName,
-      address_1: forms.billingForm.get('address')?.value || '',
-      city: forms.billingForm.get('city')?.value || '',
-      state: forms.billingForm.get('state')?.value || '',
-      postcode: `${forms.billingForm.get('postCode')?.value || ''}`,
-      country: forms.billingForm.get('countrySelect')?.value || '',
-      email: forms.billingForm.get('email')?.value || '',
-      phone: `${forms.billingForm.get('phone')?.value || ''}`,
-    };
-
-    const shippingAddress = forms.isShippingDifferent
-      ? {
-          first_name:
-            forms.shippingForm.get('firstName')?.value || billingFirstName,
-          last_name:
-            forms.shippingForm.get('lastName')?.value || billingLastName,
-          address_1: forms.shippingForm.get('address')?.value || '',
-          city: forms.shippingForm.get('city')?.value || '',
-          state: forms.shippingForm.get('state')?.value || '',
-          postcode: `${forms.shippingForm.get('postCode')?.value || ''}`,
-          country: forms.shippingForm.get('countrySelect')?.value || '',
-        }
-      : { ...billingAddress };
-
-    return {
-      billing: billingAddress,
-      shipping: shippingAddress,
-      line_items: [],
-    };
+    return this.httpClient.get(`${this.BACKEND_URL}/api/order/status/${paymentIntentId}`).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error checking order status:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          error: error.error
+        });
+        return throwError(() => new Error('Failed to check order status'));
+      })
+    );
   }
 
   createOrder(
@@ -348,9 +296,7 @@ export class CheckoutService {
     return this.cartService.savedUserCart$.pipe(
       take(1),
       switchMap((cart) => {
-        const outOfStockItems =
-          cart?.items?.filter((item: any) => item.stock_status !== 'instock') ||
-          [];
+        const outOfStockItems = cart?.items?.filter((item: any) => item.stock_status !== 'instock') || [];
 
         if (outOfStockItems.length > 0) {
           const outOfStockProducts = outOfStockItems.map((item: any) => ({
@@ -358,10 +304,7 @@ export class CheckoutService {
             name: item.name || `Product ${item.id}`,
           }));
           this.productsOutStock$.next(outOfStockProducts);
-          return throwError(
-            () =>
-              new Error('Cannot create order: Some products are out of stock')
-          );
+          return throwError(() => new Error('Cannot create order: Some products are out of stock'));
         }
 
         return combineLatest([
@@ -371,12 +314,9 @@ export class CheckoutService {
           this.getCartTotalPrice(),
         ]).pipe(
           switchMap(([lineItems, couponData, customerId, cartTotals]) => {
-            const billingFirstName =
-              forms.billingForm.get('firstName')?.value ||
-              forms.billingForm.get('email')?.value?.split('@')[0] ||
-              'Customer';
-            const billingLastName =
-              forms.billingForm.get('lastName')?.value || '';
+            const billingFirstName = forms.billingForm.get('firstName')?.value || 
+                                    forms.billingForm.get('email')?.value?.split('@')[0] || 'Customer';
+            const billingLastName = forms.billingForm.get('lastName')?.value || '';
 
             const billingAddress = {
               first_name: billingFirstName,
@@ -392,24 +332,17 @@ export class CheckoutService {
 
             const shippingAddress = forms.isShippingDifferent
               ? {
-                  first_name:
-                    forms.shippingForm.get('firstName')?.value ||
-                    billingFirstName,
-                  last_name:
-                    forms.shippingForm.get('lastName')?.value ||
-                    billingLastName,
+                  first_name: forms.shippingForm.get('firstName')?.value || billingFirstName,
+                  last_name: forms.shippingForm.get('lastName')?.value || billingLastName,
                   address_1: forms.shippingForm.get('address')?.value || '',
                   city: forms.shippingForm.get('city')?.value || '',
                   state: forms.shippingForm.get('state')?.value || '',
-                  postcode: `${
-                    forms.shippingForm.get('postCode')?.value || ''
-                  }`,
+                  postcode: `${forms.shippingForm.get('postCode')?.value || ''}`,
                   country: forms.shippingForm.get('countrySelect')?.value || '',
                 }
               : { ...billingAddress };
 
-            const paymentMethod =
-              forms.billingForm.get('paymentMethod')?.value || 'cod';
+            const paymentMethod = forms.billingForm.get('paymentMethod')?.value || 'cod';
 
             const orderData = {
               payment_method: paymentMethod,
@@ -421,67 +354,47 @@ export class CheckoutService {
               coupon_lines: couponData.coupon || [],
               customer_id: customerId || 0,
               payment_token: paymentToken,
-              meta_data: paymentToken
-                ? [{ key: '_payment_intent_id', value: paymentToken }]
-                : [],
+              meta_data: paymentToken ? [{ key: '_payment_intent_id', value: paymentToken }] : [],
             };
 
-            console.log('Sending order data to server:', orderData);
+            console.log('Order data sent to server:', orderData);
 
             if (!couponData.isValid && couponData.coupon.length > 0) {
-              return throwError(
-                () => new Error('Coupon already used. Order not created.')
-              );
+              return throwError(() => new Error('Coupon already used. Order not created.'));
             }
 
-            // For all payment methods, send the order to the server
-            return this.httpClient
-              .post<OrderResponse>(
-                `${this.BACKEND_URL}/api/orders`,
-                orderData,
-                {
-                  headers: { 'Content-Type': 'application/json' },
+            return this.httpClient.post<OrderResponse>(`${this.BACKEND_URL}/api/orders`, orderData, {
+              headers: { 'Content-Type': 'application/json' }
+            }).pipe(
+              map((response) => {
+                console.log('Order creation response:', response);
+                return response;
+              }),
+              catchError((error: HttpErrorResponse) => {
+                console.error('Error creating order:', {
+                  status: error.status,
+                  statusText: error.statusText,
+                  message: error.message,
+                  response: typeof error.error === 'string' ? error.error.substring(0, 200) : error.error
+                });
+                let errorMessage = 'Failed to create order';
+                if (error.error?.message?.includes('coupon')) {
+                  errorMessage = 'Error applying coupon: ' + (error.error.message || 'Invalid coupon');
+                } else if (error.status === 0) {
+                  errorMessage = 'Network error: Unable to reach the server';
+                } else if (error.error instanceof ErrorEvent) {
+                  errorMessage = `Client-side error: ${error.error.message}`;
+                } else if (typeof error.error === 'string' && error.error.includes('<!DOCTYPE')) {
+                  errorMessage = `Server returned an unexpected HTML response. Status: ${error.status} ${error.statusText}`;
+                  console.error('HTML response content:', error.error.substring(0, 200));
+                } else {
+                  errorMessage = error.error?.message || `Server error: ${error.status} - ${error.message}`;
                 }
-              )
-              .pipe(
-                map((response) => {
-                  console.log('Order creation response:', response);
-                  return response;
-                }),
-                catchError((error: HttpErrorResponse) => {
-                  console.error('Error creating order:', {
-                    status: error.status,
-                    statusText: error.statusText,
-                    message: error.message,
-                    response:
-                      typeof error.error === 'string'
-                        ? error.error.substring(0, 200)
-                        : error.error,
-                  });
-                  let errorMessage = 'Failed to create order';
-                  if (error.status === 0) {
-                    errorMessage = 'Network error: Unable to reach the server';
-                  } else if (error.error instanceof ErrorEvent) {
-                    errorMessage = `Client-side error: ${error.error.message}`;
-                  } else if (
-                    typeof error.error === 'string' &&
-                    error.error.includes('<!DOCTYPE')
-                  ) {
-                    errorMessage = `Server returned an unexpected HTML response. Status: ${error.status} ${error.statusText}`;
-                    console.error(
-                      'HTML response content:',
-                      error.error.substring(0, 200)
-                    );
-                  } else {
-                    errorMessage =
-                      error.error?.message ||
-                      `Server error: ${error.status} - ${error.message}`;
-                  }
-                  this.uiService.showError(errorMessage);
-                  this.paymentError$.next(errorMessage);
-                  return throwError(() => new Error(errorMessage));
-                })
-              );
+                this.uiService.showError(errorMessage);
+                this.paymentError$.next(errorMessage);
+                return throwError(() => new Error(errorMessage));
+              })
+            );
           })
         );
       })

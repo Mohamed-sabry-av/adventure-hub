@@ -12,7 +12,6 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule],
   templateUrl: './sort-menu.component.html',
   styleUrl: './sort-menu.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SortMenuComponent {
   @Output() sortChange = new EventEmitter<string>();

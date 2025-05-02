@@ -1,23 +1,7 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-  SimpleChanges,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  loadStripe,
-  Stripe,
-  StripeElements,
-  StripePaymentElement,
-} from '@stripe/stripe-js';
+import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment'; // Add environment file
 
@@ -26,9 +10,7 @@ import { environment } from '../../../../../environments/environment'; // Add en
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './payment.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
-  styleUrls: ['./payment.component.css'],
+  styleUrls: ['./payment.component.css']
 })
 export class PaymentComponent implements OnInit, OnChanges {
   @Input() clientSecret: string | null = null;
@@ -36,10 +18,7 @@ export class PaymentComponent implements OnInit, OnChanges {
   @Input() currency: string = 'aed';
   @Input() orderData: any = null;
   @Input() processing: boolean = false;
-  @Output() paymentSuccess = new EventEmitter<{
-    paymentIntentId: string;
-    orderId?: string;
-  }>();
+  @Output() paymentSuccess = new EventEmitter<{paymentIntentId: string, orderId?: string}>();
   @Output() paymentError = new EventEmitter<string>();
   @Output() processingChange = new EventEmitter<boolean>();
 
@@ -53,8 +32,7 @@ export class PaymentComponent implements OnInit, OnChanges {
   // Use demo mode for testing (set to false in production)
   useDemoMode = false; // Change to false for production
 
-  private readonly STRIPE_PUBLISHABLE_KEY =
-    'pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45';
+  private readonly STRIPE_PUBLISHABLE_KEY = 'pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45';
   private readonly BACKEND_URL = environment.apiUrl; // e.g., 'http://localhost:4000'
 
   @ViewChild('paymentElement', { static: true }) paymentElementRef!: ElementRef;
@@ -66,7 +44,7 @@ export class PaymentComponent implements OnInit, OnChanges {
 
     if (!this.stripe) {
       console.error("Stripe couldn't be loaded");
-      this.error = 'Failed to load payment processor';
+      this.error = "Failed to load payment processor";
       this.paymentError.emit(this.error);
       return;
     }
@@ -77,12 +55,7 @@ export class PaymentComponent implements OnInit, OnChanges {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
-    if (
-      changes['clientSecret'] &&
-      this.clientSecret &&
-      this.stripe &&
-      !this.useDemoMode
-    ) {
+    if (changes['clientSecret'] && this.clientSecret && this.stripe && !this.useDemoMode) {
       console.log('Client secret received:', this.clientSecret);
       await this.setupStripeElements();
     }
@@ -105,13 +78,13 @@ export class PaymentComponent implements OnInit, OnChanges {
         clientSecret: this.clientSecret,
         appearance: {
           theme: 'stripe',
-          variables: { colorPrimary: '#0066cc' },
-        },
+          variables: { colorPrimary: '#0066cc' }
+        }
       });
 
       this.paymentElement = this.elements.create('payment', {
         layout: { type: 'tabs', defaultCollapsed: false },
-        paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
+        paymentMethodOrder: ['card', 'apple_pay', 'google_pay']
       });
       this.paymentElement.mount(this.paymentElementRef.nativeElement);
 
@@ -142,8 +115,7 @@ export class PaymentComponent implements OnInit, OnChanges {
 
       setTimeout(() => {
         this.paymentStatus = 'success';
-        this.paymentIntentId =
-          'pi_' + Math.random().toString(36).substring(2, 15);
+        this.paymentIntentId = 'pi_' + Math.random().toString(36).substring(2, 15);
         this.checkOrderStatus(this.paymentIntentId);
         this.setPaymentProcessing(false);
       }, 2000);
@@ -167,7 +139,7 @@ export class PaymentComponent implements OnInit, OnChanges {
         confirmParams: {
           return_url: `${window.location.origin}/checkout/complete`, // Used only if redirect is required
         },
-        redirect: 'if_required', // Avoid redirect unless necessary
+        redirect: 'if_required' // Avoid redirect unless necessary
       });
 
       if (error) {
@@ -201,44 +173,40 @@ export class PaymentComponent implements OnInit, OnChanges {
     }
 
     const checkStatus = () => {
-      this.http
-        .get(`${this.BACKEND_URL}/api/order/status/${paymentIntentId}`)
-        .subscribe(
-          (response: any) => {
-            if (response.success && response.orderId) {
-              console.log('Order created successfully:', response.orderId);
-              this.setPaymentProcessing(false);
-              this.paymentSuccess.emit({
-                paymentIntentId: paymentIntentId,
-                orderId: response.orderId,
-              });
+      this.http.get(`${this.BACKEND_URL}/api/order/status/${paymentIntentId}`).subscribe(
+        (response: any) => {
+          if (response.success && response.orderId) {
+            console.log('Order created successfully:', response.orderId);
+            this.setPaymentProcessing(false);
+            this.paymentSuccess.emit({
+              paymentIntentId: paymentIntentId,
+              orderId: response.orderId
+            });
 
-              if (!this.useDemoMode) {
-                window.location.href = `/checkout/complete?order_id=${response.orderId}`;
-              }
-            } else {
-              // Order is not yet created, retry after delay
-              setTimeout(checkStatus, 2000);
+            if (!this.useDemoMode) {
+              window.location.href = `/checkout/complete?order_id=${response.orderId}`;
             }
-          },
-          (error) => {
-            console.error('Error checking order status:', error);
-            if (this.useDemoMode) {
-              const fakeOrderId = Math.floor(Math.random() * 10000) + 1;
-              console.log(
-                'Demo mode: Simulating successful order despite error'
-              );
-              console.log('Order created successfully:', fakeOrderId);
-              this.setPaymentProcessing(false);
-              this.paymentSuccess.emit({
-                paymentIntentId: paymentIntentId,
-                orderId: String(fakeOrderId),
-              });
-            } else {
-              setTimeout(checkStatus, 3000);
-            }
+          } else {
+            // Order is not yet created, retry after delay
+            setTimeout(checkStatus, 2000);
           }
-        );
+        },
+        (error) => {
+          console.error('Error checking order status:', error);
+          if (this.useDemoMode) {
+            const fakeOrderId = Math.floor(Math.random() * 10000) + 1;
+            console.log('Demo mode: Simulating successful order despite error');
+            console.log('Order created successfully:', fakeOrderId);
+            this.setPaymentProcessing(false);
+            this.paymentSuccess.emit({
+              paymentIntentId: paymentIntentId,
+              orderId: String(fakeOrderId)
+            });
+          } else {
+            setTimeout(checkStatus, 3000);
+          }
+        }
+      );
     };
 
     checkStatus();

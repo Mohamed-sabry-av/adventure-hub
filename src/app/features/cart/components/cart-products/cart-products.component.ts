@@ -8,19 +8,19 @@ import {
 } from '@angular/core';
 import { CartService } from '../../service/cart.service';
 import { Observable } from 'rxjs';
-import { AsyncPipe, CurrencyPipe, NgIf } from '@angular/common';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../../../interfaces/product';
 import { RouterLink } from '@angular/router';
 import { UIService } from '../../../../shared/services/ui.service';
 import { CartStatus } from '../../model/cart.model';
+import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 
 @Component({
   selector: 'app-cart-products',
-  imports: [AsyncPipe, FormsModule, CurrencyPipe, RouterLink],
+  imports: [AsyncPipe, FormsModule, CurrencySvgPipe, RouterLink],
   templateUrl: './cart-products.component.html',
   styleUrl: './cart-products.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartProductsComponent {
   private cartService = inject(CartService);
@@ -36,7 +36,7 @@ export class CartProductsComponent {
   ngOnInit() {
     const subscribtion = this.cartService.savedUserCart$.subscribe(
       (response: any) => {
-        this.progressValue = response?.totals?.total_price;
+        this.progressValue = response?.userCart.totals?.total_price;
       }
     );
 

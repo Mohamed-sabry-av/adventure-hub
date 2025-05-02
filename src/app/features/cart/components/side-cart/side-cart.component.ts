@@ -4,26 +4,28 @@ import {
   DestroyRef,
   ElementRef,
   HostListener,
+  Inject,
   inject,
   Input,
+  PLATFORM_ID,
   viewChild,
 } from '@angular/core';
 import { CartService } from '../../service/cart.service';
 import { filter, Observable } from 'rxjs';
-import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { RouterLink } from '@angular/router';
 import { Product } from '../../../../interfaces/product';
 import { UIService } from '../../../../shared/services/ui.service';
 import { CartStatus } from '../../model/cart.model';
+import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 
 @Component({
   selector: 'app-side-cart',
-  imports: [AsyncPipe, DrawerModule, ButtonModule, CurrencyPipe, RouterLink],
+  imports: [AsyncPipe, DrawerModule, ButtonModule, CurrencySvgPipe, RouterLink],
   templateUrl: './side-cart.component.html',
   styleUrl: './side-cart.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   host: { ngSkipHydration: '' },
 })
@@ -31,6 +33,8 @@ export class SideCartComponent {
   private cartService = inject(CartService);
   private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
@@ -49,10 +53,12 @@ export class SideCartComponent {
       });
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {
-      if (visible) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = 'auto';
+      if (isPlatformBrowser(this.platformId)) {
+        if (visible) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = 'auto';
+        }
       }
       document.body.style.overflow = visible ? 'hidden' : 'auto';
     });

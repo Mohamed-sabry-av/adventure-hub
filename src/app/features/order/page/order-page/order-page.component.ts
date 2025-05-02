@@ -9,6 +9,7 @@ import { OrderMetaDataComponent } from '../../components/order-meta-data/order-m
 import { OrderMainDataComponent } from '../../components/order-main-data/order-main-data.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { ServiceHighlightsComponent } from '../../../../shared/components/service-highlights/service-highlights.component';
+import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { OrderService } from '../../services/order.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
@@ -28,7 +29,6 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
   ],
   templateUrl: './order-page.component.html',
   styleUrl: './order-page.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderPageComponent {
   private orderService = inject(OrderService);
@@ -38,6 +38,7 @@ export class OrderPageComponent {
 
   @Input({ required: true }) orderId!: string;
   isOrderLoading$: Observable<any> = this.uiService.isOrderLoading$;
+  isError$: Observable<any> = this.uiService.errorState$;
 
   ngOnInit() {
     const subscription = this.orderService.loadedOrder$.subscribe(
@@ -50,8 +51,4 @@ export class OrderPageComponent {
 
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
-
-  // لاز ارجع هنا اهندل السبينرات والايرورات والكلام ده
-
-  isError$: Observable<any> = this.uiService.errorState$;
 }

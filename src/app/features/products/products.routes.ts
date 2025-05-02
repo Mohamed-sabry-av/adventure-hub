@@ -25,7 +25,7 @@ export const productsRoutes: Routes = [
     data: { breadcrumb: 'Search Results' },
   },
   {
-    path: ':productId',
+    path: ':slug',
     loadComponent: () =>
       import('../product/page/product-page/product-page.component').then(
         (m) => m.ProductPageComponent

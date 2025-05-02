@@ -1,0 +1,99 @@
+@if ((confirmedOrder$ | async)) {
+  @if ((confirmedOrder$ | async)?.id) {
+  <div class="addresses-container">
+    <h2 class="section-title">Customer Information</h2>
+
+    <div class="addresses-grid">
+      <!-- Billing Address -->
+      <div class="address-card">
+        <div class="address-header">
+          <div class="address-icon">
+            <span class="material-icons-outlined">account_balance_wallet</span>
+          </div>
+          <h3 class="address-title">Billing Address</h3>
+        </div>
+
+        <div class="address-content">
+          <p class="customer-name">
+            {{ (confirmedOrder$ | async)?.billing?.first_name }}
+            {{ (confirmedOrder$ | async)?.billing?.last_name }}
+          </p>
+
+          <p class="address-line">{{ (confirmedOrder$ | async)?.billing?.address_1 }}</p>
+
+          @if ((confirmedOrder$ | async)?.billing?.address_2) {
+          <p class="address-line">{{ (confirmedOrder$ | async)?.billing?.address_2 }}</p>
+          }
+
+          <p class="address-line">
+            {{ (confirmedOrder$ | async)?.billing?.city }}
+            @if ((confirmedOrder$ | async)?.billing?.state) {
+            , {{ (confirmedOrder$ | async)?.billing?.state }}
+            }
+            @if ((confirmedOrder$ | async)?.billing?.postcode) {
+            {{ (confirmedOrder$ | async)?.billing?.postcode }}
+            }
+          </p>
+
+          @if ((confirmedOrder$ | async)?.billing?.country) {
+          <p class="address-line">{{ (confirmedOrder$ | async)?.billing?.country }}</p>
+          }
+
+          <div class="contact-info">
+            @if ((confirmedOrder$ | async)?.billing?.phone) {
+            <p class="contact-item">
+              <span class="material-icons-outlined contact-icon">phone</span>
+              {{ (confirmedOrder$ | async)?.billing?.phone }}
+            </p>
+            }
+
+            @if ((confirmedOrder$ | async)?.billing?.email) {
+            <p class="contact-item">
+              <span class="material-icons-outlined contact-icon">email</span>
+              {{ (confirmedOrder$ | async)?.billing?.email }}
+            </p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="address-card">
+        <div class="address-header">
+          <div class="address-icon">
+            <span class="material-icons-outlined">local_shipping</span>
+          </div>
+          <h3 class="address-title">Shipping Address</h3>
+        </div>
+
+        <div class="address-content">
+          <p class="customer-name">
+            {{ (confirmedOrder$ | async)?.shipping?.first_name }}
+            {{ (confirmedOrder$ | async)?.shipping?.last_name }}
+          </p>
+
+          <p class="address-line">{{ (confirmedOrder$ | async)?.shipping?.address_1 }}</p>
+
+          @if ((confirmedOrder$ | async)?.shipping?.address_2) {
+          <p class="address-line">{{ (confirmedOrder$ | async)?.shipping?.address_2 }}</p>
+          }
+
+          <p class="address-line">
+            {{ (confirmedOrder$ | async)?.shipping?.city }}
+            @if ((confirmedOrder$ | async)?.shipping?.state) {
+            , {{ (confirmedOrder$ | async)?.shipping?.state }}
+            }
+            @if ((confirmedOrder$ | async)?.shipping?.postcode) {
+            {{ (confirmedOrder$ | async)?.shipping?.postcode }}
+            }
+          </p>
+
+          @if ((confirmedOrder$ | async)?.shipping?.country) {
+          <p class="address-line">{{ (confirmedOrder$ | async)?.shipping?.country }}</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+}

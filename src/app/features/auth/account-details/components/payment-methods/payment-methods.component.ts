@@ -19,7 +19,6 @@ import {
   styleUrls: ['./payment-methods.component.css'],
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentMethodsComponent implements OnInit {
   paymentGateways: any[] = [];

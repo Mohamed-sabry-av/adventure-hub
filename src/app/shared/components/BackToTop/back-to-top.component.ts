@@ -6,7 +6,6 @@ import {
 
 @Component({
   selector: 'app-back-to-top',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   template: `
     @if(showButton){

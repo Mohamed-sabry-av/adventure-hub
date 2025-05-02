@@ -15,9 +15,9 @@
       </span>
       }@else {
       <span>
-        Spend <strong>{{ progressValue | currency : "AED" }}</strong> more for
-        <strong>free shipping!</strong></span
-      >
+        Spend <strong>{{ progressValue }}</strong> more for
+        <strong>free shipping!</strong>
+      </span>
       }
     </p>
 
@@ -42,11 +42,11 @@
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <a [routerLink]="[`/${item.permalink}`]">
+      <a [routerLink]="[`/product/${item.slug}`]">
         <img
           loading="lazy"
-          [src]="item.images.imageSrc"
-          [alt]="item.images.imageAlt"
+          [src]="item.image.thumbnail"
+          [alt]="item.image.alt"
           class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer"
         />
       </a>
@@ -57,21 +57,25 @@
             <p class="font-normal text-[#b2b48d]">
               {{ item.name.split(" ")[0] }}
             </p>
-            <a [routerLink]="[`/product/${item.id}`]">
+            <a [routerLink]="[`/product/${item.slug}`]">
               <p
                 class="text-base cursor-pointer hover:underline"
                 [innerHTML]="item.name"
               ></p>
             </a>
-            <p class="text-base">
-              {{ item.prices.price | currency : "AED" }}
+            <div>
+              <p
+                class="text-base"
+                [innerHTML]="item.prices.price | currencySvg"
+              ></p>
               @if (item.prices.regular_price !== item.prices.price &&
               item.prices.sale_price !== null) {
-              <del class="ml-1 text-gray-400 font-light text-sm">{{
-                item.prices.regular_price | currency : "AED"
-              }}</del>
+              <del
+                class="ml-1 text-gray-400 font-light text-sm"
+                [innerHTML]="item.prices.regular_price"
+              ></del>
               }
-            </p>
+            </div>
 
             @if (item.type !== '') { @for (attribute of item.attributes; track
             $index) {
@@ -131,9 +135,10 @@
           <div class="md:text-center pt-4 md:pt-0">
             <p class="mb-2 text-[#4d4f3a] md:hidden block">Subtotal</p>
 
-            <p class="text-base font-semibold">
-              {{ item.totals.line_total | currency : "AED" }}
-            </p>
+            <p
+              class="text-base font-semibold"
+              [innerHTML]="item.totals.line_total | currencySvg"
+            ></p>
           </div>
         </div>
       </div>

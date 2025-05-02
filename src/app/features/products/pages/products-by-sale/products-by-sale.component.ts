@@ -20,12 +20,10 @@ import { SeoService } from '../../../../core/services/seo.service';
   imports: [
     CommonModule,
     BreadcrumbComponent,
-    FilterSidebarComponent,
     FilterDrawerComponent,
     SortMenuComponent,
     ProductsGridComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   templateUrl: './products-by-sale.component.html',
   styleUrls: ['./products-by-sale.component.css'],
@@ -35,8 +33,8 @@ export class ProductsBySaleComponent implements OnInit {
   isLoading = true;
   isLoadingMore = false;
   currentPage: number = 1;
-  itemPerPage: number = 20;
-  totalProducts: number = 0;
+  itemPerPage: number = 12;
+  totalProducts: any = 0;
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
@@ -114,7 +112,7 @@ export class ProductsBySaleComponent implements OnInit {
     try {
       const products = await this.filterService
         .getFilteredProductsByCategory(
-          null, // بدون كاتيجوري لأننا عايزين كل المنتجات اللي عليها عروض
+          null, 
           { ...filters, on_sale: ['true'] }, // إضافة فلتر on_sale
           page,
           this.itemPerPage,
@@ -148,9 +146,7 @@ export class ProductsBySaleComponent implements OnInit {
       const response = await this.filterService
         .getFilteredProductsByCategory(null, { on_sale: ['true'] }, 1, 1)
         .toPromise();
-      // هنا محتاجين طريقة لجلب العدد الكلي من الـ API (X-WP-Total)
-      // مؤقتًا، هنفترض قيمة
-      this.totalProducts = 100; // استبدليها بقيمة حقيقية من الـ API لو متاحة
+      this.totalProducts =1000; 
     } catch (error) {
       console.error('Error loading total products:', error);
       this.totalProducts = 0;

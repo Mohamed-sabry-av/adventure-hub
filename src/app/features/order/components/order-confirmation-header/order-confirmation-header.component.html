@@ -1,0 +1,44 @@
+@if ((confirmedOrder$ | async)) {
+  @if ((confirmedOrder$ | async)?.id) {
+  <div class="order-confirmation-header">
+    <!-- Success Message -->
+    <div class="success-message">
+      <div class="icon-container">
+        <span class="success-icon">✓</span>
+      </div>
+      <h1 class="title">Order Confirmed!</h1>
+      <p class="subtitle">Thank you. Your order has been received</p>
+    </div>
+
+    <!-- Order Metadata -->
+    <div class="order-meta">
+      <div class="meta-container">
+        <div class="meta-item">
+          <span class="meta-label">Order number</span>
+          <span class="meta-value">{{ (confirmedOrder$ | async)?.id }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Date</span>
+          <span class="meta-value">{{ (confirmedOrder$ | async)?.date_created | date: 'MMM d, y' }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Email</span>
+          <span class="meta-value">{{ (confirmedOrder$ | async)?.billing?.email }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Total</span>
+          <span class="meta-value">{{ (confirmedOrder$ | async)?.total | currency: (confirmedOrder$ | async)?.currency }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Payment method</span>
+          <span class="meta-value">{{ (confirmedOrder$ | async)?.payment_method_title }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+}

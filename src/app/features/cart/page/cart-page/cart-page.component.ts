@@ -31,7 +31,6 @@ import { RouterLink } from '@angular/router';
   ],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartPageComponent {
   private cartService = inject(CartService);

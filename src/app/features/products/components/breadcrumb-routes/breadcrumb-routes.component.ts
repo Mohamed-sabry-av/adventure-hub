@@ -12,24 +12,27 @@ import { Observable } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <ul class="space-y-1 border-b border-gray-200  text-sm font-medium text-gray-900">
-    @defer () {
-        <li *ngFor="let subCat of subcategories">
-          @if(subCat.productCount > 0) {
+    <ul
+      class="space-y-1 border-b border-gray-200  text-sm font-medium text-gray-900"
+    >
+      @defer () {
+      <li *ngFor="let subCat of subcategories">
+        @if (subCat.productCount > 0) {
+        <a
+          [routerLink]="getSubCategoryRoute(subCat.category)"
+          (click)="onSubcategoryClick(subCat.category)"
+          class="block"   
+        >
+        <span  [innerHTML]="subCat.category.name"> ({{ subCat.category.name }})</span>
+        <span> ({{ subCat.productCount }})</span>
+        </a>
 
-            <a
-            [routerLink]="getSubCategoryRoute(subCat.category)"
-            (click)="onSubcategoryClick(subCat.category)"
-            class="block"
-            >
-            {{ subCat.category.name }} ({{ subCat.productCount }})
-          </a>
         }
-        </li>
+      </li>
       } @placeholder {
-        <li *ngFor="let item of [].constructor(3)" class="skeleton">
-          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-        </li>
+      <li *ngFor="let item of [].constructor(3)" class="skeleton">
+        <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+      </li>
       }
     </ul>
   `,
@@ -55,7 +58,11 @@ export class BreadcrumbRoutesComponent implements OnInit {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
-    if (changes['categoryId'] && !changes['categoryId'].firstChange && this.categoryId !== null) {
+    if (
+      changes['categoryId'] &&
+      !changes['categoryId'].firstChange &&
+      this.categoryId !== null
+    ) {
       this.subcategories = [];
       this.isDataFullyLoaded = false;
       this.loadedCounts = 0;
@@ -70,9 +77,15 @@ export class BreadcrumbRoutesComponent implements OnInit {
     }
 
     try {
-      const allCategories = (await this.categoryService.getAllCategories().toPromise()) || [];
-      const subCats = allCategories.filter((cat) => cat.parent === this.categoryId);
-      this.subcategories = subCats.map((cat) => ({ category: cat, productCount: 0 }));
+      const allCategories =
+        (await this.categoryService.getAllCategories().toPromise()) || [];
+      const subCats = allCategories.filter(
+        (cat) => cat.parent === this.categoryId
+      );
+      this.subcategories = subCats.map((cat) => ({
+        category: cat,
+        productCount: 0,
+      }));
       this.totalSubcategories = subCats.length;
 
       if (subCats.length === 0) {
@@ -88,7 +101,8 @@ export class BreadcrumbRoutesComponent implements OnInit {
           if (cachedCount !== undefined) {
             let count: number;
             if (this.isObservable(cachedCount)) {
-              count = (await (cachedCount as Observable<number>).toPromise()) ?? 0;
+              count =
+                (await (cachedCount as Observable<number>).toPromise()) ?? 0;
             } else {
               count = cachedCount as number;
             }
@@ -96,7 +110,10 @@ export class BreadcrumbRoutesComponent implements OnInit {
             this.loadedCounts++;
           } else {
             try {
-              const count = (await this.productService.getTotalProductsByCategoryId(subcat.id).toPromise()) ?? 0;
+              const count =
+                (await this.productService
+                  .getTotalProductsByCategoryId(subcat.id)
+                  .toPromise()) ?? 0;
               this.updateSubcategoryCount(subcat.id, count);
               this.cacheService.set(cacheKey, count);
               this.loadedCounts++;
@@ -116,7 +133,9 @@ export class BreadcrumbRoutesComponent implements OnInit {
   }
 
   private updateSubcategoryCount(categoryId: number, count: number): void {
-    const index = this.subcategories.findIndex((sub) => sub.category.id === categoryId);
+    const index = this.subcategories.findIndex(
+      (sub) => sub.category.id === categoryId
+    );
     if (index !== -1) {
       this.subcategories[index].productCount = count;
     }
@@ -129,9 +148,13 @@ export class BreadcrumbRoutesComponent implements OnInit {
   }
 
   getSubCategoryRoute(category: Category): string[] {
-    const currentUrl = this.route.snapshot.url.map((segment) => segment.path).join('/');
-    const currentSegments = currentUrl.split('/').filter((segment) => segment && segment !== 'products');
-    const newSegments = ['category',...currentSegments, category.slug].filter(
+    const currentUrl = this.route.snapshot.url
+      .map((segment) => segment.path)
+      .join('/');
+    const currentSegments = currentUrl
+      .split('/')
+      .filter((segment) => segment && segment !== 'products');
+    const newSegments = ['category', ...currentSegments, category.slug].filter(
       (item, index, self) => index === self.lastIndexOf(item)
     );
     return ['/', ...newSegments];
@@ -141,8 +164,7 @@ export class BreadcrumbRoutesComponent implements OnInit {
     const newPath = this.getSubCategoryRoute(category);
     try {
       await this.router.navigate(newPath);
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   private isObservable(obj: any): obj is Observable<any> {

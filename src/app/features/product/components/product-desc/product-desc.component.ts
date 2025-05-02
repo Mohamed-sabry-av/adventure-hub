@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, SecurityContext, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnInit,
+  SecurityContext,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { KlaviyoService } from '../../services/klaviyo.service';
@@ -32,7 +42,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   private sectionPositions: { [key: string]: number } = {};
   private scrolling = false;
   private headerHeight: number = 0;
-  private offsetBuffer: number = 50; // Reduced for better section detection
+  private offsetBuffer: number = 50;
 
   constructor(
     private elementRef: ElementRef,
@@ -44,20 +54,16 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit() {
-    // Validate productAdditionlInfo
     if (!this.productAdditionlInfo) {
       console.error('productAdditionlInfo is undefined');
       this.productAdditionlInfo = {};
     }
     console.log('Product Additional Info:', this.productAdditionlInfo);
 
-    // Set the sanitized description
     this.setSafeDescription();
-
     this.reviewCount = 0;
     this.fetchReviews();
 
-    // Check URL fragment
     const fragment = this.route.snapshot.fragment;
     if (fragment && ['description', 'additional-info', 'reviews'].includes(fragment)) {
       this.activeSection = fragment as 'description' | 'additional-info' | 'reviews';
@@ -66,25 +72,26 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Calculate header height including site header
-    const siteHeader = document.querySelector('header'); // Adjust selector as needed
+    const siteHeader = document.querySelector('header');
     const stickyHeader = this.elementRef.nativeElement.querySelector('.sticky-tabs');
     this.headerHeight = (siteHeader?.offsetHeight || 0) + (stickyHeader?.offsetHeight || 70);
 
-    // Calculate section positions
     setTimeout(() => {
       this.calculateSectionPositions();
       this.checkActiveSection();
+      this.fixWideContent(); // New method to handle wide content
     }, 200);
 
-    // Initialize lazy loading for images
     this.initializeLazyLoading();
 
-    // Observe content changes
     const observer = new MutationObserver(() => {
       this.calculateSectionPositions();
+      this.fixWideContent(); // Re-run on content changes
     });
-    observer.observe(this.elementRef.nativeElement, { childList: true, subtree: true });
+    observer.observe(this.elementRef.nativeElement, {
+      childList: true,
+      subtree: true,
+    });
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -100,6 +107,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     const siteHeader = document.querySelector('header');
     const stickyHeader = this.elementRef.nativeElement.querySelector('.sticky-tabs');
     this.headerHeight = (siteHeader?.offsetHeight || 0) + (stickyHeader?.offsetHeight || 70);
+    this.fixWideContent(); // Re-run on resize
   }
 
   scrollToSection(sectionId: 'description' | 'additional-info' | 'reviews', updateUrl: boolean = true): void {
@@ -151,10 +159,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     const scrollPosition = window.pageYOffset + this.headerHeight + this.offsetBuffer;
     let activeSection: 'description' | 'additional-info' | 'reviews' = 'description';
 
-    if (
-      this.sectionPositions['reviews'] &&
-      scrollPosition >= this.sectionPositions['reviews'] - this.offsetBuffer
-    ) {
+    if (this.sectionPositions['reviews'] && scrollPosition >= this.sectionPositions['reviews'] - this.offsetBuffer) {
       activeSection = 'reviews';
     } else if (
       this.sectionPositions['additional-info'] &&
@@ -192,6 +197,36 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private fixWideContent(): void {
+    const descriptionContent = this.elementRef.nativeElement.querySelector('.raw-description');
+    if (descriptionContent) {
+      // Fix tables
+      const tables = descriptionContent.querySelectorAll('table');
+      tables.forEach((table: HTMLElement) => {
+        table.style.maxWidth = '100%';
+        table.style.width = 'auto';
+        table.style.tableLayout = 'auto';
+        table.style.display = 'block';
+        table.style.overflowX = 'auto';
+      });
+
+      // Fix wide divs and elements with inline styles
+      const wideElements = descriptionContent.querySelectorAll('div[style*="width"], table[style*="width"], img[style*="width"]');
+      wideElements.forEach((el: HTMLElement) => {
+        el.style.maxWidth = '100%';
+        el.style.width = 'auto';
+      });
+
+      // Fix custom classes
+      const customContainers = descriptionContent.querySelectorAll('.container, .bg-1, .pad-4-0-2, .bg-0, .pad-5-0-4');
+      customContainers.forEach((el: HTMLElement) => {
+        el.style.maxWidth = '100%';
+        el.style.width = 'auto';
+        el.style.overflowX = 'auto';
+      });
+    }
+  }
+
   getAdditionalInfoFromVariations(): { colors: string[]; sizes: string[] } {
     const variations = this.productAdditionlInfo?.variations || [];
     const colors = new Set<string>();
@@ -221,13 +256,16 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   private initializeLazyLoading(): void {
     const images = document.querySelectorAll('img[data-src]');
     images.forEach((img) => {
-      if (img instanceof HTMLImageElement) { // Type guard
+      if (img instanceof HTMLImageElement) {
         const src = img.getAttribute('data-src');
         if (src) {
           img.src = src;
           img.loading = 'lazy';
           img.removeAttribute('data-src');
-          img.onload = () => this.calculateSectionPositions();
+          img.onload = () => {
+            this.calculateSectionPositions();
+            this.fixWideContent(); // Re-run after image load
+          };
         }
       }
     });

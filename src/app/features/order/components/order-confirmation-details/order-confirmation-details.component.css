@@ -1,0 +1,140 @@
+.order-details {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #111827;
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* Products Table Styling */
+.products-table {
+  width: 100%;
+}
+
+/* Table Header */
+.table-header {
+  display: flex;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+}
+
+.header-product {
+  flex: 1;
+  text-align: left;
+}
+
+.header-total {
+  width: 100px;
+  text-align: right;
+}
+
+/* Table Body - Product Items */
+.table-body {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.item-row {
+  display: flex;
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.item-row:last-child {
+  border-bottom: none;
+}
+
+.item-details {
+  flex: 1;
+  padding-right: 1rem;
+}
+
+.item-name {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.item-quantity {
+  font-weight: 600;
+}
+
+.item-variation {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.item-price {
+  width: 100px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  font-weight: 500;
+}
+
+/* Table Footer - Order Summary */
+.table-footer {
+  padding: 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+.summary-label {
+  font-weight: 500;
+}
+
+.summary-value {
+  font-weight: 500;
+}
+
+.total {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.total .summary-label,
+.total .summary-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .table-header, .item-row {
+    padding: 0.75rem;
+  }
+
+  .header-total, .item-price {
+    width: 80px;
+  }
+
+  .item-name, .summary-label, .summary-value {
+    font-size: 0.875rem;
+  }
+
+  .item-variation {
+    font-size: 0.75rem;
+  }
+
+  .total .summary-label,
+  .total .summary-value {
+    font-size: 1rem;
+  }
+}

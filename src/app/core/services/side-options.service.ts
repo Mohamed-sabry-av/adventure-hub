@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { Product, Variation } from '../../interfaces/product';
+import { VariationService } from './variation.service';
 
 export interface SideOptionsState {
   isOpen: boolean;
-  product: Product | null;
+  product: Product | any;
   selectedVariation: Variation | null;
   uniqueSizes: { size: string; inStock: boolean }[];
   selectedSize: string | null;
@@ -13,13 +14,14 @@ export interface SideOptionsState {
   visibleColors: { color: string; image: string; inStock: boolean }[];
   isMobile: boolean;
   variations: Variation[];
+  showOutOfStockVariations: boolean;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class SideOptionsService {
-  private initialState: SideOptionsState = {
+  private stateSubject = new BehaviorSubject<SideOptionsState>({
     isOpen: false,
     product: null,
     selectedVariation: null,
@@ -30,117 +32,125 @@ export class SideOptionsService {
     visibleColors: [],
     isMobile: false,
     variations: [],
-  };
+    showOutOfStockVariations: true,
+  });
 
-  private stateSubject = new BehaviorSubject<SideOptionsState>(
-    this.initialState
-  );
+  state$ = this.stateSubject.asObservable();
 
-  get state$(): Observable<SideOptionsState> {
-    return this.stateSubject.asObservable();
-  }
+  constructor(private variationService: VariationService) {}
 
-  get currentState(): SideOptionsState {
-    return this.stateSubject.getValue();
-  }
-
-  openSideOptions(options: Partial<SideOptionsState>): void {
-    console.log('Options Should Open');
-    const selectedColor =
-      options.selectedColor || this.currentState.selectedColor;
-    const uniqueSizes = this.getSizesForColor(
-      selectedColor || '',
-      options.variations || []
-    );
-    this.stateSubject.next({
-      ...this.initialState,
+  openSideOptions(state: Partial<SideOptionsState>): void {
+    const currentState = this.stateSubject.getValue();
+    const newState = {
+      ...currentState,
+      ...state,
       isOpen: true,
-      ...options,
-      uniqueSizes: uniqueSizes,
-    });
+    };
+
+    // Initialize uniqueSizes based on variations (with or without color)
+    newState.uniqueSizes = this.variationService.getSizesForColor(
+      newState.variations,
+      newState.selectedColor || null
+    );
+
+    // Initialize default selections
+    if (newState.product && !newState.selectedSize && !newState.selectedColor) {
+      const defaultAttributes = newState.product.default_attributes || [];
+      const hasColorAttribute = defaultAttributes.some((attr: any) => attr.name === 'Color');
+
+      if (hasColorAttribute) {
+        const defaultColor = defaultAttributes.find((attr: any) => attr.name === 'Color')?.option;
+        if (defaultColor) {
+          newState.selectedColor = defaultColor;
+          newState.uniqueSizes = this.variationService.getSizesForColor(newState.variations, defaultColor);
+        }
+      }
+
+      // Select default size or first in-stock size
+      const defaultSize = defaultAttributes.find((attr: any) => attr.name === 'Size')?.option;
+      const firstInStockSize = newState.uniqueSizes.find((s) => s.inStock);
+      if (defaultSize && newState.uniqueSizes.some((s) => s.size === defaultSize)) {
+        newState.selectedSize = defaultSize;
+      } else if (firstInStockSize) {
+        newState.selectedSize = firstInStockSize.size;
+      } else if (newState.uniqueSizes.length > 0 && newState.showOutOfStockVariations) {
+        newState.selectedSize = newState.uniqueSizes[0].size;
+      }
+
+      // Update selectedVariation based on selectedColor and selectedSize
+      if (newState.selectedSize) {
+        const selectedAttributes = {
+          Size: newState.selectedSize,
+          ...(newState.selectedColor ? { Color: newState.selectedColor } : {}),
+        };
+        newState.selectedVariation = this.variationService.findVariationByAttributes(
+          newState.variations,
+          selectedAttributes
+        );
+      }
+    }
+
+    this.stateSubject.next(newState);
   }
 
   closeSideOptions(): void {
     this.stateSubject.next({
-      ...this.currentState,
+      ...this.stateSubject.getValue(),
       isOpen: false,
     });
   }
 
-  updateOptions(options: Partial<SideOptionsState>): void {
-    this.stateSubject.next({
-      ...this.currentState,
-      ...options,
-    });
-  }
-
   selectSize(size: string): void {
-    this.stateSubject.next({
-      ...this.currentState,
+    const currentState = this.stateSubject.getValue();
+    const newState = {
+      ...currentState,
       selectedSize: size,
-    });
+    };
+
+    // Update selectedVariation based on selectedColor and selectedSize
+    if (newState.selectedSize) {
+      const selectedAttributes = {
+        Size: newState.selectedSize,
+        ...(newState.selectedColor ? { Color: newState.selectedColor } : {}),
+      };
+      newState.selectedVariation = this.variationService.findVariationByAttributes(
+        newState.variations,
+        selectedAttributes
+      );
+    }
+
+    this.stateSubject.next(newState);
   }
 
   selectColor(color: string, image: string): void {
-    const uniqueSizes = this.getSizesForColor(
-      color,
-      this.currentState.variations
-    );
-    let newSelectedSize = this.currentState.selectedSize;
+    const currentState = this.stateSubject.getValue();
+    const newState:any = {
+      ...currentState,
+      selectedColor: color,
+      selectedSize: null, // Reset size when color changes
+      uniqueSizes: this.variationService.getSizesForColor(currentState.variations, color),
+    };
 
-    // Check if the current selected size is still available
-    const sizeStillAvailable = uniqueSizes.find(
-      (s) => s.size === newSelectedSize
-    );
-    if (!sizeStillAvailable || !sizeStillAvailable.inStock) {
-      const firstInStockSize = uniqueSizes.find((s) => s.inStock);
-      newSelectedSize = firstInStockSize ? firstInStockSize.size : null;
+    // Select first in-stock size if available
+    const firstInStockSize = newState.uniqueSizes.find((s:any) => s.inStock);
+    if (firstInStockSize) {
+      newState.selectedSize = firstInStockSize.size;
+    } else if (newState.uniqueSizes.length > 0 && currentState.showOutOfStockVariations) {
+      newState.selectedSize = newState.uniqueSizes[0].size;
     }
 
-    this.stateSubject.next({
-      ...this.currentState,
-      selectedColor: color,
-      uniqueSizes: uniqueSizes,
-      selectedSize: newSelectedSize,
-    });
-  }
+    // Update selectedVariation based on selectedColor and selectedSize
+    if (newState.selectedColor && newState.selectedSize) {
+      const selectedAttributes = {
+        Color: newState.selectedColor,
+        Size: newState.selectedSize,
+      };
+      newState.selectedVariation = this.variationService.findVariationByAttributes(
+        newState.variations,
+        selectedAttributes
+      );
+    }
 
-  private getSizesForColor(
-    color: string,
-    variations: Variation[]
-  ): { size: string; inStock: boolean }[] {
-    if (!variations || !color) return [];
-    const sizesMap = new Map<string, boolean>();
-    const filteredVariations = variations.filter((v) =>
-      v.attributes?.some(
-        (attr: any) => attr.name === 'Color' && attr.option === color
-      )
-    );
-
-    filteredVariations.forEach((v) => {
-      const sizeAttr = v.attributes?.find((attr: any) => attr.name === 'Size');
-      if (sizeAttr) {
-        const inStock = v.stock_status === 'instock';
-        if (!sizesMap.has(sizeAttr.option) || inStock) {
-          sizesMap.set(sizeAttr.option, inStock);
-        }
-      }
-    });
-
-    return Array.from(sizesMap, ([size, inStock]) => ({ size, inStock })).sort(
-      (a, b) => {
-        if (a.inStock && !b.inStock) return -1;
-        if (!a.inStock && b.inStock) return 1;
-        const aNum = Number(a.size);
-        const bNum = Number(b.size);
-        return !isNaN(aNum) && !isNaN(bNum)
-          ? aNum - bNum
-          : a.size.localeCompare(b.size);
-      }
-    );
-  }
-
-  reset(): void {
-    this.stateSubject.next(this.initialState);
+    this.stateSubject.next(newState);
   }
 }

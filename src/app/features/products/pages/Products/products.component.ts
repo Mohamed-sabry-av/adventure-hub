@@ -45,6 +45,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   isLoading = false;
   isLoadingMore = false;
   isFetching = false;
+  isCategorySwitching = false; // New flag for category switching
   currentCategoryId: number | null = null;
   currentPage = 1;
   currentCategory: any = null;
@@ -58,6 +59,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
+  @ViewChild(ProductsGridComponent) productsGrid!: ProductsGridComponent; // Reference to ProductsGridComponent
 
   constructor(
     private productService: ProductService,
@@ -131,6 +133,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         .subscribe((filters: any) => {
           this.currentPage = 1;
           this.products = [];
+          this.productsGrid.hasFetched = false; // Reset hasFetched
           this.loadProducts(true, filters);
         });
     } else {
@@ -148,13 +151,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChange(filters: { [key: string]: string[] }) {
-    // منع الطلب لو الفلاتر فاضية أو ما اتغيرتش
     if (isEqual(filters, this.filterSidebar?.selectedFilters)) {
       return;
     }
     console.log('Filters changed in ProductsComponent:', filters);
     this.currentPage = 1;
     this.products = [];
+    this.productsGrid.hasFetched = false; // Reset hasFetched
     this.loadProducts(true, filters);
   }
 
@@ -162,8 +165,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
     if (this.isFetching) return;
 
     this.isFetching = true;
-    this.isLoading = isInitialLoad;
-    this.isLoadingMore = !isInitialLoad;
+    this.isLoading = isInitialLoad || this.isCategorySwitching; // Keep isLoading true during category switch
+    this.isLoadingMore = !isInitialLoad && !this.isCategorySwitching;
     this.cdr.markForCheck();
 
     const effectiveFilters =
@@ -180,16 +183,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
       .pipe(
         catchError((error) => {
           console.error('Error loading products:', error);
-          this.isLoading = false;
-          this.isLoadingMore = false;
-          this.isFetching = false;
-          this.cdr.markForCheck();
           return of([]);
         }),
         finalize(() => {
+          this.isFetching = false;
           this.isLoading = false;
           this.isLoadingMore = false;
-          this.isFetching = false;
+          this.isCategorySwitching = false; // Reset category switching flag
           this.cdr.markForCheck();
         })
       )
@@ -237,6 +237,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.currentCategoryId = categoryId;
     this.currentPage = 1;
     this.products = [];
+    this.isCategorySwitching = true; // Set category switching flag
+    this.productsGrid.hasFetched = false; // Reset hasFetched
     this.cdr.markForCheck();
 
     try {
@@ -259,7 +261,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
       await this.loadTotalProducts();
     } catch (error) {
       console.error('Error in onCategoryIdChange:', error);
-      this.cdr.markForCheck();
     }
   }
 

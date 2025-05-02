@@ -1,4 +1,3 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -10,6 +9,7 @@ import {
   HostListener,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
 import { animate, style, transition, trigger } from '@angular/animations';
@@ -33,8 +33,6 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
   ],
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -85,6 +83,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   modifiedProduct: Product;
   selectedVariation: Variation | null = null;
   isCardHovered: boolean = false;
+  hasInStockSizes: boolean = false; // New property to track if there are in-stock sizes
 
   private resizeSubscription?: Subscription;
 
@@ -99,7 +98,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.product) return;
-    this.fetchVariations();
+    this.initializeWithProduct();
     this.checkIfMobile();
     this.modifiedProduct = { ...this.product };
     this.setupResizeListener();
@@ -139,22 +138,36 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     }
   }
 
+  private initializeWithProduct(): void {
+    if (this.product.variations && Array.isArray(this.product.variations) && this.product.variations.length > 0) {
+      this.variations = this.product.variations;
+      this.processVariations();
+    } else {
+      this.fetchVariations();
+    }
+  }
+
+  private processVariations(): void {
+    this.colorOptions = this.getColorOptions();
+    this.uniqueSizes = this.getSizesForColor(this.selectedColor || '');
+    this.hasInStockSizes = this.uniqueSizes.some((size) => size.inStock); // Check if there are in-stock sizes
+    this.setDefaultVariation();
+    this.updateVisibleColors();
+    this.updateVisibleSizes();
+    this.variationsLoaded = true;
+    this.cdr.markForCheck();
+  }
+
   private fetchVariations(): void {
     this.productService.getProductVariations(this.product.id).subscribe({
       next: (variations: Variation[]) => {
         this.variations = variations || [];
-        this.colorOptions = this.getColorOptions();
-        this.uniqueSizes = this.getSizesForColor('');
-        this.setDefaultVariation();
-        this.updateVisibleColors();
-        this.updateVisibleSizes();
-        this.variationsLoaded = true;
-        this.cdr.markForCheck();
+        this.processVariations();
       },
       error: (error: any) => {
         console.error('Error fetching variations:', error);
         this.variations = [];
-        this.variationsLoaded = true; // حتى لو حدث خطأ، قم بإظهار المكون
+        this.variationsLoaded = true;
         this.cdr.markForCheck();
       },
     });
@@ -187,7 +200,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   private getSizesForColor(
-    color: string
+    color: string | null
   ): { size: string; inStock: boolean }[] {
     if (!this.variations) return [];
     const sizesMap = new Map<string, boolean>();
@@ -227,6 +240,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Handle default color
     const defaultColor = this.product.default_attributes?.find(
       (attr: any) => attr.name === 'Color'
     )?.option;
@@ -235,18 +249,26 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       const matchingColor = this.colorOptions.find(
         (opt) => opt.color.toLowerCase() === defaultColor.toLowerCase()
       );
-      if (matchingColor) {
+      if (matchingColor && matchingColor.inStock) {
         this.selectColor(matchingColor.color, matchingColor.image);
-      } else if (this.colorOptions.length > 0) {
-        this.selectColor(
-          this.colorOptions[0].color,
-          this.colorOptions[0].image
-        );
+      } else {
+        const firstInStockColor = this.colorOptions.find((opt) => opt.inStock);
+        if (firstInStockColor) {
+          this.selectColor(firstInStockColor.color, firstInStockColor.image);
+        } else if (this.colorOptions.length > 0) {
+          this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+        }
       }
     } else if (this.colorOptions.length > 0) {
-      this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+      const firstInStockColor = this.colorOptions.find((opt) => opt.inStock);
+      if (firstInStockColor) {
+        this.selectColor(firstInStockColor.color, firstInStockColor.image);
+      } else {
+        this.selectColor(this.colorOptions[0].color, this.colorOptions[0].image);
+      }
     }
 
+    // Handle default size
     const defaultSize = this.product.default_attributes?.find(
       (attr: any) => attr.name === 'Size'
     )?.option;
@@ -255,15 +277,22 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       const matchingSize = this.uniqueSizes.find(
         (size) => size.size.toLowerCase() === defaultSize.toLowerCase()
       );
-      if (matchingSize) {
+      if (matchingSize && matchingSize.inStock) {
         this.selectedSize = matchingSize.size;
-      } else if (this.uniqueSizes.length > 0) {
-        this.selectedSize = this.uniqueSizes[0].size;
+      } else {
+        const firstInStockSize = this.uniqueSizes.find((size) => size.inStock);
+        if (firstInStockSize) {
+          this.selectedSize = firstInStockSize.size;
+        } else if (this.uniqueSizes.length > 0) {
+          this.selectedSize = this.uniqueSizes[0].size; // Fallback to first size if none in stock
+        }
       }
     } else if (this.uniqueSizes.length > 0) {
       const firstInStockSize = this.uniqueSizes.find((size) => size.inStock);
       if (firstInStockSize) {
         this.selectedSize = firstInStockSize.size;
+      } else {
+        this.selectedSize = this.uniqueSizes[0].size; // Fallback to first size if none in stock
       }
     }
 
@@ -272,8 +301,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
-
     this.uniqueSizes = this.getSizesForColor(color);
+    this.hasInStockSizes = this.uniqueSizes.some((size) => size.inStock); // Update in-stock sizes
 
     if (this.selectedSize) {
       const sizeStillAvailable = this.uniqueSizes.find(
@@ -281,37 +310,33 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       );
       if (!sizeStillAvailable || !sizeStillAvailable.inStock) {
         const firstInStockSize = this.uniqueSizes.find((s) => s.inStock);
-        this.selectedSize = firstInStockSize ? firstInStockSize.size : null;
+        this.selectedSize = firstInStockSize ? firstInStockSize.size : this.uniqueSizes[0]?.size || null;
       }
+    } else {
+      const firstInStockSize = this.uniqueSizes.find((s) => s.inStock);
+      this.selectedSize = firstInStockSize ? firstInStockSize.size : this.uniqueSizes[0]?.size || null;
     }
 
     this.updateVisibleSizes();
     this.findAndSetSelectedVariation();
 
-    // Update modifiedProduct with images from the selected color variation
     if (this.modifiedProduct) {
-      // Find all variations with this color
       const variationsWithThisColor = this.variations.filter((v) =>
         v.attributes?.some(
           (attr: any) => attr.name === 'Color' && attr.option === color
         )
       );
 
-      // If we found variations with this color and they have images
       if (variationsWithThisColor.length > 0) {
         const imagesForThisColor: { src: string }[] = [];
-
-        // Collect up to 2 images
         variationsWithThisColor.forEach((v) => {
           if (v.image?.src && imagesForThisColor.length < 2) {
-            // Make sure we don't add duplicate images
             if (!imagesForThisColor.some((img) => img.src === v.image.src)) {
               imagesForThisColor.push({ src: v.image.src });
             }
           }
         });
 
-        // If we found at least one image, update the product's images
         if (imagesForThisColor.length > 0) {
           this.modifiedProduct = {
             ...this.modifiedProduct,
@@ -349,14 +374,11 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
     this.selectedVariation = matchingVariation || null;
 
-    // Update modifiedProduct with the selected variation's details
     if (this.selectedVariation && this.selectedVariation.image?.src) {
-      // Get images for this variation
       const variationImages = Array.isArray(this.selectedVariation.image.src)
         ? this.selectedVariation.image.src.map((src: any) => ({ src }))
         : [{ src: this.selectedVariation.image.src }];
 
-      // Update modified product with variation images
       this.modifiedProduct = {
         ...this.modifiedProduct,
         images: variationImages,
@@ -457,10 +479,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
         this.selectedVariation?.image?.src ?? this.product.images?.[0]?.src,
     };
 
-    // Call addProductToCart without subscribing, as it doesn't return an Observable
     this.cartService.addProductToCart(productToAdd);
-
-    // Show the side cart using cartMode
     this.cartService.cartMode(true);
   }
 
@@ -473,13 +492,15 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   getBrandName(): any | null {
-    if (!this.product.meta_data) return null;
-
-    const brandMeta = this.product.meta_data.find(
-      (meta: any) => meta.key === '_brand' || meta.key === 'brand'
+    const brandAttr = this.product?.attributes?.find(
+      (attr: any) => attr.name === 'Brand'
     );
-
-    return brandMeta ? brandMeta.value : null;
+    const option = brandAttr?.options?.[0];
+    return option
+      ? typeof option === 'string'
+        ? option
+        : option.name || option.value || null
+      : null;
   }
 
   getBrandSlug(): string | null {

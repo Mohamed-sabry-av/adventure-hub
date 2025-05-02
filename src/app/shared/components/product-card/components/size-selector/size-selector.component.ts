@@ -16,7 +16,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
   imports: [CommonModule],
   templateUrl: './size-selector.component.html',
   styleUrls: ['./size-selector.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   animations: [
     trigger('slideUpDown', [

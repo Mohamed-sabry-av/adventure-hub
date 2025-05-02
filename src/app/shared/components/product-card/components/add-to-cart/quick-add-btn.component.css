@@ -538,3 +538,78 @@ button:disabled {
     font-size: 15px;
   }
 }
+
+/* Out of stock styling */
+.circular-add-button.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.circular-add-button.disabled:hover {
+  background-color: #ccc;
+  transform: none;
+  box-shadow: none;
+}
+
+.out-of-stock-text {
+  font-size: 9px;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Success styling */
+.add-success {
+  background-color: #4CAF50 !important;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.4);
+}
+
+.check-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Animation for success */
+@keyframes success-pulse {
+  0% {
+    transform: scale(1);
+    background-color: #4CAF50;
+  }
+  50% {
+    transform: scale(1.1);
+    background-color: #45a049;
+  }
+  100% {
+    transform: scale(1);
+    background-color: #4CAF50;
+  }
+}
+
+.add-success {
+  animation: success-pulse 0.5s ease;
+}
+
+/* Quick view button styles */
+.quick-view-button {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 20;
+}
+
+.quick-view-btn {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.quick-view-btn:hover {
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}

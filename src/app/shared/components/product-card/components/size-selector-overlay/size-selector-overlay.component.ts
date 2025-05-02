@@ -12,7 +12,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
   selector: 'app-mobile-size-selector-overlay',
   standalone: true,
   imports: [CommonModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   template: `
     <div class="mobile-size-selector-overlay" [@slideInOut]>

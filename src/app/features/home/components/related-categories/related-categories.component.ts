@@ -8,7 +8,6 @@ import { HomeService } from '../../service/home.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './related-categories.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 
   styleUrls: ['./related-categories.component.css'],
 })
