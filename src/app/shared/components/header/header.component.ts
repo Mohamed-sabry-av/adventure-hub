@@ -1,9 +1,9 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   OnInit,
@@ -19,8 +19,14 @@ import { NavbarService } from '../../services/navbar.service';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
-import { debounceTime, filter, fromEvent, Observable, take } from 'rxjs';
-import { animate, style, transition, trigger } from '@angular/animations';
+import { debounceTime, filter, fromEvent, Observable } from 'rxjs';
+import {
+  animate,
+  style,
+  transition,
+  trigger,
+  AnimationEvent,
+} from '@angular/animations';
 
 @Component({
   selector: 'app-header',
@@ -36,8 +42,6 @@ import { animate, style, transition, trigger } from '@angular/animations';
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
   animations: [
     trigger('navbarAnimation', [
       transition(':enter', [
@@ -63,27 +67,35 @@ export class HeaderComponent implements OnInit {
   private categoriesService = inject(CategoriesService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
-  sidenavIsVisible$: Observable<boolean> = this.navbarService.sideNavIsVisible$;
   @ViewChild('headerEl') headerElement!: ElementRef;
   @ViewChild('placeholderEl') placeholderEl!: ElementRef;
   mainCategories: Category[] = [];
   allCategories: Category[] = [];
   currentPage: string = '';
-  showSearchbar: boolean = false;
-  isProductPage: boolean = false; // New property to track product page
-
-  // ------------------------- Done
-  showNavbar: boolean = true;
-  lastScrollY: number = 0;
-  headerHeight: number = 0;
-  isFixed: boolean = false;
+  isProductPage: boolean = false;
 
   // ------------------------------------- Ameen Signals
-  showNavbar2 = signal<boolean>(true);
-  headerHeight2 = signal<number>(0);
-  lastScrollY2 = signal<number>(0);
+  showNavbar = signal<boolean>(true);
+  headerHeight = signal<number>(0);
+  lastScrollY = signal<number>(0);
+  showSearchbar = signal<boolean>(false);
+  sidenavIsVisible = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const isVisible = this.navbarService.sideNavIsVisible();
+      this.sidenavIsVisible.set(isVisible);
+
+      if (isVisible) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'auto';
+      }
+    });
+  }
 
   ngOnInit() {
     this.fetchAllCategories();
@@ -94,61 +106,14 @@ export class HeaderComponent implements OnInit {
         this.currentPage = event.url === '/checkout' ? 'checkout' : '';
       });
 
-    const subscription2 = this.sidenavIsVisible$.subscribe((visible) => {
-      document.body.style.overflow = visible ? 'hidden' : 'auto';
-    });
-
-    const subscription3 = fromEvent(window, 'scroll').subscribe(() =>
-      this.handleScroll()
-    );
+    const subscription2 = fromEvent(window, 'scroll')
+      .pipe(debounceTime(10))
+      .subscribe(() => this.handleScroll());
 
     this.destroyRef.onDestroy(() => {
       subscription.unsubscribe();
       subscription2.unsubscribe();
-      subscription3.unsubscribe();
     });
-  }
-
-  handleScroll() {
-    const currentScrollY = window.scrollY;
-    const currentScrollY2 = signal<number>(window.scrollY);
-
-    if (currentScrollY > this.lastScrollY && currentScrollY > 50) {
-      // Scrolling down
-      this.showNavbar = false;
-      this.showNavbar2.set(false);
-    } else if (currentScrollY < this.lastScrollY) {
-      // Scrolling up
-      this.showNavbar2.set(true);
-
-      this.showNavbar = true;
-    }
-
-    if (this.headerElement) {
-      this.headerHeight = this.headerElement.nativeElement.offsetHeight;
-      this.headerHeight2.update(
-        (prev) => this.headerElement.nativeElement.offsetHeight
-      );
-    }
-
-    this.lastScrollY = currentScrollY;
-    this.lastScrollY2.update((prev) => currentScrollY2());
-    // -------------------------------- done
-
-    if (currentScrollY > 0) {
-      this.isFixed = true;
-    } else {
-      this.isFixed = false;
-    }
-    this.navbarService.showNavbar(this.showNavbar);
-    this.navbarService.handleScroll(this.headerHeight);
-
-    // -------------------------------------- Ameen Signals
-    this.navbarService.showNavbar2(this.showNavbar2());
-  }
-
-  onSiwtchSideNav(visible: boolean) {
-    this.navbarService.siwtchSideNav(visible);
   }
 
   private fetchAllCategories(): void {
@@ -160,8 +125,41 @@ export class HeaderComponent implements OnInit {
       });
   }
 
+  handleScroll() {
+    const currentScrollY = window.scrollY;
+
+    if (currentScrollY > this.lastScrollY() && currentScrollY > 50) {
+      this.showNavbar.set(false);
+    } else if (currentScrollY < this.lastScrollY()) {
+      this.showNavbar.set(true);
+    }
+
+    this.lastScrollY.set(currentScrollY);
+    this.navbarService.showNavbar(this.showNavbar());
+    this.onSetHeaderHeight();
+  }
+
+  onSetHeaderHeight() {
+    if (this.headerElement) {
+      this.headerHeight.set(this.headerElement.nativeElement.offsetHeight);
+      this.navbarService.setHeaderHeight(this.headerHeight());
+      console.log('Header Height:', this.headerHeight());
+    }
+  }
+
+  onSiwtchSideNav(visible: boolean) {
+    this.navbarService.toggleSideNav(visible);
+  }
+
   onShowSearchbar() {
-    this.showSearchbar = !this.showSearchbar;
-    this.navbarService.showSearchBar(this.showSearchbar);
+    this.showSearchbar.set(!this.showSearchbar());
+    this.navbarService.toggleSearchBar(this.showSearchbar());
+    this.cdr.detectChanges(); // Force DOM update
+  }
+
+  onAnimationDone(event: AnimationEvent) {
+    if (event.fromState !== 'void' || event.toState !== 'void') {
+      this.onSetHeaderHeight(); // Calculate height after animation completes
+    }
   }
 }

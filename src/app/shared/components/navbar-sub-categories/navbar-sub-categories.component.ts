@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  Input,
-} from '@angular/core';
+import { Component, DestroyRef, inject, Input } from '@angular/core';
 import { Category } from '../../../interfaces/category.model';
 import { filter, map, Observable } from 'rxjs';
 import {
@@ -22,8 +16,6 @@ import { RouterLink } from '@angular/router';
   imports: [CommonModule, RouterLink],
   templateUrl: './navbar-sub-categories.component.html',
   styleUrl: './navbar-sub-categories.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
   animations: [
     trigger('visible', [
       transition(':enter', [
@@ -38,22 +30,25 @@ import { RouterLink } from '@angular/router';
 })
 export class NavbarSubCategoriesComponent {
   private destroyRef = inject(DestroyRef);
-  @Input() allCategoriesData: Category[] = [];
-  @Input({ required: true }) subCategories$!: Observable<Category[]>;
 
-  categoriesData: Category[] = [];
+  @Input() allCategoriesData: Category[] = [];
+  @Input({ required: true }) subCategories$!: Observable<any[]>;
+
+  categoriesData: any[] = [];
   keepOpen: boolean = false;
   selectedCategoryId: number | null = null;
 
   ngOnInit() {
-    const subscription = this.subCategories$.subscribe((data) => {
-      if (data.length > 0) {
-        this.categoriesData = data;
-        this.keepOpen = true;
-      } else {
-        this.keepOpen = false;
-      }
-    });
+    const subscription = this.subCategories$
+      .pipe(map((response: any) => response || []))
+      .subscribe((data) => {
+        if (data.length > 0) {
+          this.categoriesData = data;
+          this.keepOpen = true;
+        } else {
+          this.keepOpen = false;
+        }
+      });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
@@ -66,7 +61,7 @@ export class NavbarSubCategoriesComponent {
     this.keepOpen = true;
   }
 
-  getSubCategories(categoryId: number | null): Category[] {
+  getSubCategories(categoryId: number | null) {
     return this.allCategoriesData.filter((cat) => cat.parent === categoryId);
   }
 

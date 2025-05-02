@@ -1,29 +1,43 @@
-@if(isMobile){
+@if(isMobile()){
 <p-drawer
-  [visible]="(sideNavIsVisible$ | async)!"
+  [visible]="sidenavIsVisible()"
   position="left"
   [transitionOptions]="'500ms cubic-bezier(0.4, 0, 0.2, 1)'"
   [modal]="false"
   styleClass="sidenav-drawer"
-  [style]="{
-    top: drawerTop + 'px'
-  }"
 >
+  <div class="flex justify-between items-center py-4">
+    <a class="block">
+      <img
+        loading="lazy"
+        src="header/White logo-01.webp"
+        alt="Adventures hub logo"
+        routerLink="/home"
+        class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
+        (click)="onSiwtchSideNav(false)"
+      />
+    </a>
+
+    <i
+      class="pi pi-times text-white cursor-pointer"
+      (click)="onSiwtchSideNav(false)"
+    ></i>
+  </div>
+
   <hr class="bg-[#3f3c3c] h-[2px] border-0" />
 
   <ul class="flex flex-col">
     @if (categories) {
     <!-- If Of Main-->
-
     @for (category of categories; track $index) {
     <!-- For Of Main -->
-
     <div class="flex flex-col border-b border-[#3f3c3c] py-3">
       <div class="flex items-center justify-between pb-3">
         <li class="">
           <a
             class="cursor-pointer text-base md:text-lg font-semibold text-white"
             [routerLink]="getCategoryRoute(category)"
+            (click)="onSiwtchSideNav(false)"
           >
             {{ category.name }}
           </a>
@@ -40,15 +54,17 @@
       @for (subCategory of getSubCategories(category.id); track subCategory.id)
       {
       <!-- For Of Children Of Main -->
-
       <div class="flex gap-x-[10px] items-center py-1 mr-3" @slideInOut>
-        <a [routerLink]="getCategoryRoute(subCategory)" class="block w-full">
+        <a
+          [routerLink]="getCategoryRoute(subCategory)"
+          class="block w-full"
+          (click)="onSiwtchSideNav(false)"
+        >
           <span
             [innerHTML]="subCategory.name"
             class="text-sm bg-[#423e3e] rounded-md px-2 py-1 ml-2 text-white mt-2 block font-semibold"
           ></span>
         </a>
-
         <i
           class="pi {{
             isCategoryExpanded(subCategory.id) ? 'pi-angle-up' : 'pi-angle-down'
@@ -57,16 +73,18 @@
         ></i>
       </div>
       @if (subCategory && isCategoryExpanded(subCategory.id)) {
-      <!-- If Of Children Of Children Of Main  -->
-
+      <!-- If Of Children Of Children Of Main -->
       @for (subOfSubOfMain of getSubCategories(subCategory.id); track $index) {
       <!-- For Of Children Of Children Of Main -->
-
       <div
         class="flex gap-x-[10px] items-center ml-3 py-[1px] mr-6"
         @slideInOut
       >
-        <a [routerLink]="getCategoryRoute(subOfSubOfMain)" class="block w-full">
+        <a
+          [routerLink]="getCategoryRoute(subOfSubOfMain)"
+          class="block w-full"
+          (click)="onSiwtchSideNav(false)"
+        >
           <span
             [innerHTML]="subOfSubOfMain.name"
             [class]="{
@@ -75,7 +93,6 @@
             }"
           ></span>
         </a>
-
         @if (getSubCategories(subOfSubOfMain.id).length > 0) {
         <i
           class="pi {{
@@ -87,33 +104,30 @@
         ></i>
         }
       </div>
-
       @if (subOfSubOfMain && isCategoryExpanded(subOfSubOfMain.id)) {
-      <!-- If Of Children Of Children Of Children Of Main  -->
-
+      <!-- If Of Children Of Children Of Children Of Main -->
       @for (subOfSubOfSubOfMain of getSubCategories(subOfSubOfMain.id); track
       $index) {
-      <!-- for Of Children Of Children Of Children Of Main  -->
+      <!-- for Of Children Of Children Of Children Of Main -->
       <div @slideInOut>
-        <a [routerLink]="getCategoryRoute(subOfSubOfSubOfMain)">
+        <a
+          [routerLink]="getCategoryRoute(subOfSubOfSubOfMain)"
+          (click)="onSiwtchSideNav(false)"
+        >
           <span
             [innerHTML]="subOfSubOfSubOfMain.name"
             class="text-sm ml-10 text-white mt-2 block"
           ></span>
         </a>
       </div>
-
-      <!-- for Of Children Of Children Of Children Of Main  -->
-
+      <!-- for Of Children Of Children Of Children Of Main -->
       }
-
-      <!-- If Of Children Of Children Of Children Of Main  -->
+      <!-- If Of Children Of Children Of Children Of Main -->
       }
       <!-- For Of Children Of Children Of Main -->
       }
-      <!-- If Of Children Of Children Of Main  -->
+      <!-- If Of Children Of Children Of Main -->
       }
-
       <!-- For Of Children Of Main -->
       }
       <!-- If Of SubCategory -->
@@ -123,11 +137,11 @@
     }
     <!-- If Of Main-->
     }
-
     <!-- Sales -->
     <a
       routerLink="/product/sale"
       class="text-white w-fit font-semibold bg-orange-600 px-8 py-2 mt-8 rounded-lg text-sm flex items-center"
+      (click)="onSiwtchSideNav(false)"
     >
       <i class="pi pi-percentage text-xs"></i>
       <span> Deals</span>
@@ -153,7 +167,6 @@
       </li>
       } }
     </div>
-
     <a
       routerLink="/product/sale"
       class="text-white font-semibold bg-orange-600 px-5 py-1 rounded-lg text-sm flex items-center gap-2"
