@@ -1,218 +1,325 @@
-import { Component, Input, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, OnInit, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
+import { loadStripe, Stripe, StripeElements, StripePaymentRequestButtonElement } from '@stripe/stripe-js';
+import { UIService } from '../../../../shared/services/ui.service'; // Adjust path as needed
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { take } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
-import { WalletPaymentService } from '../../services/wallets.service';
+import { interval } from 'rxjs';
+import { switchMap, takeWhile, tap } from 'rxjs/operators';
+import { CheckoutService } from '../../../checkout/services/checkout.service';
 
 @Component({
-  selector: 'app-wallet-payment',
+  selector: 'app-product-payment',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="wallet-payment-container">
-      <div class="wallet-payment-header">
-        <p class="wallet-payment-label">أو الدفع السريع باستخدام</p>
+    <div class="payment-container mt-4 flex justify-center items-center">
+      <div class="flex items-center gap-4 py-4">
+        <span class="flex-grow h-px bg-gray-400"></span>
+        <span class="text-gray-400 text-sm">OR</span>
+        <span class="flex-grow h-px bg-gray-400"></span>
       </div>
-
-      <div #walletButtonElement class="wallet-button-container">
-        <!-- Fallback أثناء التحميل أو لو المحفظة مش متاحة -->
-        <div *ngIf="!walletButtonMounted && initializing" class="wallet-button-fallback">
-          <div class="wallet-loading-spinner"></div>
-        </div>
-
-        <!-- عرض زر المحفظة الافتراضي لو الزر مش متوصل -->
-        <button
-          *ngIf="!walletButtonMounted && !initializing && !error"
-          class="wallet-button-mock"
-          (click)="mockWalletClick()"
-        >
-          <div class="wallet-button-icon">
-            <svg viewBox="0 0 24 16" width="20" height="20" fill="#ffffff">
-              <path d="M22.5,0H1.5C0.7,0,0,0.7,0,1.5v13C0,15.3,0.7,16,1.5,16h21c0.8,0,1.5-0.7,1.5-1.5v-13C24,0.7,23.3,0,22.5,0z M22,13 c0,0.6-0.4,1-1,1H3c-0.6,0-1-0.4-1-1V3c0-0.6,0.4-1,1-1h18c0.6,0,1,0.4,1,1V13z M9,6c0,1.1-0.9,2-2,2S5,7.1,5,6s0.9-2,2-2 S9,4.9,9,6z M19,10.5c0,0.8-0.7,1.5-1.5,1.5h-2c-0.8,0-1.5-0.7-1.5-1.5v-3C14,6.7,14.7,6,15.5,6h2C18.3,6,19,6.7,19,7.5V10.5z"/>
-            </svg>
-          </div>
-          <span class="wallet-button-text">الدفع بالمحفظة</span>
-        </button>
-      </div>
-
-      <div *ngIf="error" class="wallet-error">{{ error }}</div>
+      <div #paymentRequestButton class="w-full max-w-[262px] payment-button-container"></div>
     </div>
   `,
   styles: [`
-    .wallet-payment-container {
-      width: 100%;
-      margin-bottom: 15px;
+    .payment-container {
+      flex-direction: column;
     }
-
-    .wallet-payment-header {
-      margin-bottom: 10px;
-      text-align: center;
+    .payment-button-container {
+      border: 2px solid blue; /* Debug: Make container visible */
+      min-height: 40px; /* Ensure space for button */
     }
-
-    .wallet-payment-label {
-      font-size: 14px;
-      color: #666;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .wallet-payment-label::before,
-    .wallet-payment-label::after {
-      content: "";
-      height: 1px;
-      background-color: #e5e7eb;
-      flex-grow: 1;
-    }
-
-    .wallet-payment-label::before {
-      margin-right: 15px;
-    }
-
-    .wallet-payment-label::after {
-      margin-left: 15px;
-    }
-
-    .wallet-button-container {
-      width: 100%;
-      height: 44px;
-      min-height: 44px;
-      display: block;
-      margin: 0 auto;
-    }
-
-    .wallet-button-fallback {
-      width: 100%;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f8f8f8;
-      border-radius: 4px;
-    }
-
-    .wallet-loading-spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      border-top-color: #444;
-      animation: spin 0.8s linear infinite;
-    }
-
-    .wallet-button-mock {
-      width: 100%;
-      height: 44px;
-      background-color: #000;
-      color: #fff;
-      border-radius: 4px;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 14px;
-      gap: 8px;
-    }
-
-    .wallet-button-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .wallet-error {
-      margin-top: 8px;
-      color: #e53e3e;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    [class*="paymentRequestButton"] {
+      border: 1px solid red; /* Debug: Make Stripe button visible */
     }
   `]
 })
-export class WalletPaymentComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() amount: number = 0;
-  @Input() currency: string = 'aed';
-  @Input() productName: string = 'Product';
-
-  @Output() paymentSuccess = new EventEmitter<any>();
+export class ProductPaymentComponent implements OnInit, OnChanges, AfterViewInit {
+  @Input() product: any;
+  @Input() selectedVariation: any;
+  @Input() quantity: number = 1;
+  @Output() paymentSuccess = new EventEmitter<string>();
   @Output() paymentError = new EventEmitter<string>();
-  @Output() walletAvailableChange = new EventEmitter<boolean>();
 
-  @ViewChild('walletButtonElement') walletButtonElement!: ElementRef;
+  @ViewChild('paymentRequestButton') paymentRequestButtonRef!: ElementRef;
 
-  error: string = '';
-  initializing: boolean = true;
-  walletButtonMounted: boolean = false;
-  private walletAvailable: boolean = false;
-  private destroy$ = new Subject<void>();
-  
-  constructor(private walletService: WalletPaymentService) {}
-  
-  ngOnInit(): void {
-    // الاشتراك في تغييرات توفر المحفظة
-    this.walletService.walletAvailability$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(availability => {
-        this.walletAvailable = availability.googlePay || availability.applePay;
-        this.walletAvailableChange.emit(this.walletAvailable);
-      });
+  stripe: Stripe | null = null;
+  elements: StripeElements | null = null;
+  paymentRequest: any;
+  paymentRequestButton: StripePaymentRequestButtonElement | null = null;
+  isPaying: boolean = false;
+  isPaymentButtonVisible: boolean = false;
+
+  constructor(
+    private checkoutService: CheckoutService,
+    private uiService: UIService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.initStripe();
+    }
   }
 
-  async ngAfterViewInit(): Promise<void> {
-    setTimeout(async () => {
-      try {
-        console.log('Initializing wallet payment with amount:', this.amount);
+  ngAfterViewInit() {
+    console.log('ngAfterViewInit: paymentRequestButtonRef available:', !!this.paymentRequestButtonRef);
+    if (this.stripe && this.elements && this.paymentRequestButtonRef) {
+      console.log('ngAfterViewInit: Initializing wallet payments');
+      this.initWalletPayments();
+    } else {
+      console.error('ngAfterViewInit: Cannot initialize wallet payments', {
+        stripe: !!this.stripe,
+        elements: !!this.elements,
+        paymentRequestButtonRef: !!this.paymentRequestButtonRef,
+      });
+    }
+  }
 
-        const paymentInitialized = await this.walletService.initPaymentRequest(
-          this.amount,
-          this.currency,
-          this.productName
-        );
+  ngOnChanges(changes: SimpleChanges) {
+    if ((changes['product'] || changes['selectedVariation'] || changes['quantity']) && this.stripe && this.elements && this.paymentRequestButtonRef) {
+      console.log('ngOnChanges: Input changes detected', {
+        product: this.product,
+        selectedVariation: this.selectedVariation,
+        quantity: this.quantity,
+      });
+      this.initWalletPayments();
+    }
+  }
 
-        console.log('Payment request initialized:', paymentInitialized);
+  async initStripe() {
+    try {
+      console.log('initStripe: Loading Stripe');
+      this.stripe = await loadStripe('pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45');
+      if (!this.stripe) {
+        console.error('initStripe: Failed to load Stripe');
+        this.paymentError.emit('Payment system is not ready.');
+        return;
+      }
+      this.elements = this.stripe.elements();
+      console.log('initStripe: Stripe initialized successfully');
+    } catch (error) {
+      console.error('initStripe: Error initializing Stripe:', error);
+      this.paymentError.emit('Failed to initialize payment system.');
+    }
+  }
 
-        if (paymentInitialized && this.walletButtonElement) {
-          const mounted = this.walletService.mountWalletButton(this.walletButtonElement.nativeElement);
-          console.log('Wallet button mounted:', mounted);
-          this.walletButtonMounted = mounted;
+  async initWalletPayments() {
+    console.log('initWalletPayments: Starting initialization');
+    if (!this.stripe || !this.elements || !this.paymentRequestButtonRef) {
+      console.error('initWalletPayments: Required dependencies missing:', {
+        stripe: !!this.stripe,
+        elements: !!this.elements,
+        paymentRequestButtonRef: !!this.paymentRequestButtonRef,
+      });
+      this.isPaymentButtonVisible = false;
+      return;
+    }
 
-          if (mounted) {
-            this.walletService.setupPaymentRequestListeners(
-              (result) => {
-                console.log('Payment successful', result);
-                this.paymentSuccess.emit(result);
-              },
-              (error) => {
-                console.error('Payment error', error);
-                this.error = error.message || 'Payment failed';
-                this.paymentError.emit(this.error);
-              }
-            );
-          }
+    try {
+      console.log('initWalletPayments: Validating product data');
+      const price = this.selectedVariation?.price || this.product?.price || 0;
+      const amountInFils = Math.round(price * this.quantity * 100);
+
+      if (amountInFils <= 0) {
+        console.error('initWalletPayments: Invalid price or quantity:', { price, quantity: this.quantity, amountInFils });
+        this.isPaymentButtonVisible = false;
+        return;
+      }
+
+      console.log('initWalletPayments: Price:', price, 'Quantity:', this.quantity, 'Amount in fils:', amountInFils);
+
+      console.log('initWalletPayments: Creating payment request');
+      this.paymentRequest = this.stripe.paymentRequest({
+        country: 'AE',
+        currency: 'aed',
+        total: {
+          label: this.product?.name || 'Product Purchase',
+          amount: amountInFils,
+        },
+        requestPayerName: true,
+        requestPayerEmail: true,
+        requestPayerPhone: true,
+        requestShipping: false,
+        shippingOptions: [
+          {
+            id: 'standard',
+            label: 'Standard Shipping',
+            amount: 0,
+            detail: 'Delivery within 3-5 business days',
+          },
+        ],
+      });
+
+      console.log('initWalletPayments: Checking canMakePayment');
+      const result = await this.paymentRequest.canMakePayment();
+      console.log('initWalletPayments: canMakePayment result:', result);
+
+      if (result) {
+        this.isPaymentButtonVisible = true;
+        if (result.applePay) {
+          console.log('initWalletPayments: Apple Pay is supported');
+        }
+        if (result.googlePay) {
+          console.log('initWalletPayments: Google Pay is supported');
         }
 
-        this.initializing = false;
-      } catch (err: any) {
-        console.error('Error in wallet payment initialization:', err);
-        this.error = err.message || 'Failed to initialize wallet payment';
-        this.initializing = false;
+        console.log('initWalletPayments: Creating payment request button');
+        this.paymentRequestButton = this.elements.create('paymentRequestButton', {
+          paymentRequest: this.paymentRequest,
+          style: {
+            paymentRequestButton: {
+              type: 'default',
+              theme: 'dark',
+              height: '40px',
+            },
+          },
+        });
+
+        console.log('initWalletPayments: Mounting button to:', this.paymentRequestButtonRef.nativeElement);
+        this.paymentRequestButton.mount(this.paymentRequestButtonRef.nativeElement);
+        console.log('initWalletPayments: Payment button mounted successfully');
+
+        // Fallback: Retry mounting after a delay to ensure DOM readiness
+        setTimeout(() => {
+          if (this.paymentRequestButton && this.paymentRequestButtonRef) {
+            console.log('initWalletPayments: Retrying button mount');
+            this.paymentRequestButton.mount(this.paymentRequestButtonRef.nativeElement);
+          }
+        }, 500);
+
+        this.paymentRequest.on('paymentmethod', async (event: any) => {
+          console.log('initWalletPayments: Payment method received:', event.paymentMethod);
+          try {
+            this.isPaying = true;
+            // this.uiService.setLoadingState('payment', true);
+
+            const orderData = this.prepareOrderData(event);
+            console.log('initWalletPayments: Creating payment intent with orderData:', orderData);
+            const paymentIntentResponse = await this.checkoutService
+              .createPaymentIntent(amountInFils / 100, 'aed', orderData)
+              .pipe(take(1))
+              .toPromise();
+
+            if (!paymentIntentResponse?.success || !paymentIntentResponse.clientSecret) {
+              throw new Error('Failed to create payment intent');
+            }
+
+            const clientSecret = paymentIntentResponse.clientSecret;
+            const paymentIntentId :any = paymentIntentResponse.paymentIntentId;
+            console.log('initWalletPayments: Payment intent created:', { clientSecret, paymentIntentId });
+
+            const { error, paymentIntent } = await this.stripe!.confirmCardPayment(clientSecret, {
+              payment_method: event.paymentMethod.id,
+            });
+
+            if (error) {
+              console.error('initWalletPayments: Payment failed:', error.message);
+              this.uiService.showError('Payment failed: ' + error.message);
+              this.paymentError.emit(error.message);
+              event.complete('fail');
+              return;
+            }
+
+            if (paymentIntent && paymentIntent.status === 'succeeded') {
+              console.log('initWalletPayments: Payment succeeded:', paymentIntent.id);
+              event.complete('success');
+              // this.uiService.showSuccess('Purchase completed successfully!');
+              this.pollOrderStatus(paymentIntentId);
+            } else {
+              console.error('initWalletPayments: Unsupported payment status');
+              event.complete('fail');
+              this.uiService.showError('Payment failed: Unsupported payment status.');
+              this.paymentError.emit('Unsupported payment status.');
+            }
+          } catch (error: any) {
+            console.error('initWalletPayments: Error creating order:', error);
+            event.complete('fail');
+            this.uiService.showError('An error occurred: ' + (error.message || 'Please try again.'));
+            this.paymentError.emit(error.message || 'Payment failed.');
+          } finally {
+            this.isPaying = false;
+            // this.uiService.setLoadingState('payment', false);
+          }
+        });
+
+        this.paymentRequest.on('shippingaddresschange', (event: any) => {
+          console.log('initWalletPayments: Shipping address changed');
+          event.updateWith({
+            status: 'success',
+            shippingOptions: [
+              {
+                id: 'standard',
+                label: 'Standard Shipping',
+                amount: 0,
+                detail: 'Delivery within 3-5 business days',
+              },
+            ],
+          });
+        });
+      } else {
+        console.log('initWalletPayments: No supported wallet payment methods found');
+        this.isPaymentButtonVisible = false;
+        // Keep container visible to show "OR" separator
       }
-    }, 500);
+    } catch (error) {
+      console.error('initWalletPayments: Error initializing wallet payments:', error);
+      this.isPaymentButtonVisible = false;
+      this.paymentError.emit('Failed to initialize payment button.');
+    }
   }
 
-  mockWalletClick(): void {
-    alert('Google Pay أو Apple Pay غير متاح على جهازك أو متصفحك');
+  private prepareOrderData(event: any) {
+    const billingDetails = event.paymentMethod.billing_details || {};
+    const productId = this.product?.id;
+    const variationId = this.selectedVariation?.id || undefined;
+
+    const orderData = {
+      billing: {
+        first_name: billingDetails.name?.split(' ')[0] || '',
+        last_name: billingDetails.name?.split(' ')[1] || '',
+        address_1: billingDetails.address?.line1 || '',
+        city: billingDetails.address?.city || '',
+        state: billingDetails.address?.state || '',
+        postcode: billingDetails.address?.postal_code || '',
+        country: billingDetails.address?.country || 'AE',
+        email: billingDetails.email || '',
+        phone: billingDetails.phone || '',
+      },
+      shipping: {},
+      line_items: [
+        {
+          product_id: productId,
+          variation_id: variationId,
+          quantity: this.quantity,
+        },
+      ],
+    };
+    console.log('prepareOrderData: Order data prepared:', orderData);
+    return orderData;
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.walletService.destroyPaymentRequest();
+  private pollOrderStatus(paymentIntentId: string) {
+    console.log('pollOrderStatus: Starting polling for paymentIntentId:', paymentIntentId);
+    interval(2000)
+      .pipe(
+        switchMap(() => this.checkoutService.checkOrderStatus(paymentIntentId)),
+        takeWhile((response) => !(response.success && response.orderId), true),
+        tap((response) => {
+          if (response.success && response.orderId) {
+            console.log('pollOrderStatus: Order created successfully:', response.orderId);
+            this.paymentSuccess.emit(response.orderId);
+          }
+        })
+      )
+      .subscribe({
+        error: (error) => {
+          console.error('pollOrderStatus: Error polling order status:', error);
+          this.uiService.showError('An error occurred while checking order status.');
+          this.paymentError.emit('Failed to confirm order.');
+        },
+      });
   }
 }

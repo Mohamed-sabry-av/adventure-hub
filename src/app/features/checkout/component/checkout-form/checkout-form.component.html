@@ -9,8 +9,7 @@
 
             <!-- GPay & Apple Pay -->
             <div class="pt-4 w-full text-center">
-              <!-- Google Pay Button -->
-              <div #googlePayButtonElement class="mb-4 md:w-[262px] mx-auto"></div>
+              <app-wallet-payment (paymentSucceeded)="onPaymentSucceeded($event)"></app-wallet-payment>
 
               <div class="flex items-center gap-4 pt-4 pb-7">
                 <span class="flex-grow h-px bg-gray-400"></span>
@@ -314,14 +313,6 @@
 
           <!-- Payment Error -->
           <div *ngIf="checkoutService.paymentError$ | async as error" class="text-red-500 text-sm mt-2">
-            {{ error }}
-          </div>
-
-          <!-- Payment Error -->
-          <div
-            *ngIf="checkoutService.paymentError$ | async as error"
-            class="text-red-500 text-sm mt-2"
-          >
             {{ error }}
           </div>
 

@@ -5,14 +5,16 @@ import { Router, RouterLink } from '@angular/router';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { FormValidationService } from '../../../../shared/services/form-validation.service';
 import { CheckoutService } from '../../services/checkout.service';
+import { StripeService } from '../../services/stripe.service';
 import { AsyncPipe, CommonModule, NgClass } from '@angular/common';
-import { loadStripe, Stripe, StripeElements, StripeCardNumberElement, StripeCardExpiryElement, StripeCardCvcElement, StripePaymentRequestButtonElement } from '@stripe/stripe-js';
 import { CheckoutSummaryComponent } from '../checkout-summary/checkout-summary.component';
 import { BehaviorSubject, Observable, take, interval } from 'rxjs';
 import { switchMap, takeWhile, tap } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { UIService } from '../../../../shared/services/ui.service';
 import { isPlatformBrowser } from '@angular/common';
+import { Stripe, StripeElements, StripeCardNumberElement, StripeCardExpiryElement, StripeCardCvcElement } from '@stripe/stripe-js';
+import { WalletPaymentComponent } from '../googlePay-button/google-pay-button.component';
 
 interface CartItem {
   product_id: number;
@@ -42,6 +44,7 @@ interface PaymentIntentResponse {
     NgClass,
     CheckoutSummaryComponent,
     AsyncPipe,
+    WalletPaymentComponent
   ],
   templateUrl: './checkout-form.component.html',
   styleUrls: ['./checkout-form.component.css'],
@@ -64,6 +67,7 @@ export class CheckoutFormComponent {
   private uiService = inject(UIService);
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
+  private stripeService = inject(StripeService);
 
   billingForm!: FormGroup;
   shippingForm!: FormGroup;
@@ -81,17 +85,12 @@ export class CheckoutFormComponent {
   @ViewChild('cardNumberElement') cardNumberElementRef!: ElementRef;
   @ViewChild('cardExpiryElement') cardExpiryElementRef!: ElementRef;
   @ViewChild('cardCvcElement') cardCvcElementRef!: ElementRef;
-  @ViewChild('googlePayButtonElement') googlePayButtonRef!: ElementRef;
 
   stripe: Stripe | null = null;
   elements: StripeElements | null = null;
   cardNumber: StripeCardNumberElement | null = null;
   cardExpiry: StripeCardExpiryElement | null = null;
   cardCvc: StripeCardCvcElement | null = null;
-  paymentRequest: any;
-  prButton: StripePaymentRequestButtonElement | null = null;
-  googlePaySupported = false;
-  applePaySupported = false;
 
   ngOnInit() {
     this.billingForm = this.createAddressForm(true);
@@ -137,7 +136,6 @@ export class CheckoutFormComponent {
       this.billingForm.get('email')?.setValue(emailValue);
     }
 
-    // Set billingForm in CheckoutService for coupon validation
     this.checkoutService.setBillingForm(this.billingForm);
   }
 
@@ -148,7 +146,7 @@ export class CheckoutFormComponent {
   }
 
   async initStripe() {
-    this.stripe = await loadStripe('pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45');
+    this.stripe = await this.stripeService.getStripe();
     if (this.stripe) {
       this.elements = this.stripe.elements();
       const style = {
@@ -166,203 +164,6 @@ export class CheckoutFormComponent {
       this.cardNumber.mount(this.cardNumberElementRef.nativeElement);
       this.cardExpiry.mount(this.cardExpiryElementRef.nativeElement);
       this.cardCvc.mount(this.cardCvcElementRef.nativeElement);
-
-      this.initWalletPayments();
-    }
-  }
-
-  async initWalletPayments() {
-    if (!this.stripe || !this.elements || !this.googlePayButtonRef) {
-      console.error('Stripe, elements, or googlePayButtonRef is not available:', {
-        stripe: !!this.stripe,
-        elements: !!this.elements,
-        googlePayButtonRef: !!this.googlePayButtonRef,
-      });
-      return;
-    }
-
-    try {
-      const cartTotal = await this.checkoutService.getCartTotalPrice().pipe(take(1)).toPromise();
-      if (!cartTotal) {
-        throw new Error('Cart total is not available');
-      }
-
-      const currency = cartTotal.currency.toLowerCase();
-      const amountInFils = Math.round(cartTotal.total * 100);
-
-      console.log('Cart total:', cartTotal);
-      console.log('Amount in cents:', amountInFils);
-
-      this.paymentRequest = this.stripe.paymentRequest({
-        country: 'AE',
-        currency: currency,
-        total: {
-          label: 'Order total',
-          amount: amountInFils,
-        },
-        requestPayerName: true,
-        requestPayerEmail: true,
-        requestPayerPhone: true,
-        requestShipping: true,
-        shippingOptions: [
-          {
-            id: 'standard',
-            label: 'Standard Shipping',
-            amount: 0,
-            detail: 'Delivery within 3-5 business days',
-          },
-        ],
-      });
-
-      const result = await this.paymentRequest.canMakePayment();
-      console.log('canMakePayment result:', result);
-
-      if (result) {
-        if (result.applePay) {
-          this.applePaySupported = true;
-          console.log('Apple Pay is supported');
-        }
-        if (result.googlePay) {
-          this.googlePaySupported = true;
-          console.log('Google Pay is supported');
-          const paymentMethodControl = this.billingForm.get('paymentMethod');
-          if (paymentMethodControl) {
-            paymentMethodControl.patchValue('googlePay');
-          }
-        }
-
-        this.prButton = this.elements.create('paymentRequestButton', {
-          paymentRequest: this.paymentRequest,
-          style: {
-            paymentRequestButton: {
-              type: 'default',
-              theme: 'dark',
-              height: '40px',
-            },
-          },
-        });
-
-        console.log('Mounting Google Pay button to:', this.googlePayButtonRef.nativeElement);
-        this.prButton.mount(this.googlePayButtonRef.nativeElement);
-        console.log('Google Pay button mounted successfully');
-
-        this.paymentRequest.on('paymentmethod', async (event: any) => {
-          console.log('Payment method received:', event.paymentMethod);
-          const paymentType = event.paymentMethod.card.wallet?.type || 'walletPayment';
-          const paymentMethodControl = this.billingForm.get('paymentMethod');
-          if (paymentMethodControl) {
-            paymentMethodControl.patchValue(
-              paymentType === 'google_pay' ? 'googlePay' : paymentType === 'apple_pay' ? 'applePay' : 'walletPayment'
-            );
-          }
-
-          // Extract billing address
-          const billingDetails = event.paymentMethod.billing_details || {};
-          this.billingForm.patchValue({
-            firstName: billingDetails.name?.split(' ')[0] || '',
-            lastName: billingDetails.name?.split(' ')[1] || '',
-            address: billingDetails.address?.line1 || '',
-            city: billingDetails.address?.city || '',
-            state: billingDetails.address?.state || '',
-            postCode: billingDetails.address?.postal_code || '',
-            countrySelect: billingDetails.address?.country || 'AE',
-            email: billingDetails.email || '',
-            phone: billingDetails.phone || '',
-          });
-
-          // Extract shipping address
-          const shippingAddress = event.shippingAddress || {};
-          if (this.isShippingDifferent) {
-            this.shippingForm.patchValue({
-              firstName: shippingAddress.name?.split(' ')[0] || '',
-              lastName: shippingAddress.name?.split(' ')[1] || '',
-              address: shippingAddress.addressLine?.[0] || '',
-              city: shippingAddress.city || '',
-              state: shippingAddress.region || '',
-              postCode: shippingAddress.postalCode || '',
-              countrySelect: shippingAddress.country || 'AE',
-            });
-          }
-
-          // Log card details (for debugging, do not log in production)
-          console.log('Card details:', event.paymentMethod.card);
-
-          try {
-            // Create the payment intent for Google Pay/Apple Pay
-            const cartTotalInner = await this.checkoutService.getCartTotalPrice().pipe(take(1)).toPromise();
-            if (!cartTotalInner) {
-              throw new Error('Cart total is not available');
-            }
-
-            const orderData = this.prepareOrderData({
-              billingForm: this.billingForm,
-              shippingForm: this.shippingForm,
-              isShippingDifferent: this.isShippingDifferent,
-              line_items: [], // Will be populated by the server
-            });
-
-            const paymentIntentResponse = await this.checkoutService
-              .createPaymentIntent(cartTotalInner.total, cartTotalInner.currency, orderData)
-              .pipe(take(1))
-              .toPromise();
-
-            if (!paymentIntentResponse) {
-              throw new Error('Failed to create payment intent: Response is not available');
-            }
-
-            if (!paymentIntentResponse.success || !paymentIntentResponse.clientSecret) {
-              throw new Error('Failed to create payment intent');
-            }
-
-            const clientSecret = paymentIntentResponse.clientSecret;
-            const paymentIntentId :any = paymentIntentResponse.paymentIntentId;
-
-            // Confirm the payment with Stripe
-            const { error, paymentIntent } = await this.stripe!.confirmCardPayment(clientSecret, {
-              payment_method: event.paymentMethod.id,
-            });
-
-            if (error) {
-              console.error('Payment failed:', error.message);
-              event.complete('fail');
-              this.uiService.showError('Payment failed: ' + error.message);
-              return;
-            }
-
-            if (paymentIntent && paymentIntent.status === 'succeeded') {
-              console.log('Payment succeeded:', paymentIntent.id);
-              event.complete('success');
-              // Poll for the order ID
-              this.pollOrderStatus(paymentIntentId);
-            } else {
-              event.complete('fail');
-              this.uiService.showError('Payment failed: Unsupported payment status.');
-            }
-          } catch (error: any) {
-            console.error('Error creating order:', error);
-            event.complete('fail');
-            this.uiService.showError('An error occurred while creating the order: ' + (error.message || 'Please try again.'));
-          }
-        });
-
-        this.paymentRequest.on('shippingaddresschange', (event: any) => {
-          event.updateWith({
-            status: 'success',
-            shippingOptions: [
-              {
-                id: 'standard',
-                label: 'Standard Shipping',
-                amount: 0,
-                detail: 'Delivery within 3-5 business days',
-              },
-            ],
-          });
-        });
-      } else {
-        console.log('No supported wallet payment methods found');
-      }
-    } catch (error) {
-      console.error('Error initializing wallet payments:', error);
     }
   }
 
@@ -413,8 +214,6 @@ export class CheckoutFormComponent {
       const clientSecret = paymentIntentResponse.clientSecret;
       this.currentPaymentIntentId = paymentIntentResponse.paymentIntentId || null;
 
-      console.log('Payment intent created:', paymentIntentResponse);
-
       const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: this.cardNumber,
@@ -451,6 +250,10 @@ export class CheckoutFormComponent {
     }
   }
 
+  onPaymentSucceeded(paymentIntentId: string) {
+    this.pollOrderStatus(paymentIntentId);
+  }
+
   onSubmit(paymentToken?: string) {
     if (!this.isFormValid()) {
       this.uiService.showError('Please fill in all required fields correctly.');
@@ -482,8 +285,6 @@ export class CheckoutFormComponent {
           },
         });
     }
-    // For Stripe payments, we don't call createOrder here since it's handled in the webhook
-    // Instead, we rely on polling in payNow or initWalletPayments
   }
 
   private pollOrderStatus(paymentIntentId: string) {
@@ -605,13 +406,11 @@ export class CheckoutFormComponent {
     this.toggleShippingForm();
   }
 
-  // Toggle summary visibility
   onShowSummary() {
     this.isVisible = !this.isVisible;
     this.summaryIsVisible$.next(this.isVisible);
   }
 
-  // Update payment method validators
   toggleCreditCardValidators(method: string) {
     switch (method) {
       case 'stripe':
@@ -632,7 +431,6 @@ export class CheckoutFormComponent {
     }
   }
 
-  // Enable or disable shipping form
   toggleShippingForm() {
     if (this.isShippingDifferent) {
       this.shippingForm.enable();
@@ -641,7 +439,6 @@ export class CheckoutFormComponent {
     }
   }
 
-  // Check if form is valid
   isFormValid(): boolean {
     if (this.isShippingDifferent) {
       return this.billingForm.valid && this.shippingForm.valid;
@@ -649,59 +446,48 @@ export class CheckoutFormComponent {
     return this.billingForm.valid;
   }
 
-  // Update selected shipping country
   onGetSelectedShippingCountry(selectedCountry: string) {
     this.checkoutService.getSelectedShippingCountry(selectedCountry);
   }
 
-  // Update selected billing country
   onGetSelectedBillingCountry(selectedCountry: string) {
     this.checkoutService.getSelectedBillingCountry(selectedCountry);
   }
 
-  // Validate email field
   get emailIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'email');
   }
 
-  // Get email from local storage
   get emailFieldValue() {
     let loadedUserData: any = localStorage.getItem('auth_user');
     loadedUserData = loadedUserData ? JSON.parse(loadedUserData) : null;
     return loadedUserData?.value?.email || '';
   }
 
-  // Validate first name field
   get firstNameIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'firstName');
   }
 
-  // Validate last name field
   get lastNameIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'lastName');
   }
 
-  // Validate address field
   get addressIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'address');
   }
 
-  // Validate city field
   get cityIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'city');
   }
 
-  // Validate state field
   get stateIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'state');
   }
 
-  // Validate phone field
   get phoneIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'phone');
   }
 
-  // Validate postcode field
   get postCodeIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'postCode');
   }

@@ -1,19 +1,28 @@
 import { Component, EventEmitter, input, Output, OnInit, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../../cart/service/cart.service';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
-import { Subscription, Observable } from 'rxjs';
+import { Subscription, Observable, interval } from 'rxjs';
 import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 import { VariationService } from '../../../../core/services/variation.service';
 import { UIService } from '../../../../shared/services/ui.service';
+import { CheckoutService } from '../../../checkout/services/checkout.service';
+import { switchMap, takeWhile, tap, take } from 'rxjs/operators';
+import { WalletPaymentComponent } from '../../../checkout/component/googlePay-button/google-pay-button.component';
 
 declare var _learnq: any;
 
 @Component({
   selector: 'app-product-info',
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, CurrencySvgPipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    ReactiveFormsModule,
+    CurrencySvgPipe,
+    WalletPaymentComponent,
+  ],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
   standalone: true,
@@ -45,7 +54,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private wishlistService: WooCommerceAccountService,
     private variationService: VariationService,
-    private uiService: UIService
+    private uiService: UIService,
+    private checkoutService: CheckoutService,
+    private router: Router
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
   }
@@ -86,7 +97,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     const selectedVariation = this.getSelectedVariation();
-    this.maxLength = selectedVariation?.stock_quantity || 10; // Default to 10 if no stock quantity
+    this.maxLength = selectedVariation?.stock_quantity || 10;
   }
 
   get productSku() {
@@ -220,7 +231,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return product.stock_status === 'instock' && (product.stock_quantity > 0 || product.backorders_allowed);
     }
 
-    // Check if any variation is in stock
     const variations = product.variations || [];
     return variations.some((v: any) => v.stock_status === 'instock');
   }
@@ -258,7 +268,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return { price, regularPrice, isOnSale };
     }
 
-    // Fallback to product-level prices if no variation is selected
     const price = normalizePrice(product.price);
     const regularPrice = normalizePrice(product.regular_price || price);
     const salePrice = normalizePrice(product.sale_price);
@@ -332,6 +341,62 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     this.addToCart(true);
   }
 
+  getCartProduct() {
+    const product = this.productInfo();
+    if (!product) return null;
+
+    if (product.type === 'simple') {
+      return { ...product, quantity: this.quantity };
+    }
+
+    if (!this.allVariationAttributesSelected) return null;
+
+    const selectedVariation = this.getSelectedVariation();
+    if (!selectedVariation) return null;
+
+    return this.variationService.prepareProductForCart(product, selectedVariation, this.quantity);
+  }
+
+  onWalletPaymentSucceeded(paymentIntentId: string) {
+    if (typeof _learnq !== 'undefined') {
+      const product = this.productInfo();
+      _learnq.push([
+        'track',
+        'Wallet Purchase',
+        {
+          ProductID: product?.id,
+          ProductName: product?.name,
+          Price: this.getPriceInfo().price,
+          Quantity: this.quantity,
+          VariationID: this.getSelectedVariation()?.id || null,
+          Attributes: { ...this.selectedAttributes },
+          Brand: this.brandName,
+          Categories: product?.categories?.map((cat: any) => cat.name) || [],
+        },
+      ]);
+    }
+    this.pollOrderStatus(paymentIntentId);
+  }
+
+  private pollOrderStatus(paymentIntentId: string) {
+    interval(2000).pipe(
+      switchMap(() => this.checkoutService.checkOrderStatus(paymentIntentId)),
+      takeWhile((response) => !(response.success && response.orderId), true),
+      tap((response) => {
+        if (response.success && response.orderId) {
+          console.log('Wallet order created successfully:', response.orderId);
+          this.router.navigate(['/order-received', response.orderId]);
+        }
+      })
+    ).subscribe({
+      error: (error) => {
+        console.error('Error polling order status:', error);
+        // this.uiService.showMessage('An error occurred while checking order status: ' + (error.message || 'Please try again.'), false);
+        this.router.navigate(['/']);
+      },
+    });
+  }
+
   parseFloatValue(value: any): number {
     return parseFloat(value);
   }
@@ -350,12 +415,10 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     const variationAttributes = this.getVariationAttributes();
     const defaultAttributes = product.default_attributes || [];
 
-    // Try to find an in-stock variation first
     const inStockVariation = variations.find((v: any) => v.stock_status === 'instock');
     let defaultAttributesToUse = defaultAttributes;
 
     if (inStockVariation && !this.isDefaultVariationInStock(defaultAttributes, variations)) {
-      // If default variation is out of stock, use attributes from an in-stock variation
       defaultAttributesToUse = inStockVariation.attributes.map((attr: any) => ({
         name: attr.name,
         option: attr.option,
