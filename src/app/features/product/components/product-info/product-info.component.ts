@@ -45,9 +45,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private wishlistService: WooCommerceAccountService,
     private variationService: VariationService,
-    private uiService: UIService // Injected singleton UIService
+    private uiService: UIService
   ) {
-    this.loadingMap$ = this.uiService.loadingMap$; // Set loadingMap$ from UIService
+    this.loadingMap$ = this.uiService.loadingMap$;
   }
 
   ngOnInit() {
@@ -86,7 +86,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     const selectedVariation = this.getSelectedVariation();
-    this.maxLength = selectedVariation?.stock_quantity || 0;
+    this.maxLength = selectedVariation?.stock_quantity || 10; // Default to 10 if no stock quantity
   }
 
   get productSku() {
@@ -211,23 +211,18 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   get isProductInStock(): boolean {
     const product = this.productInfo();
-    if (product?.type === 'simple') {
+    if (!product) return false;
+
+    if (product.type === 'simple') {
       if (!product.manage_stock) {
         return product.stock_status === 'instock';
       }
       return product.stock_status === 'instock' && (product.stock_quantity > 0 || product.backorders_allowed);
     }
 
-    if (!this.allVariationAttributesSelected) {
-      return false;
-    }
-
-    const selectedVariation: any = this.getSelectedVariation();
-    return (
-      !!selectedVariation &&
-      selectedVariation.stock_status === 'instock' &&
-      (selectedVariation.stock_quantity > 0 || selectedVariation.backorders_allowed)
-    );
+    // Check if any variation is in stock
+    const variations = product.variations || [];
+    return variations.some((v: any) => v.stock_status === 'instock');
   }
 
   getPriceInfo(): { price: string; regularPrice: string; isOnSale: boolean } {
@@ -240,7 +235,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return value ? String(value).replace(/[^0-9.]/g, '') : '0';
     };
 
-    if (product.type === 'simple' || !this.allVariationAttributesSelected) {
+    if (product.type === 'simple') {
       const price = normalizePrice(product.price);
       const regularPrice = normalizePrice(product.regular_price || price);
       const salePrice = normalizePrice(product.sale_price);
@@ -252,7 +247,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     const selectedVariation = this.getSelectedVariation();
-    if (selectedVariation) {
+    if (selectedVariation && this.allVariationAttributesSelected) {
       const price = normalizePrice(selectedVariation.price || product.price);
       const regularPrice = normalizePrice(selectedVariation.regular_price || price);
       const salePrice = normalizePrice(selectedVariation.sale_price);
@@ -263,6 +258,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return { price, regularPrice, isOnSale };
     }
 
+    // Fallback to product-level prices if no variation is selected
     const price = normalizePrice(product.price);
     const regularPrice = normalizePrice(product.regular_price || price);
     const salePrice = normalizePrice(product.sale_price);
@@ -282,20 +278,22 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     let cartProduct: any;
     if (product.type === 'simple') {
       if (product.stock_status !== 'instock') {
+        // this.uiService.showMessage('This product is out of stock.', false);
         return;
       }
       cartProduct = { ...product, quantity: this.quantity };
     } else {
       if (!this.allVariationAttributesSelected) {
+        // this.uiService.showMessage('Please select all variation options.', false);
         return;
       }
       const selectedVariation = this.getSelectedVariation();
       if (!selectedVariation) {
-        console.error('Cannot add to cart: No valid variation selected');
+        // this.uiService.showMessage('No valid variation selected.', false);
         return;
       }
       if (selectedVariation.stock_status !== 'instock') {
-        console.error('Cannot add to cart: Selected variation is out of stock');
+        // this.uiService.showMessage('Selected variation is out of stock.', false);
         return;
       }
       cartProduct = this.variationService.prepareProductForCart(
@@ -311,7 +309,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     this.cartService.addProductToCart(cartProduct, buyItNow);
-    console.log('Product added to cart:', cartProduct);
+    // this.uiService.showMessage('Product added to cart!', true);
 
     if (typeof _learnq !== 'undefined') {
       _learnq.push([
@@ -352,8 +350,20 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     const variationAttributes = this.getVariationAttributes();
     const defaultAttributes = product.default_attributes || [];
 
+    // Try to find an in-stock variation first
+    const inStockVariation = variations.find((v: any) => v.stock_status === 'instock');
+    let defaultAttributesToUse = defaultAttributes;
+
+    if (inStockVariation && !this.isDefaultVariationInStock(defaultAttributes, variations)) {
+      // If default variation is out of stock, use attributes from an in-stock variation
+      defaultAttributesToUse = inStockVariation.attributes.map((attr: any) => ({
+        name: attr.name,
+        option: attr.option,
+      }));
+    }
+
     variationAttributes.forEach((attrName: string) => {
-      const defaultAttr = defaultAttributes.find((attr: any) => attr.name === attrName);
+      const defaultAttr = defaultAttributesToUse.find((attr: any) => attr.name === attrName);
       let selectedOption = null;
 
       if (defaultAttr) {
@@ -370,13 +380,29 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
         selectedOption = this.getVariationOptions(
           attrName,
           attrName === 'Size' ? this.selectedAttributes['Color'] : null
-        ).find((opt) => opt.inStock || this.showOutOfStockVariations);
+        ).find((opt) => opt.inStock);
+      }
+
+      if (!selectedOption && this.showOutOfStockVariations) {
+        selectedOption = this.getVariationOptions(
+          attrName,
+          attrName === 'Size' ? this.selectedAttributes['Color'] : null
+        )[0];
       }
 
       if (selectedOption) {
         this.selectAttribute(attrName, selectedOption.value);
       }
     });
+  }
+
+  private isDefaultVariationInStock(defaultAttributes: any[], variations: any[]): boolean {
+    const defaultAttrsMap = defaultAttributes.reduce((acc: any, attr: any) => {
+      acc[attr.name] = attr.option;
+      return acc;
+    }, {});
+    const defaultVariation = this.variationService.findVariationByAttributes(variations, defaultAttrsMap);
+    return defaultVariation?.stock_status === 'instock';
   }
 
   get isCompletelyOutOfStock(): boolean {

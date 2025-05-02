@@ -55,21 +55,29 @@ export class ProductsGridComponent implements OnChanges {
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
   hasFetched: boolean = false;
-
-  skeletonCount = 8;
   showEmptyState: boolean = false;
+  skeletonCount = 8;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['isLoading'] || changes['products'] || changes['isLoadingMore']) {
-      if (!this.isLoading && !this.isLoadingMore) {
-        this.hasFetched = true; 
-        this.showEmptyState = this.products.length === 0;
-        this.cdr.markForCheck();
-      } else {
-        this.showEmptyState = false; 
+    if (changes['products'] || changes['isLoading'] || changes['isLoadingMore']) {
+      // Reset hasFetched if products array is reset to empty
+      if (changes['products'] && this.products.length === 0 && !this.isLoading && !this.isLoadingMore) {
+        this.hasFetched = false;
       }
+
+      // Only show empty state after fetch is complete and no products are found
+      if (!this.isLoading && !this.isLoadingMore) {
+        setTimeout(() => {
+          this.hasFetched = true;
+          this.showEmptyState = this.products.length === 0;
+          this.cdr.markForCheck();
+        }, 100); // Small delay to ensure products are loaded
+      } else {
+        this.showEmptyState = false;
+      }
+      this.cdr.markForCheck();
     }
   }
 
@@ -87,7 +95,6 @@ export class ProductsGridComponent implements OnChanges {
     return index;
   }
 
-  // destroy
   ngOnDestroy() {
     this.products = [];
     this.isLoading = false;

@@ -28,7 +28,7 @@
     <!-- Color Options -->
     <ng-container *ngIf="getVariationOptions('Color').length">
       <div class="product-option">
-        <label class="option-label">Color</label>
+        <!-- <label class="option-label">Color</label> -->
         <div class="color-options">
           <div
             *ngFor="let option of getVariationOptions('Color'); let i = index"
@@ -40,7 +40,7 @@
             <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'" [title]="option.value">
               <div class="out-of-stock-x" *ngIf="!option.inStock"></div>
             </div>
-            <span class="color-name">{{ option.value }}</span>
+            <!-- <span class="color-name">{{ option.value }}</span> -->
           </div>
         </div>
       </div>

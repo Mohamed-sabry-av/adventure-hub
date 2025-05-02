@@ -10,9 +10,6 @@ export class VariationService {
 
   constructor() {}
 
-  /**
-   * Extract variations from a product
-   */
   getVariationsFromProduct(product: Product): Variation[] {
     if (!product || !product.variations || !Array.isArray(product.variations)) {
       return [];
@@ -20,9 +17,6 @@ export class VariationService {
     return product.variations;
   }
 
-  /**
-   * Get all available color options from variations with stock status
-   */
   getColorOptions(variations: Variation[]): {
     color: string;
     image: string;
@@ -44,7 +38,6 @@ export class VariationService {
         const isInStock = v.stock_status === 'instock';
         const currentValue = colorMap.get(colorAttr.option);
 
-        // Only update if we haven't seen this color, or if this variation is in stock and previous one wasn't
         if (!currentValue || (!currentValue.inStock && isInStock)) {
           colorMap.set(colorAttr.option, {
             image: v.image.src,
@@ -63,18 +56,17 @@ export class VariationService {
     }));
   }
 
-  /**
-   * Get available sizes for a specific color
-   */
   getSizesForColor(
     variations: Variation[],
-    color: string
+    color: string | null
   ): { size: string; inStock: boolean; variationId?: number }[] {
     if (!variations || !Array.isArray(variations) || variations.length === 0) {
       return [];
     }
 
     const sizesMap = new Map<string, { inStock: boolean; variationId?: number }>();
+
+    // Filter variations based on color if provided, otherwise get all variations
     const filteredVariations = color
       ? variations.filter((v) =>
           v.attributes?.some(
@@ -89,7 +81,6 @@ export class VariationService {
         const inStock = v.stock_status === 'instock';
         const currentValue = sizesMap.get(sizeAttr.option);
 
-        // Only update if we haven't seen this size, or if this variation is in stock and previous one wasn't
         if (!currentValue || (!currentValue.inStock && inStock)) {
           sizesMap.set(sizeAttr.option, {
             inStock: inStock,
@@ -116,9 +107,6 @@ export class VariationService {
     );
   }
 
-  /**
-   * Find a specific variation by its attributes
-   */
   findVariationByAttributes(
     variations: Variation[],
     selectedAttributes: { [key: string]: string | null }
@@ -138,19 +126,15 @@ export class VariationService {
     return variations.find((v) =>
       attributeKeys.every((attrName) =>
         v.attributes?.some(
-          (attr:any) => attr.name === attrName && attr.option === selectedAttributes[attrName]
+          (attr: any) => attr.name === attrName && attr.option === selectedAttributes[attrName]
         )
       )
     ) || null;
   }
 
-  /**
-   * Format color name for better display
-   */
   formatColorName(colorName: string): string {
     if (!colorName) return '';
 
-    // Convert slug format (e.g., "dark-navy") to readable format ("Dark Navy")
     return colorName
       .replace(/-/g, ' ')
       .split(' ')
@@ -158,9 +142,6 @@ export class VariationService {
       .join(' ');
   }
 
-  /**
-   * Get a variation by ID
-   */
   getVariationById(variations: Variation[], variationId: number): Variation | null {
     if (!variations || !Array.isArray(variations) || variations.length === 0) {
       return null;
@@ -169,23 +150,14 @@ export class VariationService {
     return variations.find((v) => v.id === variationId) || null;
   }
 
-  /**
-   * Set the currently selected variation
-   */
   setSelectedVariation(variation: Variation | null): void {
     this.selectedVariationSubject.next(variation);
   }
 
-  /**
-   * Get the currently selected variation as an Observable
-   */
   getSelectedVariation(): Observable<Variation | null> {
     return this.selectedVariationSubject.asObservable();
   }
 
-  /**
-   * Prepare a product for adding to cart with the selected variation
-   */
   prepareProductForCart(product: Product, selectedVariation: Variation | null, quantity: number = 1): any {
     if (!product) {
       return null;
@@ -198,15 +170,13 @@ export class VariationService {
         quantity: quantity,
         price: product.price,
         image: product.images?.[0]?.src,
-        // Send the entire product object for reference if needed
         product: product
       };
     }
 
-    // For variable products, create an object with essential information for the cart
     return {
-      id: selectedVariation.id,  // Use the variation ID, not the product ID
-      product_id: product.id,    // Include the parent product ID
+      id: selectedVariation.id,
+      product_id: product.id,
       name: product.name,
       quantity: quantity,
       price: selectedVariation.price,
@@ -215,9 +185,7 @@ export class VariationService {
         obj[attr.name] = attr.option;
         return obj;
       }, {}),
-      // Include the entire variation object for reference if needed
       variation: selectedVariation,
-      // Include the parent product for reference
       product: product
     };
   }
