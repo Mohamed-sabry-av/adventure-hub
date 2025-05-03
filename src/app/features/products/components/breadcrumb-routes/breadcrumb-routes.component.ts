@@ -1,54 +1,50 @@
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CategoriesService } from '../../../../core/services/categories.service';
-import { ProductService } from '../../../../core/services/product.service';
-import { CacheService } from '../../../../core/services/cashing.service';
 import { Category } from '../../../../interfaces/category.model';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-breadcrumb-routes',
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <ul
-      class="space-y-1 border-b border-gray-200  text-sm font-medium text-gray-900"
-    >
-      @defer () {
-      <li *ngFor="let subCat of subcategories">
-        @if (subCat.productCount > 0) {
-        <a
-          [routerLink]="getSubCategoryRoute(subCat.category)"
-          (click)="onSubcategoryClick(subCat.category)"
-          class="block"   
-        >
-        <span  [innerHTML]="subCat.category.name"> ({{ subCat.category.name }})</span>
-        <span> ({{ subCat.productCount }})</span>
-        </a>
-
+    <nav aria-label="Subcategory navigation" class="border-b border-gray-200">
+      <ol class="space-y-1 text-sm font-medium text-gray-900">
+        @defer (when isDataFullyLoaded) {
+          @for (subCat of subcategories; track subCat.category.id) {
+            <li>
+              <a
+                [routerLink]="getSubCategoryRoute(subCat.category)"
+                (click)="onSubcategoryClick(subCat.category)"
+                class="flex items-center hover:text-blue-600"
+                aria-current="page"
+              >
+                {{ subCat.category.name }} ({{ subCat.productCount }})
+              </a>
+            </li>
+          } @empty {
+          }
+        } @placeholder {
+          <li *ngFor="let item of skeletonArray; let i = index" class="animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          </li>
         }
-      </li>
-      } @placeholder {
-      <li *ngFor="let item of [].constructor(3)" class="skeleton">
-        <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-      </li>
-      }
-    </ul>
+      </ol>
+    </nav>
   `,
   styleUrls: ['./breadcrumb-routes.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BreadcrumbRoutesComponent implements OnInit {
   @Input() categoryId: number | null = null;
   subcategories: { category: Category; productCount: number }[] = [];
   isDataFullyLoaded = false;
-  private totalSubcategories = 0;
-  private loadedCounts = 0;
+  skeletonArray = Array(3).fill(0);
 
   constructor(
     private categoryService: CategoriesService,
-    private productService: ProductService,
-    private cacheService: CacheService,
+    private cdr: ChangeDetectorRef,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -58,93 +54,44 @@ export class BreadcrumbRoutesComponent implements OnInit {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
-    if (
-      changes['categoryId'] &&
-      !changes['categoryId'].firstChange &&
-      this.categoryId !== null
-    ) {
+    if (changes['categoryId'] && !changes['categoryId'].firstChange && this.categoryId !== null) {
       this.subcategories = [];
       this.isDataFullyLoaded = false;
-      this.loadedCounts = 0;
+      this.cdr.markForCheck();
       await this.loadSubCategories();
     }
   }
 
   private async loadSubCategories(): Promise<void> {
+    console.log('loadSubCategories called with categoryId:', this.categoryId);
+
     if (this.categoryId === null || this.categoryId === undefined) {
+      console.log('categoryId is null or undefined, skipping load');
       this.isDataFullyLoaded = true;
+      this.cdr.markForCheck();
       return;
     }
 
     try {
-      const allCategories =
-        (await this.categoryService.getAllCategories().toPromise()) || [];
-      const subCats = allCategories.filter(
-        (cat) => cat.parent === this.categoryId
-      );
+      const allCategories = (await this.categoryService.getAllCategories().toPromise()) || [];
+      console.log('All categories fetched:', allCategories.length);
+
+      const subCats = allCategories.filter((cat) => cat.parent === this.categoryId);
+      console.log('Filtered subcategories:', subCats);
+
       this.subcategories = subCats.map((cat) => ({
         category: cat,
-        productCount: 0,
+        productCount: cat.count ?? 0,
       }));
-      this.totalSubcategories = subCats.length;
+      console.log('Mapped subcategories:', this.subcategories);
 
-      if (subCats.length === 0) {
-        this.isDataFullyLoaded = true;
-        return;
-      }
-
-      await Promise.all(
-        subCats.map(async (subcat) => {
-          const cacheKey = `total_products_category_${subcat.id}`;
-          const cachedCount = this.cacheService.get(cacheKey);
-
-          if (cachedCount !== undefined) {
-            let count: number;
-            if (this.isObservable(cachedCount)) {
-              count =
-                (await (cachedCount as Observable<number>).toPromise()) ?? 0;
-            } else {
-              count = cachedCount as number;
-            }
-            this.updateSubcategoryCount(subcat.id, count);
-            this.loadedCounts++;
-          } else {
-            try {
-              const count =
-                (await this.productService
-                  .getTotalProductsByCategoryId(subcat.id)
-                  .toPromise()) ?? 0;
-              this.updateSubcategoryCount(subcat.id, count);
-              this.cacheService.set(cacheKey, count);
-              this.loadedCounts++;
-            } catch (error) {
-              this.updateSubcategoryCount(subcat.id, 0);
-              this.loadedCounts++;
-            }
-          }
-        })
-      );
-
-      this.checkLoadingComplete();
+      this.isDataFullyLoaded = true;
     } catch (error) {
+      console.error('Error loading subcategories:', error);
       this.subcategories = [];
       this.isDataFullyLoaded = true;
     }
-  }
-
-  private updateSubcategoryCount(categoryId: number, count: number): void {
-    const index = this.subcategories.findIndex(
-      (sub) => sub.category.id === categoryId
-    );
-    if (index !== -1) {
-      this.subcategories[index].productCount = count;
-    }
-  }
-
-  private checkLoadingComplete(): void {
-    if (this.loadedCounts === this.totalSubcategories) {
-      this.isDataFullyLoaded = true;
-    }
+    this.cdr.markForCheck();
   }
 
   getSubCategoryRoute(category: Category): string[] {
@@ -164,10 +111,8 @@ export class BreadcrumbRoutesComponent implements OnInit {
     const newPath = this.getSubCategoryRoute(category);
     try {
       await this.router.navigate(newPath);
-    } catch (error) {}
-  }
-
-  private isObservable(obj: any): obj is Observable<any> {
-    return obj && typeof obj.subscribe === 'function';
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   }
 }

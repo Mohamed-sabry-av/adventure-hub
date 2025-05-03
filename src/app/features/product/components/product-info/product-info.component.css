@@ -157,7 +157,7 @@
 }
 
 .quantity-selector .quantity-btn {
-  background-color: #f4663c;
+  background-color: #717261; /* لون أزرار الكمية */
   color: white;
   border: none;
   width: 36px;
@@ -168,6 +168,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s ease;
 }
 
 .quantity-selector .quantity-display {
@@ -183,8 +184,12 @@
 }
 
 .quantity-btn:disabled {
-  color: #d1d5db;
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background-color: #5d5e50;
 }
 
 /* Action Buttons */
@@ -201,7 +206,7 @@
   align-items: center;
   justify-content: center;
   height: 44px;
-  background-color: #f4663c;
+  background-color: #f4663c; /* تغيير لون زر إضافة إلى السلة لأزرق متوسط */
   color: white;
   border: none;
   border-radius: 4px;
@@ -211,10 +216,18 @@
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .cart-btn:hover {
-  background-color: #e35632;
+  background-color: #3c5a87;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.cart-btn:disabled {
+  background-color: #8098be;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .buy-now-container {
@@ -224,7 +237,7 @@
 .buy-btn {
   width: 100%;
   height: 44px;
-  background-color: #525d45;
+  background-color: #2E2E2E; /* تغيير لون زر الشراء الآن ليناسب لون الهيدر */
   color: white;
   border: none;
   border-radius: 4px;
@@ -234,10 +247,18 @@
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .buy-btn:hover {
-  background-color: #414b35;
+  background-color: #404040;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.buy-btn:disabled {
+  background-color: #6e6e6e;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Wishlist button */
@@ -248,47 +269,35 @@
   width: 44px;
   height: 44px;
   min-width: 44px;
-  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
   border-radius: 4px;
-  background-color: white;
-  color: #525d45;
+  color: #9ca3af;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.wishlist-btn:hover {
-  background-color: rgba(82, 93, 69, 0.1);
+.wishlist-btn:hover, .wishlist-btn.active {
+  color: #ef4444;
+  border-color: #ef4444;
 }
 
-.wishlist-btn.active i {
-  color: #f4663c;
+.wishlist-btn.active {
+  background-color: #fff1f1;
 }
 
-.wishlist-btn i {
-  font-size: 18px;
-}
-
-/* Stock Status */
-.stock-status {
-  margin: 10px 0;
-  padding: 8px 12px;
-  background-color: #fee2e2;
-  border-radius: 4px;
-  text-align: center;
-}
-
-/* Spinner Styles */
+/* Loading Spinner */
 .spinner-container {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   width: 100%;
   height: 100%;
 }
 
 .spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: #fff;
@@ -296,33 +305,7 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Disabled button styles */
-.cart-btn:disabled,
-.buy-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-/* Mobile Adjustments */
-@media (max-width: 767px) {
-  .cart-action-row {
-    gap: 8px;
-  }
-
-  .quantity-selector {
-    min-width: 100px;
-  }
-
-  .quantity-selector .quantity-btn {
-    width: 32px;
-    font-size: 16px;
-  }
-
-  .quantity-selector .quantity-display {
-    min-width: 36px;
+  to {
+    transform: rotate(360deg);
   }
 }

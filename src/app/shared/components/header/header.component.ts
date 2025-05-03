@@ -143,7 +143,6 @@ export class HeaderComponent implements OnInit {
     if (this.headerElement) {
       this.headerHeight.set(this.headerElement.nativeElement.offsetHeight);
       this.navbarService.setHeaderHeight(this.headerHeight());
-      console.log('Header Height:', this.headerHeight());
     }
   }
 

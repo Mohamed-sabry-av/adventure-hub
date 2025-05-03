@@ -7,4 +7,5 @@ export interface Category {
   children?: Category[]; 
   count?: number;
   expanded?: boolean;
+  totalProducts?: number;
 }

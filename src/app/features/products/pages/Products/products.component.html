@@ -109,10 +109,11 @@
           <!-- Products grid -->
           <div class="lg:col-span-3">
             <app-products-grid
-              [products]="products"
-              [isLoading]="isLoading"
-              [isLoadingMore]="isLoadingMore"
-            ></app-products-grid>
+            [products]="products"
+            [isLoading]="isLoading"
+            [isLoadingMore]="isLoadingMore"
+            [isInitialLoadComplete]="isInitialLoadComplete"
+          ></app-products-grid>
           </div>
         </div>
       </section>

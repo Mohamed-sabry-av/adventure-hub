@@ -45,7 +45,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   isLoading = false;
   isLoadingMore = false;
   isFetching = false;
-  isCategorySwitching = false; // New flag for category switching
+  isCategorySwitching = false;
   currentCategoryId: number | null = null;
   currentPage = 1;
   currentCategory: any = null;
@@ -55,11 +55,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
   schemaData: any;
+  isInitialLoadComplete: boolean = false;
   private scrollSubject = new Subject<void>();
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
-  @ViewChild(ProductsGridComponent) productsGrid!: ProductsGridComponent; // Reference to ProductsGridComponent
+  @ViewChild(ProductsGridComponent) productsGrid!: ProductsGridComponent;
 
   constructor(
     private productService: ProductService,
@@ -88,6 +89,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.isLoading = true;
+    this.isInitialLoadComplete = false;
     this.cdr.markForCheck();
 
     try {
@@ -122,6 +124,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       });
     } finally {
       this.isLoading = false;
+      this.isInitialLoadComplete = true;
       this.cdr.markForCheck();
     }
   }
@@ -133,7 +136,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         .subscribe((filters: any) => {
           this.currentPage = 1;
           this.products = [];
-          this.productsGrid.hasFetched = false; // Reset hasFetched
+          this.isInitialLoadComplete = false;
           this.loadProducts(true, filters);
         });
     } else {
@@ -157,7 +160,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     console.log('Filters changed in ProductsComponent:', filters);
     this.currentPage = 1;
     this.products = [];
-    this.productsGrid.hasFetched = false; // Reset hasFetched
+    this.isInitialLoadComplete = false;
     this.loadProducts(true, filters);
   }
 
@@ -165,12 +168,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
     if (this.isFetching) return;
 
     this.isFetching = true;
-    this.isLoading = isInitialLoad || this.isCategorySwitching; // Keep isLoading true during category switch
+    this.isLoading = isInitialLoad || this.isCategorySwitching;
     this.isLoadingMore = !isInitialLoad && !this.isCategorySwitching;
+    this.isInitialLoadComplete = false;
     this.cdr.markForCheck();
 
-    const effectiveFilters =
-      filters ?? this.filterSidebar?.selectedFilters ?? {};
+    const effectiveFilters = filters ?? this.filterSidebar?.selectedFilters ?? {};
     this.filterService
       .getFilteredProductsByCategory(
         this.currentCategoryId,
@@ -189,7 +192,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
           this.isFetching = false;
           this.isLoading = false;
           this.isLoadingMore = false;
-          this.isCategorySwitching = false; // Reset category switching flag
+          this.isCategorySwitching = false;
+          this.isInitialLoadComplete = true;
           this.cdr.markForCheck();
         })
       )
@@ -209,12 +213,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   private async loadTotalProducts() {
     try {
-      const total = this.currentCategoryId
-        ? await this.productService
-            .getTotalProductsByCategoryId(this.currentCategoryId)
-            .toPromise()
-        : await this.productService.getTotalProducts().toPromise();
-      this.totalProducts = total ?? 0;
+      if (this.currentCategoryId && this.currentCategory) {
+        this.totalProducts = this.currentCategory.count ?? 0;
+      } else {
+        const total = await this.productService.getTotalProducts().toPromise();
+        this.totalProducts = total ?? 0;
+      }
       this.cdr.markForCheck();
     } catch (error) {
       console.error('Error loading total products:', error);
@@ -234,11 +238,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   async onCategoryIdChange(categoryId: number | null) {
+    this.isLoading = true;
+    this.isInitialLoadComplete = false;
     this.currentCategoryId = categoryId;
     this.currentPage = 1;
     this.products = [];
-    this.isCategorySwitching = true; // Set category switching flag
-    this.productsGrid.hasFetched = false; // Reset hasFetched
+    this.isCategorySwitching = true;
     this.cdr.markForCheck();
 
     try {
@@ -288,8 +293,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
         break;
       default:
         this.selectedOrderby = 'date';
-        this.selectedOrder = 'desc';
+        this.selectedOrder ='desc';
     }
+    this.isInitialLoadComplete = false;
     await this.loadProducts(true);
   }
 

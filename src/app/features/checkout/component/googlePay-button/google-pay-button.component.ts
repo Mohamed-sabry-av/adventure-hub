@@ -7,7 +7,7 @@ import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-wallet-payment',
   template: `
-    <div #googlePayButtonElement class="mb-4 md:w-[262px] mx-auto"></div>
+    <div #googlePayButtonElement class="mb-4 md:w-[465px] mx-auto"></div>
   `,
   styles: []
 })

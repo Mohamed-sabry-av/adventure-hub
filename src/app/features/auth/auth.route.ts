@@ -6,6 +6,7 @@ export const authroutes: Routes = [
     path: 'myaccount',
     loadComponent: () =>
       import('./auth.component').then((m) => m.AuthComponent),
+    data: { authRequired: false } 
   },
   {
     path: 'Useraccount',
@@ -13,6 +14,8 @@ export const authroutes: Routes = [
       import('./account-details/account-details.component').then(
         (m) => m.AccountDetailsComponent
       ),
+    canActivate: [AuthGuard], 
+    data: { authRequired: true },
     children: [
       {
         path: '',
@@ -23,6 +26,13 @@ export const authroutes: Routes = [
       },
       {
         path: 'orders',
+        loadComponent: () =>
+          import('./account-details/components/orders/orders.component').then(
+            (m) => m.OrdersComponent
+          ),
+      },
+      {
+        path: 'orders/:id',
         loadComponent: () =>
           import('./account-details/components/orders/orders.component').then(
             (m) => m.OrdersComponent
@@ -62,5 +72,9 @@ export const authroutes: Routes = [
     path: '',
     redirectTo: 'myaccount',
     pathMatch: 'full',
+  },
+  {
+    path: '**', // معالجة المسارات غير الموجودة
+    redirectTo: 'myaccount',
   },
 ];

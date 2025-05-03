@@ -133,43 +133,6 @@ export class ProductService {
     );
   }
 
-  // GET TOTAL PRODUCTS BY CATEGORY ID FOR PAGINATION
-  getTotalProductsByCategoryId(categoryId: number): Observable<number> {
-    const cacheKey = `total_products_category_${categoryId}`;
-    return this.cachingService.cacheObservable(
-      cacheKey,
-      this.WooAPI.getRequestProducts<any>('products', {
-        params: new HttpParams()
-          .set('category', categoryId.toString())
-          .set('_fields', 'id')
-          .set('per_page', '1')
-          .set('page', '1')
-          .set('stock_status', 'instock')
-          .set('status', 'publish'),
-        observe: 'response',
-      }).pipe(
-        map((response: HttpResponse<any>) => {
-          const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
-          if (isNaN(total)) {
-            console.warn(
-              'X-WP-Total header not found or invalid for category, defaulting to 0'
-            );
-            return 0;
-          }
-
-          return total;
-        }),
-        catchError((error) => {
-          console.error(
-            `Error fetching total products for category ${categoryId}:`,
-            error
-          );
-          return of(0); // إرجاع 0 كقيمة افتراضية
-        })
-      ),
-      300000 // TTL 5 دقائق
-    );
-  }
 
   // GET A SINGLE PRODUCT BY ID
   getProductById(id: number): Observable<Product> {

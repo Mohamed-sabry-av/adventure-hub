@@ -49,42 +49,36 @@ import {
       ]),
     ]),
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsGridComponent implements OnChanges {
   @Input() products: any[] = [];
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
-  hasFetched: boolean = false;
+  @Input() isInitialLoadComplete: boolean = false;
   showEmptyState: boolean = false;
   skeletonCount = 8;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['products'] || changes['isLoading'] || changes['isLoadingMore']) {
-      // Reset hasFetched if products array is reset to empty
-      if (changes['products'] && this.products.length === 0 && !this.isLoading && !this.isLoadingMore) {
-        this.hasFetched = false;
-      }
-
-      // Only show empty state after fetch is complete and no products are found
-      if (!this.isLoading && !this.isLoadingMore) {
-        setTimeout(() => {
-          this.hasFetched = true;
-          this.showEmptyState = this.products.length === 0;
-          this.cdr.markForCheck();
-        }, 100); // Small delay to ensure products are loaded
+    if (
+      changes['products'] ||
+      changes['isLoading'] ||
+      changes['isLoadingMore'] ||
+      changes['isInitialLoadComplete']
+    ) {
+      if (!this.isLoading && !this.isLoadingMore && this.isInitialLoadComplete) {
+        this.showEmptyState = this.products.length === 0;
       } else {
-        this.showEmptyState = false;
+        this.showEmptyState = false; // منع الظهور أثناء التحميل
       }
       this.cdr.markForCheck();
     }
   }
 
   get skeletonArray() {
-    return Array(this.skeletonCount)
-      .fill(0)
-      .map((_, i) => i);
+    return Array(this.skeletonCount).fill(0).map((_, i) => i);
   }
 
   trackByProductId(index: number, product: any): number {
@@ -101,6 +95,6 @@ export class ProductsGridComponent implements OnChanges {
     this.isLoadingMore = false;
     this.skeletonCount = 0;
     this.showEmptyState = false;
-    this.hasFetched = false;
+    this.isInitialLoadComplete = false;
   }
 }

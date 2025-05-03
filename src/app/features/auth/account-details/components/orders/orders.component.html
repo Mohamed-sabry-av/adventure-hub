@@ -1,54 +1,62 @@
 <div class="orders-content">
-    <h2 class="text-2xl font-semibold mb-4">Orders</h2>
-  
-    <div *ngIf="isLoading" class="loading">
-      <p>Loading your orders...</p>
-    </div>
-  
-    <div *ngIf="error" class="error-message">
-      <p>{{ error }}</p>
-    </div>
-  
-    <div *ngIf="!isLoading && !error">
-      <div *ngIf="orders && orders.length > 0" class="orders-list">
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="py-3 px-4 text-left">Order</th>
-                <th class="py-3 px-4 text-left">Date</th>
-                <th class="py-3 px-4 text-left">Status</th>
-                <th class="py-3 px-4 text-left">Total</th>
-                <th class="py-3 px-4 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let order of orders" class="border-b">
-                <td class="py-3 px-4">#{{ order.id }}</td>
-                <td class="py-3 px-4">{{ formatDate(order.date_created) }}</td>
-                <td class="py-3 px-4">
-                  <span class="status-badge" [ngClass]="getOrderStatusClass(order.status)">
-                    {{ getOrderStatusLabel(order.status) }}
-                  </span>
-                </td>
-                <td class="py-3 px-4">{{ order.total | currency }}</td>
-                <td class="py-3 px-4">
-                  <a  class="view-order-btn px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
-                    View
-                  </a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-  
-      <div *ngIf="orders && orders.length === 0" class="no-orders">
-        <p>You haven't placed any orders yet.</p>
-        <a  class="shop-button inline-block mt-4 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
-          Browse Products
-        </a>
-      </div>
+  <h2 class="text-2xl font-semibold mb-4">Orders</h2>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading p-4 text-center">
+    <p>Loading your orders...</p>
+    <div class="mt-2 flex justify-center">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-800"></div>
     </div>
   </div>
-  
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message p-4 bg-red-50 text-red-600 rounded mb-6">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Empty Orders -->
+  <div *ngIf="!isLoading && !error && !hasOrders" class="no-orders text-center py-8">
+    <div class="mb-4">
+      <i class="pi pi-shopping-bag text-4xl text-gray-300"></i>
+    </div>
+    <p class="text-gray-600 mb-4">You haven't placed any orders yet.</p>
+    <a href="/shop" class="shop-button inline-block mt-4 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+      Browse Products
+    </a>
+  </div>
+
+  <!-- Orders Table -->
+  <div *ngIf="!isLoading && !error && hasOrders" class="orders-list">
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="py-3 px-4 text-left">Order</th>
+            <th class="py-3 px-4 text-left">Date</th>
+            <th class="py-3 px-4 text-left">Status</th>
+            <th class="py-3 px-4 text-left">Total</th>
+            <th class="py-3 px-4 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of orders" class="border-b hover:bg-gray-50">
+            <td class="py-3 px-4">#{{ order.id || order.order_id }}</td>
+            <td class="py-3 px-4">{{ order.formattedDate }}</td>
+            <td class="py-3 px-4">
+              <span class="status-badge px-2 py-1 rounded text-xs" [ngClass]="order.statusClass">
+                {{ order.statusLabel }}
+              </span>
+            </td>
+            <td class="py-3 px-4">{{ order.total }}</td>
+            <td class="py-3 px-4">
+              <a [routerLink]="['/my-account/orders', order.id || order.order_id]"
+                 class="view-order-btn px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors inline-flex items-center">
+                <i class="pi pi-eye mr-1"></i> View
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
