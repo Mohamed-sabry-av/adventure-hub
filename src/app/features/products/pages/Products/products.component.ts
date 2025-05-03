@@ -70,7 +70,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private filterService: FilterService,
     private seoService: SeoService
   ) {
-    this.scrollSubject.pipe(debounceTime(200)).subscribe(() => {
+    this.scrollSubject.pipe(debounceTime(50)).subscribe(() => {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -131,14 +131,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   ngAfterViewInit() {
     if (this.filterSidebar) {
-      this.filterSidebar.filtersChanges
-        .pipe(distinctUntilChanged((prev, curr) => isEqual(prev, curr)))
-        .subscribe((filters: any) => {
-          this.currentPage = 1;
-          this.products = [];
-          this.isInitialLoadComplete = false;
-          this.loadProducts(true, filters);
-        });
+      this.filterSidebar.filtersChanges.subscribe((filters: any) => {
+        this.currentPage = 1;
+        this.products = [];
+        this.isInitialLoadComplete = false;
+        this.loadProducts(true, filters);
+      });
     } else {
       console.warn('FilterSidebarComponent not initialized');
     }
@@ -157,7 +155,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
     if (isEqual(filters, this.filterSidebar?.selectedFilters)) {
       return;
     }
-    console.log('Filters changed in ProductsComponent:', filters);
     this.currentPage = 1;
     this.products = [];
     this.isInitialLoadComplete = false;
@@ -246,6 +243,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.isCategorySwitching = true;
     this.cdr.markForCheck();
 
+    if (this.filterSidebar) {
+      this.filterSidebar.selectedFilters = {};
+      this.filterSidebar.filtersChanges.emit({}); // إصدار التغييرات لتحديث الـ UI
+      localStorage.removeItem(`filters_${this.currentCategoryId}`); // إزالة الفلاتر القديمة من localStorage
+    }
+  
     try {
       if (categoryId) {
         this.currentCategory = await this.categoriesService
@@ -261,7 +264,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           title: 'All Products',
         });
       }
-
+  
       await this.loadProducts(true);
       await this.loadTotalProducts();
     } catch (error) {
@@ -269,6 +272,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
   }
 
+  
   async onSortChange(sortValue: string) {
     switch (sortValue) {
       case 'popular':

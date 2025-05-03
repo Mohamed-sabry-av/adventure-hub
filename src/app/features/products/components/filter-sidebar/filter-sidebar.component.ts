@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime, finalize } from 'rxjs/operators';
+import { debounceTime, finalize, switchMap } from 'rxjs/operators';
 import {
   trigger,
   state,
@@ -69,20 +69,23 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
   private readonly DEFAULT_VISIBLE_TERMS = 5;
   private filtersSubject = new BehaviorSubject<{ [key: string]: string[] }>({});
 
+
   constructor(
     private filterService: FilterService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['categoryId']) {
-      // Reset filters unconditionally when category changes
+ ngOnChanges(changes: SimpleChanges): void {
+    if (changes['categoryId'] && changes['categoryId'].currentValue !== changes['categoryId'].previousValue) {
+      // Reset filters only if categoryId actually changed
       this.selectedFilters = {};
       localStorage.removeItem(`filters_${changes['categoryId'].previousValue}`);
+      // Load saved filters for the new categoryId, if any
+      const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
+      this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
       this.filtersSubject.next({ ...this.selectedFilters });
       this.loadAttributes();
     } else if (changes['selectedFilters']) {
-      // Handle selectedFilters changes only if categoryId didn't change
       this.filtersSubject.next({ ...this.selectedFilters });
       this.updateAvailableAttributes();
     }
@@ -96,14 +99,54 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
       const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
       this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
     }
-
+  
     this.filtersSubject.next({ ...this.selectedFilters });
-
-    this.filtersSubject.pipe(debounceTime(300)).subscribe((filters) => {
-      this.filtersChanges.emit({ ...filters });
-      this.updateAvailableAttributes();
-    });
-
+  
+    this.filtersSubject
+      .pipe(
+        debounceTime(100),
+        switchMap((filters) =>
+          this.filterService
+            .getAvailableAttributesAndTerms(this.categoryId!, filters)
+            .pipe(
+              finalize(() => {
+                this.updateUI();
+              })
+            )
+        )
+      )
+      .subscribe({
+        next: (data) => {
+          const availableAttributes = Object.entries(data).map(
+            ([slug, attr]:any) => ({
+              slug,
+              name: attr.name,
+              terms: attr.terms,
+            })
+          );
+  
+          this.attributes = this.originalAttributes.map((originalAttr) => {
+            const selectedTerms = this.selectedFilters[originalAttr.slug];
+            const availableAttr = availableAttributes.find(
+              (attr) => attr.slug === originalAttr.slug
+            );
+  
+            if (selectedTerms && selectedTerms.length > 0) {
+              return { ...originalAttr };
+            }
+            return availableAttr || { ...originalAttr, terms: [] };
+          });
+  
+          this.adjustSectionsAfterUpdate();
+          this.filtersChanges.emit({ ...this.selectedFilters });
+          this.updateUI();
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to update filters.';
+          this.updateUI();
+        },
+      });
+  
     this.loadAttributes();
   }
 
