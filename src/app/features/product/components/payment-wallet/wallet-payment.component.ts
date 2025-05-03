@@ -21,7 +21,7 @@ export class WalletPaymentComponent implements AfterViewInit {
   public googlePaySupported = false;
   public applePaySupported = false;
 
-  @Input() product: any; // Optional: Single product for direct purchase
+  @Input() product: any;
   @ViewChild('googlePayButtonElement') googlePayButtonRef!: ElementRef;
   @Output() paymentSucceeded = new EventEmitter<string>();
 
@@ -51,10 +51,9 @@ export class WalletPaymentComponent implements AfterViewInit {
     try {
       let total: number;
       let currency: string;
-      let label: string;
+      let lineItems: any[] = [];
 
       if (this.product) {
-        // Direct purchase: Use product price
         if (!this.product.id || !this.product.price || !this.product.quantity) {
           throw new Error('Invalid product data: id, price, or quantity missing');
         }
@@ -62,17 +61,28 @@ export class WalletPaymentComponent implements AfterViewInit {
           throw new Error('Product is out of stock');
         }
         total = this.normalizePrice(this.product.price) * this.product.quantity;
-        currency = 'aed'; // Adjust based on your store's currency
-        label = this.product.name || 'Product';
+        currency = 'aed';
+        const lineItem: any = {
+          product_id: this.product.id,
+          quantity: this.product.quantity
+        };
+        if (this.product.variation_id) {
+          const variationId = parseInt(this.product.variation_id, 10);
+          if (isNaN(variationId)) {
+            throw new Error(`Invalid variation_id: ${this.product.variation_id}`);
+          }
+          lineItem.variation_id = variationId;
+        }
+        lineItems = [lineItem];
+        console.log('WalletPayment: Prepared lineItems', lineItems);
       } else {
-        // Cart-based purchase
         const cartTotal = await this.checkoutService.getCartTotalPrice().pipe(take(1)).toPromise();
         if (!cartTotal) {
           throw new Error('Cart total is not available');
         }
         total = cartTotal.total;
         currency = cartTotal.currency.toLowerCase();
-        label = 'Order total';
+        lineItems = await this.checkoutService.getCartItems().pipe(take(1)).toPromise();
       }
 
       if (total <= 0) {
@@ -85,7 +95,7 @@ export class WalletPaymentComponent implements AfterViewInit {
         country: 'AE',
         currency: currency,
         total: {
-          label: label,
+          label: this.product ? this.product.name : 'Order total',
           amount: amountInFils,
         },
         requestPayerName: true,
@@ -129,7 +139,7 @@ export class WalletPaymentComponent implements AfterViewInit {
             const billingDetails = event.paymentMethod.billing_details || {};
             const shippingAddress = event.shippingAddress || {};
 
-            const orderData = this.prepareOrderData(billingDetails, shippingAddress);
+            const orderData = this.prepareOrderData(billingDetails, shippingAddress, lineItems);
 
             const paymentIntentResponse = await this.checkoutService
               .createPaymentIntent(total, currency, orderData)
@@ -150,7 +160,6 @@ export class WalletPaymentComponent implements AfterViewInit {
             if (error) {
               console.error('Payment failed:', error.message);
               event.complete('fail');
-              // this.checkoutService.setPaymentError(error.message || 'Payment failed');
               return;
             }
 
@@ -160,12 +169,10 @@ export class WalletPaymentComponent implements AfterViewInit {
               this.paymentSucceeded.emit(paymentIntentId);
             } else {
               event.complete('fail');
-              // this.checkoutService.setPaymentError('Payment did not succeed');
             }
           } catch (error: any) {
             console.error('Error processing payment:', error);
             event.complete('fail');
-            // this.checkoutService.setPaymentError(error.message || 'Payment failed');
           }
         });
 
@@ -187,13 +194,12 @@ export class WalletPaymentComponent implements AfterViewInit {
       }
     } catch (error) {
       console.error('Error initializing wallet payments:', error);
-      // this.checkoutService.setPaymentError(error.message || 'Failed to initialize wallet payment');
     }
   }
 
-  private prepareOrderData(billingDetails: any, shippingAddress: any) {
+  private prepareOrderData(billingDetails: any, shippingAddress: any, lineItems: any[]) {
     const billing = {
-      first_name: billingDetails.name?.split(' ')[0] || '',
+      first_name: billingDetails.name?.split(' ')[0] || 'Customer',
       last_name: billingDetails.name?.split(' ')[1] || '',
       address_1: billingDetails.address?.line1 || '',
       city: billingDetails.address?.city || '',
@@ -205,7 +211,7 @@ export class WalletPaymentComponent implements AfterViewInit {
     };
 
     const shipping = {
-      first_name: shippingAddress.name?.split(' ')[0] || '',
+      first_name: shippingAddress.name?.split(' ')[0] || 'Customer',
       last_name: shippingAddress.name?.split(' ')[1] || '',
       address_1: shippingAddress.addressLine?.[0] || '',
       city: shippingAddress.city || '',
@@ -214,22 +220,6 @@ export class WalletPaymentComponent implements AfterViewInit {
       country: shippingAddress.country || 'AE',
     };
 
-    let line_items = [];
-    if (this.product) {
-      line_items = [{
-        product_id: this.product.id,
-        quantity: this.product.quantity,
-        variation_id: this.product.variation_id || null,
-      }];
-    } else {
-      line_items = this.checkoutService.getCartItemsSync() || [];
-    }
-
-    return {
-      billing,
-      shipping,
-      line_items,
-      is_single_product: !!this.product,
-    };
+    return { billing, shipping, line_items: lineItems };
   }
 }

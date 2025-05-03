@@ -20,7 +20,6 @@ import { savedUserCartSelector } from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
 import { fetchCouponsAction } from '../../../Store/actions/checkout.action';
-import { cartStatusSelector } from '../../../Store/selectors/ui.selector';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })

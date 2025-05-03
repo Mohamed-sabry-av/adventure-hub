@@ -186,7 +186,7 @@ export class WalletPaymentComponent implements AfterViewInit {
 
   private prepareOrderData(billingDetails: any, shippingAddress: any) {
     const billing = {
-      first_name: billingDetails.name?.split(' ')[0] || '',
+      first_name: billingDetails.name?.split(' ')[0] || 'Customer',
       last_name: billingDetails.name?.split(' ')[1] || '',
       address_1: billingDetails.address?.line1 || '',
       city: billingDetails.address?.city || '',
@@ -196,9 +196,9 @@ export class WalletPaymentComponent implements AfterViewInit {
       email: billingDetails.email || '',
       phone: billingDetails.phone || '',
     };
-
+  
     const shipping = {
-      first_name: shippingAddress.name?.split(' ')[0] || '',
+      first_name: shippingAddress.name?.split(' ')[0] || 'Customer',
       last_name: shippingAddress.name?.split(' ')[1] || '',
       address_1: shippingAddress.addressLine?.[0] || '',
       city: shippingAddress.city || '',
@@ -206,16 +206,25 @@ export class WalletPaymentComponent implements AfterViewInit {
       postcode: shippingAddress.postalCode || '',
       country: shippingAddress.country || 'AE',
     };
-
-    let line_items :any = [];
+  
+    let line_items: any[] = [];
     if (this.product) {
-      line_items = [{
-        product_id: this.product.id,
-        quantity: this.product.quantity,
-        variation_id: this.product.variation_id || null,
-      }];
+      const item: any = {
+        product_id: parseInt(this.product.id, 10),
+        quantity: parseInt(this.product.quantity, 10),
+      };
+      if (this.product.variation_id) {
+        const variationId = parseInt(this.product.variation_id, 10);
+        if (!isNaN(variationId)) {
+          item.variation_id = variationId;
+        }
+      }
+      line_items = [item];
+    } else {
+      // إذا مفيش منتج محدد، استخدم الكارت (مش هيحصل في حالتك)
+      line_items = [];
     }
-
+  
     return { billing, shipping, line_items };
   }
 }

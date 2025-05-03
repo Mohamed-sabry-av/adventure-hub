@@ -343,41 +343,35 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   getCartProduct() {
     const product = this.productInfo();
+    
     if (!product) return null;
-
-    const normalizePrice = (value: any): string => {
-      return value ? String(value).replace(/[^0-9.]/g, '') : '0';
-    };
-
-    if (product.type === 'simple') {
+  
+    if (product.type === 'variable') {
+      if (!this.allVariationAttributesSelected || !this.isProductInStock) {
+        return null;
+      }
+      const selectedVariation :any= this.getSelectedVariation();
       return {
-        id: product.id,
-        price: normalizePrice(product.price),
+        id: selectedVariation?.id || product.id,
+        price: this.getPriceInfo().price,
         quantity: this.quantity,
         name: product.name,
-        stock_status: product.stock_status,
+        variation_id: selectedVariation?.id ? parseInt(selectedVariation.id, 10) : 0, 
+        stock_status: selectedVariation?.stock_status || 'outofstock',
       };
     }
-
-    if (!this.allVariationAttributesSelected) {
-      // this.uiService.showMessage('Please select all variation options.', false);
+  
+    if (product.stock_status !== 'instock') {
       return null;
     }
-
-    const selectedVariation = this.getSelectedVariation();
-    if (!selectedVariation) {
-      // this.uiService.showMessage('No valid variation selected.', false);
-      return null;
-    }
-
-    const cartProduct = this.variationService.prepareProductForCart(product, selectedVariation, this.quantity);
+  
     return {
-      id: cartProduct.id,
-      price: normalizePrice(cartProduct.price || selectedVariation.price || product.price),
+      id: product.id,
+      price: this.getPriceInfo().price,
       quantity: this.quantity,
-      name: cartProduct.name || product.name,
-      variation_id: selectedVariation.id,
-      stock_status: selectedVariation.stock_status,
+      name: product.name,
+      variation_id: 0,
+      stock_status: product.stock_status,
     };
   }
 

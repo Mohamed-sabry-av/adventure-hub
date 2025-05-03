@@ -13,7 +13,6 @@ export const authroutes: Routes = [
       import('./account-details/account-details.component').then(
         (m) => m.AccountDetailsComponent
       ),
-    canActivate: [AuthGuard], 
     children: [
       {
         path: '',

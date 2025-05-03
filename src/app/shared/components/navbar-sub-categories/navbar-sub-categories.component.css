@@ -1,7 +1,7 @@
 /* Custom scrollbar styles */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #717261 #262626;
+  scrollbar-color: #717261 #f0f0f0;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -9,14 +9,14 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #262626;
+  background: #f0f0f0;
   border-radius: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #717261;
   border-radius: 2px;
-  border: 2px solid #262626;
+  border: 2px solid #f0f0f0;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -31,6 +31,10 @@
 
 .subLinks-child {
   animation: fadeIn 0.2s ease-out;
+  background-color: #f0f0f0; /* lighter background for dropdown */
+  color: #2E2E2E; /* text color compatible with dark header */
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
 }
 
 /* تحسينات لمراعاة وضع السكرول */
