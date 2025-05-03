@@ -77,7 +77,7 @@ export class HeaderComponent implements OnInit {
   currentPage: string = '';
   isProductPage: boolean = false;
 
-  // ------------------------------------- Ameen Signals
+  // Signals
   showNavbar = signal<boolean>(true);
   headerHeight = signal<number>(0);
   lastScrollY = signal<number>(0);
@@ -104,6 +104,9 @@ export class HeaderComponent implements OnInit {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.currentPage = event.url === '/checkout' ? 'checkout' : '';
+        this.isProductPage = event.url.startsWith('/product'); // Check if URL starts with /product
+        this.showNavbar.set(!this.isProductPage); // Show navbar by default unless on product page
+        this.cdr.detectChanges();
       });
 
     const subscription2 = fromEvent(window, 'scroll')
@@ -126,6 +129,14 @@ export class HeaderComponent implements OnInit {
   }
 
   handleScroll() {
+    if (this.isProductPage) {
+      // Skip sticky behavior on product page
+      this.showNavbar.set(true); // Keep navbar visible
+      this.navbarService.showNavbar(true);
+      this.onSetHeaderHeight();
+      return;
+    }
+
     const currentScrollY = window.scrollY;
 
     if (currentScrollY > this.lastScrollY() && currentScrollY > 50) {
@@ -153,12 +164,11 @@ export class HeaderComponent implements OnInit {
   onShowSearchbar() {
     this.showSearchbar.set(!this.showSearchbar());
     this.navbarService.toggleSearchBar(this.showSearchbar());
-    this.cdr.detectChanges(); // Force DOM update
+    this.cdr.detectChanges();
   }
 
   onAnimationDone(event: AnimationEvent) {
     if (event.fromState !== 'void' || event.toState !== 'void') {
-      this.onSetHeaderHeight(); // Calculate height after animation completes
+      this.onSetHeaderHeight();
     }
-  }
-}
+  }}

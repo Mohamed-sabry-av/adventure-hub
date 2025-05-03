@@ -84,3 +84,8 @@ header {
 .animate-slide-second {
   animation: slide-second 6s infinite;
 }
+
+.non-sticky {
+  position: static !important; /* Override any sticky or fixed positioning */
+  top: auto !important;
+}

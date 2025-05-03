@@ -160,7 +160,7 @@
   background-color: #717261; /* لون أزرار الكمية */
   color: white;
   border: none;
-  width: 36px;
+  width: 100%;
   height: 44px;
   font-size: 18px;
   font-weight: 600;

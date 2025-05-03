@@ -2,7 +2,8 @@
 <header
   class="w-full"
   [class]="{
-    'is-scroll': lastScrollY() !== 0
+    'is-scroll': lastScrollY() !== 0 && !isProductPage,
+    'non-sticky': isProductPage
   }"
   #headerEl
 >

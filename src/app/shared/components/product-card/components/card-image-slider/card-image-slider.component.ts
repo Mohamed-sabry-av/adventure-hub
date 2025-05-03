@@ -42,12 +42,20 @@ export class CardImageSliderComponent implements OnInit {
 
   ngOnInit() {
     this.checkIfMobile();
+    if (this.isMobile) {
+      this.isHovered = false; // تعطيل الهوفر على الموبايل
+    }
   }
+  
+
 
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     if (isPlatformBrowser(this.platformId)) {
       this.checkIfMobile();
+    }
+    if (this.isMobile) {
+      this.isHovered = false; // منع الهوفر عند اللمس
     }
   }
 

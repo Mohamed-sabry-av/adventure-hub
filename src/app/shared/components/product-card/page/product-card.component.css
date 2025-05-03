@@ -21,19 +21,6 @@
   margin-top: auto;
 }
 
-/* Yalla tag styling (similar to mumzworld) */
-.yalla-tag {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  background-color: #ffd700;
-  color: #333;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 4px;
-  z-index: 10;
-}
 
 /* Responsive styles */
 @media (max-width: 767px) {
