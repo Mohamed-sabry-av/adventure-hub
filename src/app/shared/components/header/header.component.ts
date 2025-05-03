@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -38,7 +38,6 @@ import {
     NavbarContainerComponent,
     RouterLink,
     SearchBarComponent,
-    AsyncPipe,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
@@ -143,7 +142,6 @@ export class HeaderComponent implements OnInit {
     if (this.headerElement) {
       this.headerHeight.set(this.headerElement.nativeElement.offsetHeight);
       this.navbarService.setHeaderHeight(this.headerHeight());
-      console.log('Header Height:', this.headerHeight());
     }
   }
 
@@ -154,12 +152,12 @@ export class HeaderComponent implements OnInit {
   onShowSearchbar() {
     this.showSearchbar.set(!this.showSearchbar());
     this.navbarService.toggleSearchBar(this.showSearchbar());
-    this.cdr.detectChanges(); // Force DOM update
+    this.cdr.detectChanges();
   }
 
   onAnimationDone(event: AnimationEvent) {
     if (event.fromState !== 'void' || event.toState !== 'void') {
-      this.onSetHeaderHeight(); // Calculate height after animation completes
+      this.onSetHeaderHeight();
     }
   }
 }

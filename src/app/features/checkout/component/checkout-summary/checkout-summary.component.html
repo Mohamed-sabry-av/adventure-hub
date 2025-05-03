@@ -162,10 +162,7 @@
       <p
         class="uppercase"
         [innerHTML]="
-          ((loadedCart$ | async)?.userCart.totals?.total_price > 100
-            ? (loadedCart$ | async)?.userCart.totals?.total_price
-            : (loadedCart$ | async)?.userCart.totals?.total_price + 20
-          ) | currencySvg
+          (loadedCart$ | async)?.userCart.totals?.total_price | currencySvg
         "
       ></p>
       }
