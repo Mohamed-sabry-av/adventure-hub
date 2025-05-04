@@ -4,9 +4,10 @@
     <ng-container>
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
-    
-  }<div class="bg-white">
-    <!-- الـ backdrop بيظهر لما الـ drawer مفتوح -->
+
+  }
+  <div class="bg-white">
+    <!-- Backdrop for mobile filter drawer -->
     <div
       *ngIf="filterDrawerOpen"
       class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 transition-opacity ease-linear duration-300"
@@ -14,28 +15,28 @@
       (click)="closeFilterDrawer()"
       aria-hidden="true"
     ></div>
-  
-    <!-- الـ Filter Drawer بيظهر فقط لما filterDrawerOpen يكون true -->
-    <div
-      class="fixed inset-0 z-50 flex transition ease-in-out duration-300 transform"
-      [ngClass]="filterDrawerOpen ? 'translate-x-0' : 'translate-x-full'"
-    >
-      <app-filter-drawer
-        [isOpen]="filterDrawerOpen"
-        (closed)="closeFilterDrawer()"
-      ></app-filter-drawer>
-    </div>
-  
-    <main class="mx-auto max-w-7xl px-2 sm:px-4 lg:px-1">
+
+    <!-- Mobile filter drawer -->
+    <app-filter-drawer
+      [isOpen]="filterDrawerOpen"
+      [attributes]="attributes"
+      (closed)="closeFilterDrawer()"
+      (filtersChanged)="loadProductsWithFilters(currentBrandTermId, $event)"
+      (sortChange)="onSortChange($event)"
+    ></app-filter-drawer>
+
+    <main class="mx-auto w-full px-4 sm:px-6 lg:px-8">
+      <!-- Page header with title and sort options -->
       <div class="flex items-baseline justify-between border-b border-gray-200 pt-2 sm:pt-4 lg:pt-9 pb-2 sm:pb-4 lg:pb-6">
         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
-         {{ brandName }}
+          {{ brandName }}
         </h1>
         <div class="flex items-center">
           <app-sort-menu (sortChange)="onSortChange($event)"></app-sort-menu>
           <button
             type="button"
             class="p-1 sm:p-2 ml-2 sm:ml-4 text-gray-400 hover:text-gray-500 lg:hidden"
+            (click)="openFilterDrawer()"
           >
             <span class="sr-only">Filters</span>
             <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,23 +45,52 @@
           </button>
         </div>
       </div>
-  
+
+      <!-- Main content section with sidebar and products grid -->
       <section class="pt-2 sm:pt-4 pb-8 sm:pb-12 lg:pb-24">
         <div class="grid grid-cols-1 gap-x-4 gap-y-4 sm:gap-x-6 sm:gap-y-6 lg:gap-x-8 lg:gap-y-10 lg:grid-cols-4">
+          <!-- Desktop sidebar filter -->
           <div class="hidden lg:block">
             <div class="block">
-                <!-- <app-filter-sidebar [brandTermId]="currentBrandTermId"></app-filter-sidebar> -->
-              </div>          </div>
+              <!-- Check if we have attributes before rendering -->
+              <ng-container *ngIf="Object.keys(attributes).length > 0; else noFilters">
+                <app-filter-sidebar
+                  [categoryId]="null"
+                  [originalAttributes]="attributes"
+                  (filtersChanges)="loadProductsWithFilters(currentBrandTermId, $event)"
+                ></app-filter-sidebar>
+              </ng-container>
+              <ng-template #noFilters>
+                <div class="p-4 border rounded-lg shadow-sm">
+                  <p class="text-gray-500 text-center">Loading filters...</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- Products grid -->
           <div class="lg:col-span-3">
             <app-products-grid
-            [products]="products"
-            [isLoading]="isLoading"
-            [isLoadingMore]="isLoadingMore"
-            [isInitialLoadComplete]="isInitialLoadComplete"
-            [showSkeleton]="showSkeleton"
-          ></app-products-grid>
+              [products]="products"
+              [isLoading]="isLoading"
+              [isLoadingMore]="isLoadingMore"
+              [isInitialLoadComplete]="isInitialLoadComplete"
+              [showSkeleton]="showSkeleton"
+            ></app-products-grid>
+
+            <!-- Empty state -->
+            <div *ngIf="showEmptyState && !isLoading && !showSkeleton" class="py-12 text-center">
+              <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100">
+                <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <p class="mt-4 text-xl text-gray-700">No products found</p>
+              <p class="text-gray-500 mt-2">Try different filter options or browse our categories</p>
+            </div>
           </div>
         </div>
       </section>
     </main>
   </div>
+</ng-container>

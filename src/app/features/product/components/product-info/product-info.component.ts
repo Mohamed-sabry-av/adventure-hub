@@ -11,6 +11,8 @@ import { UIService } from '../../../../shared/services/ui.service';
 import { CheckoutService } from '../../../checkout/services/checkout.service';
 import { switchMap, takeWhile, tap, take } from 'rxjs/operators';
 import { WalletPaymentComponent } from '../../../checkout/component/googlePay-button/google-pay-button.component';
+import { TabbyPromoComponent } from '../TabbyPromoComponent/TabbyPromo.Component';
+import { TabbyConfigService } from '../TabbyPromoComponent/Tabby.cofing.service';
 
 declare var _learnq: any;
 
@@ -22,7 +24,8 @@ declare var _learnq: any;
     ReactiveFormsModule,
     CurrencySvgPipe,
     WalletPaymentComponent,
-  ],
+    TabbyPromoComponent,
+    ],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
   standalone: true,
@@ -41,6 +44,8 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   // Track if we should show out of stock variations
   showOutOfStockVariations: boolean = true;
+  tabbyConfig: { publicKey: string; merchantCode: string };
+
 
   // Loading states from injected UIService
   loadingMap$: Observable<{ [key: string]: boolean }>;
@@ -56,9 +61,12 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     private variationService: VariationService,
     private uiService: UIService,
     private checkoutService: CheckoutService,
-    private router: Router
+    private router: Router,
+    private tabbyConfigService: TabbyConfigService
+
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
+    this.tabbyConfig = this.tabbyConfigService.getConfig();
   }
 
   ngOnInit() {

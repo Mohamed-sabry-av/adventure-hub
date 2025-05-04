@@ -139,6 +139,16 @@
       <app-wallet-payment [product]="getCartProduct()" (paymentSucceeded)="onWalletPaymentSucceeded($event)"></app-wallet-payment>
     </div>
 
+    <app-tabby-promo
+    [price]="getPriceInfo().price"
+    currency="AED"
+    lang="en"
+    source="product"
+    [publicKey]="tabbyConfig.publicKey"
+    [merchantCode]="tabbyConfig.merchantCode"
+    [shouldInheritBg]="true"
+  ></app-tabby-promo>
+
     <span class="text-sm text-gray-500 mb-4 block" *ngIf="maxLength > 0">
       {{ maxLength }} items available
     </span>

@@ -21,6 +21,8 @@ import { SeoService } from '../../../../core/services/seo.service';
   standalone: true,
   imports: [
     CommonModule,
+    FilterSidebarComponent,
+    BreadcrumbComponent,
     FilterDrawerComponent,
     SortMenuComponent,
     ProductsGridComponent,
@@ -48,6 +50,8 @@ export class ProductsByBrandComponent implements OnInit {
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
   schemaData: any;
+  attributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } } = {};
+  Object = Object; // إتاحة Object للاستخدام في القالب
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
@@ -60,6 +64,7 @@ export class ProductsByBrandComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
+    console.log('ProductsByBrandComponent initialized');
     this.showSkeleton = true;
     this.isLoading = true;
     try {
@@ -83,11 +88,17 @@ export class ProductsByBrandComponent implements OnInit {
               `Explore products by ${this.brandInfo?.name} at Adventures HUB Sports Shop.`,
           });
 
+          // Load attributes for the brand
+          console.log('Loading brand attributes for brand ID:', this.currentBrandTermId);
+          await this.loadBrandAttributes(this.currentBrandTermId);
+
+          console.log('Loading initial products for brand ID:', this.currentBrandTermId);
           await Promise.all([
             this.loadProducts(this.currentBrandTermId, this.currentPage),
             this.loadTotalProducts(this.currentBrandTermId),
           ]);
         } else {
+          console.warn('Brand info not found for slug:', this.currentBrandSlug);
           this.schemaData = this.seoService.applySeoTags(null, {
             title: 'Brand Products - Adventures HUB Sports Shop',
             description:
@@ -95,6 +106,7 @@ export class ProductsByBrandComponent implements OnInit {
           });
         }
       } else {
+        console.warn('No brand slug provided in URL');
         this.schemaData = this.seoService.applySeoTags(null, {
           title: 'Brand Products - Adventures HUB Sports Shop',
           description:
@@ -119,6 +131,7 @@ export class ProductsByBrandComponent implements OnInit {
   ngAfterViewInit() {
     if (this.filterSidebar) {
       this.filterSidebar.filtersChanges.subscribe((filters: any) => {
+        console.log('Filters changed from sidebar:', filters);
         this.currentPage = 1;
         this.products = [];
         this.isInitialLoadComplete = false;
@@ -150,7 +163,23 @@ export class ProductsByBrandComponent implements OnInit {
     }
   }
 
+  private async loadBrandAttributes(brandTermId: number): Promise<void> {
+    console.log('loadBrandAttributes called with ID:', brandTermId);
+    try {
+      const attributesData = await this.productsBrandService
+        .getAllAttributesAndTermsByBrand(brandTermId)
+        .toPromise();
+
+      console.log('Received brand attributes:', attributesData);
+      this.attributes = attributesData || {};
+      this.cdr.markForCheck();
+    } catch (error) {
+      console.error('Error loading brand attributes:', error);
+    }
+  }
+
   private async loadProducts(brandTermId: number, page: number) {
+    console.log('loadProducts called with ID:', brandTermId, 'page:', page);
     const isInitialLoad = page === 1;
     if (isInitialLoad) {
       this.isLoading = true;
@@ -172,6 +201,8 @@ export class ProductsByBrandComponent implements OnInit {
           filters
         )
         .toPromise();
+
+      console.log('Received products:', products?.length || 0);
       this.products = isInitialLoad
         ? products || []
         : [...this.products, ...(products || [])];
@@ -195,6 +226,7 @@ export class ProductsByBrandComponent implements OnInit {
         .getTotalProductsByBrandTermId(brandTermId, filters)
         .toPromise();
       this.totalProducts = total ?? 0;
+      console.log('Total products count:', this.totalProducts);
       this.cdr.markForCheck();
     } catch (error) {
       console.error('Error loading total products:', error);
@@ -203,10 +235,11 @@ export class ProductsByBrandComponent implements OnInit {
     }
   }
 
-  private async loadProductsWithFilters(
+   async loadProductsWithFilters(
     brandTermId: number | null,
     filters: { [key: string]: string[] }
   ): Promise<void> {
+    console.log('loadProductsWithFilters called with ID:', brandTermId, 'filters:', filters);
     this.isLoading = true;
     this.currentPage = 1;
     this.products = [];
@@ -216,6 +249,15 @@ export class ProductsByBrandComponent implements OnInit {
 
     try {
       if (brandTermId) {
+        // Get available attributes for the selected filters
+        const availableAttrs = await this.productsBrandService
+          .getAvailableAttributesAndTermsByBrand(brandTermId, filters)
+          .toPromise();
+
+        // Update attributes with available ones
+        console.log('Received available attributes:', availableAttrs);
+        this.attributes = availableAttrs || {};
+
         const products = await this.productsBrandService
           .getProductsByBrandTermId(
             brandTermId,
@@ -226,6 +268,8 @@ export class ProductsByBrandComponent implements OnInit {
             filters
           )
         .toPromise();
+
+        console.log('Received filtered products:', products?.length || 0);
         this.products = products || [];
         await this.loadTotalProducts(brandTermId);
       }
@@ -242,6 +286,7 @@ export class ProductsByBrandComponent implements OnInit {
   }
 
   async onSortChange(sortValue: string) {
+    console.log('Sort changed to:', sortValue);
     switch (sortValue) {
       case 'popular':
         this.selectedOrderby = 'popularity';
@@ -283,11 +328,13 @@ export class ProductsByBrandComponent implements OnInit {
   }
 
   openFilterDrawer() {
+    console.log('Opening filter drawer');
     this.filterDrawerOpen = true;
     this.cdr.markForCheck();
   }
 
   closeFilterDrawer() {
+    console.log('Closing filter drawer');
     this.filterDrawerOpen = false;
     this.cdr.markForCheck();
   }
