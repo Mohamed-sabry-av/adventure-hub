@@ -28,11 +28,7 @@ export class ProductsBrandService {
     let params = new HttpParams()
       .set('attribute', 'pa_brand')
       .set('attribute_term', brandTermId.toString())
-      .set(
-        '_fields',
-        'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
-
-      )
+      .set('_fields', 'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type')   
       .set('per_page', perPage.toString())
       .set('page', page.toString())
       .set('stock_status', 'instock')
@@ -127,11 +123,12 @@ export class ProductsBrandService {
       cacheKey,
       this.apiService
         .getRequest<any>('products/attributes/3/terms', {
-          params: new HttpParams().set('slug', brandSlug).set('_fields', 'id,name,slug'),
+          params: new HttpParams().set('slug', brandSlug).set('_fields', 'id,name,slug,count,image'),
         })
         .pipe(
           map((response) => {
             const term = Array.isArray(response) && response.length > 0 ? response[0] : null;
+            console.log('Brand Term', term)
             return term ? { id: term.id, name: term.name, slug: term.slug } : null;
           }),
           catchError((error) => {

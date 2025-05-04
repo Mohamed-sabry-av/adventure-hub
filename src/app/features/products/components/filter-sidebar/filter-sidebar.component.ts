@@ -229,6 +229,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
       this.selectedFilters[attrSlug].push(termIdStr);
     }
 
+    console.log('Filter changed in sidebar:', this.selectedFilters);
     localStorage.setItem(
       `filters_${this.categoryId}`,
       JSON.stringify(this.selectedFilters)

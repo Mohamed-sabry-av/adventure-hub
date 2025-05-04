@@ -15,7 +15,9 @@ export class CacheService {
 
   constructor() {}
 
-  // Get data from cache
+  /**
+   * Get data from cache if it exists and hasn't expired.
+   */
   get(key: string): Observable<any> | undefined {
     const data = this.cache.get(key);
     if (!data) {
@@ -30,24 +32,48 @@ export class CacheService {
     return of(data.value);
   }
 
-  // Set data to cache
-  set(key: string, value: any, ttl: number = 300000): Observable<any> { // default TTL 5 minutes
+  /**
+   * Set data to cache if it's not empty.
+   */
+  set(key: string, value: any, ttl: number = 300000): Observable<any> {
+    // Prevent caching empty arrays or objects
+    if (
+      value === null ||
+      value === undefined ||
+      (Array.isArray(value) && value.length === 0) ||
+      (typeof value === 'object' && Object.keys(value).length === 0)
+    ) {
+      return of(value);
+    }
+
     const expiry = new Date().getTime() + ttl;
     this.cache.set(key, { expiry, value });
     return of(value);
   }
 
-  // Cache and return the Observable
-  cacheObservable(key: string, fallback: Observable<any>, ttl?: number): Observable<any> {
+  /**
+   * Cache an Observable and return it, using cached data if available.
+   */
+  cacheObservable(key: string, fallback: Observable<any>, ttl: number = 300000): Observable<any> {
     const cached = this.get(key);
     if (cached) {
       return cached;
+    }
+    return fallback.pipe(
+      tap(value => {
+        this.set(key, value, ttl);
+      })
+    );
+  }
+
+  /**
+   * Clear the entire cache or a specific key.
+   */
+  clear(key?: string): void {
+    if (key) {
+      this.cache.delete(key);
     } else {
-      return fallback.pipe(
-        tap(value => {
-          this.set(key, value, ttl);
-        })
-      );
+      this.cache.clear();
     }
   }
 }

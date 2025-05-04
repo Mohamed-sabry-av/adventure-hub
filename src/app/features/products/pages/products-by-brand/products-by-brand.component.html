@@ -53,10 +53,12 @@
               </div>          </div>
           <div class="lg:col-span-3">
             <app-products-grid
-              [products]="products"
-              [isLoading]="isLoading"
-              [isLoadingMore]="isLoadingMore"
-            ></app-products-grid>
+            [products]="products"
+            [isLoading]="isLoading"
+            [isLoadingMore]="isLoadingMore"
+            [isInitialLoadComplete]="isInitialLoadComplete"
+            [showSkeleton]="showSkeleton"
+          ></app-products-grid>
           </div>
         </div>
       </section>

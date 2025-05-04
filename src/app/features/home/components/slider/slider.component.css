@@ -1,10 +1,25 @@
+/* منع التمرير على كامل منطقة السلايدر */
 .slider-container {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  touch-action: pan-x; /* السماح فقط بالتمرير الأفقي */
+  -webkit-user-select: none; /* منع تحديد النص */
+  user-select: none;
+  overflow: hidden;
 }
 
+/* التأكد من أن المنطقة القابلة للمس تغطي المنطقة بالكامل */
+.touch-slider {
+  touch-action: pan-x; /* السماح فقط بالتمرير الأفقي */
+  z-index: 15;
+}
+
+/* تحسين مظهر الشرائح */
 .slide {
   pointer-events: none;
   visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: opacity;
 }
 
 .slide[style*="z-index: 10"] {
@@ -12,11 +27,52 @@
   visibility: visible;
 }
 
-@media (max-width: 768px) {
-  .slide-content {
-    text-align: center;
-    align-items: center;
+/* تأثيرات انتقال جميلة */
+.slide-content {
+  text-align: center;
+  align-items: center;
+  transform: translateY(0);
+  transition: transform 0.5s ease-out;
+}
+
+.slide-content:hover {
+  transform: translateY(-5px);
+}
+
+/* تحسين مظهر الأزرار */
+.dots-container button {
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0.5);
+}
+
+.dots-container button:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+/* تحسين الأداء من خلال تخصيص العناصر للأجهزة الحديثة */
+@media screen and (min-width: 1024px) {
+  .slide-image img {
+    transform: scale(1);
+    transition: transform 5s ease-out;
   }
+
+  .slide-image:hover img {
+    transform: scale(1.05);
+  }
+}
+
+/* منع تموج الصور أثناء الانتقال */
+img {
+  transform: translateZ(0);
+  -webkit-transform-style: preserve-3d;
+}
+
+/* منع التفاعل مع الصور */
+.slide-image img, .slide img {
+  user-drag: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 
 /* Animation for slides */
@@ -36,4 +92,12 @@
 
 .slider-leave-active {
   animation: fadeOut 0.5s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .slide-content {
+    text-align: center;
+    align-items: center;
+  }
 }

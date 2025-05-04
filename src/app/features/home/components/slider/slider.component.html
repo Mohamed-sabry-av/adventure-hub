@@ -1,5 +1,5 @@
 <div class="slider-container w-full relative overflow-hidden">
-  <div class="slides-wrapper relative w-full h-[450px] md:h-[500px]">
+  <div class="slides-wrapper relative w-full h-[450px] md:h-[500px] touch-none">
     <!-- Slides -->
     @for (slide of slides; track slide.id; let i = $index) {
     <div
@@ -46,59 +46,69 @@
     </div>
     }
 
-    <!-- Navigation Arrows -->
-    <button
-      class="absolute top-1/2 left-2 z-20 transform -translate-y-1/2 bg-white bg-opacity-50 hover:bg-opacity-80 rounded-full p-2 focus:outline-none"
-      (click)="prevSlide()"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 19l-7-7 7-7"
-        />
-      </svg>
-    </button>
-
-    <button
-      class="absolute top-1/2 right-2 z-20 transform -translate-y-1/2 bg-white bg-opacity-50 hover:bg-opacity-80 rounded-full p-2 focus:outline-none"
-      (click)="nextSlide()"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M9 5l7 7-7 7"
-        />
-      </svg>
-    </button>
-
     <!-- Dots -->
     <div
-      class="dots-container absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20"
+      class="dots-container absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-20"
     >
       @for (slide of slides; track slide.id; let i = $index) {
       <button
-        class="w-3 h-3 rounded-full focus:outline-none transition-colors duration-300"
+        class="w-4 h-4 rounded-full focus:outline-none transition-colors duration-300 border border-white"
         [class.bg-white]="currentSlide === i"
-        [class.bg-gray-400]="currentSlide !== i"
+        [class.bg-transparent]="currentSlide !== i"
         (click)="goToSlide(i)"
       ></button>
       }
+    </div>
+
+    <!-- Arrow Navigation (Hidden on Mobile) -->
+    <div class="hidden md:block">
+      <button
+        class="absolute top-1/2 left-4 z-20 transform -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full p-3 focus:outline-none shadow-md transition-all duration-300"
+        (click)="prevSlide()"
+        aria-label="Previous slide"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="absolute top-1/2 right-4 z-20 transform -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full p-3 focus:outline-none shadow-md transition-all duration-300"
+        (click)="nextSlide()"
+        aria-label="Next slide"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Touch Controls - Only horizontal swipe -->
+    <div class="touch-slider md:hidden absolute top-0 left-0 w-full h-full z-15"
+         (touchstart)="handleTouchStart($event)"
+         (touchend)="handleTouchEnd($event)">
     </div>
   </div>
 </div>

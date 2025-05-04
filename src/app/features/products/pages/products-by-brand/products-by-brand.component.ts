@@ -4,6 +4,7 @@ import {
   ViewChild,
   HostListener,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -26,19 +27,22 @@ import { SeoService } from '../../../../core/services/seo.service';
   ],
   templateUrl: './products-by-brand.component.html',
   styleUrls: ['./products-by-brand.component.css'],
-
-  providers: [ProductsBrandService], // استخدام ProductsBrandService مباشرة
+  providers: [ProductsBrandService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsByBrandComponent implements OnInit {
   products: any[] = [];
-  isLoading = true;
+  isLoading = false;
   isLoadingMore = false;
+  isInitialLoadComplete = false;
+  showSkeleton = true; // لإظهار الـ skeleton
+  showEmptyState = false; // لإدارة حالة "No products found"
   currentBrandTermId: any | null = null;
   currentBrandSlug: string | null = null;
   brandName: string = 'Loading...';
   currentPage: number = 1;
   brandInfo: any = null;
-  itemPerPage: number = 20;
+  itemPerPage: number = 8; // تقليل العدد لتحسين التحميل الأولي
   totalProducts: number = 0;
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
@@ -51,16 +55,17 @@ export class ProductsByBrandComponent implements OnInit {
   constructor(
     private productsBrandService: ProductsBrandService,
     private route: ActivatedRoute,
-    private seoService: SeoService
+    private seoService: SeoService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
+    this.showSkeleton = true;
+    this.isLoading = true;
     try {
-      this.isLoading = true;
       this.currentBrandSlug = this.route.snapshot.paramMap.get('brandSlug');
 
       if (this.currentBrandSlug) {
-        // جلب بيانات البراند
         this.brandInfo = await this.productsBrandService
           .getBrandInfoBySlug(this.currentBrandSlug)
           .toPromise();
@@ -69,7 +74,6 @@ export class ProductsByBrandComponent implements OnInit {
           this.currentBrandTermId = this.brandInfo.id;
           this.brandName = this.brandInfo.name;
 
-          // تطبيق الـ SEO tags بناءً على yoast_head_json
           this.schemaData = this.seoService.applySeoTags(this.brandInfo, {
             title:
               this.brandInfo?.name ||
@@ -79,10 +83,11 @@ export class ProductsByBrandComponent implements OnInit {
               `Explore products by ${this.brandInfo?.name} at Adventures HUB Sports Shop.`,
           });
 
-          await this.loadProducts(this.currentBrandTermId, this.currentPage);
-          await this.loadTotalProducts(this.currentBrandTermId);
+          await Promise.all([
+            this.loadProducts(this.currentBrandTermId, this.currentPage),
+            this.loadTotalProducts(this.currentBrandTermId),
+          ]);
         } else {
-          // Fallback SEO tags إذا لم يتم العثور على البراند
           this.schemaData = this.seoService.applySeoTags(null, {
             title: 'Brand Products - Adventures HUB Sports Shop',
             description:
@@ -98,22 +103,29 @@ export class ProductsByBrandComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error in ngOnInit:', error);
-      // Fallback SEO tags في حالة حدوث خطأ
       this.schemaData = this.seoService.applySeoTags(null, {
         title: 'Brand Products - Adventures HUB Sports Shop',
         description: 'Explore products by brand at Adventures HUB Sports Shop.',
       });
     } finally {
       this.isLoading = false;
+      this.isInitialLoadComplete = true;
+      this.showSkeleton = this.products.length === 0;
+      this.showEmptyState = this.products.length === 0;
+      this.cdr.markForCheck();
     }
   }
 
   ngAfterViewInit() {
-    console.log('FilterSidebar:', this.filterSidebar);
     if (this.filterSidebar) {
       this.filterSidebar.filtersChanges.subscribe((filters: any) => {
-        console.log('Filters changed:', filters);
+        this.currentPage = 1;
+        this.products = [];
+        this.isInitialLoadComplete = false;
+        this.showSkeleton = true;
+        this.showEmptyState = false;
         this.loadProductsWithFilters(this.currentBrandTermId, filters);
+        this.cdr.markForCheck();
       });
     } else {
       console.warn('FilterSidebarComponent not initialized in ngAfterViewInit');
@@ -140,8 +152,13 @@ export class ProductsByBrandComponent implements OnInit {
 
   private async loadProducts(brandTermId: number, page: number) {
     const isInitialLoad = page === 1;
-    if (isInitialLoad) this.isLoading = true;
-    else this.isLoadingMore = true;
+    if (isInitialLoad) {
+      this.isLoading = true;
+      this.showSkeleton = true;
+      this.showEmptyState = false;
+    } else {
+      this.isLoadingMore = true;
+    }
 
     try {
       const filters = this.filterSidebar?.selectedFilters || {};
@@ -164,6 +181,10 @@ export class ProductsByBrandComponent implements OnInit {
     } finally {
       this.isLoading = false;
       this.isLoadingMore = false;
+      this.isInitialLoadComplete = true;
+      this.showSkeleton = this.products.length === 0;
+      this.showEmptyState = this.products.length === 0;
+      this.cdr.markForCheck();
     }
   }
 
@@ -174,9 +195,11 @@ export class ProductsByBrandComponent implements OnInit {
         .getTotalProductsByBrandTermId(brandTermId, filters)
         .toPromise();
       this.totalProducts = total ?? 0;
+      this.cdr.markForCheck();
     } catch (error) {
       console.error('Error loading total products:', error);
       this.totalProducts = 0;
+      this.cdr.markForCheck();
     }
   }
 
@@ -187,6 +210,9 @@ export class ProductsByBrandComponent implements OnInit {
     this.isLoading = true;
     this.currentPage = 1;
     this.products = [];
+    this.isInitialLoadComplete = false;
+    this.showSkeleton = true;
+    this.showEmptyState = false;
 
     try {
       if (brandTermId) {
@@ -199,7 +225,7 @@ export class ProductsByBrandComponent implements OnInit {
             this.selectedOrder,
             filters
           )
-          .toPromise();
+        .toPromise();
         this.products = products || [];
         await this.loadTotalProducts(brandTermId);
       }
@@ -208,6 +234,10 @@ export class ProductsByBrandComponent implements OnInit {
       this.products = [];
     } finally {
       this.isLoading = false;
+      this.isInitialLoadComplete = true;
+      this.showSkeleton = this.products.length === 0;
+      this.showEmptyState = this.products.length === 0;
+      this.cdr.markForCheck();
     }
   }
 
@@ -239,22 +269,26 @@ export class ProductsByBrandComponent implements OnInit {
         break;
     }
     if (this.currentBrandTermId) {
+      this.currentPage = 1;
+      this.products = [];
+      this.isInitialLoadComplete = false;
+      this.showSkeleton = true;
+      this.showEmptyState = false;
       await this.loadProductsWithFilters(
         this.currentBrandTermId,
         this.filterSidebar?.selectedFilters || {}
       );
+      this.cdr.markForCheck();
     }
   }
 
-  // openFilterDrawer() {
-  //   this.filterDrawer['drawer'].open();
-  // }
+  openFilterDrawer() {
+    this.filterDrawerOpen = true;
+    this.cdr.markForCheck();
+  }
 
   closeFilterDrawer() {
     this.filterDrawerOpen = false;
-  }
-
-  onCategoryIdChange(categoryId: number | null) {
-    // لا حاجة لهذا في صفحة الـ Brand
+    this.cdr.markForCheck();
   }
 }

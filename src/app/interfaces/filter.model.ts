@@ -10,3 +10,13 @@ export interface Attribute {
     minPrice?: number;
     maxPrice?: number;
   }
+
+  export interface FilterAttribute {
+    name: string;
+    slug: string;
+    terms: { id: number; name: string }[];
+  }
+  
+  export interface FilterResponse {
+    [key: string]: FilterAttribute;
+  }

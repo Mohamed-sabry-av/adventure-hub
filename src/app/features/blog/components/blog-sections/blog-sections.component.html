@@ -1,52 +1,64 @@
-@if ((blogData$ | async)?.length !==0) { @for (post of (blogData$ | async);
-track $index) {
-<article class="article-data">
-  <!-- Image -->
-  <div>
-    <a [routerLink]="['/', post.slug]" class="relative group block">
-      <img
-        loading="lazy"
-        [src]="post.yoast_head_json.og_image[0].url"
-        alt="section-img"
-        class="article-image"
-      />
-      <div
-        class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center transition duration-300"
-      >
-        <i
-          class="pi pi-arrow-right w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition duration-300 text-xl"
-        ></i>
-      </div>
-    </a>
+@if ((blogData$ | async)?.length !== 0) {
+  <div class="blog-grid grid grid-cols-1 md:grid-cols-2 gap-8">
+    @for (post of (blogData$ | async); track post.id) {
+      <article class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
+        <!-- Image -->
+        <a [routerLink]="['/blog/', post.slug]" class="block relative overflow-hidden h-60">
+          <img
+            loading="lazy"
+            [src]="post.yoast_head_json?.og_image?.[0]?.url || 'https://via.placeholder.com/800x400'"
+            [alt]="post.title.rendered"
+            class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+            <span class="text-white opacity-0 hover:opacity-100 transition-opacity duration-300 font-bold text-lg">
+              Read Article
+            </span>
+          </div>
+        </a>
+
+        <div class="p-6">
+          <!-- Date -->
+          <span class="text-gray-500 text-sm font-medium mb-2 block">{{ post.date | date : "longDate" }}</span>
+
+          <!-- Title -->
+          <h2 class="font-bold text-xl mb-3 hover:text-blue-600 transition-colors duration-300">
+            <a [routerLink]="['/blog/', post.slug]" [innerHTML]="post.title.rendered"></a>
+          </h2>
+
+          <!-- Excerpt -->
+          <div class="text-gray-600 text-sm line-clamp-3 mb-4" [innerHTML]="post.excerpt.rendered"></div>
+
+          <!-- Read More Link -->
+          <a [routerLink]="['/blog/', post.slug]" class="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors">
+            Read More
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        </div>
+      </article>
+    }
   </div>
 
-  <div class="article-section">
-    <!-- Header -->
-    <header>
-      <!-- Title -->
-      <h1 class="font-semibold text-2xl mb-[6px]">
-        <a [routerLink]="post.slug" [innerHTML]="post.title.rendered"></a>
-      </h1>
-    </header>
-
-    <!-- Date -->
-    <span class="text-gray-400 text-xs uppercase mb-2">{{
-      post.date | date : "longDate"
-    }}</span>
-
-    <!-- Desc -->
-    <div class="text-xs leading-5" [innerHTML]="post.excerpt.rendered"></div>
+  <!-- Pagination -->
+  <div class="pagination-container mt-10 flex justify-center">
+    <p-paginator
+      (onPageChange)="onPageChange($event)"
+      [first]="first"
+      [rows]="rows"
+      [totalRecords]="totalRecords"
+      styleClass="p-paginator-custom"
+    />
   </div>
-</article>
-
 }
-<div class="article-paginator">
-  <p-paginator
-    (onPageChange)="onPageChange($event)"
-    [first]="first"
-    [rows]="rows"
-    [totalRecords]="totalRecords"
-  />
-</div>
 
+@if ((blogData$ | async)?.length === 0) {
+  <div class="flex flex-col items-center justify-center py-12">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+    </svg>
+    <h3 class="text-xl font-semibold text-gray-700 mb-2">No Blog Posts Found</h3>
+    <p class="text-gray-500">Check back soon for new content!</p>
+  </div>
 }

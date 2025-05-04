@@ -24,6 +24,94 @@
   }
 }
 
+/* Blog Grid Styles */
+.blog-grid {
+  margin-bottom: 2rem;
+}
+
+/* Blog Card Styles */
+.blog-card {
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 0.5rem;
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Blog Card Content */
+.blog-card a:hover {
+  text-decoration: none;
+}
+
+/* Line Clamp for Excerpts */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Remove margin from excerpt paragraphs */
+.line-clamp-3 ::ng-deep p {
+  margin: 0;
+}
+
+/* Image Scaling Effect */
+.blog-card img {
+  transform: scale(1);
+  transition: transform 0.5s ease;
+}
+
+.blog-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Custom Paginator Styling */
+:host ::ng-deep .p-paginator-custom {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+}
+
+:host ::ng-deep .p-paginator-custom .p-paginator-page.p-highlight {
+  background: #3b82f6;
+  color: white;
+}
+
+:host ::ng-deep .p-paginator-custom .p-paginator-page:not(.p-highlight):hover {
+  background: #e5edff;
+}
+
+:host ::ng-deep .p-paginator-custom .p-paginator-first,
+:host ::ng-deep .p-paginator-custom .p-paginator-prev,
+:host ::ng-deep .p-paginator-custom .p-paginator-next,
+:host ::ng-deep .p-paginator-custom .p-paginator-last {
+  color: #3b82f6;
+}
+
+:host ::ng-deep .p-paginator-custom .p-paginator-first:hover,
+:host ::ng-deep .p-paginator-custom .p-paginator-prev:hover,
+:host ::ng-deep .p-paginator-custom .p-paginator-next:hover,
+:host ::ng-deep .p-paginator-custom .p-paginator-last:hover {
+  background: #e5edff;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .blog-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 ::ng-deep .p-paginator {
   @apply bg-gray-900 w-fit mx-auto mb-6;
 }

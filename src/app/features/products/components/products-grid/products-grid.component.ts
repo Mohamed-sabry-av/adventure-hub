@@ -37,7 +37,7 @@ import {
           ':enter',
           [
             style({ opacity: 0, transform: 'translateY(15px)' }),
-            stagger('30ms', [
+            stagger('50ms', [
               animate(
                 '400ms ease-out',
                 style({ opacity: 1, transform: 'translateY(0)' })
@@ -56,8 +56,9 @@ export class ProductsGridComponent implements OnChanges {
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
   @Input() isInitialLoadComplete: boolean = false;
+  @Input() showSkeleton: boolean = true; // افتراضي true للـ SSR
   showEmptyState: boolean = false;
-  skeletonCount = 8;
+  skeletonCount = 6; // تقليل العدد لتحسين الأداء
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -66,12 +67,19 @@ export class ProductsGridComponent implements OnChanges {
       changes['products'] ||
       changes['isLoading'] ||
       changes['isLoadingMore'] ||
-      changes['isInitialLoadComplete']
+      changes['isInitialLoadComplete'] ||
+      changes['showSkeleton']
     ) {
-      if (!this.isLoading && !this.isLoadingMore && this.isInitialLoadComplete) {
-        this.showEmptyState = this.products.length === 0;
+      if (
+        !this.showSkeleton &&
+        !this.isLoading &&
+        !this.isLoadingMore &&
+        this.isInitialLoadComplete &&
+        this.products.length === 0 // إضافة شرط صريح
+      ) {
+        this.showEmptyState = true;
       } else {
-        this.showEmptyState = false; // منع الظهور أثناء التحميل
+        this.showEmptyState = false; // التأكد من إخفاء الحالة الفارغة أثناء التحميل
       }
       this.cdr.markForCheck();
     }
@@ -96,5 +104,6 @@ export class ProductsGridComponent implements OnChanges {
     this.skeletonCount = 0;
     this.showEmptyState = false;
     this.isInitialLoadComplete = false;
+    this.showSkeleton = false;
   }
 }
