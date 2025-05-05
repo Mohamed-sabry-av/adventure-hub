@@ -26,17 +26,19 @@
     <!-- Color Options -->
     <ng-container *ngIf="getVariationOptions('Color').length">
       <div class="product-option">
+        <label class="option-label">Color: <span class="selected-attribute" *ngIf="selectedAttributes['Color']">{{ selectedAttributes['Color'] }}</span></label>
         <div class="color-options">
           <div
             *ngFor="let option of getVariationOptions('Color'); let i = index"
             class="color-option"
             [class.active]="selectedAttributes['Color'] === option.value"
             [class.out-of-stock]="!option.inStock"
-            (click)="option.inStock && selectAttribute('Color', option.value)"
+            (click)="option.inStock && handleAttributeClick($event, 'Color', option.value)"
           >
             <div class="color-swatch" [style.background-image]="'url(' + option.image + ')'" [title]="option.value">
               <div class="out-of-stock-x" *ngIf="!option.inStock"></div>
             </div>
+            <span class="color-name">{{ option.value }}</span>
           </div>
         </div>
       </div>
@@ -45,14 +47,14 @@
     <!-- Size Options (Filtered by Selected Color, including out of stock) -->
     <ng-container *ngIf="getVariationOptions('Size', selectedAttributes['Color']).length">
       <div class="product-option">
-        <label class="option-label">Size</label>
+        <label class="option-label">Size: <span class="selected-attribute" *ngIf="selectedAttributes['Size']">{{ selectedAttributes['Size'] }}</span></label>
         <div class="size-options">
           <div
             *ngFor="let option of getVariationOptions('Size', selectedAttributes['Color']); let i = index"
             class="size-option"
             [class.active]="selectedAttributes['Size'] === option.value"
             [class.out-of-stock]="!option.inStock"
-            (click)="option.inStock && selectAttribute('Size', option.value)"
+            (click)="option.inStock && handleAttributeClick($event, 'Size', option.value)"
           >
             {{ option.value }}
             <div class="out-of-stock-x" *ngIf="!option.inStock"></div>
@@ -82,14 +84,16 @@
           class="quantity-btn"
           (click)="onQuantityDown()"
           [disabled]="quantity <= 1"
+          aria-label="Decrease quantity"
         >
           −
         </button>
-        <span class="quantity-display">{{ quantity }}</span>
+        <span class="quantity-display" aria-live="polite" aria-atomic="true">{{ quantity }}</span>
         <button
           class="quantity-btn"
           (click)="onQuantityUp()"
           [disabled]="quantity >= maxLength"
+          aria-label="Increase quantity"
         >
           +
         </button>
@@ -99,9 +103,10 @@
         class="cart-btn"
         (click)="addToCart()"
         [disabled]="(loadingMap$ | async)?.['add']"
+        aria-label="Add to cart"
       >
         <ng-container *ngIf="(loadingMap$ | async)?.['add']; else addToCartText">
-          <div class="spinner-container">
+          <div class="spinner-container" role="status" aria-live="polite" aria-label="Adding to cart">
             <div class="spinner"></div>
           </div>
         </ng-container>
@@ -113,6 +118,7 @@
         (click)="addToWishList(productInfo()?.id)"
         [class.active]="isInWishlist"
         [disabled]="isAddingToWishlist"
+        aria-label="Add to wishlist"
       >
         <i class="pi pi-heart"></i>
       </button>
@@ -124,9 +130,10 @@
         class="buy-btn"
         (click)="buyNow()"
         [disabled]="(loadingMap$ | async)?.['buy']"
+        aria-label="Buy it now"
       >
         <ng-container *ngIf="(loadingMap$ | async)?.['buy']; else buyNowText">
-          <div class="spinner-container">
+          <div class="spinner-container" role="status" aria-live="polite" aria-label="Processing purchase">
             <div class="spinner"></div>
           </div>
         </ng-container>
@@ -135,21 +142,21 @@
     </div>
 
     <!-- Wallet Payment Button -->
-    <div class="wallet-payment-container mb-4">
+    <div class="wallet-payment-container mb-4" aria-label="Wallet payment option">
       <app-wallet-payment [product]="getCartProduct()" (paymentSucceeded)="onWalletPaymentSucceeded($event)"></app-wallet-payment>
     </div>
 
     <app-tabby-promo
-    [price]="getPriceInfo().price"
-    currency="AED"
-    lang="en"
-    source="product"
-    [publicKey]="tabbyConfig.publicKey"
-    [merchantCode]="tabbyConfig.merchantCode"
-    [shouldInheritBg]="true"
-  ></app-tabby-promo>
+      [price]="getPriceInfo().price"
+      currency="AED"
+      lang="en"
+      source="product"
+      [publicKey]="tabbyConfig.publicKey"
+      [merchantCode]="tabbyConfig.merchantCode"
+      [shouldInheritBg]="true"
+    ></app-tabby-promo>
 
-    <span class="text-sm text-gray-500 mb-4 block" *ngIf="maxLength > 0">
+    <span class="text-sm text-gray-500 mb-4 block" *ngIf="maxLength > 0" aria-live="polite" aria-atomic="true">
       {{ maxLength }} items available
     </span>
   </div>
@@ -171,11 +178,13 @@
     class="mt-2 text-sm"
     [class.text-green-500]="wishlistSuccess"
     [class.text-red-500]="!wishlistSuccess"
+    role="alert"
+    aria-live="assertive"
   >
     {{ wishlistMessage }}
   </div>
 
-  <div class="mt-6 flex flex-col gap-y-1">
+  <div class="mt-6 flex flex-col gap-y-1" aria-label="Shipping and return information">
     <p class="text-sm">
       <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping
       in UAE For orders above AED 100.

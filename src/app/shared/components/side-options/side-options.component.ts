@@ -278,7 +278,7 @@ export class SideOptionsComponent implements OnInit, OnDestroy {
 
   viewProductDetails() {
     if (this.state.product?.id) {
-      this.router.navigate(['/product', this.state.product.id]);
+      this.router.navigate(['/product', this.state.product.slug]);
       this.closeSideOptions();
     }
   }

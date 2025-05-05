@@ -8,12 +8,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { CarouselModule } from 'primeng/carousel';
+import { CustomCarouselComponent } from '../custom-carousel/custom-carousel.component';
 
 @Component({
   selector: 'app-sale-products',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
+  imports: [CommonModule, RouterModule, ProductCardComponent, CustomCarouselComponent],
 
   templateUrl: './sale-products.component.html',
   styleUrls: ['./sale-products.component.css'],
@@ -56,7 +56,7 @@ export class SaleProductsComponent implements OnInit {
 
   loadSaleProducts(): void {
     this.loading = true;
-    this.homeService.getSaleProducts(1, 8).subscribe({
+    this.homeService.getSaleProducts(1, 10).subscribe({
       next: (data: any) => {
         this.products = data;
         this.loading = false;

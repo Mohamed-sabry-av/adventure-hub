@@ -7,6 +7,7 @@ import {
   ChangeDetectionStrategy,
   Inject,
   PLATFORM_ID,
+  inject,
 } from '@angular/core';
 import {
   debounceTime,
@@ -14,10 +15,12 @@ import {
   Subject,
   switchMap,
   of,
+  firstValueFrom,
 } from 'rxjs';
 import { SearchBarService } from '../../services/search-bar.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
+import { CategoriesService } from '../../../core/services/categories.service';
 
 interface Category {
   id: number;
@@ -34,7 +37,6 @@ interface Category {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './search-bar.component.html',
-
   styleUrls: ['./search-bar.component.css'],
 })
 export class SearchBarComponent implements OnInit {
@@ -50,16 +52,22 @@ export class SearchBarComponent implements OnInit {
   @ViewChild('searchInput') searchInput!: ElementRef;
   @ViewChild('resultsContainer') resultsContainer!: ElementRef;
 
-  constructor(private searchService: SearchBarService, private router: Router,  @Inject(PLATFORM_ID) private platformId: Object
-) {
-  if (isPlatformBrowser(this.platformId)) {
-    const savedSearches = localStorage.getItem('recentSearches');
-    if (savedSearches) {
-      this.recentSearches = JSON.parse(savedSearches).slice(0, 5);
+  private categoriesService: CategoriesService;
+
+  constructor(
+    private searchService: SearchBarService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.categoriesService = inject(CategoriesService);
+    if (isPlatformBrowser(this.platformId)) {
+      const savedSearches = localStorage.getItem('recentSearches');
+      if (savedSearches) {
+        this.recentSearches = JSON.parse(savedSearches).slice(0, 5);
+      }
     }
   }
-}
-  
+
   ngOnInit() {
     this.handleSearch();
   }
@@ -205,28 +213,60 @@ export class SearchBarComponent implements OnInit {
     this.router.navigate([`/product/${product.slug}`]);
   }
 
-  selectCategory(category: Category): void {
+  /**
+   * Select a category and navigate to its full path page
+   */
+  async selectCategory(category: Category): Promise<void> {
     this.saveToRecentSearches(this.searchInput.nativeElement.value);
     this.showResults = false;
-    const slugs = this.getCategoryPath(category);
-    const path = slugs.join('/');
-    this.router.navigate([`/category/${path}`]);
+
+    // Get the full path of category slugs using the CategoriesService (card-details approach)
+    const pathSegments = await this.getCategoryPath(category);
+
+    // Create a router navigation array that starts with the base path '/category'
+    // and adds each segment as a separate argument (not using spread operator)
+    const navigationArray = ['/category'];
+
+    // Add each path segment individually to the navigationArray
+    for (const segment of pathSegments) {
+      navigationArray.push(segment);
+    }
+
+    // Navigate using the array-based approach that ensures proper URL construction
+    this.router.navigate(navigationArray);
   }
 
-  getCategoryPath(category: Category): string[] {
-    const slugs: string[] = [];
-    let currentCategory: Category | undefined = category;
-    while (currentCategory) {
-      slugs.unshift(currentCategory.slug);
-      if (currentCategory.parent) {
-        currentCategory = this.categories.find(
-          (cat) => cat.id === currentCategory!.parent
+  /**
+   * Get the full category path as an array of slugs
+   * This builds an array starting from the root category to the selected category
+   * Uses CategoriesService to get the complete hierarchy
+   */
+  async getCategoryPath(category: Category): Promise<string[]> {
+    try {
+      // Start with the current category
+      const slugs: string[] = [category.slug];
+      let currentCategory = category;
+
+      // Add parent categories by querying them individually
+      while (currentCategory.parent) {
+        // Get the parent category directly from the service
+        const parentCategory = await firstValueFrom(
+          this.categoriesService.getCategoryById(currentCategory.parent)
         );
-      } else {
-        currentCategory = undefined;
+
+        if (!parentCategory) break;
+
+        // Add to start of array (we're building from root to child)
+        slugs.unshift(parentCategory.slug);
+        currentCategory = parentCategory;
       }
+
+      return slugs;
+    } catch (error) {
+      console.error('Error building category path:', error);
+      // Fallback to simple slug-only array
+      return [category.slug];
     }
-    return slugs;
   }
 
   clearSearch(): void {

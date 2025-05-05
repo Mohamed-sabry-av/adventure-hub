@@ -139,7 +139,7 @@ export class FilterService {
             console.log('API Request URL:', `${response.url}`);
             return (response.body || []).map((product: any) => ({
               ...product,
-              images: product.images?.slice(0, 1) || [], // Load only the first image
+              images: product.images?.slice(0, 3) || [], // Load only the first image
             }));
           }),
           catchError((error) => {

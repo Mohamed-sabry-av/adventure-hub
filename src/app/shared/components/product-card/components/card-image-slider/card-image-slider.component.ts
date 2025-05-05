@@ -8,6 +8,7 @@ import {
   Inject,
   PLATFORM_ID,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -31,14 +32,18 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
 })
 export class CardImageSliderComponent implements OnInit {
-  @Input() product!: Product;
+  @Input() product!: Product  ;
   @Input() isHovered: boolean = false;
   @Input() variations: Variation[] = []; // Ensure variations is defined
   @ViewChild('sliderContainer') sliderContainer!: ElementRef;
 
   isMobile: boolean = false;
+  currentImageIndex: number = 0;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.checkIfMobile();
@@ -46,8 +51,13 @@ export class CardImageSliderComponent implements OnInit {
       this.isHovered = false; // تعطيل الهوفر على الموبايل
     }
   }
+  get hasMultipleImages(): boolean {
+    return !!this.product?.images && this.product.images.length > 1;
+  }
+  get maxImageIndex(): number {
+    return (this.product?.images?.length ?? 0) - 1;
+  }
   
-
 
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
@@ -69,6 +79,47 @@ export class CardImageSliderComponent implements OnInit {
 
   onImageLoad(event: Event) {
     const imgElement = event.target as HTMLImageElement;
+  }
+
+  /**
+   * Navigate between product images
+   * @param direction 1 for next, -1 for previous
+   * @param event Click event to prevent default behavior
+   */
+  navigateImages(direction: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!this.product?.images || this.product.images.length <= 1) {
+      return;
+    }
+
+    const newIndex = this.currentImageIndex + direction;
+    if (newIndex >= 0 && newIndex < this.product.images.length) {
+      this.currentImageIndex = newIndex;
+      this.cdr.markForCheck();
+    }
+  }
+
+  /**
+   * Go to a specific image by index
+   * @param index The index of the image to show
+   * @param event Click event to prevent default behavior
+   */
+  goToImage(index: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!this.product?.images || index < 0 || index >= this.product.images.length) {
+      return;
+    }
+
+    this.currentImageIndex = index;
+    this.cdr.markForCheck();
   }
 
   getImageSrcset(image: any): string {

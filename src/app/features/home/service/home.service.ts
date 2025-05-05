@@ -19,7 +19,7 @@ export class HomeService {
     private cachingService: CacheService
   ) {}
 
-  getNewArrivalsProducts(page: number = 1, perPage: number = 20): any {
+  getNewArrivalsProducts(page: number = 1, perPage: number = 30): any {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const afterDate = thirtyDaysAgo.toISOString();
@@ -55,7 +55,7 @@ export class HomeService {
       );
   }
 
-  getFeaturedProducts(page: number = 1, perPage: number = 20): any {
+  getFeaturedProducts(page: number = 1, perPage: number = 30): any {
     return this.wooApi
       .getRequestProducts<any>('products', {
         params: new HttpParams()
@@ -87,7 +87,7 @@ export class HomeService {
       );
   }
 
-  getSaleProducts(page: number = 1, perPage: number = 20): any {
+  getSaleProducts(page: number = 1, perPage: number = 30): any {
     return this.wooApi
       .getRequestProducts<any>('products', {
         params: new HttpParams()

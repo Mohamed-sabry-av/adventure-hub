@@ -37,10 +37,10 @@
         <!-- Product Images - Left side -->
         <div class="md:w-1/2 lg:w-3/5">
           <app-product-images
-          [productImages]="productData?.images"
-          [selectedVariation]="selectedColorVariation"
-          [productName]="productData?.name"
-        ></app-product-images>
+            [productImages]="productData?.images"
+            [selectedVariation]="selectedColorVariation"
+            [productName]="productData?.name"
+          ></app-product-images>
           <!-- Desktop Description -->
           <div class="full-width-product-description desktop-description">
             <app-product-desc [productAdditionlInfo]="productDataForDesc" />
@@ -64,9 +64,10 @@
       </div>
 
       <!-- Related Products -->
-      @if (productData?.related_ids) {
+      @if (productData?.id) {
         <app-product-related
-          [relatedIds]="productData.related_ids"
+          [relatedIds]="productData?.related_ids || []"
+          [productId]="productData.id"
           class="relatedProducts"
         />
         <app-recent-products-mini></app-recent-products-mini>

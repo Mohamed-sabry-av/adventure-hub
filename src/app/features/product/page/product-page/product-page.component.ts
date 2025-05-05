@@ -18,6 +18,7 @@ import { BreadcrumbComponent } from '../../../products/components/breadcrumb/bre
 import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
+import { RelatedProductsService } from '../../../../core/services/related-products.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 declare var _learnq: any;
@@ -54,6 +55,7 @@ export class ProductPageComponent implements OnInit {
   private productService = inject(ProductService);
   private seoService = inject(SeoService);
   private recentlyVisitedService = inject(RecentlyVisitedService);
+  private relatedProductsService = inject(RelatedProductsService);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
 
@@ -138,7 +140,16 @@ export class ProductPageComponent implements OnInit {
               image: this.productData?.images?.[0]?.src,
             });
 
+            // إضافة المنتج إلى قائمة المنتجات المزارة مؤخراً
             this.recentlyVisitedService.addProduct(this.productData);
+
+            // إضافة الـ related_ids إلى الخدمة الجديدة
+            if (this.productData?.id && this.productData?.related_ids?.length > 0) {
+              this.relatedProductsService.addRelatedIds(
+                this.productData.id,
+                this.productData.related_ids
+              );
+            }
 
             if (typeof _learnq !== 'undefined' && this.productData) {
               _learnq.push([
@@ -193,7 +204,7 @@ export class ProductPageComponent implements OnInit {
           },
         ]);
       }
-  
+
       if (event.value) {
         // ابحث عن أي variation ليها اللون ده
         const variation = this.productData.variations.find((v: any) =>
@@ -203,7 +214,7 @@ export class ProductPageComponent implements OnInit {
               attr.option.toLowerCase() === event.value.toLowerCase()
           )
         );
-  
+
         if (variation) {
           this.productService
             .getVariationById(this.productData.id, variation.id)

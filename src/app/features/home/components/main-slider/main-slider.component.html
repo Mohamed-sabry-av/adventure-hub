@@ -1,11 +1,11 @@
-<p-carousel
-  [value]="images"
+<app-custom-carousel
+  [items]="images"
   [numVisible]="1"
   [numScroll]="1"
   [circular]="true"
   [autoplayInterval]="3000"
 >
-  <ng-template pTemplate="item" let-image>
-    <img [src]="image" alt="Image" class="carousel-image" loading="lazy" />
+  <ng-template #item let-image>
+    <img [src]="image" alt="Image" class="carousel-image w-full h-auto" loading="lazy" />
   </ng-template>
-</p-carousel>
+</app-custom-carousel>

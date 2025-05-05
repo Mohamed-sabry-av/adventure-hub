@@ -1,16 +1,30 @@
 import { Injectable } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SeoService {
+  private readonly siteName = 'Adventures HUB Sports Shop';
+  private readonly siteUrl = 'https://adventures-hub.com';
+
   constructor(
     private titleService: Title,
     private metaService: Meta,
-    private sanitizer: DomSanitizer
-  ) {}
+    private sanitizer: DomSanitizer,
+    private router: Router
+  ) {
+    // Track route changes for analytics if needed
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      // Update canonical URL on route changes
+      this.updateCanonicalUrl(this.siteUrl + event.urlAfterRedirects);
+    });
+  }
 
   applySeoTags(
     data: any,
@@ -25,7 +39,7 @@ export class SeoService {
       const yoastJson = data.yoast_head_json;
 
       // Title
-      this.titleService.setTitle(yoastJson.title || fallbackData.title || 'Adventures HUB Sports Shop');
+      this.titleService.setTitle(yoastJson.title || fallbackData.title || this.siteName);
 
       // Meta Description
       if (yoastJson.description) {
@@ -51,11 +65,11 @@ export class SeoService {
 
       // Canonical
       if (yoastJson.canonical) {
-        this.metaService.updateTag({ rel: 'canonical', href: yoastJson.canonical });
+        this.updateCanonicalUrl(yoastJson.canonical);
       } else if (data.permalink) {
-        this.metaService.updateTag({ rel: 'canonical', href: data.permalink });
+        this.updateCanonicalUrl(data.permalink);
       } else {
-        this.metaService.updateTag({ rel: 'canonical', href: pageUrl });
+        this.updateCanonicalUrl(pageUrl);
       }
 
       // Hreflang for multilingual support
@@ -69,7 +83,7 @@ export class SeoService {
       } else {
         this.metaService.updateTag({
           property: 'og:title',
-          content: fallbackData.title || 'Adventures HUB Sports Shop',
+          content: fallbackData.title || this.siteName,
         });
       }
 
@@ -95,7 +109,7 @@ export class SeoService {
       } else {
         this.metaService.updateTag({
           property: 'og:site_name',
-          content: 'Adventures HUB Sports Shop',
+          content: this.siteName,
         });
       }
 
@@ -175,7 +189,7 @@ export class SeoService {
             itemCondition: 'https://schema.org/NewCondition',
             seller: {
               '@type': 'Organization',
-              name: 'Adventures HUB Sports Shop',
+              name: this.siteName,
             },
           },
           aggregateRating:
@@ -206,7 +220,7 @@ export class SeoService {
           url: pageUrl,
           publisher: {
             '@type': 'Organization',
-            name: 'Adventures HUB Sports Shop',
+            name: this.siteName,
           },
         };
         schemaHtml = this.sanitizer.bypassSecurityTrustHtml(
@@ -215,7 +229,7 @@ export class SeoService {
       }
     } else {
       // Fallback for listing pages or when data is null
-      this.titleService.setTitle(fallbackData.title || 'Adventures HUB Sports Shop');
+      this.titleService.setTitle(fallbackData.title || this.siteName);
       if (fallbackData.description) {
         this.metaService.updateTag({
           name: 'description',
@@ -225,14 +239,14 @@ export class SeoService {
         this.metaService.removeTag('name="description"');
       }
       this.metaService.updateTag({ name: 'robots', content: 'index, follow' });
-      this.metaService.updateTag({ rel: 'canonical', href: pageUrl });
+      this.updateCanonicalUrl(pageUrl);
       this.metaService.updateTag({ rel: 'alternate', hreflang: 'en', href: pageUrl });
       this.metaService.updateTag({ rel: 'alternate', hreflang: 'ar', href: `${pageUrl}?lang=ar` });
       this.metaService.updateTag({ rel: 'alternate', hreflang: 'x-default', href: pageUrl });
 
       this.metaService.updateTag({
         property: 'og:title',
-        content: fallbackData.title || 'Adventures HUB Sports Shop',
+        content: fallbackData.title || this.siteName,
       });
       if (fallbackData.description) {
         this.metaService.updateTag({
@@ -245,7 +259,7 @@ export class SeoService {
       this.metaService.updateTag({ property: 'og:url', content: pageUrl });
       this.metaService.updateTag({
         property: 'og:site_name',
-        content: 'Adventures HUB Sports Shop',
+        content: this.siteName,
       });
       if (fallbackData.image) {
         this.metaService.updateTag({ property: 'og:image', content: fallbackData.image });
@@ -268,7 +282,7 @@ export class SeoService {
         url: pageUrl,
         publisher: {
           '@type': 'Organization',
-          name: 'Adventures HUB Sports Shop',
+          name: this.siteName,
         },
       };
       schemaHtml = this.sanitizer.bypassSecurityTrustHtml(
@@ -277,6 +291,39 @@ export class SeoService {
     }
 
     return schemaHtml;
+  }
+
+  /**
+   * Updates the canonical URL meta tag
+   * @param url The full URL to set as canonical
+   */
+  updateCanonicalUrl(url: string): void {
+    const linkElements = document.querySelectorAll('link[rel="canonical"]');
+
+    // Remove existing canonical tags if any
+    if (linkElements.length > 0) {
+      linkElements.forEach(element => element.remove());
+    }
+
+    // Set canonical in meta tags
+    this.metaService.updateTag({ rel: 'canonical', href: url });
+  }
+
+  /**
+   * Generate XML Sitemap data (can be used for dynamic sitemap generation)
+   * @returns XML string for sitemap
+   */
+  generateSitemapXml(): string {
+    // This would typically fetch data from an API
+    // For now, returning a basic structure
+    return `<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>${this.siteUrl}/</loc>
+        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+        <priority>1.0</priority>
+      </url>
+    </urlset>`;
   }
 
   private stripHtml(html: string): string {
