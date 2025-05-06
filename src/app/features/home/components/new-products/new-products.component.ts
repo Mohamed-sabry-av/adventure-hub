@@ -55,7 +55,7 @@ export class NewProductsComponent implements OnInit {
 
   loadNewProducts(): void {
     this.loading = true;
-    this.homeService.getNewArrivalsProducts(1, 13).subscribe({
+    this.homeService.getNewArrivalsProducts(1, 15).subscribe({
       next: (data: any) => {
         this.products = data;
         this.loading = false;

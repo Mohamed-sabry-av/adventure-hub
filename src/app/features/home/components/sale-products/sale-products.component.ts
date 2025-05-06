@@ -56,7 +56,7 @@ export class SaleProductsComponent implements OnInit {
 
   loadSaleProducts(): void {
     this.loading = true;
-    this.homeService.getSaleProducts(1, 10).subscribe({
+    this.homeService.getSaleProducts(1, 15).subscribe({
       next: (data: any) => {
         this.products = data;
         this.loading = false;

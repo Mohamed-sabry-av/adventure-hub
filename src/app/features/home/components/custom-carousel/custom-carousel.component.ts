@@ -25,9 +25,6 @@ import { CommonModule } from '@angular/common';
       <div
         class="carousel-container overflow-hidden"
         #carouselTrack
-        (touchstart)="onTouchStart($event)"
-        (touchmove)="onTouchMove($event)"
-        (touchend)="onTouchEnd()"
       >
         <div
           class="carousel-track flex transition-transform duration-500 ease-in-out"
@@ -38,7 +35,7 @@ import { CommonModule } from '@angular/common';
             <div
               class="carousel-item"
               [style.min-width.px]="getItemWidth()"
-              [style.padding.px]="itemGap / 9"
+              [style.margin-right.px]="i < items.length - 1 ? itemGap : 0"
             >
               <ng-container
                 *ngTemplateOutlet="
@@ -55,7 +52,7 @@ import { CommonModule } from '@angular/common';
       <button
         *ngIf="shouldShowControls()"
         (click)="prev()"
-        class="carousel-nav prev absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white bg-opacity-80 rounded-full p-2 shadow-md focus:outline-none"
+        class="carousel-nav prev"
         [class.opacity-50]="currentPosition <= 0 && !circular"
         aria-label="Previous items"
       >
@@ -65,7 +62,7 @@ import { CommonModule } from '@angular/common';
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
+          stroke="white"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -76,7 +73,7 @@ import { CommonModule } from '@angular/common';
       <button
         *ngIf="shouldShowControls()"
         (click)="next()"
-        class="carousel-nav next absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white bg-opacity-80 rounded-full p-2 shadow-md focus:outline-none"
+        class="carousel-nav next"
         [class.opacity-50]="currentPosition >= maxPosition && !circular"
         aria-label="Next items"
       >
@@ -86,7 +83,7 @@ import { CommonModule } from '@angular/common';
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
+          stroke="white"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -103,9 +100,9 @@ import { CommonModule } from '@angular/common';
         <button
           *ngFor="let dot of getPaginationDots(); let i = index"
           (click)="goToPage(i)"
-          class="pagination-dot w-2 h-2 rounded-full mx-1 transition-all"
-          [class.bg-gray-800]="isActiveDot(i)"
-          [class.bg-gray-300]="!isActiveDot(i)"
+          class="pagination-dot w-3 h-3 rounded-full mx-1 transition-all"
+          [class.bg-black]="isActiveDot(i)"
+          [class.bg-gray-400]="!isActiveDot(i)"
         ></button>
       </div>
     </div>
@@ -115,13 +112,12 @@ import { CommonModule } from '@angular/common';
       .custom-carousel {
         position: relative;
         padding: 0 40px;
-        user-select: none; /* Prevent text selection during swipe */
+        user-select: none;
       }
 
       .carousel-container {
         margin: 0 auto;
         width: 100%;
-        touch-action: pan-y; /* Allow vertical scrolling, block horizontal */
       }
 
       .carousel-item {
@@ -130,27 +126,32 @@ import { CommonModule } from '@angular/common';
       }
 
       .carousel-nav {
-        transition: all 0.2s ease-in-out;
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 20;
-      }
-
-      .carousel-nav:hover {
-        transform: translateY(-50%) scale(1.1);
-        background-color: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
       }
 
       .carousel-nav.prev {
-        left: 5px;
+        left: 10px;
       }
 
       .carousel-nav.next {
-        right: 5px;
+        right: 10px;
+      }
+
+      .carousel-nav:hover {
+        background-color: rgba(0, 0, 0, 0.9);
+        transform: translateY(-50%) scale(1.1);
       }
 
       .pagination-dots {
@@ -209,12 +210,6 @@ export class CustomCarouselComponent
   currentPage = 0;
   autoplayTimeout: any;
   containerWidth = 0;
-
-  // Touch event properties
-  private touchStartX = 0;
-  private touchCurrentX = 0;
-  private isDragging = false;
-  private swipeThreshold = 50; // Minimum swipe distance to trigger next/prev
 
   constructor(
     private el: ElementRef,
@@ -285,10 +280,10 @@ export class CustomCarouselComponent
       this.screenWidth - (this.showControlsBasedOnWidth ? 80 : 0);
 
     const itemWidth = this.getItemWidth();
-    this.totalWidth = (itemWidth + this.itemGap) * this.items.length;
+    this.totalWidth =
+      this.items.length * itemWidth + (this.items.length - 1) * this.itemGap;
 
-    const visibleWidth = this.getVisibleItems() * (itemWidth + this.itemGap);
-    this.maxPosition = Math.max(0, this.totalWidth - visibleWidth);
+    this.maxPosition = Math.max(0, this.totalWidth - this.containerWidth);
 
     if (this.currentPosition > this.maxPosition) {
       this.currentPosition = this.circular ? 0 : this.maxPosition;
@@ -299,16 +294,6 @@ export class CustomCarouselComponent
 
     this.updateCurrentPage();
     this.cd.detectChanges();
-
-    console.log(
-      `Carousel: items=${
-        this.items.length
-      }, itemWidth=${itemWidth}, totalWidth=${this.totalWidth}, maxPosition=${
-        this.maxPosition
-      }, visibleItems=${this.getVisibleItems()}, containerWidth=${
-        this.containerWidth
-      }`
-    );
   }
 
   getVisibleItems(): number {
@@ -320,10 +305,8 @@ export class CustomCarouselComponent
       }
     }
 
-    if (this.screenWidth < 640) {
+    if (this.screenWidth < 768) {
       return 2;
-    } else if (this.screenWidth < 768) {
-      return 2.5;
     } else if (this.screenWidth < 992) {
       return 3;
     } else {
@@ -344,8 +327,8 @@ export class CustomCarouselComponent
   next(): void {
     if (!this.items.length) return;
 
-    const itemWidth = this.getItemWidth() + this.itemGap;
-    const scrollAmount = itemWidth * this.numScroll;
+    const itemWidth = this.getItemWidth();
+    const scrollAmount = (itemWidth + this.itemGap) * this.numScroll;
 
     if (this.currentPosition < this.maxPosition) {
       this.currentPosition = Math.min(
@@ -359,17 +342,13 @@ export class CustomCarouselComponent
     this.updateCurrentPage();
     this.resetAutoplayTimer();
     this.cd.detectChanges();
-
-    console.log(
-      `Next: currentPosition=${this.currentPosition}, maxPosition=${this.maxPosition}`
-    );
   }
 
   prev(): void {
     if (!this.items.length) return;
 
-    const itemWidth = this.getItemWidth() + this.itemGap;
-    const scrollAmount = itemWidth * this.numScroll;
+    const itemWidth = this.getItemWidth();
+    const scrollAmount = (itemWidth + this.itemGap) * this.numScroll;
 
     if (this.currentPosition > 0) {
       this.currentPosition = Math.max(this.currentPosition - scrollAmount, 0);
@@ -380,17 +359,13 @@ export class CustomCarouselComponent
     this.updateCurrentPage();
     this.resetAutoplayTimer();
     this.cd.detectChanges();
-
-    console.log(
-      `Prev: currentPosition=${this.currentPosition}, maxPosition=${this.maxPosition}`
-    );
   }
 
   goToPage(pageIndex: number): void {
     if (!this.items.length) return;
 
-    const itemWidth = this.getItemWidth() + this.itemGap;
-    const scrollAmount = itemWidth * this.numScroll;
+    const itemWidth = this.getItemWidth();
+    const scrollAmount = (itemWidth + this.itemGap) * this.numScroll;
     const totalPages = this.getTotalPages();
 
     if (pageIndex >= 0 && pageIndex < totalPages) {
@@ -406,7 +381,8 @@ export class CustomCarouselComponent
   }
 
   updateCurrentPage(): void {
-    const scrollAmount = (this.getItemWidth() + this.itemGap) * this.numScroll;
+    const itemWidth = this.getItemWidth();
+    const scrollAmount = (itemWidth + this.itemGap) * this.numScroll;
     if (scrollAmount > 0) {
       this.currentPage = Math.round(this.currentPosition / scrollAmount);
     }
@@ -414,10 +390,9 @@ export class CustomCarouselComponent
 
   getTotalPages(): number {
     if (this.items.length === 0 || this.numScroll === 0) return 0;
-    return (
-      Math.ceil((this.items.length - this.getVisibleItems()) / this.numScroll) +
-      1
-    );
+    const totalItems = this.items.length;
+    const visibleItems = this.getVisibleItems();
+    return Math.ceil((totalItems - visibleItems) / this.numScroll) + 1;
   }
 
   getPaginationDots(): number[] {
@@ -432,7 +407,7 @@ export class CustomCarouselComponent
   }
 
   hasEnoughItems(): boolean {
-    return this.items.length > Math.ceil(this.getVisibleItems());
+    return this.items.length > this.getVisibleItems();
   }
 
   shouldShowControls(): boolean {
@@ -466,57 +441,5 @@ export class CustomCarouselComponent
       this.stopAutoplay();
       this.startAutoplay();
     }
-  }
-
-  // Touch event handlers
-  onTouchStart(event: TouchEvent): void {
-    this.isDragging = true;
-    this.touchStartX = event.touches[0].clientX;
-    this.touchCurrentX = this.touchStartX;
-    this.stopAutoplay();
-  }
-
-  onTouchMove(event: TouchEvent): void {
-    if (!this.isDragging) return;
-    this.touchCurrentX = event.touches[0].clientX;
-    const deltaX = this.touchCurrentX - this.touchStartX;
-    this.currentPosition = Math.max(
-      0,
-      Math.min(this.maxPosition, this.currentPosition - deltaX)
-    );
-    this.cd.detectChanges();
-  }
-
-  onTouchEnd(): void {
-    if (!this.isDragging) return;
-    this.isDragging = false;
-
-    const deltaX = this.touchCurrentX - this.touchStartX;
-    if (Math.abs(deltaX) > this.swipeThreshold) {
-      if (deltaX > 0) {
-        this.prev();
-      } else {
-        this.next();
-      }
-    } else {
-      // Snap back to nearest item
-      this.snapToNearestItem();
-    }
-
-    this.startAutoplay();
-  }
-
-  snapToNearestItem(): void {
-    const itemWidth = this.getItemWidth() + this.itemGap;
-    const nearestItemIndex = Math.round(this.currentPosition / itemWidth);
-    this.currentPosition = nearestItemIndex * itemWidth;
-    if (this.currentPosition > this.maxPosition) {
-      this.currentPosition = this.maxPosition;
-    }
-    if (this.currentPosition < 0) {
-      this.currentPosition = 0;
-    }
-    this.updateCurrentPage();
-    this.cd.detectChanges();
   }
 }
