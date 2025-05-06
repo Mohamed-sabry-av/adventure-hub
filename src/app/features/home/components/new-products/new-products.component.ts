@@ -8,14 +8,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { CarouselModule } from 'primeng/carousel';
+import { CustomCarouselComponent } from '../custom-carousel/custom-carousel.component';
 
 @Component({
   selector: 'app-new-products',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
+  imports: [CommonModule, RouterModule, ProductCardComponent, CustomCarouselComponent],
   templateUrl: './new-products.component.html',
-
   styleUrls: ['./new-products.component.css'],
 })
 export class NewProductsComponent implements OnInit {
@@ -42,7 +41,7 @@ export class NewProductsComponent implements OnInit {
     },
     {
       breakpoint: '575px',
-      numVisible: 2,
+      numVisible: 2, // تأكيد عرض منتجين على الهاتف
       numScroll: 1,
     },
   ];
@@ -56,7 +55,7 @@ export class NewProductsComponent implements OnInit {
 
   loadNewProducts(): void {
     this.loading = true;
-    this.homeService.getNewArrivalsProducts(1, 8).subscribe({
+    this.homeService.getNewArrivalsProducts(1, 13).subscribe({
       next: (data: any) => {
         this.products = data;
         this.loading = false;

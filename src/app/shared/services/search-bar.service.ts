@@ -1,12 +1,17 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { Observable, forkJoin, map, of } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
+import { CacheService } from '../../core/services/cashing.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SearchBarService {
-  constructor(private wooApi: ApiService) {}
+  constructor(
+    private wooApi: ApiService,
+    private cacheService: CacheService
+  ) {}
 
   /**
    * Search for products with expanded options
@@ -164,4 +169,146 @@ export class SearchBarService {
   GetProductCategories(productId: number): Observable<any> {
     return this.wooApi.getRequest(`products/${productId}/categories`);
   }
-}
+
+  /**
+   * Fetch initial filters for a search term
+   * @param searchTerm Search query
+   * @returns Observable with all possible attributes and terms for the search results
+   */
+  getInitialSearchFilters(searchTerm: string): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
+    if (!searchTerm.trim()) {
+      return of({});
+    }
+
+    const cacheKey = `search_filters_${searchTerm}`;
+
+    return this.cacheService.cacheObservable(
+      cacheKey,
+      this.wooApi.getRequest<any>(`search/filters?search=${searchTerm}`).pipe(
+        map((response: any) => {
+          // Transform the response to match the expected format
+          const attributesMap = response.filters?.reduce((acc: any, attr: any) => {
+            acc[attr.slug] = {
+              name: attr.name,
+              terms: attr.terms?.map((term: any) => ({
+                id: term.id,
+                name: term.name,
+              })) || [],
+            };
+            return acc;
+          }, {}) || {};
+
+          return attributesMap;
+        })
+      ),
+      300000 // Cache for 5 minutes
+    );
+  }
+
+  /**
+   * Fetch available filters based on current selection for a search term
+   * @param searchTerm Search query
+   * @param filters Currently selected filters
+   * @returns Observable with available attributes and terms
+   */
+  getAvailableSearchFilters(
+    searchTerm: string,
+    filters: { [key: string]: string[] }
+  ): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
+    if (!searchTerm.trim()) {
+      return of({});
+    }
+
+    const cacheKey = `available_search_filters_${searchTerm}_${JSON.stringify(filters)}`;
+    const params = new HttpParams().set('search', searchTerm).set('filters', JSON.stringify(filters));
+
+    return this.cacheService.cacheObservable(
+      cacheKey,
+      this.wooApi.getRequest<any>('search/available-filters', { params }).pipe(
+        map((response: any) => {
+          // Transform the response to match the expected format
+          const attributesMap = response.filters?.reduce((acc: any, attr: any) => {
+            acc[attr.slug] = {
+              name: attr.name,
+              terms: attr.terms?.map((term: any) => ({
+                id: term.id,
+                name: term.name,
+              })) || [],
+            };
+            return acc;
+          }, {}) || {};
+
+          return attributesMap;
+        })
+      ),
+      300000 // Cache for 5 minutes
+    );
+  }
+
+  /**
+   * Search products with filters
+   * @param searchTerm Search query
+   * @param filters Selected filters
+   * @param page Page number
+   * @param perPage Number of items per page
+   * @param orderby Sort field
+   * @param order Sort direction
+   * @returns Observable with filtered products
+   */
+  searchProductsWithFilters(
+    searchTerm: string,
+    filters: { [key: string]: string[] } = {},
+    page: number = 1,
+    perPage: number = 12,
+    orderby: string = 'date',
+    order: 'asc' | 'desc' = 'desc'
+  ): Observable<any[]> {
+    if (!searchTerm.trim()) {
+      return of([]);
+    }
+
+    const cacheKey = `search_products_filters_${searchTerm}_${JSON.stringify(filters)}_page_${page}_per_${perPage}_orderby_${orderby}_order_${order}`;
+
+    let params = new HttpParams()
+      .set('search', searchTerm)
+      .set('page', page.toString())
+      .set('per_page', perPage.toString())
+      .set('orderby', orderby)
+      .set('order', order)
+      .set('status', 'publish')
+      .set('stock_status', 'instock');
+
+    if (Object.keys(filters).length > 0) {
+      const formattedFilters = Object.fromEntries(
+        Object.entries(filters).map(([key, values]) => [
+          key === 'brand' ? 'pa_brand' : `pa_${key}`,
+          values,
+        ])
+      );
+      params = params.set('attributes', JSON.stringify(formattedFilters));
+    }
+
+    return this.cacheService.cacheObservable(
+      cacheKey,
+      this.wooApi.getRequest<any[]>(`products`, { params }).pipe(
+        map((products: any[]) => {
+          return products.map((product) => ({
+            ...product,
+            onSale:
+              product.sale_price &&
+              parseFloat(product.sale_price) < parseFloat(product.regular_price),
+            discountPercentage:
+              product.sale_price && product.regular_price
+                ? Math.round(
+                    ((parseFloat(product.regular_price) -
+                      parseFloat(product.sale_price)) /
+                      parseFloat(product.regular_price)) *
+                      100
+                  )
+                : 0,
+          }));
+        })
+      ),
+      300000 // Cache for 5 minutes
+    );
+}}

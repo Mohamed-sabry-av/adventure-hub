@@ -1,10 +1,12 @@
 <div class="p-3">
   <!-- Categories/Brand -->
   <div class="text-xs text-gray-500 uppercase mb-1 category">
-    <span
-      *ngIf="product.categories && product.categories.length"
-      [innerHtml]="product.categories[0].name"
-    ></span>
+    <ng-container *ngIf="product.categories && product.categories.length">
+      <a
+        [routerLink]="getCategoryRouterPath() | async"
+        class="hover:underline"
+      >{{ product.categories[0].name }}</a>
+    </ng-container>
     <span
       *ngIf="product.categories && product.categories.length && getBrandName()"
       >,
@@ -13,8 +15,7 @@
       *ngIf="getBrandName()"
       [routerLink]="['/product/brand', getBrandSlug()]"
       class="hover:underline"
-      >{{ getBrandName() }}</a
-    >
+      >{{ getBrandName() }}</a>
   </div>
 
   <!-- Product Name -->

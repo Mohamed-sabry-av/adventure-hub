@@ -6,118 +6,132 @@
   <app-breadcrumb
     (categoryIdChange)="onCategoryIdChange($event)"
   ></app-breadcrumb>
-  <div class="bg-white">
-    <main class="mx-auto w-full px-4 sm:px-6 lg:px-8">
-      <!-- Category Header Section -->
-      <div class="py-2 border-b border-gray-200">
-        <div class="mb-4">
-          <h1 class="text-3xl font-medium text-gray-900" [innerHTML]="currentCategory.name">
-            {{ currentCategory?.name }}
-          </h1>
-          <div class="text-sm text-gray-500">
-            ({{ totalProducts || 0 }} products)
-          </div>
+
+  <!-- Show error state if no category found -->
+  @if (!currentCategory && isInitialLoadComplete && !showSkeleton) {
+    <div class="bg-white">
+      <main class="mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <div class="py-12 text-center">
+          <h1 class="text-3xl font-medium text-gray-900 mb-4">فئة غير موجودة</h1>
+          <p class="text-lg text-gray-600 mb-6">عذراً، الفئة التي تبحث عنها غير موجودة.</p>
+          <a routerLink="/" class="inline-block bg-[#f4663c] text-white px-4 py-2 rounded-md">العودة للصفحة الرئيسية</a>
         </div>
-
-        @if (currentCategory?.description) {
-        <div class="mt-2 text-sm text-gray-700 max-w-3xl" >
-          {{ currentCategory.description }}
-        </div>
-        }
-      </div>
-
-      <!-- Filters and Sort Section -->
-      <div class="pt-4 pb-2 border-b border-gray-200">
-        <div class="flex flex-wrap items-center justify-between">
-          <!-- Mobile Filter Button -->
-          <button
-            type="button"
-            class="flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 lg:hidden"
-            (click)="openFilterDrawer()"
-          >
-            <span>Filter & Sort</span>
-            <svg
-              class="ml-1 h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"
-              ></path>
-            </svg>
-          </button>
-
-          <!-- Desktop Filter and Sort -->
-          <div class="hidden lg:flex lg:items-center">
-            <div class="mr-4">
-              <app-sort-menu
-                (sortChange)="onSortChange($event)"
-              ></app-sort-menu>
+      </main>
+    </div>
+  } @else {
+    <div class="bg-white">
+      <main class="mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <!-- Category Header Section -->
+        <div class="py-2 border-b border-gray-200">
+          <div class="mb-4">
+            <h1 class="text-3xl font-medium text-gray-900" [innerHTML]="currentCategory?.name">
+              {{ currentCategory?.name }}
+            </h1>
+            <div class="text-sm text-gray-500">
+              ({{ totalProducts || 0 }} products)
             </div>
           </div>
 
-          <div class="flex items-center">
-            <div class="hidden lg:flex lg:items-center mr-4"></div>
+          @if (currentCategory?.description) {
+          <div class="mt-2 text-sm text-gray-700 max-w-3xl" >
+            {{ currentCategory.description }}
+          </div>
+          }
+        </div>
 
-            <!-- View as Grid/List toggle -->
+        <!-- Filters and Sort Section -->
+        <div class="pt-4 pb-2 border-b border-gray-200">
+          <div class="flex flex-wrap items-center justify-between">
+            <!-- Mobile Filter Button -->
+            <button
+              type="button"
+              class="flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 lg:hidden"
+              (click)="openFilterDrawer()"
+            >
+              <span>Filter & Sort</span>
+              <svg
+                class="ml-1 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- Desktop Filter and Sort -->
+            <div class="hidden lg:flex lg:items-center">
+              <div class="mr-4">
+                <app-sort-menu
+                  (sortChange)="onSortChange($event)"
+                ></app-sort-menu>
+              </div>
+            </div>
+
             <div class="flex items-center">
-              <button
-                type="button"
-                class="p-2 text-gray-400 hover:text-gray-500"
-              >
-                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M3 5a1 1
+              <div class="hidden lg:flex lg:items-center mr-4"></div>
 
-0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="ml-2 p-2 text-gray-400 hover:text-gray-500"
-              >
-                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm8-8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-              </button>
+              <!-- View as Grid/List toggle -->
+              <div class="flex items-center">
+                <button
+                  type="button"
+                  class="p-2 text-gray-400 hover:text-gray-500"
+                >
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fill-rule="evenodd"
+                      d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="ml-2 p-2 text-gray-400 hover:text-gray-500"
+                >
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fill-rule="evenodd"
+                      d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm8-8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Main Content Section -->
-      <section class="pt-6 pb-24">
-        <div class="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-          <!-- Filter sidebar (desktop) -->
-          <div class="hidden lg:block">
-            <app-filter-sidebar
-              [categoryId]="currentCategoryId"
-              [selectedFilters]="filterSidebar?.selectedFilters || {}"
-              (filtersChanges)="onFiltersChange($event)"
-            >
-            </app-filter-sidebar>
-          </div>
+        <!-- Main Content Section -->
+        <section class="pt-6 pb-24">
+          <div class="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
+            <!-- Filter sidebar (desktop) -->
+            <div class="hidden lg:block">
+              <app-filter-sidebar
+                [categoryId]="currentCategoryId"
+                [selectedFilters]="filterSidebar?.selectedFilters || {}"
+                (filtersChanges)="onFiltersChange($event)"
+              >
+              </app-filter-sidebar>
+            </div>
 
-          <!-- Products grid -->
-          <div class="lg:col-span-3">
-            <app-products-grid
-              [products]="products"
-              [isLoading]="isLoading"
-              [isLoadingMore]="isLoadingMore"
-            ></app-products-grid>
+            <!-- Products grid -->
+            <div class="lg:col-span-3">
+              <app-products-grid
+                [products]="products"
+                [isLoading]="isLoading"
+                [isLoadingMore]="isLoadingMore"
+                [isInitialLoadComplete]="isInitialLoadComplete"
+                [showSkeleton]="showSkeleton"
+              ></app-products-grid>
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
-  </div>
+        </section>
+      </main>
+    </div>
+  }
 
   <!-- Filter Drawer (mobile) -->
   <app-filter-drawer

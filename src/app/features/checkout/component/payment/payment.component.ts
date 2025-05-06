@@ -37,6 +37,8 @@ export class PaymentComponent implements OnInit, OnChanges {
 
   @ViewChild('paymentElement', { static: true }) paymentElementRef!: ElementRef;
 
+  private isPaymentInProgress = false; // إضافة متغير لتتبع حالة الدفع
+
   constructor(private http: HttpClient) {}
 
   async ngOnInit() {
@@ -109,6 +111,14 @@ export class PaymentComponent implements OnInit, OnChanges {
   }
 
   async pay() {
+    // تحقق من أن العملية غير جارية بالفعل لمنع النقر المزدوج
+    if (this.isPaymentInProgress) {
+      console.log('Payment is already in progress, ignoring additional clicks');
+      return;
+    }
+
+    this.isPaymentInProgress = true; // تعيين حالة الدفع كجارية
+
     if (this.useDemoMode) {
       this.setPaymentProcessing(true);
       this.error = null;
@@ -118,6 +128,7 @@ export class PaymentComponent implements OnInit, OnChanges {
         this.paymentIntentId = 'pi_' + Math.random().toString(36).substring(2, 15);
         this.checkOrderStatus(this.paymentIntentId);
         this.setPaymentProcessing(false);
+        this.isPaymentInProgress = false; // إعادة تعيين الحالة بعد الانتهاء
       }, 2000);
       return;
     }
@@ -127,6 +138,7 @@ export class PaymentComponent implements OnInit, OnChanges {
       this.error = 'Payment system not initialized';
       this.paymentStatus = 'error';
       this.paymentError.emit(this.error);
+      this.isPaymentInProgress = false; // إعادة تعيين الحالة عند حدوث خطأ
       return;
     }
 
@@ -148,6 +160,7 @@ export class PaymentComponent implements OnInit, OnChanges {
         this.paymentError.emit(this.error);
         console.error('Payment error:', error);
         this.setPaymentProcessing(false);
+        this.isPaymentInProgress = false; // إعادة تعيين الحالة عند حدوث خطأ
       } else if (paymentIntent) {
         this.paymentStatus = 'success';
         this.paymentIntentId = paymentIntent.id;
@@ -160,6 +173,7 @@ export class PaymentComponent implements OnInit, OnChanges {
       this.paymentError.emit(this.error);
       console.error('Payment exception:', e);
       this.setPaymentProcessing(false);
+      this.isPaymentInProgress = false; // إعادة تعيين الحالة عند حدوث خطأ
     }
   }
 
@@ -169,6 +183,7 @@ export class PaymentComponent implements OnInit, OnChanges {
       this.paymentStatus = 'error';
       this.setPaymentProcessing(false);
       this.paymentError.emit(this.error);
+      this.isPaymentInProgress = false; // إعادة تعيين الحالة عند حدوث خطأ
       return;
     }
 
@@ -182,6 +197,7 @@ export class PaymentComponent implements OnInit, OnChanges {
               paymentIntentId: paymentIntentId,
               orderId: response.orderId
             });
+            this.isPaymentInProgress = false; // إعادة تعيين الحالة بعد النجاح
 
             if (!this.useDemoMode) {
               window.location.href = `/checkout/complete?order_id=${response.orderId}`;
@@ -202,6 +218,7 @@ export class PaymentComponent implements OnInit, OnChanges {
               paymentIntentId: paymentIntentId,
               orderId: String(fakeOrderId)
             });
+            this.isPaymentInProgress = false; // إعادة تعيين الحالة في حالة الوضع التجريبي
           } else {
             setTimeout(checkStatus, 3000);
           }

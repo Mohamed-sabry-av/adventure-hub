@@ -11,6 +11,8 @@ import { AccountAuthService } from '../account-auth.service';
 })
 export class WooCommerceAccountService {
   private wishlistBaseUrl = 'https://adventures-hub.com/wp-json/swc/v1/wishlist'; // Update to your WordPress URL
+  private wcApiUrl = 'https://adventures-hub.com/wp-json/wc/v3'; // WooCommerce REST API base URL
+  private wooApiUrl = 'https://adventures-hub.com/wp-json/wc/store/v1'; // WooCommerce Store API base URL
 
   constructor(
     private apiService: ApiService,
@@ -18,24 +20,66 @@ export class WooCommerceAccountService {
     private accountAuthService: AccountAuthService
   ) {}
 
+  // طريقة بديلة للحصول على الطلبات
+  getCustomerOrders(): Observable<any> {
+    const userId = this.getCustomerId();
+    if (!userId) {
+      console.warn('No valid user ID found, cannot fetch orders');
+      return of({ success: false, message: 'User not logged in or invalid user ID' });
+    }
+
+    // أولاً، حاول استخدام WC Store API
+    const params = new HttpParams().set('customer_id', userId.toString());
+    const options = { params };
+
+    return this.apiService
+      .getExternalRequest(`${this.wooApiUrl}/orders`, options)
+      .pipe(
+        catchError(error => {
+          console.warn('Error fetching orders from Store API', error);
+
+          // حاول استخدام واجهة البرمجة البديلة
+          const token = this.accountAuthService.getToken();
+          if (!token) {
+            return of({ success: false, message: 'Authentication token not found' });
+          }
+
+          const alternativeOptions = {
+            params,
+            headers: { Authorization: `Bearer ${token}` }
+          };
+
+          // محاولة استخدام WC REST API
+          return this.apiService
+            .getExternalRequest(`${this.wcApiUrl}/orders`, alternativeOptions)
+            .pipe(
+              catchError(err => {
+                console.error('Failed to fetch orders from all sources', err);
+                return of({
+                  success: false,
+                  message: 'Failed to fetch order history',
+                  orders: []
+                });
+              })
+            );
+        })
+      );
+  }
+
   // Get Wishlist
   getWishlist(): Observable<any> {
     const userId = this.getCustomerId();
-    // console.log('getWishlist: userId=', userId); // Debug log
     if (!this.isLoggedIn() || !userId) {
       console.warn('No valid user ID found, cannot fetch wishlist');
       return of({ success: false, message: 'User not logged in or invalid user ID' });
     }
 
     const params = new HttpParams().set('user_id', userId.toString());
-    const options = { params }; // Explicitly set options with params only
-
-    // console.log('getWishlist: Sending request with options=', options); // Debug log
+    const options = { params };
 
     return this.apiService
       .getExternalRequest(this.wishlistBaseUrl, options)
       .pipe(
-        // tap((response) => console.log('Get wishlist response:', response)),
         catchError((error) => {
           console.error('Error fetching wishlist:', {
             message: error.message,
@@ -55,7 +99,6 @@ export class WooCommerceAccountService {
   // Add Item to Wishlist
   addToWishlist(productId: number): Observable<any> {
     const userId = this.getCustomerId();
-    // console.log('addToWishlist: userId=', userId, 'productId=', productId); // Debug log
     if (!this.isLoggedIn() || !userId) {
       console.warn('No valid user ID found, cannot add to wishlist');
       return of({ success: false, message: 'User not logged in or invalid user ID' });
@@ -65,12 +108,9 @@ export class WooCommerceAccountService {
     const headers = { 'Content-Type': 'application/json' };
     const options = { headers };
 
-    // console.log('addToWishlist: Sending request with body=', body, 'options=', options); // Debug log
-
     return this.apiService
       .postExternalRequest(`${this.wishlistBaseUrl}/add`, body, options)
       .pipe(
-        // tap((response) => console.log('Add to wishlist response:', response)),
         catchError((error) => {
           console.error('Error adding to wishlist:', {
             message: error.message,
@@ -90,7 +130,6 @@ export class WooCommerceAccountService {
   // Remove Item from Wishlist
   removeFromWishlist(productId: number): Observable<any> {
     const userId = this.getCustomerId();
-    // console.log('removeFromWishlist: userId=', userId, 'productId=', productId); // Debug log
     if (!this.isLoggedIn() || !userId) {
       console.warn('No valid user ID found, cannot remove from wishlist');
       return of({ success: false, message: 'User not logged in or invalid user ID' });
@@ -100,12 +139,9 @@ export class WooCommerceAccountService {
     const headers = { 'Content-Type': 'application/json' };
     const options = { headers, body };
 
-    // console.log('removeFromWishlist: Sending request with body=', body, 'options=', options); // Debug log
-
     return this.apiService
       .deleteExternalRequest(`${this.wishlistBaseUrl}/remove`, options)
       .pipe(
-        // tap((response) => console.log('Remove from wishlist response:', response)),
         catchError((error) => {
           console.error('Error removing from wishlist:', {
             message: error.message,
@@ -125,11 +161,9 @@ export class WooCommerceAccountService {
   // Add to Cart
   addToCart(productId: number, quantity: number = 1): Observable<any> {
     const body = { product_id: productId, quantity };
-    // console.log('addToCart: Sending request with body=', body); // Debug log
     return this.apiService
       .postRequest('cart/add', body)
       .pipe(
-        // tap((response) => console.log('Add to cart response:', response)),
         catchError((error) => {
           console.error('Error adding to cart:', {
             message: error.message,
@@ -149,7 +183,6 @@ export class WooCommerceAccountService {
   getCustomerId(): number | null {
     const customerIdStr = this.accountAuthService.getUserId();
     const userId = customerIdStr ? parseInt(customerIdStr, 10) : null;
-    // console.log('getCustomerId: customerIdStr=', customerIdStr, 'userId=', userId); // Debug log
     return userId;
   }
 
@@ -162,7 +195,6 @@ export class WooCommerceAccountService {
   isLoggedIn(): boolean {
     const userId = this.getCustomerId();
     const isValid = !!userId;
-    // console.log('isLoggedIn:', isValid, 'User ID:', userId || 'missing'); // Debug log
     return isValid;
   }
 

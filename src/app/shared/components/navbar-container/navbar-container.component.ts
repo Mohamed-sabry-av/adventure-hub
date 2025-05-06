@@ -35,6 +35,7 @@ export class NavbarContainerComponent {
         ? this.allCategories.filter((cat) => cat.parent === categoryId)
         : [];
 
+    console.log(filteredCategories);
     this.subCategoriesSubject.next(filteredCategories);
   }
 }

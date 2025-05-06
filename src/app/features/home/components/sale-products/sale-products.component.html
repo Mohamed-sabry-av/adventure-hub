@@ -27,21 +27,20 @@
     <!-- Products Carousel -->
     @if (!loading && !error && products.length > 0) {
       <div class="products-carousel overflow-hidden">
-        <p-carousel
-          [value]="products"
+        <app-custom-carousel
+          [items]="products"
           [numVisible]="getVisibleItemsCount()"
-          [numScroll]="2"
+          [numScroll]="1"
           [circular]="true"
           [autoplayInterval]="5000"
           [responsiveOptions]="responsiveOptions"
-          styleClass="custom-carousel"
         >
-          <ng-template let-product pTemplate="item">
+          <ng-template #item let-product>
             <div class="carousel-item px-2">
               <app-product-card [product]="product"></app-product-card>
             </div>
           </ng-template>
-        </p-carousel>
+        </app-custom-carousel>
       </div>
     }
 

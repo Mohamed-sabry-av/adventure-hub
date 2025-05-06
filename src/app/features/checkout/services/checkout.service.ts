@@ -7,6 +7,7 @@ import {
   combineLatest,
   map,
   Observable,
+  of,
   switchMap,
   take,
   throwError,
@@ -74,7 +75,6 @@ export class CheckoutService {
   appliedCouponStatus$: Observable<any> = this.store.select(copuponStatusSelector);
   appliedCouponValue$: Observable<any> = this.store.select(copuponDataSelector);
 
-  // لتخزين billingForm مؤقتاً (سيتم تمريره من الكومبوننت)
   private billingForm: FormGroup | null = null;
 
   setBillingForm(form: FormGroup) {
@@ -155,10 +155,19 @@ export class CheckoutService {
   getCartItems(): Observable<any[]> {
     return this.cartService.savedUserCart$.pipe(
       map((response: any) =>
-        response?.userCart?.items.map((item: any) => ({
-          product_id: item.id,
-          quantity: item.quantity,
-        }))
+        response?.userCart?.items.map((item: any) => {
+          const lineItem: any = {
+            product_id: parseInt(item.id, 10),
+            quantity: parseInt(item.quantity, 10),
+          };
+          if (item.variation_id) {
+            const variationId = parseInt(item.variation_id, 10);
+            if (!isNaN(variationId)) {
+              lineItem.variation_id = variationId;
+            }
+          }
+          return lineItem;
+        })
       )
     );
   }
@@ -215,52 +224,61 @@ export class CheckoutService {
   createPaymentIntent(
     amount: number,
     currency: string,
-    orderData: { billing: any; shipping: any; line_items: any[] }
+    orderData: { billing: any; shipping: any; line_items?: any[] }
   ): Observable<PaymentIntentResponse> {
-    if (!this.billingForm) {
-      return throwError(() => new Error('Billing form is not available for coupon validation'));
-    }
+    // إذا كان فيه billingForm، نفّذ التحقق من الكوبونات
+    const couponObservable = this.billingForm
+      ? this.getCoupons(this.billingForm)
+      : of({ isValid: true, coupon: [] });
 
-    return combineLatest([
-      this.getCoupons(this.billingForm),
-      this.getCartItems(),
-    ]).pipe(
-      switchMap(([couponData, lineItems]) => {
+    return couponObservable.pipe(
+      switchMap((couponData) => {
         if (!couponData.isValid && couponData.coupon.length > 0) {
           return throwError(() => new Error('Coupon already used'));
         }
 
-        const payload: PaymentIntentRequest = {
-          amount,
-          currency,
-          orderData: {
-            ...orderData,
-            line_items: lineItems,
-            coupon_lines: couponData.coupon || [],
-          },
-        };
+        // استخدم line_items من orderData إذا كانت موجودة وغير فاضية، وإلا استخدم getCartItems
+        const lineItemsObservable = orderData.line_items && orderData.line_items.length > 0
+          ? of(orderData.line_items)
+          : this.getCartItems();
 
-        console.log('Payment Intent payload:', payload);
+        return lineItemsObservable.pipe(
+          switchMap((lineItems) => {
+            const payload: PaymentIntentRequest = {
+              amount,
+              currency,
+              orderData: {
+                ...orderData,
+                line_items: lineItems,
+                coupon_lines: couponData.coupon || [],
+              },
+            };
 
-        return this.httpClient.post<PaymentIntentResponse>(`${this.BACKEND_URL}/api/payment/create-intent`, payload).pipe(
-          map(response => {
-            if (response.success && response.clientSecret) {
-              this.paymentIntentClientSecret$.next(response.clientSecret);
-              this.paymentIntentId$.next(response.paymentIntentId || null);
-              return response;
-            }
-            throw new Error(response.error || 'Failed to create payment intent');
-          }),
-          catchError((error: HttpErrorResponse) => {
-            console.error('Error creating payment intent:', {
-              status: error.status,
-              statusText: error.statusText,
-              message: error.message,
-              error: error.error
-            });
-            const errorMessage = error.error?.error || error.message || 'Payment system error';
-            this.paymentError$.next(errorMessage);
-            return throwError(() => new Error(errorMessage));
+            console.log('Payment Intent payload sent to backend:', JSON.stringify(payload, null, 2));
+
+            return this.httpClient.post<PaymentIntentResponse>(`${this.BACKEND_URL}/api/payment/create-intent`, payload).pipe(
+              map(response => {
+                console.log('Payment Intent response:', response);
+                if (response.success && response.clientSecret) {
+                  this.paymentIntentClientSecret$.next(response.clientSecret);
+                  this.paymentIntentId$.next(response.paymentIntentId || null);
+                  return response;
+                }
+                throw new Error(response.error || 'Failed to create payment intent');
+              }),
+              catchError((error: HttpErrorResponse) => {
+                console.error('Error creating payment intent:', {
+                  status: error.status,
+                  statusText: error.statusText,
+                  message: error.message,
+                  error: error.error,
+                  response: error.error ? JSON.stringify(error.error, null, 2) : 'No error details'
+                });
+                const errorMessage = error.error?.error || error.message || 'Payment system error';
+                this.paymentError$.next(errorMessage);
+                return throwError(() => new Error(errorMessage));
+              })
+            );
           })
         );
       })

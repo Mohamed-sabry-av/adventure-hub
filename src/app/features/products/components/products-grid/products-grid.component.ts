@@ -37,7 +37,7 @@ import {
           ':enter',
           [
             style({ opacity: 0, transform: 'translateY(15px)' }),
-            stagger('30ms', [
+            stagger('50ms', [
               animate(
                 '400ms ease-out',
                 style({ opacity: 1, transform: 'translateY(0)' })
@@ -49,42 +49,44 @@ import {
       ]),
     ]),
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsGridComponent implements OnChanges {
   @Input() products: any[] = [];
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
-  hasFetched: boolean = false;
+  @Input() isInitialLoadComplete: boolean = false;
+  @Input() showSkeleton: boolean = true; // افتراضي true للـ SSR
   showEmptyState: boolean = false;
-  skeletonCount = 8;
+  skeletonCount = 6; // تقليل العدد لتحسين الأداء
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['products'] || changes['isLoading'] || changes['isLoadingMore']) {
-      // Reset hasFetched if products array is reset to empty
-      if (changes['products'] && this.products.length === 0 && !this.isLoading && !this.isLoadingMore) {
-        this.hasFetched = false;
-      }
-
-      // Only show empty state after fetch is complete and no products are found
-      if (!this.isLoading && !this.isLoadingMore) {
-        setTimeout(() => {
-          this.hasFetched = true;
-          this.showEmptyState = this.products.length === 0;
-          this.cdr.markForCheck();
-        }, 100); // Small delay to ensure products are loaded
+    if (
+      changes['products'] ||
+      changes['isLoading'] ||
+      changes['isLoadingMore'] ||
+      changes['isInitialLoadComplete'] ||
+      changes['showSkeleton']
+    ) {
+      if (
+        !this.showSkeleton &&
+        !this.isLoading &&
+        !this.isLoadingMore &&
+        this.isInitialLoadComplete &&
+        this.products.length === 0 // إضافة شرط صريح
+      ) {
+        this.showEmptyState = true;
       } else {
-        this.showEmptyState = false;
+        this.showEmptyState = false; // التأكد من إخفاء الحالة الفارغة أثناء التحميل
       }
       this.cdr.markForCheck();
     }
   }
 
   get skeletonArray() {
-    return Array(this.skeletonCount)
-      .fill(0)
-      .map((_, i) => i);
+    return Array(this.skeletonCount).fill(0).map((_, i) => i);
   }
 
   trackByProductId(index: number, product: any): number {
@@ -101,6 +103,7 @@ export class ProductsGridComponent implements OnChanges {
     this.isLoadingMore = false;
     this.skeletonCount = 0;
     this.showEmptyState = false;
-    this.hasFetched = false;
+    this.isInitialLoadComplete = false;
+    this.showSkeleton = false;
   }
 }

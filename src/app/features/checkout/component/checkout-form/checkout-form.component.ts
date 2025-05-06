@@ -15,6 +15,7 @@ import { UIService } from '../../../../shared/services/ui.service';
 import { isPlatformBrowser } from '@angular/common';
 import { Stripe, StripeElements, StripeCardNumberElement, StripeCardExpiryElement, StripeCardCvcElement } from '@stripe/stripe-js';
 import { WalletPaymentComponent } from '../googlePay-button/google-pay-button.component';
+import { CartService } from '../../../cart/service/cart.service';
 
 interface CartItem {
   product_id: number;
@@ -68,6 +69,7 @@ export class CheckoutFormComponent {
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
   private stripeService = inject(StripeService);
+  private cartService = inject(CartService);
 
   billingForm!: FormGroup;
   shippingForm!: FormGroup;
@@ -80,6 +82,7 @@ export class CheckoutFormComponent {
   avaliableCountries$: Observable<any> = this.checkoutService.getAvaliableCountries();
   avaliablePaymentMethods$: Observable<any> = this.checkoutService.availablePaymentMethods$;
   isPaying: boolean = false;
+  isLoading: boolean = false;
   currentPaymentIntentId: string | null = null;
 
   @ViewChild('cardNumberElement') cardNumberElementRef!: ElementRef;
@@ -174,7 +177,6 @@ export class CheckoutFormComponent {
     }
 
     if (!this.stripe || !this.cardNumber) {
-      console.error('Stripe or card field is not ready');
       this.uiService.showError('Payment system is not ready.');
       return;
     }
@@ -185,6 +187,7 @@ export class CheckoutFormComponent {
     }
 
     this.isPaying = true;
+    this.isLoading = true;
     try {
       const [cartItems, cartTotal] = await Promise.all([
         this.checkoutService.getCartItems().pipe(take(1)).toPromise(),
@@ -236,7 +239,9 @@ export class CheckoutFormComponent {
         console.error('Payment failed:', error.message);
         this.uiService.showError('Payment failed: ' + error.message);
         this.currentPaymentIntentId = null;
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        this.isLoading = false
+        this.isPaying = false;
+            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         console.log('Payment succeeded:', paymentIntent.id);
         this.currentPaymentIntentId = paymentIntent.id;
         this.pollOrderStatus(paymentIntent.id);
@@ -245,8 +250,8 @@ export class CheckoutFormComponent {
       console.error('Error processing payment:', error);
       this.uiService.showError('An error occurred while processing the payment: ' + error.message);
       this.currentPaymentIntentId = null;
-    } finally {
       this.isPaying = false;
+      this.isLoading = false;
     }
   }
 
@@ -255,10 +260,17 @@ export class CheckoutFormComponent {
   }
 
   onSubmit(paymentToken?: string) {
+    if (this.isPaying) {
+      return;
+    }
+
     if (!this.isFormValid()) {
       this.uiService.showError('Please fill in all required fields correctly.');
       return;
     }
+
+    this.isPaying = true;
+    this.isLoading = true
 
     const paymentMethod = this.billingForm.get('paymentMethod')?.value;
     if (paymentMethod === 'cod') {
@@ -276,13 +288,20 @@ export class CheckoutFormComponent {
             console.log('COD order created successfully:', response);
             if (response && response.id) {
               this.router.navigate(['/order-received', response.id]);
+              this.cartService.clearUserCart();
+              this.isLoading = false
             }
           },
           error: (error) => {
             console.error('Error creating COD order:', error);
             const errorMessage = error.message || 'Please try again later';
             this.uiService.showError(`Error creating order: ${errorMessage}`);
-          },
+            this.isPaying = false;
+            this.isLoading = false
+                    },
+          complete: () => {
+            // No need to reset isPaying here as we're navigating away
+          }
         });
     }
   }
@@ -293,15 +312,15 @@ export class CheckoutFormComponent {
       takeWhile((response) => !(response.success && response.orderId), true),
       tap((response) => {
         if (response.success && response.orderId) {
-          console.log('Stripe order created successfully:', response.orderId);
           this.router.navigate(['/order-received', response.orderId]);
+          this.isLoading = false
         }
       })
     ).subscribe({
       error: (error) => {
-        console.error('Error polling order status:', error);
         this.uiService.showError('An error occurred while checking order status: ' + (error.message || 'Please try again.'));
         this.router.navigate(['/']);
+        this.isLoading = false
       },
     });
   }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import { BehaviorSubject, catchError, Observable, tap } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, tap, of, throwError, delay, timer } from 'rxjs';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { LoginResponse, User } from '../../interfaces/user.model';
@@ -12,9 +12,11 @@ export class AccountAuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
   private readonly USER_ID_KEY = 'customerId'; // مفتاح جديد لتخزين user_id
+  private readonly TOKEN_EXPIRY_KEY = 'token_expiry'; // تاريخ انتهاء التوكن
   private readonly Api_Url = 'https://adventures-hub.com';
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
+  private tokenValidationInProgress = false;
 
   constructor(
     private WooApi: ApiService,
@@ -22,19 +24,44 @@ export class AccountAuthService {
     private localStorageService: LocalStorageService
   ) {
     const token = this.localStorageService.getItem<string>(this.TOKEN_KEY);
-    this.isLoggedInSubject.next(!!token);
-    this.verifyTokenOnInit();
+    const tokenExpiry = this.localStorageService.getItem<number>(this.TOKEN_EXPIRY_KEY);
+
+    // التحقق من صلاحية التوكن محليًا أولاً (من خلال تاريخ الانتهاء)
+    if (token && tokenExpiry && tokenExpiry > Date.now()) {
+      this.isLoggedInSubject.next(true);
+    } else if (token) {
+      // إذا كان لدينا توكن ولكن لا نعرف متى ينتهي أو انتهت صلاحيته، سنتحقق من الخادم
+      // لكن سنعطي قيمة مبدئية true لتجنب التأخير في واجهة المستخدم
+      this.isLoggedInSubject.next(true);
+    } else {
+      this.isLoggedInSubject.next(false);
+    }
+
+    // تأخير التحقق من التوكن من الخادم
+    timer(300).subscribe(() => this.verifyTokenOnInit());
   }
 
-  verifyToken(): Observable<any> {
+  verifyToken(silent: boolean = false): Observable<any> {
     const token = this.getToken();
     if (!token) {
       this.isLoggedInSubject.next(false);
-      return new Observable((observer) => {
-        observer.error('No token found');
-        observer.complete();
-      });
+      return silent ? of({ valid: false }) : throwError(() => new Error('No token found'));
     }
+
+    // التحقق من تاريخ انتهاء التوكن المخزن محليًا
+    const tokenExpiry = this.localStorageService.getItem<number>(this.TOKEN_EXPIRY_KEY);
+    if (tokenExpiry && tokenExpiry > Date.now()) {
+      // التوكن لا يزال صالحًا محليًا، لا داعي للتحقق من الخادم
+      this.isLoggedInSubject.next(true);
+      return of({ valid: true, code: 'jwt_auth_valid_token' });
+    }
+
+    // إذا كانت عملية التحقق جارية بالفعل، قم بإرجاع خطأ أو نتيجة فارغة
+    if (this.tokenValidationInProgress) {
+      return silent ? of({ valid: false, message: 'Validation in progress' }) : throwError(() => new Error('Token validation already in progress'));
+    }
+
+    this.tokenValidationInProgress = true;
 
     return this.http
       .post(
@@ -48,14 +75,19 @@ export class AccountAuthService {
         tap((response: any) => {
           if (response.code === 'jwt_auth_valid_token') {
             this.isLoggedInSubject.next(true);
+            // حفظ تاريخ انتهاء التوكن (1 يوم من الآن)
+            const expiryTime = Date.now() + (24 * 60 * 60 * 1000);
+            this.localStorageService.setItem(this.TOKEN_EXPIRY_KEY, expiryTime);
           } else {
             this.logout();
           }
+          this.tokenValidationInProgress = false;
         }),
         catchError((error) => {
           console.error('Token verification failed:', error);
+          this.tokenValidationInProgress = false;
           this.logout();
-          throw error;
+          return silent ? of({ valid: false, error }) : throwError(() => error);
         })
       );
   }
@@ -63,8 +95,24 @@ export class AccountAuthService {
   private verifyTokenOnInit(): void {
     const token = this.getToken();
     if (token) {
-      this.verifyToken().subscribe({
-        next: () => console.log('Token is valid'),
+      const tokenExpiry = this.localStorageService.getItem<number>(this.TOKEN_EXPIRY_KEY);
+
+      // إذا كان التوكن صالحًا محليًا، لا داعي للتحقق من الخادم
+      if (tokenExpiry && tokenExpiry > Date.now()) {
+        console.log('Token is valid (local check)');
+        this.isLoggedInSubject.next(true);
+        return;
+      }
+
+      this.verifyToken(true).subscribe({
+        next: (response) => {
+          if (response && response.valid === false) {
+            console.log('Token is invalid or expired');
+            this.isLoggedInSubject.next(false);
+          } else {
+            console.log('Token is valid');
+          }
+        },
         error: () => {
           console.log('Token is invalid or expired');
           this.isLoggedInSubject.next(false);
@@ -106,6 +154,11 @@ export class AccountAuthService {
             if (response.body.user_id) {
               this.localStorageService.setItem(this.USER_ID_KEY, response.body.user_id.toString());
             }
+
+            // حفظ تاريخ انتهاء التوكن (1 يوم من الآن)
+            const expiryTime = Date.now() + (24 * 60 * 60 * 1000);
+            this.localStorageService.setItem(this.TOKEN_EXPIRY_KEY, expiryTime);
+
             this.isLoggedInSubject.next(true);
           }
         }),
@@ -149,6 +202,7 @@ export class AccountAuthService {
     this.localStorageService.removeItem(this.TOKEN_KEY);
     this.localStorageService.removeItem(this.USER_KEY);
     this.localStorageService.removeItem(this.USER_ID_KEY); // امسح user_id
+    this.localStorageService.removeItem(this.TOKEN_EXPIRY_KEY); // امسح تاريخ انتهاء التوكن
     this.isLoggedInSubject.next(false);
   }
 

@@ -25,19 +25,29 @@
 }
 
 .placeholder {
-  transition: height 0.3s ease-in-out;
+  transition: height 0.3s ease;
   position: relative;
 }
 
 .is-scroll {
   @apply fixed top-0 z-[50] bg-[#2E2E2E];
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+  will-change: transform;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* منع تأثير ال fixed على صفحات المنتجات */
+.non-sticky {
+  position: static !important;
+  top: auto !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 header {
-  transition: background-color 0.3s ease-in-out;
-}
-header {
-  @apply w-full bg-[#2E2E2E];
+  @apply w-full bg-[#2E2E2E] z-[999999999];
+  transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
 @keyframes slide-first {

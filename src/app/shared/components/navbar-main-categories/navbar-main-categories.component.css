@@ -38,6 +38,7 @@
 ::ng-deep .sidenav-drawer {
   @apply w-full;
   z-index: 500000 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 ::ng-deep .sidenav-drawer .p-drawer-header {
@@ -45,13 +46,109 @@
 }
 
 ::ng-deep .sidenav-drawer .p-drawer-content {
-  @apply bg-[#2E2E2E];
+  background-color: #f8f9fa;
+  color: #333;
+  transition: all 0.3s ease;
 }
 
+/* Стили для заголовка drawer */
+.drawer-header {
+  background: linear-gradient(to right, #f0f2f5, #e5e7eb);
+  padding: 0.75rem 1rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Стиль для разделителей */
+::ng-deep .sidenav-drawer hr {
+  background-color: #e5e7eb;
+  height: 1px;
+  border: 0;
+  margin: 0.5rem 0;
+}
+
+/* Стиль для основных категорий */
+.drawer-category {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 0;
+  transition: all 0.3s ease;
+}
+
+/* Стиль для текста категорий */
+.drawer-link {
+  color: #4b5563;
+  transition: all 0.25s ease;
+}
+.drawer-link:hover {
+  color: #1f2937;
+}
+
+/* Стиль для иконок */
+.drawer-icon {
+  color: #6b7280;
+  transition: transform 0.3s ease;
+}
+
+.drawer-icon-up {
+  color: #3b82f6;
+}
+
+/* Стили для подкатегорий */
 .haveChilds {
-  @apply text-sm bg-[#423e3e] rounded-md px-2 py-1 ml-2 text-white mt-2 block;
+  @apply text-sm bg-[#e9ecef] rounded-md px-3 py-1.5 ml-2 text-gray-700 mt-2 block font-medium;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.haveChilds:hover {
+  @apply bg-[#dee2e6] text-gray-900;
+  transform: translateX(2px);
 }
 
 .notHaveChilds {
-  @apply text-sm ml-2 text-white mt-2 block;
+  @apply text-sm ml-2 text-gray-600 mt-2 block hover:text-gray-900 hover:ml-3;
+  transition: all 0.3s ease;
+}
+
+/* Кнопка Deals */
+.deals-button {
+  background: linear-gradient(to right, #3b82f6, #4f46e5);
+  color: white;
+  font-weight: 500;
+  padding: 0.625rem 2rem;
+  margin-top: 2rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  display: block;
+  width: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.deals-button:hover {
+  background: linear-gradient(to right, #2563eb, #4338ca);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Кнопка закрытия */
+.close-button {
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  color: #1f2937;
+  background-color: #e5e7eb;
+}
+
+/* Анимации для подкатегорий */
+[data-animationname="slideInOut"] {
+  overflow: hidden;
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
 }

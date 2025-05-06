@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FilterSidebarComponent } from '../filter-sidebar/filter-sidebar.component';
@@ -17,10 +17,11 @@ interface SortOption {
   styleUrls: ['./filter-drawer.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FilterDrawerComponent {
+export class FilterDrawerComponent implements OnChanges {
   @Input() categoryId: number | null = null;
   @Input() isOpen: boolean = false;
   @Input() selectedFilters: { [key: string]: string[] } = {};
+  @Input() attributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } } = {};
 
   @Output() closed = new EventEmitter<void>();
   @Output() filtersChanged = new EventEmitter<{ [key: string]: string[] }>();
@@ -39,6 +40,15 @@ export class FilterDrawerComponent {
   ];
 
   constructor(private cdr: ChangeDetectorRef) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['attributes'] && this.filterSidebar) {
+      // Pass attributes to the filter sidebar if passed externally
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      });
+    }
+  }
 
   close() {
     this.closed.emit();

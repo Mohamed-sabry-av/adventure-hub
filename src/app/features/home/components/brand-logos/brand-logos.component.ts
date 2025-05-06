@@ -1,102 +1,232 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  HostListener,
+  inject,
+  ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HomeService } from '../../service/home.service';
 import { RouterModule } from '@angular/router';
+import { HomeService } from '../../service/home.service';
+import { catchError, forkJoin, of } from 'rxjs';
 
 interface Brand {
   id: number;
   name: string;
   slug: string;
   count: number;
-  logoUrl?: string;
+  image?: {
+    id: string;
+    url: string;
+    width: number;
+    height: number;
+  };
 }
 
 @Component({
   selector: 'app-brand-logos',
   standalone: true,
   imports: [CommonModule, RouterModule],
-
   template: `
-    <div class="brand-logos py-6 px-4 bg-white">
+    <div class="brand-logos py-2 px-2 bg-white">
       <div class="container mx-auto">
-        <div
-          class="brands-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center"
-        >
-          @for (brand of topBrands; track brand.id) {
-          <a
-            [routerLink]="['/brand', brand.slug]"
-            class="brand-logo flex items-center justify-center h-16 w-full p-2 grayscale hover:grayscale-0 transition-all duration-300"
-          >
-            @if (brand.logoUrl) {
-            <img
-              [src]="brand.logoUrl"
-              [alt]="brand.name"
-              class="max-h-full max-w-full object-contain"
-            />
-            } @else {
-            <span class="font-bold text-gray-800">{{ brand.name }}</span>
-            }
-          </a>
-          }
-        </div>
+        @if (brands.length > 0) {
+          <div class="brands-carousel relative">
+            <div class="brands-slider overflow-hidden">
+              <div
+                class="brands-track flex transition-transform duration-500 ease-in-out"
+                [style.transform]="'translateX(' + -currentPosition + 'px)'"
+                [style.width]="totalWidth + 'px'"
+              >
+                @for (brand of brands; track brand.id) {
+                  <a
+                    [routerLink]="['/brand', brand.slug]"
+                    class="brand-logo flex items-center justify-center h-12 p-2 transition-all duration-300"
+                    [style.min-width.px]="getItemWidth()"
+                  >
+                    @if (brand.image && brand.image.url) {
+                      <img
+                        [src]="brand.image.url"
+                        [alt]="brand.name"
+                        class="max-h-full max-w-full object-contain brand-image transition-all duration-300"
+                      />
+                    } @else {
+                      <span class="font-bold text-gray-800">{{ brand.name }}</span>
+                    }
+                  </a>
+                }
+              </div>
+            </div>
+
+            <!-- Navigation arrows - only shown on desktop -->
+            <button
+              *ngIf="showControls && brands.length > getVisibleItems()"
+              (click)="prev()"
+              class="carousel-nav prev absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white bg-opacity-80 rounded-full p-2 shadow-md focus:outline-none"
+              aria-label="Previous brands"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <button
+              *ngIf="showControls && brands.length > getVisibleItems()"
+              (click)="next()"
+              class="carousel-nav next absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white bg-opacity-80 rounded-full p-2 shadow-md focus:outline-none"
+              aria-label="Next brands"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+        } @else {
+          <div class="text-center text-gray-500">No brands available at the moment.</div>
+        }
       </div>
     </div>
   `,
   styles: [
     `
-      .brand-logo {
-        border: 1px solid #f0f0f0;
-        border-radius: 4px;
+      .brands-carousel {
+        // padding: 0 40px;
       }
 
-      .brand-logo:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      .brands-slider {
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .brand-logo {
+        // border: 1px solid #f0f0f0;
+        border-radius: 8px;
+        margin: 0 10px;
+      }
+
+      .brand-image {
+        filter: grayscale(100%);
+        opacity: 0.6;
+        max-height: 40px;
+      }
+
+      .brand-logo:hover .brand-image {
+        filter: grayscale(0%);
+        opacity: 1;
+      }
+
+      @media (max-width: 768px) {
+        .brands-carousel {
+          padding: 0;
+        }
+
+        .carousel-nav {
+          display: none;
+        }
       }
     `,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BrandLogosComponent implements OnInit {
-  // قائمة الماركات مع روابط الشعارات
-  brandLogos: { [key: string]: string } = {
-    nike: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png',
-    adidas:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/1200px-Adidas_Logo.svg.png',
-    'the-north-face':
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/The_North_Face_logo.svg/1200px-The_North_Face_logo.svg.png',
-    'under-armour':
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Under_armour_logo.svg/1200px-Under_armour_logo.svg.png',
-    patagonia:
-      'https://upload.wikimedia.org/wikipedia/commons/0/0b/Patagonia_logo.svg',
-    columbia:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Columbia_Sportswear_logo.svg/1200px-Columbia_Sportswear_logo.svg.png',
-    rei: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/REI_Co-op_logo.svg',
-    marmot:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Marmot_Logo.svg/1200px-Marmot_Logo.svg.png',
-    salomon:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Salomon_logo.svg/1200px-Salomon_logo.svg.png',
-    merrell:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Merrell_Logo.svg/1200px-Merrell_Logo.svg.png',
-  };
+  // private productsBrandService = inject(ProductsBrandService);
 
-  topBrands: Brand[] = [];
+  private homeService = inject(HomeService);
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor(private homeService: HomeService) {}
+  private readonly allowedBrandIds = [550, 5126, 1126, 2461, 1441, 989, 877, 971, 3537];
+
+  brands: Brand[] = [];
+  currentPosition = 0;
+  screenWidth = window.innerWidth;
+  totalWidth = 0;
+  showControls = true;
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.screenWidth = window.innerWidth;
+    this.showControls = this.screenWidth > 768;
+    this.setCarouselParameters();
+  }
 
   ngOnInit(): void {
     this.loadBrands();
+    this.screenWidth = window.innerWidth;
+    this.showControls = this.screenWidth > 768;
   }
 
   loadBrands(): void {
-    this.homeService.getBrands(12).subscribe((brands: any[]) => {
-      this.topBrands = brands
-        .map((brand: any) => {
-          const logoSlug = brand.slug.toLowerCase();
-          return {
-            ...brand,
-            logoUrl: this.brandLogos[logoSlug] || undefined,
-          };
+    const brandObservables = this.allowedBrandIds.map(id =>
+      this.homeService.getBrandById(id).pipe(
+        catchError(error => {
+          return of(null); 
         })
-        .slice(0, 12);
+      )
+    );
+
+    forkJoin(brandObservables).subscribe({
+      next: (brands: Brand[]) => {
+        this.brands = brands.filter(brand => brand !== null);
+        this.cdr.markForCheck();
+        setTimeout(() => this.setCarouselParameters(), 100);
+      },
+      error: (error) => {
+        this.brands = [];
+        this.cdr.markForCheck();
+        setTimeout(() => this.setCarouselParameters(), 100);
+      }
     });
+  }
+
+  setCarouselParameters(): void {
+    const itemWidth = this.getItemWidth();
+    this.totalWidth = itemWidth * this.brands.length;
+    this.currentPosition = 0;
+  }
+
+  getItemWidth(): number {
+    if (this.screenWidth < 640) {
+      return this.screenWidth / 3;
+    } else if (this.screenWidth < 768) {
+      return this.screenWidth / 4;
+    } else if (this.screenWidth < 1024) {
+      return this.screenWidth / 5;
+    } else {
+      return this.screenWidth / 8;
+    }
+  }
+
+  getVisibleItems(): number {
+    if (this.screenWidth < 640) {
+      return 3;
+    } else if (this.screenWidth < 768) {
+      return 4;
+    } else if (this.screenWidth < 1024) {
+      return 5;
+    } else {
+      return 8;
+    }
+  }
+
+  next(): void {
+    const itemWidth = this.getItemWidth();
+    const maxPosition = this.totalWidth - (this.getVisibleItems() * itemWidth);
+
+    if (this.currentPosition < maxPosition) {
+      this.currentPosition += itemWidth * Math.min(3, this.getVisibleItems());
+      if (this.currentPosition > maxPosition) {
+        this.currentPosition = maxPosition;
+      }
+    }
+  }
+
+  prev(): void {
+    const itemWidth = this.getItemWidth();
+    if (this.currentPosition > 0) {
+      this.currentPosition -= itemWidth * Math.min(3, this.getVisibleItems());
+      if (this.currentPosition < 0) {
+        this.currentPosition = 0;
+      }
+    }
   }
 }

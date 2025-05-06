@@ -4,6 +4,7 @@ import {
   OnDestroy,
   HostListener,
   ChangeDetectionStrategy,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -25,7 +26,6 @@ interface Slide {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './slider.component.html',
-
   styleUrls: ['./slider.component.css'],
 })
 export class SliderComponent implements OnInit, OnDestroy {
@@ -70,12 +70,17 @@ export class SliderComponent implements OnInit, OnDestroy {
   autoSlideInterval = 5000; // 5 seconds
   isMobile = false;
 
+  // متغيرات للتحكم في التمرير باللمس
+  touchStartX = 0;
+  touchEndX = 0;
+  minSwipeDistance = 50; // الحد الأدنى للمسافة المطلوبة لاعتبارها تمريرة
+
   @HostListener('window:resize', ['$event'])
   onResize() {
     this.checkScreenSize();
   }
 
-  constructor() {}
+  constructor(private elementRef: ElementRef) {}
 
   ngOnInit(): void {
     this.checkScreenSize();
@@ -121,6 +126,33 @@ export class SliderComponent implements OnInit, OnDestroy {
     if (this.autoSlideSubscription) {
       this.autoSlideSubscription.unsubscribe();
       this.autoSlideSubscription = null;
+    }
+  }
+
+  // التعامل مع بداية اللمس
+  handleTouchStart(event: TouchEvent): void {
+    this.touchStartX = event.touches[0].clientX;
+  }
+
+  // التعامل مع نهاية اللمس
+  handleTouchEnd(event: TouchEvent): void {
+    this.touchEndX = event.changedTouches[0].clientX;
+    this.handleSwipe();
+  }
+
+  // معالجة حركة التمرير
+  handleSwipe(): void {
+    const swipeDistance = this.touchEndX - this.touchStartX;
+
+    // التحقق من أن المسافة كافية لاعتبارها تمريرة
+    if (Math.abs(swipeDistance) >= this.minSwipeDistance) {
+      if (swipeDistance > 0) {
+        // تمرير لليمين
+        this.prevSlide();
+      } else {
+        // تمرير لليسار
+        this.nextSlide();
+      }
     }
   }
 }

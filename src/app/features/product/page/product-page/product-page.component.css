@@ -60,23 +60,7 @@
   display: none; /* Hide scrollbar in Chrome/Safari */
 }
 
-/* Carousel Card */
-.carousel-card {
-  width: 150px; /* Slightly smaller card width */
-  height: 220px; /* Adjusted height for smaller cards */
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  scroll-snap-align: start;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  transition: transform 0.2s ease;
-}
 
-.carousel-card:hover {
-  transform: translateY(-4px); /* Subtle hover effect */
-}
 
 /* Card Image */
 .card-image {

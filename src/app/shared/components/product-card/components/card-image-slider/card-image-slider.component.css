@@ -69,6 +69,82 @@
   transform: scale(1.05);
 }
 
+/* Mobile navigation arrows */
+.mobile-navigation-arrows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none; /* Allow clicks to pass through to underlying elements */
+}
+
+.nav-arrow {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto; /* Make buttons clickable */
+  opacity: 0.8;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+  margin: 0 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 11;
+}
+
+.nav-arrow:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.arrow-icon {
+  font-size: 16px;
+  line-height: 1;
+  color: #333;
+}
+
+/* Image indicators */
+.image-indicators {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  z-index: 10;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator-dot.active {
+  background-color: white;
+  transform: scale(1.2);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
 /* Product tags */
 .product-tags {
   position: absolute;
@@ -136,5 +212,63 @@
   .tag {
     font-size: 9px;
     padding: 3px 6px;
+  }
+
+  .nav-arrow {
+    width: 26px;
+    height: 26px;
+  }
+
+  .arrow-icon {
+    font-size: 14px;
+  }
+
+  .indicator-dot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 767px) {
+  .image-slider {
+    overflow: visible !important; /* Changed from auto to visible to show arrows */
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+  }
+
+  .image-slider .slider-container {
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+    overflow: visible !important; /* Changed from auto to visible to show arrows */
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .image-slider .slide,
+  .image-slider .slide.active {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
+
+  /* Keep only current image visible on mobile */
+  .image-slider .slider-container .slide {
+    opacity: 0;
+  }
+
+  .image-slider .slider-container .slide.active {
+    opacity: 1 !important;
+  }
+
+  /* Override hover effects on mobile */
+  .image-slider .slider-container.hovered .slide.active {
+    opacity: 1 !important;
+  }
+
+  .image-slider .slider-container.hovered .slide.second-image {
+    opacity: 0 !important;
+    display: none !important;
+  }
+
+  .image-slider .slider-container.hovered .slide.second-image img {
+    transform: none !important;
   }
 }

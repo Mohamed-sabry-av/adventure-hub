@@ -16,13 +16,29 @@
     #sliderContainer
     [ngClass]="{'hovered': isHovered && product.images.length > 1}"
   >
+    <!-- Mobile navigation arrows (only show if multiple images) -->
+    <div class="mobile-navigation-arrows" *ngIf="isMobile && hasMultipleImages"
+>
+      <button class="nav-arrow nav-prev"
+              [disabled]="currentImageIndex === 0"
+              (click)="navigateImages(-1, $event)">
+        <span class="arrow-icon">❮</span>
+      </button>
+      <button class="nav-arrow nav-next"
+      [disabled]="currentImageIndex >= (product?.images?.length ?? 0) - 1"
+
+              (click)="navigateImages(1, $event)">
+        <span class="arrow-icon">❯</span>
+      </button>
+    </div>
+
     <!-- Images -->
     <div
       class="slide"
       *ngFor="let image of product?.images; let i = index"
       [ngClass]="{
-        'active': i === 0,
-        'second-image': i === 1 && isHovered && product.images.length > 1
+        'active': i === currentImageIndex || (i === 0 && !isMobile && currentImageIndex === 0),
+        'second-image': i === 1 && isHovered && product.images.length > 1 && !isMobile
       }"
     >
       <a [routerLink]="['/product', product.slug]">
@@ -37,6 +53,15 @@
           (load)="onImageLoad($event)"
         />
       </a>
+    </div>
+
+    <!-- Image indicator dots for mobile -->
+    <div class="image-indicators" *ngIf="isMobile && hasMultipleImages"
+    >
+      <span *ngFor="let image of product?.images; let i = index"
+            class="indicator-dot"
+            [ngClass]="{'active': i === currentImageIndex}"
+            (click)="goToImage(i, $event)"></span>
     </div>
   </div>
 </div>

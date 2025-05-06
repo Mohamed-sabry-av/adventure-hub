@@ -115,6 +115,7 @@
       <app-filter-sidebar
         [categoryId]="categoryId"
         [selectedFilters]="selectedFilters"
+        [originalAttributes]="attributes"
         (filtersChanges)="filtersChanged.emit($event)"
       ></app-filter-sidebar>
     </div>

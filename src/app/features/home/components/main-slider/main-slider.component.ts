@@ -1,12 +1,27 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { CarouselModule } from 'primeng/carousel';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { CustomCarouselComponent } from '../custom-carousel/custom-carousel.component';
 
 @Component({
   selector: 'app-main-slider',
-  imports: [CarouselModule],
+  standalone: true,
+  imports: [CommonModule, CustomCarouselComponent],
   templateUrl: './main-slider.component.html',
-  styleUrl: './main-slider.component.css',
+  styleUrls: ['./main-slider.component.css'],
 })
-export class MainSliderComponent {
+export class MainSliderComponent implements OnInit {
   images = ['slider/slider15.webp', 'slider/1.png', 'slider/2.png'];
+  screenWidth = window.innerWidth;
+  showControls = true;
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.screenWidth = window.innerWidth;
+    this.showControls = this.screenWidth > 768;
+  }
+
+  ngOnInit(): void {
+    this.screenWidth = window.innerWidth;
+    this.showControls = this.screenWidth > 768;
+  }
 }

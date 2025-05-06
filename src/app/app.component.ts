@@ -1,10 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  Inject,
-  inject,
-  PLATFORM_ID,
-} from '@angular/core';
+import { Component, DestroyRef, Inject, inject, PLATFORM_ID } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
@@ -43,7 +37,8 @@ export class AppComponent {
   private router = inject(Router);
   isCheckoutPage = false;
   private previousUrl: string | null = null;
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(  @Inject(PLATFORM_ID) private platformId: Object
+) {}
 
   ngOnInit() {
     const navEndEvents = this.router.events.pipe(

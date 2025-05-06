@@ -43,10 +43,10 @@ import { trigger, transition, style, animate } from '@angular/animations';
     trigger('visible', [
       transition(':enter', [
         style({ opacity: 0, height: '0px', overflow: 'hidden' }),
-        animate('0.1s ease-out', style({ opacity: 1, height: '*' })),
+        animate('0.2s ease-out', style({ opacity: 1, height: '*' })),
       ]),
       transition(':leave', [
-        animate('0.1s ease-in', style({ opacity: 0, height: '0px' })),
+        animate('0.2s ease-in', style({ opacity: 0, height: '0px' })),
       ]),
     ]),
   ],
@@ -64,6 +64,9 @@ export class NavbarMainCategoriesComponent {
 
   selectedCategoryId: number | null = null;
 
+  // Define custom order for parent categories by IDs
+  private customCategoryOrder = [62, 71, 67, 397, 338, 4238];
+
   drawerTop = computed(() => {
     return this.navbarService.headerHeight();
   });
@@ -72,6 +75,7 @@ export class NavbarMainCategoriesComponent {
     effect(() => {
       this.showNavbar.set(this.navbarService.navBarIsVisible());
       this.sidenavIsVisible.set(this.navbarService.sideNavIsVisible());
+      // Reset expandedCategories when sidenav is closed
       if (!this.navbarService.sideNavIsVisible()) {
         this.expandedCategories.clear();
       }
@@ -80,6 +84,8 @@ export class NavbarMainCategoriesComponent {
 
   ngOnInit() {
     this.checkIfMobile();
+    // Sort categories based on custom order
+    this.sortCategoriesByCustomOrder();
   }
 
   @HostListener('window:resize')
@@ -128,5 +134,17 @@ export class NavbarMainCategoriesComponent {
       }
     }
     path.push(category.slug);
+  }
+
+  private sortCategoriesByCustomOrder(): void {
+    this.categories = [...this.categories].sort((a, b) => {
+      const indexA = this.customCategoryOrder.indexOf(a.id);
+      const indexB = this.customCategoryOrder.indexOf(b.id);
+      // If ID is not in custom order, push it to the end
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
   }
 }

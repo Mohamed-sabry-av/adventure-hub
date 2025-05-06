@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime, finalize } from 'rxjs/operators';
+import { debounceTime, finalize, switchMap } from 'rxjs/operators';
 import {
   trigger,
   state,
@@ -59,9 +59,9 @@ interface SectionState {
 export class FilterSidebarComponent implements OnInit, OnChanges {
   @Input() categoryId: number | null = null;
   @Input() selectedFilters: { [key: string]: string[] } = {};
+  @Input() originalAttributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } } = {};
   @Output() filtersChanges = new EventEmitter<{ [key: string]: string[] }>();
 
-  originalAttributes: Attribute[] = [];
   attributes: Attribute[] = [];
   sectionStates: { [slug: string]: SectionState } = {};
   isLoadingAttributes = true;
@@ -69,22 +69,33 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
   private readonly DEFAULT_VISIBLE_TERMS = 5;
   private filtersSubject = new BehaviorSubject<{ [key: string]: string[] }>({});
 
+
   constructor(
     private filterService: FilterService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['categoryId']) {
-      // Reset filters unconditionally when category changes
+ ngOnChanges(changes: SimpleChanges): void {
+    if (changes['categoryId'] && changes['categoryId'].currentValue !== changes['categoryId'].previousValue) {
+      // Reset filters only if categoryId actually changed
       this.selectedFilters = {};
       localStorage.removeItem(`filters_${changes['categoryId'].previousValue}`);
+      // Load saved filters for the new categoryId, if any
+      const savedFilters = localStorage.getItem(`filters_${this.categoryId}`);
+      this.selectedFilters = savedFilters ? JSON.parse(savedFilters) : {};
       this.filtersSubject.next({ ...this.selectedFilters });
-      this.loadAttributes();
+
+      // Only load attributes from service if originalAttributes not provided
+      if (Object.keys(this.originalAttributes).length === 0) {
+        this.loadAttributes();
+      } else {
+        this.processExternalAttributes();
+      }
     } else if (changes['selectedFilters']) {
-      // Handle selectedFilters changes only if categoryId didn't change
       this.filtersSubject.next({ ...this.selectedFilters });
       this.updateAvailableAttributes();
+    } else if (changes['originalAttributes'] && Object.keys(changes['originalAttributes'].currentValue || {}).length > 0) {
+      this.processExternalAttributes();
     }
   }
 
@@ -99,12 +110,92 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
 
     this.filtersSubject.next({ ...this.selectedFilters });
 
-    this.filtersSubject.pipe(debounceTime(300)).subscribe((filters) => {
-      this.filtersChanges.emit({ ...filters });
-      this.updateAvailableAttributes();
-    });
+    // Only setup filter subscription if we have a category ID
+    if (this.categoryId) {
+      this.setupFilterSubscription();
+    }
 
-    this.loadAttributes();
+    // Either process external attributes or load from service
+    if (Object.keys(this.originalAttributes).length > 0) {
+      this.processExternalAttributes();
+    } else if (this.categoryId) {
+      this.loadAttributes();
+    } else {
+      this.isLoadingAttributes = false;
+      this.updateUI();
+    }
+  }
+
+  private setupFilterSubscription(): void {
+    this.filtersSubject
+      .pipe(
+        debounceTime(100),
+        switchMap((filters) =>
+          this.filterService
+            .getAvailableAttributesAndTerms(this.categoryId!, filters)
+            .pipe(
+              finalize(() => {
+                this.updateUI();
+              })
+            )
+        )
+      )
+      .subscribe({
+        next: (data) => {
+          const availableAttributes = Object.entries(data).map(
+            ([slug, attr]:any) => ({
+              slug,
+              name: attr.name,
+              terms: attr.terms,
+            })
+          );
+
+          this.attributes = this.attributes.map((originalAttr) => {
+            const selectedTerms = this.selectedFilters[originalAttr.slug];
+            const availableAttr = availableAttributes.find(
+              (attr) => attr.slug === originalAttr.slug
+            );
+
+            if (selectedTerms && selectedTerms.length > 0) {
+              return { ...originalAttr };
+            }
+            return availableAttr || { ...originalAttr, terms: [] };
+          });
+
+          this.adjustSectionsAfterUpdate();
+          this.filtersChanges.emit({ ...this.selectedFilters });
+          this.updateUI();
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to update filters.';
+          this.updateUI();
+        },
+      });
+  }
+
+  private processExternalAttributes(): void {
+    this.isLoadingAttributes = true;
+    this.errorMessage = null;
+    this.updateUI();
+
+    try {
+      // Convert originalAttributes object to array format
+      const attributesArray = Object.entries(this.originalAttributes).map(([slug, attr]) => ({
+        slug,
+        name: attr.name,
+        terms: attr.terms.sort((a, b) => a.name.localeCompare(b.name)),
+      }));
+
+      this.attributes = [...attributesArray];
+      this.initializeSections();
+      this.isLoadingAttributes = false;
+    } catch (error) {
+      console.error('Error processing external attributes:', error);
+      this.errorMessage = 'Failed to process filters.';
+      this.isLoadingAttributes = false;
+    }
+
+    this.updateUI();
   }
 
   private async loadAttributes(): Promise<void> {
@@ -125,12 +216,12 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
         .getAllAttributesAndTermsByCategory(this.categoryId)
         .toPromise();
       if (data && Object.keys(data).length > 0) {
-        this.originalAttributes = Object.entries(data).map(([slug, attr]) => ({
+        const attributesArray = Object.entries(data).map(([slug, attr]) => ({
           slug,
           name: attr.name,
           terms: attr.terms.sort((a, b) => a.name.localeCompare(b.name)),
         }));
-        this.attributes = [...this.originalAttributes];
+        this.attributes = [...attributesArray];
         this.initializeSections();
       } else {
         this.errorMessage = 'No attributes available.';
@@ -186,10 +277,13 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
       this.selectedFilters[attrSlug].push(termIdStr);
     }
 
-    localStorage.setItem(
-      `filters_${this.categoryId}`,
-      JSON.stringify(this.selectedFilters)
-    );
+    console.log('Filter changed in sidebar:', this.selectedFilters);
+    if (this.categoryId) {
+      localStorage.setItem(
+        `filters_${this.categoryId}`,
+        JSON.stringify(this.selectedFilters)
+      );
+    }
 
     this.filtersSubject.next({ ...this.selectedFilters });
     this.updateUI();
@@ -211,7 +305,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
           );
 
           // Merge original attributes with available ones
-          this.attributes = this.originalAttributes.map((originalAttr) => {
+          this.attributes = this.attributes.map((originalAttr) => {
             const selectedTerms = this.selectedFilters[originalAttr.slug];
             const availableAttr = availableAttributes.find(
               (attr) => attr.slug === originalAttr.slug
@@ -293,9 +387,17 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
 
   resetFilters(): void {
     this.selectedFilters = {};
-    localStorage.removeItem(`filters_${this.categoryId}`);
+    if (this.categoryId) {
+      localStorage.removeItem(`filters_${this.categoryId}`);
+    }
     this.filtersSubject.next({});
-    this.loadAttributes();
+
+    // Reload attributes if we're using a category
+    if (this.categoryId && Object.keys(this.originalAttributes).length === 0) {
+      this.loadAttributes();
+    } else if (Object.keys(this.originalAttributes).length > 0) {
+      this.processExternalAttributes();
+    }
   }
 
   get hasSelectedFilters(): boolean {

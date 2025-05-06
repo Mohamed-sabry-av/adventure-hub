@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef, inject, AfterViewInit } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ElementRef, inject, AfterViewInit, Input } from '@angular/core';
 import { Stripe, StripeElements, StripePaymentRequestButtonElement } from '@stripe/stripe-js';
 import { CheckoutService } from '../../services/checkout.service';
 import { StripeService } from '../../services/stripe.service';
@@ -7,7 +7,7 @@ import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-wallet-payment',
   template: `
-    <div #googlePayButtonElement class="mb-4 md:w-[262px] mx-auto"></div>
+    <div #googlePayButtonElement class="mb-4 md:w-[465px] mx-auto"></div>
   `,
   styles: []
 })
@@ -21,6 +21,7 @@ export class WalletPaymentComponent implements AfterViewInit {
   public googlePaySupported = false;
   public applePaySupported = false;
 
+  @Input() product: any; // Optional: Single product for direct purchase
   @ViewChild('googlePayButtonElement') googlePayButtonRef!: ElementRef;
   @Output() paymentSucceeded = new EventEmitter<string>();
 
@@ -36,6 +37,11 @@ export class WalletPaymentComponent implements AfterViewInit {
     }
   }
 
+  private normalizePrice(value: any): number {
+    const cleanedValue = value ? String(value).replace(/[^0-9.]/g, '') : '0';
+    return parseFloat(cleanedValue) || 0;
+  }
+
   private async initWalletPayments() {
     if (!this.stripe || !this.elements || !this.googlePayButtonRef) {
       console.error('Stripe, elements, or googlePayButtonRef is not available');
@@ -43,19 +49,40 @@ export class WalletPaymentComponent implements AfterViewInit {
     }
 
     try {
-      const cartTotal = await this.checkoutService.getCartTotalPrice().pipe(take(1)).toPromise();
-      if (!cartTotal) {
-        throw new Error('Cart total is not available');
+      let total: number;
+      let currency: string;
+
+      if (this.product) {
+        // Direct purchase: Use product price
+        if (!this.product.id || !this.product.price || !this.product.quantity) {
+          throw new Error('Invalid product data: id, price, or quantity missing');
+        }
+        if (this.product.stock_status !== 'instock') {
+          throw new Error('Product is out of stock');
+        }
+        total = this.normalizePrice(this.product.price) * this.product.quantity;
+        currency = 'aed'; // Adjust based on your store's currency
+      } else {
+        // Cart-based purchase
+        const cartTotal = await this.checkoutService.getCartTotalPrice().pipe(take(1)).toPromise();
+        if (!cartTotal) {
+          throw new Error('Cart total is not available');
+        }
+        total = cartTotal.total;
+        currency = cartTotal.currency.toLowerCase();
       }
 
-      const currency = cartTotal.currency.toLowerCase();
-      const amountInFils = Math.round(cartTotal.total * 100);
+      if (total <= 0) {
+        throw new Error('Invalid total amount: must be greater than 0');
+      }
+
+      const amountInFils = Math.round(total * 100);
 
       this.paymentRequest = this.stripe.paymentRequest({
         country: 'AE',
         currency: currency,
         total: {
-          label: 'Order total',
+          label: this.product ? this.product.name : 'Order total',
           amount: amountInFils,
         },
         requestPayerName: true,
@@ -102,7 +129,7 @@ export class WalletPaymentComponent implements AfterViewInit {
             const orderData = this.prepareOrderData(billingDetails, shippingAddress);
 
             const paymentIntentResponse = await this.checkoutService
-              .createPaymentIntent(cartTotal.total, cartTotal.currency, orderData)
+              .createPaymentIntent(total, currency, orderData)
               .pipe(take(1))
               .toPromise();
 
@@ -159,7 +186,7 @@ export class WalletPaymentComponent implements AfterViewInit {
 
   private prepareOrderData(billingDetails: any, shippingAddress: any) {
     const billing = {
-      first_name: billingDetails.name?.split(' ')[0] || '',
+      first_name: billingDetails.name?.split(' ')[0] || 'Customer',
       last_name: billingDetails.name?.split(' ')[1] || '',
       address_1: billingDetails.address?.line1 || '',
       city: billingDetails.address?.city || '',
@@ -169,9 +196,9 @@ export class WalletPaymentComponent implements AfterViewInit {
       email: billingDetails.email || '',
       phone: billingDetails.phone || '',
     };
-
+  
     const shipping = {
-      first_name: shippingAddress.name?.split(' ')[0] || '',
+      first_name: shippingAddress.name?.split(' ')[0] || 'Customer',
       last_name: shippingAddress.name?.split(' ')[1] || '',
       address_1: shippingAddress.addressLine?.[0] || '',
       city: shippingAddress.city || '',
@@ -179,7 +206,25 @@ export class WalletPaymentComponent implements AfterViewInit {
       postcode: shippingAddress.postalCode || '',
       country: shippingAddress.country || 'AE',
     };
-
-    return { billing, shipping, line_items: [] };
+  
+    let line_items: any[] = [];
+    if (this.product) {
+      const item: any = {
+        product_id: parseInt(this.product.id, 10),
+        quantity: parseInt(this.product.quantity, 10),
+      };
+      if (this.product.variation_id) {
+        const variationId = parseInt(this.product.variation_id, 10);
+        if (!isNaN(variationId)) {
+          item.variation_id = variationId;
+        }
+      }
+      line_items = [item];
+    } else {
+      // إذا مفيش منتج محدد، استخدم الكارت (مش هيحصل في حالتك)
+      line_items = [];
+    }
+  
+    return { billing, shipping, line_items };
   }
 }

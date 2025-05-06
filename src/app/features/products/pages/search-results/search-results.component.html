@@ -1,90 +1,87 @@
-<div class="container mx-auto px-4 py-8">
-    <app-breadcrumb ></app-breadcrumb>
-  
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold">Search Results for "{{ searchQuery }}"</h1>
-      <p *ngIf="!loading && totalResults > 0" class="text-gray-600">{{ totalResults }} results found</p>
-      <p *ngIf="!loading && totalResults === 0" class="text-gray-600">No results found for "{{ searchQuery }}"</p>
-      <p *ngIf="error" class="text-red-500 mt-2">{{ error }}</p>
+<div class="mx-auto w-full px-4 sm:px-6 lg:px-8">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold">Search Results for "{{ searchQuery }}"</h1>
+    <p *ngIf="!isLoading && products.length > 0" class="text-gray-600">
+      {{ products.length }} products found
+    </p>
+    <p *ngIf="!isLoading && showEmptyState" class="text-gray-600">
+      No results found for "{{ searchQuery }}"
+    </p>
+  </div>
+
+  <!-- Initial Loading State -->
+  <div *ngIf="showSkeleton" class="flex justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+
+  <!-- No results -->
+  <div *ngIf="showEmptyState && isInitialLoadComplete" class="py-12 text-center">
+    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100">
+      <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
     </div>
-  
-    <!-- Initial Loading State -->
-    <div *ngIf="loading && currentPage === 1" class="flex justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <p class="mt-4 text-xl text-gray-700">No results found matching "{{ searchQuery }}"</p>
+    <p class="text-gray-500 mt-2">Try using different keywords or browse our categories</p>
+    <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition" routerLink="/">
+      Go to Homepage
+    </button>
+  </div>
+
+  <!-- Search Results Content -->
+  <div *ngIf="products.length > 0 && isInitialLoadComplete" class="flex flex-col md:flex-row gap-6">
+    <!-- Filters for desktop -->
+    <div class="hidden md:block w-64 flex-shrink-0">
+      <app-filter-sidebar [selectedFilters]="{}" [categoryId]="null" ></app-filter-sidebar>
     </div>
-  
-    <!-- No results -->
-    <div *ngIf="!loading && totalResults === 0 && !error" class="py-12 text-center">
-      <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100">
-        <i class="pi pi-search text-gray-400 text-2xl"></i>
+
+    <div class="flex-1">
+      <!-- Mobile Filter and Sort Menu -->
+      <div class="flex justify-between items-center mb-6">
+        <div class="md:hidden">
+          <button
+            (click)="openFilterDrawer()"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+          >
+            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.586a1 1 0 01-.293.707l-2 2a1 1 0 01-1.414 0l-4-4a1 1 0 01-.293-.707V7.293a1 1 0 00-.293-.707L3.293 4.293A1 1 0 013 3.586V4z" />
+            </svg>
+            Filter
+          </button>
+          <app-filter-drawer
+            [isOpen]="filterDrawerOpen"
+            (closed)="closeFilterDrawer()"
+            [attributes]="attributes"
+          ></app-filter-drawer>
+        </div>
+        <div class="ml-auto">
+          <app-sort-menu (sortChange)="onSortChange($event)"></app-sort-menu>
+        </div>
       </div>
-      <p class="mt-4 text-xl text-gray-700">No results found matching "{{ searchQuery }}"</p>
-      <p class="text-gray-500 mt-2">Try using different keywords or browse our categories</p>
-      <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition" routerLink="/">
-        Go to Homepage
-      </button>
-    </div>
-  
-    <!-- Search Results Content -->
-    <div *ngIf="(products.length > 0 || categories.length > 0) && !error" class="flex flex-col md:flex-row gap-6">
-      <!-- Filters for desktop -->
-      <div class="hidden md:block w-64 flex-shrink-0">
-        <app-filter-sidebar></app-filter-sidebar>
+
+      <!-- Products Section -->
+      <div>
+        <h2 class="text-lg font-semibold mb-4 border-b pb-2">
+          Products ({{ products.length }})
+        </h2>
+        <app-products-grid [products]="products"></app-products-grid>
       </div>
-  
-      <div class="flex-1">
-        <!-- Mobile Filter and Sort Menu -->
-        <div class="flex justify-between items-center mb-6">
-          <div class="md:hidden">
-            <app-filter-drawer></app-filter-drawer>
-          </div>
-          <div class="ml-auto">
-            <app-sort-menu></app-sort-menu>
-          </div>
-        </div>
-  
-        <!-- Categories Section (if found) -->
-        <div *ngIf="categories.length > 0" class="mb-8">
-          <h2 class="text-lg font-semibold mb-4 border-b pb-2">
-            Categories ({{ categories.length }})
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div *ngFor="let category of categories"
-                 class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-                 [routerLink]="['/category', category.slug]">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-500">
-                  <i class="pi pi-folder"></i>
-                </div>
-                <div>
-                  <h3 class="font-medium">{{ category.name }}</h3>
-                  <p class="text-sm text-gray-500">{{ category.count || 0 }} Products</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <!-- Products Section -->
-        <div *ngIf="products.length > 0">
-          <h2 class="text-lg font-semibold mb-4 border-b pb-2">
-            Products ({{ products.length }})
-          </h2>
-          <app-products-grid [products]="products"></app-products-grid>
-        </div>
-  
-        <!-- Loading More Indicator -->
-        <div *ngIf="loadingMore" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-          <span class="ml-3 text-gray-600">Loading more results...</span>
-        </div>
-  
-        <!-- End of Results Message -->
-        <div *ngIf="(allProductsLoaded && allCategoriesLoaded) && products.length + categories.length > 0" class="py-8 text-center text-gray-500">
-          <i class="pi pi-check-circle text-green-500 mr-2"></i>
-          All results loaded
-        </div>
+
+      <!-- Loading More Indicator -->
+      <div *ngIf="isLoadingMore" class="flex justify-center items-center py-8">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+        <span class="ml-3 text-gray-600">Loading more results...</span>
+      </div>
+
+      <!-- End of Results Message -->
+      <div *ngIf="products.length > 0 && !isLoading && !isLoadingMore && products.length < itemsPerPage" class="py-8 text-center text-gray-500">
+        <svg class="inline-block h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        All results loaded
       </div>
     </div>
   </div>
-  
+</div>

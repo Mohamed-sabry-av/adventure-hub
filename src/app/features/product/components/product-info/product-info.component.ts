@@ -11,6 +11,25 @@ import { UIService } from '../../../../shared/services/ui.service';
 import { CheckoutService } from '../../../checkout/services/checkout.service';
 import { switchMap, takeWhile, tap, take } from 'rxjs/operators';
 import { WalletPaymentComponent } from '../../../checkout/component/googlePay-button/google-pay-button.component';
+import { TabbyPromoComponent } from '../TabbyPromoComponent/TabbyPromo.Component';
+import { TabbyConfigService } from '../TabbyPromoComponent/Tabby.cofing.service';
+
+/**
+ * Interface for product attribute options
+ */
+export interface ProductAttributeOption {
+  value: string;
+  image?: string;
+  inStock: boolean;
+}
+
+/**
+ * Interface for selected attribute
+ */
+export interface AttributeSelection {
+  name: string;
+  value: string | null;
+}
 
 declare var _learnq: any;
 
@@ -22,6 +41,7 @@ declare var _learnq: any;
     ReactiveFormsModule,
     CurrencySvgPipe,
     WalletPaymentComponent,
+    TabbyPromoComponent,
   ],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
@@ -39,13 +59,12 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
 
-  // Track if we should show out of stock variations
   showOutOfStockVariations: boolean = true;
+  tabbyConfig: { publicKey: string; merchantCode: string };
 
-  // Loading states from injected UIService
   loadingMap$: Observable<{ [key: string]: boolean }>;
 
-  @Output() selectedAttributeChange = new EventEmitter<{ name: string; value: string | null }>();
+  @Output() selectedAttributeChange = new EventEmitter<AttributeSelection>();
   @Output() variationSelected = new EventEmitter<any>();
 
   linkCopied: boolean = false;
@@ -56,9 +75,28 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     private variationService: VariationService,
     private uiService: UIService,
     private checkoutService: CheckoutService,
-    private router: Router
+    private router: Router,
+    private tabbyConfigService: TabbyConfigService
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
+    this.tabbyConfig = this.tabbyConfigService.getConfig();
+  }
+
+  /**
+   * Handles attribute click with improved event handling
+   * Prevents the need for multiple clicks by stopping propagation and providing focus feedback
+   */
+  handleAttributeClick(event: Event, name: string, value: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const element = event.currentTarget as HTMLElement;
+    element.classList.add('clicking');
+
+    setTimeout(() => {
+      this.selectAttribute(name, value);
+      element.classList.remove('clicking');
+    }, 10);
   }
 
   ngOnInit() {
@@ -69,6 +107,11 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       this.updateMaxLength();
       this.checkWishlistStatus(product.id);
     }
+  }
+
+  handleClick(event: Event, name: string, value: string): void {
+    console.log(`Click event on ${name} = ${value}`);
+    this.selectAttribute(name, value);
   }
 
   ngOnDestroy() {
@@ -114,16 +157,23 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     return this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.slug || 'brand';
   }
 
+  /**
+   * Returns the names of the attributes that are used for variations.
+   */
   getVariationAttributes(): string[] {
     return this.productInfo()?.attributes
       ?.filter((attr: any) => attr.variation)
       ?.map((attr: any) => attr.name) || [];
   }
 
+  /**
+   * Returns the available options for a given attribute, optionally filtered by a dependent attribute value.
+   * Provides a clear interface for product options.
+   */
   getVariationOptions(
     attributeName: string,
     dependentAttributeValue: string | null = null
-  ): { value: string; image?: string; inStock: boolean }[] {
+  ): ProductAttributeOption[] {
     const product = this.productInfo();
     if (!product) return [];
 
@@ -177,19 +227,35 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }));
   }
 
+  /**
+   * Selects an attribute with improved handling and feedback
+   * This modified function ensures better responsiveness and user experience
+   */
   selectAttribute(name: string, value: string): void {
-    this.selectedAttributes[name] = value;
+    console.log(`Selecting attribute: ${name} = ${value}`);
+
+    this.selectedAttributes = {
+      ...this.selectedAttributes,
+      [name]: value
+    };
+
     this.selectedAttributeChange.emit({ name, value });
 
     if (name === 'Color') {
       this.selectedAttributes['Size'] = null;
+
       const availableSizes = this.getVariationOptions('Size', value);
       if (availableSizes.length > 0) {
         const firstInStockSize = availableSizes.find(size => size.inStock);
+
         if (firstInStockSize) {
-          this.selectAttribute('Size', firstInStockSize.value);
+          setTimeout(() => {
+            this.selectAttribute('Size', firstInStockSize.value);
+          }, 100);
         } else if (this.showOutOfStockVariations) {
-          this.selectAttribute('Size', availableSizes[0].value);
+          setTimeout(() => {
+            this.selectAttribute('Size', availableSizes[0].value);
+          }, 100);
         }
       }
     }
@@ -199,11 +265,28 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       if (selectedVariation) {
         this.variationService.setSelectedVariation(selectedVariation);
         this.variationSelected.emit(selectedVariation);
+
+        this.addFeedbackAnimation();
       }
     }
 
     this.updateMaxLength();
     this.quantity = 1;
+  }
+
+  /**
+   * Adds a gentle feedback animation to the selected elements
+   * Helps users understand their selection was successful
+   */
+  private addFeedbackAnimation(): void {
+    const activeElements = document.querySelectorAll('.color-option.active, .size-option.active');
+
+    activeElements.forEach(el => {
+      el.classList.add('feedback-animation');
+      setTimeout(() => {
+        el.classList.remove('feedback-animation');
+      }, 300);
+    });
   }
 
   getSelectedVariation() {
@@ -287,22 +370,18 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     let cartProduct: any;
     if (product.type === 'simple') {
       if (product.stock_status !== 'instock') {
-        // this.uiService.showMessage('This product is out of stock.', false);
         return;
       }
       cartProduct = { ...product, quantity: this.quantity };
     } else {
       if (!this.allVariationAttributesSelected) {
-        // this.uiService.showMessage('Please select all variation options.', false);
         return;
       }
       const selectedVariation = this.getSelectedVariation();
       if (!selectedVariation) {
-        // this.uiService.showMessage('No valid variation selected.', false);
         return;
       }
       if (selectedVariation.stock_status !== 'instock') {
-        // this.uiService.showMessage('Selected variation is out of stock.', false);
         return;
       }
       cartProduct = this.variationService.prepareProductForCart(
@@ -318,7 +397,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     this.cartService.addProductToCart(cartProduct, buyItNow);
-    // this.uiService.showMessage('Product added to cart!', true);
 
     if (typeof _learnq !== 'undefined') {
       _learnq.push([
@@ -343,18 +421,36 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   getCartProduct() {
     const product = this.productInfo();
+
     if (!product) return null;
 
-    if (product.type === 'simple') {
-      return { ...product, quantity: this.quantity };
+    if (product.type === 'variable') {
+      if (!this.allVariationAttributesSelected || !this.isProductInStock) {
+        return null;
+      }
+      const selectedVariation: any = this.getSelectedVariation();
+      return {
+        id: selectedVariation?.id || product.id,
+        price: this.getPriceInfo().price,
+        quantity: this.quantity,
+        name: product.name,
+        variation_id: selectedVariation?.id ? parseInt(selectedVariation.id, 10) : 0,
+        stock_status: selectedVariation?.stock_status || 'outofstock',
+      };
     }
 
-    if (!this.allVariationAttributesSelected) return null;
+    if (product.stock_status !== 'instock') {
+      return null;
+    }
 
-    const selectedVariation = this.getSelectedVariation();
-    if (!selectedVariation) return null;
-
-    return this.variationService.prepareProductForCart(product, selectedVariation, this.quantity);
+    return {
+      id: product.id,
+      price: this.getPriceInfo().price,
+      quantity: this.quantity,
+      name: product.name,
+      variation_id: 0,
+      stock_status: product.stock_status,
+    };
   }
 
   onWalletPaymentSucceeded(paymentIntentId: string) {
@@ -391,7 +487,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     ).subscribe({
       error: (error) => {
         console.error('Error polling order status:', error);
-        // this.uiService.showMessage('An error occurred while checking order status: ' + (error.message || 'Please try again.'), false);
         this.router.navigate(['/']);
       },
     });

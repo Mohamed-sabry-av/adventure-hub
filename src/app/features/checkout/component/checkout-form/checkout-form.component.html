@@ -231,8 +231,9 @@
               </div>
             </div>
 
-            @if ((avaliablePaymentMethods$ | async)?.includes('tabby_installments')) {
-              <!-- Tabby -->
+
+            <!-- Tabby -->
+            <!-- @if ((avaliablePaymentMethods$ | async)?.includes('tabby_installments')) {
               <div>
                 <div
                   class="flex justify-between items-center bg-white p-4"
@@ -283,6 +284,7 @@
                 }
               </div>
             }
+ -->
 
             @if ((selectedBillingCountry$ | async) === 'AE') {
               <!-- COD -->
@@ -413,15 +415,21 @@
           <!-- Pay Button -->
           <div class="mt-6 mb-12 lg:block hidden">
             <button
-              [disabled]="!isFormValid()"
+              [disabled]="!isFormValid() || isLoading"
               (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
               class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
-              [ngClass]="!isFormValid() ? 'bg-gray-500 hover:bg-gray-500 cursor-default' : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'"
+              [ngClass]="!isFormValid() || isLoading ? 'bg-gray-500 hover:bg-gray-500 cursor-default' : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'"
             >
-              @if (isOrderLoading$ | async) {
-                <div class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+              @if (paymentRadiosValue === 'cod') {
+                <span>Complete order</span>
               } @else {
-                @if (paymentRadiosValue === 'cod') { Complete order } @else { Pay now }
+                <span>Pay now</span>
+              }
+          
+              @if (isLoading) {
+                <span class="inline-block ml-2 align-middle">
+                  <div class="inline-block animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></div>
+                </span>
               }
             </button>
           </div>
@@ -450,22 +458,30 @@
 
     <!-- Summary -->
     <div class="lg:w-[45%]">
-      <app-checkout-summary [isVisible$]="summaryIsVisible$!">
-        <div class="mt-6 mb-12 lg:hidden block">
-          <button
-            [disabled]="!isFormValid()"
+      <div class="lg:sticky lg:top-4">
+        <app-checkout-summary [isVisible$]="summaryIsVisible$!">
+          <div class="mt-6 mb-12 lg:hidden block">
+            <button
+            [disabled]="!isFormValid() || isLoading"
             (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
-            class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
-            [ngClass]="!isFormValid() ? 'bg-gray-500 hover:bg-gray-500 cursor-default' : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'"
-          >
-            @if (isOrderLoading$ | async) {
-              <div class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-            } @else {
-              @if (paymentRadiosValue === 'cod') { Complete order } @else { Pay now }
-            }
-          </button>
-        </div>
-      </app-checkout-summary>
+              class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
+              [ngClass]="!isFormValid() || isLoading ? 'bg-gray-500 hover:bg-gray-500 cursor-default' : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'"
+            >
+              @if (paymentRadiosValue === 'cod') {
+                <span>Complete order</span>
+              } @else {
+                <span>Pay now</span>
+              }
+
+              @if (isOrderLoading$ | async) {
+                <span class="inline-block ml-2 align-middle">
+                  <div class="inline-block animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></div>
+                </span>
+              }
+            </button>
+          </div>
+        </app-checkout-summary>
+      </div>
     </div>
   </div>
 </form>

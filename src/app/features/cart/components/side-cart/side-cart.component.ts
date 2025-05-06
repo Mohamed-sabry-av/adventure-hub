@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { CartService } from '../../service/cart.service';
 import { filter, Observable } from 'rxjs';
-import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { AsyncPipe, CurrencyPipe, isPlatformBrowser } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { RouterLink } from '@angular/router';
@@ -34,7 +34,8 @@ export class SideCartComponent {
   private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(  @Inject(PLATFORM_ID) private platformId: Object
+){}
 
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
@@ -54,6 +55,7 @@ export class SideCartComponent {
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {
       if (isPlatformBrowser(this.platformId)) {
+        
         if (visible) {
           document.body.style.overflow = 'hidden';
         } else {
