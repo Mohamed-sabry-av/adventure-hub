@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CategoriesService } from '../../../../core/services/categories.service';
 import { Category } from '../../../../interfaces/category.model';
+import { SafeHtmlPipe } from "../../../../shared/pipes/safeHtml.pipe";
 
 @Component({
   selector: 'app-breadcrumb-routes',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, SafeHtmlPipe],
   template: `
     <nav aria-label="Subcategory navigation" class="border-b border-gray-200">
       <ol class="space-y-1 text-sm font-medium text-gray-900">
@@ -19,6 +20,7 @@ import { Category } from '../../../../interfaces/category.model';
                 (click)="onSubcategoryClick(subCat.category)"
                 class="flex items-center hover:text-blue-600"
                 aria-current="page"
+                [innerHTML]="subCat.category.name | safeHtml"
               >
                 {{ subCat.category.name }} ({{ subCat.productCount }})
               </a>

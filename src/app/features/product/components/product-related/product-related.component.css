@@ -10,34 +10,111 @@
   overflow: hidden;
 }
 
+/* تحسين تنسيق قسم المنتجات ذات الصلة */
+.related-products-section {
+  padding: 2rem 0;
+  background-color: #f9f9f9;
+  margin-bottom: 1rem;
+}
+
 .section-title {
-  text-align: center;
+  position: relative;
   margin-bottom: 1.5rem;
+  display: inline-block;
+  text-align: center;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: #333;
+  border-radius: 3px;
+}
+
+.related-products-slider {
+  margin: 0 -1rem;
 }
 
 .product-item {
   height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.product-item:hover {
+  transform: translateY(-5px);
+}
+
+.related-product-wrapper {
+  cursor: pointer;
 }
 
 :host ::ng-deep .full-width-carousel .p-carousel-items-container {
   padding: 0 1rem;
 }
 
+/* تحسين أزرار التنقل في الـ carousel */
 :host ::ng-deep .p-carousel .p-carousel-indicators {
+  padding: 1rem;
   margin-top: 1rem;
 }
 
-:host ::ng-deep .p-carousel-prev,
-:host ::ng-deep .p-carousel-next {
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev,
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next {
+  color: #333;
   background: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  margin: 0 10px;
-  color: #333;
+  margin: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  transition: all 0.3s ease;
 }
 
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev:hover,
+:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+/* تحسين عرض الـ loading spinner */
+.loading-container {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* تنسيق رسالة عدم وجود منتجات */
+.no-products {
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+/* تحسينات للشاشات الصغيرة */
 @media (max-width: 768px) {
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .related-products-section {
+    padding: 1.5rem 0;
+  }
+
   :host ::ng-deep .p-carousel-prev,
   :host ::ng-deep .p-carousel-next {
     width: 32px;

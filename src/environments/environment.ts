@@ -7,5 +7,6 @@ export const environment = {
   tabbyConfig: {
     publicKey: 'pk_test_f88769b5-ae9f-45e4-93e3-43eb557c1b3c', // Replace with your actual Tabby public key
     merchantCode: 'AE' // Replace with your actual merchant code (e.g., AE, SA)
-  }
+  },
+  baseurl:'https://adventures-hub.com'
   };

@@ -17,7 +17,7 @@
   <div class="related-products-slider" *ngIf="!isLoading && relatedProducts.length > 0">
     <p-carousel
       [value]="relatedProducts"
-      [numVisible]="4"
+      [numVisible]="5"
       [numScroll]="1"
       [circular]="true"
       [responsiveOptions]="responsiveOptions"
@@ -25,7 +25,10 @@
       styleClass="full-width-carousel">
       <ng-template let-product pTemplate="item">
         <div class="product-item p-2">
-          <app-product-card [product]="product"></app-product-card>
+          <!-- استخدام (click) لمعالجة النقر بدلاً من الاعتماد فقط على RouterLink في بطاقة المنتج -->
+          <div class="related-product-wrapper" (click)="onProductClick(product.slug)">
+            <app-product-card [product]="product"></app-product-card>
+          </div>
         </div>
       </ng-template>
     </p-carousel>

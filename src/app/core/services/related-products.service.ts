@@ -9,6 +9,7 @@ import { ProductService } from './product.service';
 export class RelatedProductsService {
   private readonly STORAGE_KEY = 'relatedProductsIds';
   private readonly MAX_STORED_IDS = 100; // الحد الأقصى لعدد الـIDs التي سيتم تخزينها
+  private readonly MAX_RELATED_IDS_PER_PRODUCT = 30; // الحد الأقصى لعدد الـIDs المخزنة لكل منتج
 
   // خاص بالمنتجات ذات الصلة المحملة حالياً
   private relatedProductsSubject = new BehaviorSubject<number[]>([]);
@@ -18,6 +19,7 @@ export class RelatedProductsService {
     private productService: ProductService
   ) {
     this.loadFromLocalStorage();
+    this.pruneOldEntries(); // تنظيف القائمة عند بدء التشغيل
   }
 
   /**
@@ -43,13 +45,43 @@ export class RelatedProductsService {
     const storedData = this.localStorageService.getItem<Record<string, number[]>>(this.STORAGE_KEY) || {};
 
     // إضافة أو تحديث الـ IDs الخاصة بالمنتج
-    storedData[productId.toString()] = filteredIds;
+    // تحديث القائمة الحالية أو إنشاء قائمة جديدة إذا لم تكن موجودة
+    const existingIds = storedData[productId.toString()] || [];
+
+    // دمج القوائم وإزالة التكرار
+    const mergedIds = [...new Set([...existingIds, ...filteredIds])];
+
+    // التأكد من عدم تجاوز الحد الأقصى لكل منتج
+    const limitedIds = mergedIds.slice(0, this.MAX_RELATED_IDS_PER_PRODUCT);
+
+    // تخزين القائمة المحدثة
+    storedData[productId.toString()] = limitedIds;
 
     // تحديث القائمة في localStorage
     this.localStorageService.setItem(this.STORAGE_KEY, storedData);
 
+    // تنظيف القائمة إذا كانت كبيرة جدًا
+    this.pruneOldEntries();
+
     // تحديث الـ BehaviorSubject
     this.relatedProductsSubject.next(this.getAllRelatedIds());
+  }
+
+  /**
+   * الحصول على الـ IDs ذات الصلة بمنتج معين مباشرة دون معالجة
+   * @param productId ID المنتج
+   * @returns المنتجات ذات الصلة المباشرة
+   */
+  getDirectRelatedIds(productId: number): number[] {
+    if (!productId) return [];
+
+    const storedData = this.localStorageService.getItem<Record<string, number[]>>(this.STORAGE_KEY) || {};
+
+    // الحصول على الـ IDs ذات الصلة بهذا المنتج بشكل مباشر
+    const relatedIds = storedData[productId.toString()] || [];
+
+    // استبعاد المنتج نفسه للتأكد
+    return relatedIds.filter(id => id !== productId);
   }
 
   /**
@@ -62,21 +94,28 @@ export class RelatedProductsService {
     // دمج كل الـ IDs من كل المنتجات في مصفوفة واحدة
     const allIds = Object.values(storedData).flat();
 
-    // إزالة التكرار وترتيب المصفوفة بشكل عشوائي
-    return this.shuffleArray([...new Set(allIds)]);
+    // إزالة التكرار
+    const uniqueIds = [...new Set(allIds)];
+
+    // ترتيب المصفوفة بشكل عشوائي
+    return this.shuffleArray(uniqueIds);
   }
 
   /**
    * الحصول على عدد محدد من الـ IDs العشوائية من القائمة المخزنة
    * @param count عدد الـ IDs المطلوبة
-   * @param excludeId ID المنتج الذي يجب استبعاده (مثلاً المنتج الحالي)
+   * @param excludeIds ID أو مصفوفة من الـ IDs التي يجب استبعادها
    * @returns مصفوفة من الـ IDs العشوائية
    */
-  getRandomRelatedIds(count: number = 8, excludeId?: number): number[] {
+  getRandomRelatedIds(count: number = 8, excludeIds?: number | number[]): number[] {
     const allIds = this.getAllRelatedIds();
 
-    // استبعاد المنتج المحدد إذا كان موجوداً
-    const filteredIds = excludeId ? allIds.filter(id => id !== excludeId) : allIds;
+    // استبعاد المنتج المحدد أو المنتجات المحددة
+    let filteredIds = allIds;
+    if (excludeIds) {
+      const idsToExclude = Array.isArray(excludeIds) ? excludeIds : [excludeIds];
+      filteredIds = allIds.filter(id => !idsToExclude.includes(id));
+    }
 
     // إذا كان العدد المطلوب أكبر من عدد الـ IDs المتاحة، نعيد كل المصفوفة
     if (count >= filteredIds.length) {
@@ -88,25 +127,92 @@ export class RelatedProductsService {
   }
 
   /**
-   * الحصول على الـ IDs ذات الصلة بمنتج معين
+   * الحصول على الـ IDs ذات الصلة بمنتج معين مع خيار الجمع مع IDs أخرى عشوائية
    * @param productId ID المنتج
    * @param count عدد الـ IDs المطلوبة
+   * @param includeRandom تحديد ما إذا كان يجب تضمين IDs عشوائية إذا لم يكن هناك ما يكفي من IDs ذات الصلة
    * @returns مصفوفة من الـ IDs ذات الصلة بالمنتج
    */
-  getRelatedIdsForProduct(productId: number, count: number = 8): number[] {
+  getRelatedIdsForProduct(productId: number, count: number = 8, includeRandom: boolean = true): number[] {
     if (!productId) return [];
 
     const storedData = this.localStorageService.getItem<Record<string, number[]>>(this.STORAGE_KEY) || {};
     const productRelatedIds = storedData[productId.toString()] || [];
 
+    // تجنب استرجاع المنتج نفسه
+    const filteredIds = productRelatedIds.filter(id => id !== productId);
+
     // إذا كان لدينا IDs كافية، نختار منها بشكل عشوائي
-    if (productRelatedIds.length >= count) {
-      return this.shuffleArray([...productRelatedIds]).slice(0, count);
+    if (filteredIds.length >= count) {
+      return this.shuffleArray([...filteredIds]).slice(0, count);
     }
 
-    // إذا لم يكن لدينا IDs كافية، نكمل من الـ IDs الأخرى
-    const otherIds = this.getRandomRelatedIds(count - productRelatedIds.length, productId);
-    return [...productRelatedIds, ...otherIds].slice(0, count);
+    // إذا طلب المستخدم تضمين IDs عشوائية وليس لدينا ما يكفي
+    if (includeRandom) {
+      // إذا لم يكن لدينا IDs كافية، نكمل من الـ IDs الأخرى
+      const neededCount = count - filteredIds.length;
+      const otherIds = this.getRandomRelatedIds(neededCount, productId);
+
+      // دمج القوائم وإزالة التكرار
+      return [...new Set([...filteredIds, ...otherIds])];
+    }
+
+    // إذا لم يطلب المستخدم تضمين IDs عشوائية، نعيد ما لدينا فقط
+    return filteredIds;
+  }
+
+  /**
+   * الحصول على المنتجات ذات الصلة الأكثر شيوعًا
+   * @param count عدد الـ IDs المطلوبة
+   * @param excludeId ID المنتج الذي يجب استبعاده
+   * @returns مصفوفة من الـ IDs الأكثر شيوعًا
+   */
+  getMostCommonRelatedIds(count: number = 8, excludeId?: number): number[] {
+    const storedData = this.localStorageService.getItem<Record<string, number[]>>(this.STORAGE_KEY) || {};
+
+    // إنشاء قاموس لتسجيل عدد مرات ظهور كل ID
+    const idFrequency: Record<number, number> = {};
+
+    // حساب عدد مرات ظهور كل ID
+    Object.values(storedData).flat().forEach(id => {
+      if (id !== excludeId) {
+        idFrequency[id] = (idFrequency[id] || 0) + 1;
+      }
+    });
+
+    // تحويل القاموس إلى مصفوفة وترتيبها تنازليًا حسب عدد مرات الظهور
+    const sortedIds = Object.entries(idFrequency)
+      .sort((a, b) => b[1] - a[1])  // ترتيب تنازلي
+      .map(entry => parseInt(entry[0]));  // استخراج الـ ID كرقم
+
+    // إعادة العدد المطلوب من الـ IDs
+    return sortedIds.slice(0, count);
+  }
+
+  /**
+   * تنظيف وإزالة المدخلات القديمة إذا تجاوز العدد الإجمالي الحد الأقصى
+   */
+  private pruneOldEntries(): void {
+    const storedData = this.localStorageService.getItem<Record<string, number[]>>(this.STORAGE_KEY) || {};
+    const totalEntries = Object.keys(storedData).length;
+
+    // التحقق مما إذا كان العدد الإجمالي يتجاوز الحد الأقصى
+    if (totalEntries > this.MAX_STORED_IDS) {
+      // الحصول على قائمة بالمفاتيح وترتيبها عشوائيًا
+      const keys = Object.keys(storedData);
+      const shuffledKeys = this.shuffleArray(keys);
+
+      // إنشاء قاموس جديد مع عدد محدود من المدخلات
+      const prunedData: Record<string, number[]> = {};
+      shuffledKeys.slice(0, this.MAX_STORED_IDS).forEach(key => {
+        prunedData[key] = storedData[key];
+      });
+
+      // تحديث القائمة في localStorage
+      this.localStorageService.setItem(this.STORAGE_KEY, prunedData);
+
+      console.log(`تم تنظيف قائمة المنتجات ذات الصلة: من ${totalEntries} إلى ${Object.keys(prunedData).length} منتج`);
+    }
   }
 
   /**
@@ -118,6 +224,9 @@ export class RelatedProductsService {
       if (storedData) {
         // تحديث الـ BehaviorSubject
         this.relatedProductsSubject.next(this.getAllRelatedIds());
+      } else {
+        // إذا لم توجد بيانات، نهيئ قاموس فارغ
+        this.localStorageService.setItem(this.STORAGE_KEY, {});
       }
     } catch (error) {
       console.error('Error loading related products IDs from localStorage:', error);
@@ -131,7 +240,7 @@ export class RelatedProductsService {
    * @param array المصفوفة المراد خلطها
    * @returns المصفوفة بعد الخلط
    */
-  private shuffleArray(array: number[]): number[] {
+  private shuffleArray<T>(array: T[]): T[] {
     const result = [...array];
     for (let i = result.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));

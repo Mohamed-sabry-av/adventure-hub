@@ -1,64 +1,46 @@
-import {
-  ApplicationConfig,
-  provideZoneChangeDetection,
-  isDevMode,
-} from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { providePrimeNG } from 'primeng/config';
+import { ApplicationConfig, isDevMode } from '@angular/core';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withPreloading, PreloadAllModules } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
-
-import Aura from '@primeng/themes/aura';
-
+import { provideToastr } from 'ngx-toastr';
 import { routes } from './app.routes';
-import {
-  provideClientHydration,
-  withEventReplay,
-  withIncrementalHydration,
-} from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideClientHydration } from '@angular/platform-browser';
 import { provideServiceWorker } from '@angular/service-worker';
-import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
 import { CartEffect } from './Store/effects/cart.effect';
-import { reducers } from './Store/store';
 import { CheckoutEffect } from './Store/effects/checkout.effect';
+import { reducers } from './Store/store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withComponentInputBinding()),
-    provideClientHydration(withIncrementalHydration()),
-    provideHttpClient(withFetch()),
+    provideRouter(
+      routes,
+      // Add important features for SEO and UX
+      withPreloading(PreloadAllModules), // Preload all modules for better performance
+      withComponentInputBinding(), // Enable route param binding
+      withInMemoryScrolling({
+        scrollPositionRestoration: 'enabled',
+        anchorScrolling: 'enabled',
+      }), // Better scrolling experience
+    ),
+    provideHttpClient(
+      // Add interceptors if needed
+      // withInterceptors([apiKeyInterceptor])
+    ),
     provideAnimations(),
-
-    providePrimeNG({
-      theme: {
-        preset: Aura,
-        options: {
-          cssLayer: {
-            name: 'primeng',
-            order: 'tailwind-base, tailwind-utilities, primeng',
-          },
-        },
-      },
-    }),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(), // يشتغل في الـ production بس
-      registrationStrategy: 'registerWhenStable:30000',
+    provideClientHydration(), // For SSR hydration
+    provideToastr({
+      timeOut: 3000,
+      positionClass: 'toast-top-right',
+      preventDuplicates: true,
     }),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000',
+      registrationStrategy: 'registerWhenStable:30000'
     }),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000',
-    }),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000',
-    }),
+    // Add NgRx Store providers
     provideStore(reducers),
-    provideEffects([CartEffect, CheckoutEffect]),
-  ],
+    provideEffects([CartEffect, CheckoutEffect])
+  ]
 };

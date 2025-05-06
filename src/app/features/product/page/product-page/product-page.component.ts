@@ -3,11 +3,12 @@ import {
   Component,
   OnInit,
   inject,
+  OnDestroy,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
-import { map, of, switchMap } from 'rxjs';
+import { map, of, switchMap, filter, takeUntil, Subject } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
@@ -42,7 +43,7 @@ declare var _learnq: any;
   standalone: true,
   // changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductPageComponent implements OnInit {
+export class ProductPageComponent implements OnInit, OnDestroy {
   schemaData: SafeHtml | null = null;
   productData: any;
   productDataForDesc: any;
@@ -50,6 +51,9 @@ export class ProductPageComponent implements OnInit {
   selectedVariation: any | null = null;
   isLoading: boolean = true;
   selectedColorVariation: any | null = null;
+
+  // للتأكد من إلغاء الاشتراكات عند تدمير المكون
+  private destroy$ = new Subject<void>();
 
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
@@ -60,8 +64,30 @@ export class ProductPageComponent implements OnInit {
   private sanitizer = inject(DomSanitizer);
 
   ngOnInit() {
+    // الاستماع لأحداث تغيير الراوتر
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      // تحميل بيانات المنتج عند كل تغيير في الـ URL
+      this.loadProductData();
+    });
+
+    // تحميل بيانات المنتج عند بدء تشغيل المكون
+    this.loadProductData();
+  }
+
+  ngOnDestroy() {
+    // إلغاء جميع الاشتراكات عند تدمير المكون
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // فصل منطق تحميل البيانات إلى دالة منفصلة
+  private loadProductData() {
     this.route.paramMap
       .pipe(
+        takeUntil(this.destroy$),
         switchMap((params) => {
           const slug = params.get('slug');
           if (!slug) {
@@ -73,6 +99,9 @@ export class ProductPageComponent implements OnInit {
           this.productData = null;
           this.productDataForDesc = null;
           this.schemaData = null;
+          this.selectedColor = null;
+          this.selectedVariation = null;
+          this.selectedColorVariation = null;
 
           return this.productService.getProductBySlug(slug).pipe(
             map((product: any) => {
