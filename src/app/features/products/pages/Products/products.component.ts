@@ -10,7 +10,7 @@ import {
   makeStateKey,
 } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CategoriesService } from '../../../../core/services/categories.service';
 import { FilterService } from '../../../../core/services/filter.service';
@@ -20,8 +20,8 @@ import { FilterDrawerComponent } from '../../components/filter-drawer/filter-dra
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
 import { SeoService } from '../../../../core/services/seo.service';
-import { catchError, finalize, of, Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { catchError, finalize, of, Subject, throwError } from 'rxjs';
+import { debounceTime, tap } from 'rxjs/operators';
 import isEqual from 'lodash/isEqual';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 
@@ -74,6 +74,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private categoriesService: CategoriesService,
     private route: ActivatedRoute,
+    private router: Router,
     private cdr: ChangeDetectorRef,
     private filterService: FilterService,
     private seoService: SeoService,
@@ -158,10 +159,33 @@ export class ProductsComponent implements OnInit, OnDestroy {
       const deepestSlug = slugs[slugs.length - 1];
 
       if (deepestSlug) {
-        this.currentCategory = await this.categoriesService
+        const categoryResponse = await this.categoriesService
           .getCategoryBySlug(deepestSlug)
+          .pipe(
+            catchError((error) => {
+              console.error('Category not found:', error);
+              // إذا لم يتم العثور على الفئة، قم بتوجيه المستخدم إلى صفحة 404
+              this.router.navigate(['/page-not-found']);
+              return throwError(() => new Error('Category not found'));
+            })
+          )
           .toPromise();
+
+        // إذا لم يتم العثور على فئة، انتقل إلى صفحة 404
+        if (!categoryResponse) {
+          this.router.navigate(['/page-not-found']);
+          return;
+        }
+
+        this.currentCategory = categoryResponse;
         this.currentCategoryId = this.currentCategory?.id ?? null;
+
+        // إذا كان معرف الفئة غير صالح، انتقل إلى صفحة 404
+        if (!this.currentCategoryId) {
+          this.router.navigate(['/page-not-found']);
+          return;
+        }
+
         this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
           title: this.currentCategory?.name,
           description: this.currentCategory?.description,
@@ -175,6 +199,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
       await this.loadTotalProducts();
     } catch (error) {
       console.error('Error in loadInitialData:', error);
+      // تحقق ما إذا كان الخطأ بسبب عدم وجود الفئة، وفي هذه الحالة انتقل إلى صفحة 404
+      if (String(error).includes('Category not found')) {
+        this.router.navigate(['/page-not-found']);
+        return;
+      }
       this.schemaData = this.seoService.applySeoTags(null, {
         title: 'All Products',
       });
@@ -286,9 +315,25 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     try {
       if (categoryId) {
-        this.currentCategory = await this.categoriesService
+        const categoryResponse = await this.categoriesService
           .getCategoryById(categoryId)
+          .pipe(
+            catchError((error) => {
+              console.error('Category not found by ID:', error);
+              // إذا لم يتم العثور على الفئة، قم بتوجيه المستخدم إلى صفحة 404
+              this.router.navigate(['/page-not-found']);
+              return throwError(() => new Error('Category not found'));
+            })
+          )
           .toPromise();
+
+        // إذا لم يتم العثور على فئة، انتقل إلى صفحة 404
+        if (!categoryResponse) {
+          this.router.navigate(['/page-not-found']);
+          return;
+        }
+
+        this.currentCategory = categoryResponse;
         this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
           title: this.currentCategory?.name,
           description: this.currentCategory?.description,
@@ -304,6 +349,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
       await this.loadTotalProducts();
     } catch (error) {
       console.error('Error in onCategoryIdChange:', error);
+      // تحقق ما إذا كان الخطأ بسبب عدم وجود الفئة، وفي هذه الحالة انتقل إلى صفحة 404
+      if (String(error).includes('Category not found')) {
+        this.router.navigate(['/page-not-found']);
+        return;
+      }
       this.schemaData = this.seoService.applySeoTags(null, {
         title: 'All Products',
       });

@@ -10,8 +10,6 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { KlaviyoService } from '../../services/klaviyo.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SafeHtmlPipe } from '../../../../shared/pipes/safeHtml.pipe';
 
@@ -46,9 +44,6 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
 
   constructor(
     private elementRef: ElementRef,
-    private route: ActivatedRoute,
-    private router: Router,
-    private klaviyoService: KlaviyoService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {}
@@ -63,12 +58,6 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     this.setSafeDescription();
     this.reviewCount = 0;
     this.fetchReviews();
-
-    const fragment = this.route.snapshot.fragment;
-    if (fragment && ['description', 'additional-info', 'reviews'].includes(fragment)) {
-      this.activeSection = fragment as 'description' | 'additional-info' | 'reviews';
-      setTimeout(() => this.scrollToSection(this.activeSection, false), 300);
-    }
   }
 
   ngAfterViewInit() {
@@ -79,14 +68,14 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.calculateSectionPositions();
       this.checkActiveSection();
-      this.fixWideContent(); // New method to handle wide content
+      this.fixWideContent();
     }, 200);
 
     this.initializeLazyLoading();
 
     const observer = new MutationObserver(() => {
       this.calculateSectionPositions();
-      this.fixWideContent(); // Re-run on content changes
+      this.fixWideContent();
     });
     observer.observe(this.elementRef.nativeElement, {
       childList: true,
@@ -107,19 +96,11 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     const siteHeader = document.querySelector('header');
     const stickyHeader = this.elementRef.nativeElement.querySelector('.sticky-tabs');
     this.headerHeight = (siteHeader?.offsetHeight || 0) + (stickyHeader?.offsetHeight || 70);
-    this.fixWideContent(); // Re-run on resize
+    this.fixWideContent();
   }
 
-  scrollToSection(sectionId: 'description' | 'additional-info' | 'reviews', updateUrl: boolean = true): void {
+  scrollToSection(sectionId: 'description' | 'additional-info' | 'reviews'): void {
     this.activeSection = sectionId;
-
-    if (updateUrl) {
-      this.router.navigate([], {
-        relativeTo: this.route,
-        fragment: sectionId,
-        replaceUrl: true,
-      });
-    }
 
     const element = document.getElementById(sectionId);
     if (element) {
@@ -172,11 +153,6 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
 
     if (this.activeSection !== activeSection) {
       this.activeSection = activeSection;
-      this.router.navigate([], {
-        relativeTo: this.route,
-        fragment: activeSection,
-        replaceUrl: true,
-      });
       this.cdr.markForCheck();
     }
   }
@@ -200,7 +176,6 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   private fixWideContent(): void {
     const descriptionContent = this.elementRef.nativeElement.querySelector('.raw-description');
     if (descriptionContent) {
-      // Fix tables
       const tables = descriptionContent.querySelectorAll('table');
       tables.forEach((table: HTMLElement) => {
         table.style.maxWidth = '100%';
@@ -210,14 +185,12 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
         table.style.overflowX = 'auto';
       });
 
-      // Fix wide divs and elements with inline styles
       const wideElements = descriptionContent.querySelectorAll('div[style*="width"], table[style*="width"], img[style*="width"]');
       wideElements.forEach((el: HTMLElement) => {
         el.style.maxWidth = '100%';
         el.style.width = 'auto';
       });
 
-      // Fix custom classes
       const customContainers = descriptionContent.querySelectorAll('.container, .bg-1, .pad-4-0-2, .bg-0, .pad-5-0-4');
       customContainers.forEach((el: HTMLElement) => {
         el.style.maxWidth = '100%';
@@ -264,7 +237,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
           img.removeAttribute('data-src');
           img.onload = () => {
             this.calculateSectionPositions();
-            this.fixWideContent(); // Re-run after image load
+            this.fixWideContent();
           };
         }
       }

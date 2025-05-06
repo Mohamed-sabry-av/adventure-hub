@@ -6,7 +6,7 @@ export const authroutes: Routes = [
     path: 'myaccount',
     loadComponent: () =>
       import('./auth.component').then((m) => m.AuthComponent),
-    data: { authRequired: false } 
+    data: { authRequired: false, animation: 'authLogin' }
   },
   {
     path: 'Useraccount',
@@ -14,8 +14,8 @@ export const authroutes: Routes = [
       import('./account-details/account-details.component').then(
         (m) => m.AccountDetailsComponent
       ),
-    canActivate: [AuthGuard], 
-    data: { authRequired: true },
+    canActivate: [AuthGuard],
+    data: { authRequired: true, animation: 'userAccount' },
     children: [
       {
         path: '',
@@ -23,6 +23,7 @@ export const authroutes: Routes = [
           import('./account-details/components/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
           ),
+        data: { animation: 'userDashboard' }
       },
       {
         path: 'orders',
@@ -30,6 +31,7 @@ export const authroutes: Routes = [
           import('./account-details/components/orders/orders.component').then(
             (m) => m.OrdersComponent
           ),
+        data: { animation: 'userOrders' }
       },
       {
         path: 'orders/:id',
@@ -37,6 +39,7 @@ export const authroutes: Routes = [
           import('./account-details/components/orders/orders.component').then(
             (m) => m.OrdersComponent
           ),
+        data: { animation: 'userOrder' }
       },
       {
         path: 'downloads',
@@ -44,6 +47,7 @@ export const authroutes: Routes = [
           import('./account-details/components/downloads/downloads.component').then(
             (m) => m.DownloadsComponent
           ),
+        data: { animation: 'userDownloads' }
       },
       {
         path: 'addresses',
@@ -51,6 +55,7 @@ export const authroutes: Routes = [
           import('./account-details/components/addresses/addresses.component').then(
             (m) => m.AddressesComponent
           ),
+        data: { animation: 'userAddresses' }
       },
       {
         path: 'payment-methods',
@@ -58,6 +63,7 @@ export const authroutes: Routes = [
           import('./account-details/components/payment-methods/payment-methods.component').then(
             (m) => m.PaymentMethodsComponent
           ),
+        data: { animation: 'userPayment' }
       },
       {
         path: 'wishlist',
@@ -65,6 +71,7 @@ export const authroutes: Routes = [
           import('./account-details/components/wishlist/wishlist.component').then(
             (m) => m.WishlistComponent
           ),
+        data: { animation: 'userWishlist' }
       },
     ],
   },

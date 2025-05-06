@@ -5,14 +5,13 @@ import { RecentlyVisitedService } from '../../../../core/services/recently-visit
 import { Product } from '../../../../interfaces/product';
 import { Observable, map } from 'rxjs';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { CarouselModule } from 'primeng/carousel';
+import { CustomCarouselComponent } from '../../../home/components/custom-carousel/custom-carousel.component';
 
 @Component({
   selector: 'app-recent-products-mini',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
+  imports: [CommonModule, RouterModule, ProductCardComponent, CustomCarouselComponent],
   templateUrl: './recent-products-mini.component.html',
-
   styleUrls: ['./recent-products-mini.component.css'],
 })
 export class RecentProductsMiniComponent implements OnInit {
@@ -36,9 +35,8 @@ export class RecentProductsMiniComponent implements OnInit {
     },
     {
       breakpoint: '480px',
-      numVisible: 1,
+      numVisible: 2,
       numScroll: 1,
-      showIndicators: true,
     },
   ];
 

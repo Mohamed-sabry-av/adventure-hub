@@ -57,6 +57,9 @@
   align-items: center;
   cursor: pointer;
   margin-bottom: 8px;
+  transition: transform 0.2s ease;
+  user-select: none; /* منع تحديد النص */
+  -webkit-tap-highlight-color: transparent; /* إزالة التظليل الافتراضي في نظام iOS */
 }
 
 .color-option.out-of-stock {
@@ -84,6 +87,24 @@
   color: #4b5563;
 }
 
+/* Clicking state for better visual feedback */
+.color-option.clicking .color-swatch,
+.size-option.clicking {
+  transform: scale(0.9);
+  opacity: 0.8;
+}
+
+/* Feedback animation for selections */
+.feedback-animation {
+  animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
 /* Size Options */
 .size-options {
   display: flex;
@@ -101,6 +122,9 @@
   text-align: center;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.2s ease;
+  user-select: none; /* منع تحديد النص */
+  -webkit-tap-highlight-color: transparent; /* إزالة التظليل الافتراضي في نظام iOS */
 }
 
 .size-option.active {

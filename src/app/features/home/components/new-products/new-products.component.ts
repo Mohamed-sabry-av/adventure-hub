@@ -41,7 +41,7 @@ export class NewProductsComponent implements OnInit {
     },
     {
       breakpoint: '575px',
-      numVisible: 2,
+      numVisible: 2, // تأكيد عرض منتجين على الهاتف
       numScroll: 1,
     },
   ];

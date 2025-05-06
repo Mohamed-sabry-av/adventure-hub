@@ -3,11 +3,13 @@ import {
   Component,
   OnInit,
   HostListener,
-  inject
+  inject,
+  ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { ProductsBrandService } from '../../../products/services/products-brand.service';
+import { HomeService } from '../../service/home.service';
+import { catchError, forkJoin, of } from 'rxjs';
 
 interface Brand {
   id: number;
@@ -27,7 +29,7 @@ interface Brand {
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="brand-logos py-8 px-4 bg-white">
+    <div class="brand-logos py-2 px-2 bg-white">
       <div class="container mx-auto">
         @if (brands.length > 0) {
           <div class="brands-carousel relative">
@@ -40,7 +42,7 @@ interface Brand {
                 @for (brand of brands; track brand.id) {
                   <a
                     [routerLink]="['/brand', brand.slug]"
-                    class="brand-logo flex items-center justify-center h-16 p-2 transition-all duration-300"
+                    class="brand-logo flex items-center justify-center h-12 p-2 transition-all duration-300"
                     [style.min-width.px]="getItemWidth()"
                   >
                     @if (brand.image && brand.image.url) {
@@ -88,7 +90,7 @@ interface Brand {
   styles: [
     `
       .brands-carousel {
-        padding: 0 40px;
+        // padding: 0 40px;
       }
 
       .brands-slider {
@@ -97,7 +99,7 @@ interface Brand {
       }
 
       .brand-logo {
-        border: 1px solid #f0f0f0;
+        // border: 1px solid #f0f0f0;
         border-radius: 8px;
         margin: 0 10px;
       }
@@ -127,10 +129,12 @@ interface Brand {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BrandLogosComponent implements OnInit {
-  private productsBrandService = inject(ProductsBrandService);
+  // private productsBrandService = inject(ProductsBrandService);
 
-  // Define the specific brand IDs you want to display
-  private readonly allowedBrandIds = [550,]; // Adjust with your desired IDs
+  private homeService = inject(HomeService);
+  private cdr = inject(ChangeDetectorRef);
+
+  private readonly allowedBrandIds = [550, 5126, 1126, 2461, 1441, 989, 877, 971, 3537];
 
   brands: Brand[] = [];
   currentPosition = 0;
@@ -152,56 +156,43 @@ export class BrandLogosComponent implements OnInit {
   }
 
   loadBrands(): void {
-    this.productsBrandService.getBrandInfoBySlug('').subscribe({
-      next: () => {
-        this.loadBrandsFromAttribute();
+    const brandObservables = this.allowedBrandIds.map(id =>
+      this.homeService.getBrandById(id).pipe(
+        catchError(error => {
+          return of(null); 
+        })
+      )
+    );
+
+    forkJoin(brandObservables).subscribe({
+      next: (brands: Brand[]) => {
+        this.brands = brands.filter(brand => brand !== null);
+        this.cdr.markForCheck();
+        setTimeout(() => this.setCarouselParameters(), 100);
       },
-      error: () => {
-        console.error('Error loading brands');
-        this.brands = []; // Set empty array on error
+      error: (error) => {
+        this.brands = [];
+        this.cdr.markForCheck();
         setTimeout(() => this.setCarouselParameters(), 100);
       }
     });
   }
 
-  loadBrandsFromAttribute(): void {
-    fetch('https://adventures-hub.com/wp-json/wc/v3/products/attributes/3/terms?per_page=12')
-      .then(response => response.json())
-      .then(data => {
-        this.brands = data
-          .map((brand: any) => ({
-            id: brand.id,
-            name: brand.name,
-            slug: brand.slug,
-            count: brand.count,
-            image: brand.image || undefined
-          }))
-          // Filter brands by allowed IDs
-          .filter((brand: Brand) => this.allowedBrandIds.includes(brand.id));
-        setTimeout(() => this.setCarouselParameters(), 100);
-      })
-      .catch(error => {
-        console.error('Error fetching brands:', error);
-        this.brands = []; // Set empty array on error
-        setTimeout(() => this.setCarouselParameters(), 100);
-      });
-  }
-
   setCarouselParameters(): void {
     const itemWidth = this.getItemWidth();
     this.totalWidth = itemWidth * this.brands.length;
-    this.currentPosition = 0; // Reset position
+    this.currentPosition = 0;
   }
 
   getItemWidth(): number {
     if (this.screenWidth < 640) {
-      return this.screenWidth / 3; // 3 items per view on mobile
+      return this.screenWidth / 3;
     } else if (this.screenWidth < 768) {
-      return this.screenWidth / 4; // 4 items per view on small tablets
+      return this.screenWidth / 4;
     } else if (this.screenWidth < 1024) {
-      return this.screenWidth / 5; // 5 items per view on tablets
+      return this.screenWidth / 5;
     } else {
-      return this.screenWidth / 8; // 8 items per view on desktop
+      return this.screenWidth / 8;
     }
   }
 

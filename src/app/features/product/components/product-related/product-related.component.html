@@ -15,23 +15,24 @@
 
   <!-- المنتجات ذات الصلة -->
   <div class="related-products-slider" *ngIf="!isLoading && relatedProducts.length > 0">
-    <p-carousel
-      [value]="relatedProducts"
-      [numVisible]="5"
+    <app-custom-carousel
+      [items]="relatedProducts"
+      [numVisible]="4"
       [numScroll]="1"
       [circular]="true"
       [responsiveOptions]="responsiveOptions"
-      [showIndicators]="false"
-      styleClass="full-width-carousel">
-      <ng-template let-product pTemplate="item">
+      [showPagination]="true"
+      [showControls]="true"
+      [autoplayInterval]="0">
+
+      <ng-template #item let-product>
         <div class="product-item p-2">
-          <!-- استخدام (click) لمعالجة النقر بدلاً من الاعتماد فقط على RouterLink في بطاقة المنتج -->
-          <div class="related-product-wrapper" (click)="onProductClick(product.slug)">
+          <div  (click)="onProductClick(product.slug)">
             <app-product-card [product]="product"></app-product-card>
           </div>
         </div>
       </ng-template>
-    </p-carousel>
+    </app-custom-carousel>
   </div>
 
   <!-- رسالة في حالة عدم وجود منتجات -->

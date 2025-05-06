@@ -23,11 +23,11 @@
     </div>
   } @else {
     <!-- Schema Data -->
-    @if (schemaData) {
+    <!-- @if (schemaData) {
       <ng-container>
         <script type="application/ld+json" [innerHTML]="schemaData"></script>
       </ng-container>
-    }
+    } -->
 
     <app-breadcrumb [productName]="productData?.name"></app-breadcrumb>
 
@@ -68,7 +68,6 @@
         <app-product-related
           [relatedIds]="productData?.related_ids || []"
           [productId]="productData.id"
-          class="relatedProducts"
         />
         <app-recent-products-mini></app-recent-products-mini>
       }
@@ -79,7 +78,7 @@
           No products available
         </p>
         <a
-          routerLink="/"
+          routerLink="/home"
           class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded"
         >
           Back to Home page

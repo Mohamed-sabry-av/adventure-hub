@@ -1,14 +1,6 @@
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {
-  Observable,
-  map,
-  catchError,
-  of,
-  shareReplay,
-  BehaviorSubject,
-} from 'rxjs';
-import { Product } from '../../../interfaces/product';
+import { Observable, map, catchError, of, shareReplay } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { CacheService } from '../../../core/services/cashing.service';
 
@@ -48,7 +40,7 @@ export class HomeService {
           return response.body;
         }),
         catchError((error) => {
-          console.error('Error fetching products :', error);
+          console.error('Error fetching products:', error);
           return of([]);
         }),
         shareReplay(1)
@@ -80,7 +72,7 @@ export class HomeService {
           return response.body;
         }),
         catchError((error) => {
-          console.error('Error fetching products :', error);
+          console.error('Error fetching products:', error);
           return of([]);
         }),
         shareReplay(1)
@@ -112,7 +104,7 @@ export class HomeService {
           return response.body;
         }),
         catchError((error) => {
-          console.error('Error fetching products :', error);
+          console.error('Error fetching products:', error);
           return of([]);
         }),
         shareReplay(1)
@@ -140,21 +132,70 @@ export class HomeService {
       );
   }
 
-  getBrands(perPage: number = 20): Observable<any> {
+  getBrandsByIds(brandIds: number[], perPage: number = 20): Observable<any> {
+    const cacheKey = `brands_${brandIds.join('_')}`;
+    const cachedData = this.cachingService.get(cacheKey);
+    if (cachedData) {
+      return of(cachedData);
+    }
+
     return this.wooApi
-      .getRequestProducts<any>('products/attributes/2/terms', {
+      .getRequestProducts<any>('products/attributes/3/terms', {
         params: new HttpParams()
           .set('per_page', perPage.toString())
-          .set('_fields', 'id,name,slug,count'),
+          .set('_fields', 'id,name,slug,count,image'),
         observe: 'response',
       })
       .pipe(
         map((response: HttpResponse<any>) => {
-          return response.body;
+          const filteredBrands = response.body
+            .filter((brand: any) => brandIds.includes(brand.id))
+            .map((brand: any) => ({
+              id: brand.id,
+              name: brand.name,
+              slug: brand.slug,
+              count: brand.count,
+              image: brand.image || undefined,
+            }));
+          this.cachingService.set(cacheKey, filteredBrands);
+          return filteredBrands;
         }),
         catchError((error) => {
           console.error('Error fetching brands:', error);
           return of([]);
+        }),
+        shareReplay(1)
+      );
+  }
+
+  getBrandById(termId: number): Observable<any> {
+    const cacheKey = `brand_${termId}`;
+    const cachedData = this.cachingService.get(cacheKey);
+    if (cachedData) {
+      return of(cachedData);
+    }
+
+    return this.wooApi
+      .getRequestProducts<any>(`products/attributes/3/terms/${termId}`, {
+        params: new HttpParams().set('_fields', 'id,name,slug,count,image'),
+        observe: 'response',
+      })
+      .pipe(
+        map((response: HttpResponse<any>) => {
+          const brand = response.body;
+          const formattedBrand = {
+            id: brand.id,
+            name: brand.name,
+            slug: brand.slug,
+            count: brand.count,
+            image: brand.image || undefined,
+          };
+          this.cachingService.set(cacheKey, formattedBrand);
+          return formattedBrand;
+        }),
+        catchError((error) => {
+          console.error(`Error fetching brand with ID ${termId}:`, error);
+          return of(null);
         }),
         shareReplay(1)
       );

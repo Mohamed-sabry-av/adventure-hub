@@ -15,11 +15,11 @@ import {
   SideOptionsService,
   SideOptionsState,
 } from '../../../core/services/side-options.service';
-import { CartService } from '../../../features/cart/service/cart.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { map, Observable, Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 import { UIService } from '../../services/ui.service';
 import { VariationService } from '../../../core/services/variation.service';
+import { CartService } from '../../../features/cart/service/cart.service';
 
 @Component({
   selector: 'app-side-options',

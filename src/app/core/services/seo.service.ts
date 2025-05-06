@@ -13,7 +13,7 @@ export class SeoService {
 
   constructor(
     private titleService: Title,
-    private metaService: Meta,
+    public metaService: Meta,
     private sanitizer: DomSanitizer,
     private router: Router
   ) {

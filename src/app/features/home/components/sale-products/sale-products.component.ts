@@ -42,7 +42,7 @@ export class SaleProductsComponent implements OnInit {
     },
     {
       breakpoint: '575px',
-      numVisible: 2,
+      numVisible: 2, // منتجين فقط على الهاتف
       numScroll: 1,
     },
   ];

@@ -1,123 +1,66 @@
-.full-width-container {
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  background-color: #f9f9f9;
-  padding: 2rem 0;
-  overflow: hidden;
-}
-
-/* تحسين تنسيق قسم المنتجات ذات الصلة */
 .related-products-section {
-  padding: 2rem 0;
-  background-color: #f9f9f9;
-  margin-bottom: 1rem;
+  padding: 10px 0;
+  background: #fff;
 }
 
-.section-title {
+.full-width-container {
+  width: 100%;
+}
+
+
+
+/* تخصيص الـ PrimeNG carousel */
+:host ::ng-deep .p-carousel {
   position: relative;
-  margin-bottom: 1.5rem;
-  display: inline-block;
-  text-align: center;
 }
 
-.section-title::after {
-  content: '';
+/* تخصيص الـ navigation arrows */
+:host ::ng-deep .p-carousel-prev,
+:host ::ng-deep .p-carousel-next {
+  display: none; /* إخفاء السهمين افتراضياً على الموبايل */
   position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 60px;
-  height: 3px;
-  background-color: #333;
-  border-radius: 3px;
-}
-
-.related-products-slider {
-  margin: 0 -1rem;
-}
-
-.product-item {
-  height: 100%;
-  transition: transform 0.3s ease;
-}
-
-.product-item:hover {
-  transform: translateY(-5px);
-}
-
-.related-product-wrapper {
-  cursor: pointer;
-}
-
-:host ::ng-deep .full-width-carousel .p-carousel-items-container {
-  padding: 0 1rem;
-}
-
-/* تحسين أزرار التنقل في الـ carousel */
-:host ::ng-deep .p-carousel .p-carousel-indicators {
-  padding: 1rem;
-  margin-top: 1rem;
-}
-
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev,
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next {
-  color: #333;
+  top: 50%;
+  transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  margin: 0.5rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  transition: all 0.3s ease;
+  padding: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  transition: background 0.3s ease;
 }
 
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-prev:hover,
-:host ::ng-deep .p-carousel .p-carousel-content .p-carousel-next:hover {
+:host ::ng-deep .p-carousel-prev:hover,
+:host ::ng-deep .p-carousel-next:hover {
   background: rgba(255, 255, 255, 1);
-  transform: scale(1.1);
 }
 
-/* تحسين عرض الـ loading spinner */
-.loading-container {
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.loading-spinner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* تنسيق رسالة عدم وجود منتجات */
-.no-products {
-  background-color: #f2f2f2;
-  border-radius: 8px;
-  min-height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  color: #666;
-}
-
-/* تحسينات للشاشات الصغيرة */
-@media (max-width: 768px) {
-  .section-title {
-    font-size: 1.5rem;
-  }
-
-  .related-products-section {
-    padding: 1.5rem 0;
-  }
-
+/* إظهار السهمين على الديسكتوب */
+@media (min-width: 768px) {
   :host ::ng-deep .p-carousel-prev,
   :host ::ng-deep .p-carousel-next {
-    width: 32px;
-    height: 32px;
+    display: flex; /* إظهار السهمين */
+    align-items: center;
+    justify-content: center;
   }
+
+  :host ::ng-deep .p-carousel-prev {
+    left: -20px; /* وض  ضع السهم الأيسر خارج الـ carousel */
+  }
+
+  :host ::ng-deep .p-carousel-next {
+    right: -20px; /* ضع السهم الأيمن خارج الـ carousel */
+  }
+}
+
+/* تخصيص الـ product card */
+.product-item {
+  padding: 8px;
+}
+
+.loading-container {
+  min-height: 100px;
+}
+
+.no-products {
+  color: #6b7280;
 }

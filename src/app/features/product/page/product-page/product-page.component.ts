@@ -9,7 +9,7 @@ import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
 import { map, of, switchMap, filter, takeUntil, Subject } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
 import { ProductDescComponent } from '../../components/product-desc/product-desc.component';
@@ -51,10 +51,11 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   selectedVariation: any | null = null;
   isLoading: boolean = true;
   selectedColorVariation: any | null = null;
-
+  
   // للتأكد من إلغاء الاشتراكات عند تدمير المكون
   private destroy$ = new Subject<void>();
-
+  
+  private schemaScript: HTMLScriptElement | null = null;
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private seoService = inject(SeoService);
@@ -62,28 +63,30 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private relatedProductsService = inject(RelatedProductsService);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
+  private document = inject(DOCUMENT);
 
   ngOnInit() {
-    // الاستماع لأحداث تغيير الراوتر
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      // تحميل بيانات المنتج عند كل تغيير في الـ URL
-      this.loadProductData();
-    });
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.loadProductData();
+      });
 
-    // تحميل بيانات المنتج عند بدء تشغيل المكون
     this.loadProductData();
   }
 
   ngOnDestroy() {
-    // إلغاء جميع الاشتراكات عند تدمير المكون
+    if (this.schemaScript) {
+      this.schemaScript.remove();
+      this.schemaScript = null;
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  // فصل منطق تحميل البيانات إلى دالة منفصلة
   private loadProductData() {
     this.route.paramMap
       .pipe(
@@ -97,11 +100,8 @@ export class ProductPageComponent implements OnInit, OnDestroy {
 
           this.isLoading = true;
           this.productData = null;
-          this.productDataForDesc = null;
           this.schemaData = null;
-          this.selectedColor = null;
-          this.selectedVariation = null;
-          this.selectedColorVariation = null;
+          this.schemaScript = null;
 
           return this.productService.getProductBySlug(slug).pipe(
             map((product: any) => {
@@ -109,43 +109,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
                 this.router.navigate(['/']);
                 return null;
               }
-
-              const variations = product.variations || [];
-
-              return {
-                ...product,
-                variations: variations,
-                brand:
-                  product.attributes?.find(
-                    (attr: any) => attr.name === 'Brand'
-                  )?.options?.[0]?.name ||
-                  product.brand ||
-                  'Unknown',
-                available_colors: [
-                  ...new Set(
-                    variations
-                      .map(
-                        (v: any) =>
-                          v.attributes?.find(
-                            (attr: any) => attr.name === 'Color'
-                          )?.option
-                      )
-                      .filter(Boolean)
-                  ),
-                ],
-                available_sizes: [
-                  ...new Set(
-                    variations
-                      .map(
-                        (v: any) =>
-                          v.attributes?.find(
-                            (attr: any) => attr.name === 'Size'
-                          )?.option
-                      )
-                      .filter(Boolean)
-                  ),
-                ],
-              };
+              return product;
             })
           );
         })
@@ -155,52 +119,29 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           if (response) {
             this.productData = response;
-            this.productDataForDesc = {
-              id: response.id,
-              description: response.description,
-              specifications: response.specifications,
-              variations: response.variations || [],
-              brand: response.brand || 'Unknown',
-            };
 
-            this.schemaData = this.seoService.applySeoTags(this.productData, {
+            // Apply SEO tags
+            const schemaData = this.seoService.applySeoTags(this.productData, {
               title: this.productData?.name,
               description: this.productData?.short_description,
               image: this.productData?.images?.[0]?.src,
             });
 
-            // إضافة المنتج إلى قائمة المنتجات المزارة مؤخراً
-            this.recentlyVisitedService.addProduct(this.productData);
-
-            // إضافة الـ related_ids إلى الخدمة الجديدة
-            if (this.productData?.id && this.productData?.related_ids?.length > 0) {
-              this.relatedProductsService.addRelatedIds(
-                this.productData.id,
-                this.productData.related_ids
-              );
-            }
-
-            if (typeof _learnq !== 'undefined' && this.productData) {
-              _learnq.push([
-                'track',
-                'Viewed Product',
-                {
-                  ProductID: this.productData.id,
-                  ProductName: this.productData.name,
-                  Price: this.productData.price,
-                  Brand: this.productData.brand || 'Unknown',
-                  Categories:
-                    this.productData.categories?.map((cat: any) => cat.name) ||
-                    [],
-                  AvailableColors: this.productData.available_colors || [],
-                  AvailableSizes: this.productData.available_sizes || [],
-                },
-              ]);
+            // Add schema to <head>
+            if (schemaData) {
+              this.schemaScript = this.document.createElement('script');
+              this.schemaScript.type = 'application/ld+json';
+              this.schemaScript.text = schemaData.toString();
+              this.document.head.appendChild(this.schemaScript);
             }
           } else {
             this.productData = null;
-            this.schemaData = this.seoService.applySeoTags(null, {
+            this.seoService.applySeoTags(null, {
               title: 'Product Not Found',
+            });
+            this.seoService.metaService.updateTag({
+              name: 'robots',
+              content: 'noindex, nofollow',
             });
           }
         },
@@ -208,13 +149,18 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           console.error('Error fetching product data:', err);
           this.isLoading = false;
           this.productData = null;
-          this.schemaData = this.seoService.applySeoTags(null, {
+          this.seoService.applySeoTags(null, {
             title: 'Product Page Error',
+          });
+          this.seoService.metaService.updateTag({
+            name: 'robots',
+            content: 'noindex, nofollow',
           });
           this.router.navigate(['/']);
         },
       });
   }
+
 
   onSelectedColorChange(event: { name: string; value: any | null }) {
     if (event.name === 'Color') {

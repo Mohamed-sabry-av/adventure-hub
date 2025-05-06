@@ -1,60 +1,100 @@
 .sticky-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    transition: transform 0.3s ease, height 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
-    width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, opacity 0.3s ease;
+  width: 100%;
+  will-change: transform, opacity, height;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
+  transform: translateZ(0);
+}
+
+.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.header-visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.header-compact .promo-bar {
+  display: none;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.header-compact .main-header {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  transform: scale(1);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-compact .logo img {
+  transform: scale(0.85);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-compact .search-container {
+  transform: scale(0.95);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-compact {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-compact .navbar-container {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease;
+}
+
+/* ستايل العنصر الوهمي */
+.header-spacer {
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  will-change: height;
+}
+
+/* تحسين الأداء باستخدام GPU acceleration */
+.sticky-header,
+.header-spacer,
+.header-compact .logo img,
+.header-compact .main-header,
+.header-compact .search-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+}
+
+/* دعم الأجهزة المحمولة */
+@media (max-width: 960px) {
+  ::ng-deep .header-compact-drawer {
+    top: 65px !important;
+    transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
-  .header-hidden {
-    transform: translateY(-100%);
-    opacity: 0;
+
+  ::ng-deep .sidenav-drawer {
+    transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
-  .header-compact .promo-bar {
-    display: none;
+
+  /* تحسين الكفاءة على الأجهزة المحمولة */
+  .sticky-header {
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
   }
-  
-  .header-compact .main-header {
-    padding-top: 8px;
-    padding-bottom: 8px;
-  }
-  
-  .header-compact .logo img {
-    transform: scale(0.85);
-  }
-  
-  .header-compact .search-container {
-    transform: scale(0.95);
-  }
-  
-  .header-compact {
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .header-compact .navbar-container {
-    max-height: 0;
-    opacity: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-  
-  /* ستايل العنصر الوهمي */
-  .header-spacer {
-    transition: height 0.3s ease;
-  }
-  
-  /* دعم الأجهزة المحمولة */
-  @media (max-width: 960px) {
-    ::ng-deep .header-compact-drawer {
-      top: 65px !important;
-      transition: top 0.3s ease;
-    }
-  
-    ::ng-deep .sidenav-drawer {
-      transition: top 0.3s ease;
-    }
-  }
-  
+}
