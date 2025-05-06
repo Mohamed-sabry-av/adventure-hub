@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -38,7 +38,6 @@ import {
     NavbarContainerComponent,
     RouterLink,
     SearchBarComponent,
-    AsyncPipe,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],

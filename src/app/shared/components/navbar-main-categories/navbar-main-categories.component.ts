@@ -57,7 +57,6 @@ export class NavbarMainCategoriesComponent {
     effect(() => {
       this.showNavbar.set(this.navbarService.navBarIsVisible());
       this.sidenavIsVisible.set(this.navbarService.sideNavIsVisible());
-      // Reset expandedCategories when sidenav is closed
       if (!this.navbarService.sideNavIsVisible()) {
         this.expandedCategories.clear();
       }

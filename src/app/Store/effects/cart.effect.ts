@@ -76,8 +76,6 @@ export class CartEffect {
     this.actions$.pipe(
       ofType(addProductToUserCartAction),
       switchMap(({ product, isLoggedIn, buyItNow }) => {
-        console.log('From Effect', product);
-        console.log('1- Done');
         this.store.dispatch(
           startLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
         );
@@ -104,10 +102,7 @@ export class CartEffect {
 
         return requestMethod.pipe(
           map((response: any) => {
-            console.log('2- Done');
             if (isLoggedIn) {
-              console.log('Product Added To Cart Online');
-
               this.store.dispatch(
                 stopLoadingSpinnerAction({
                   buttonName: buyItNow ? 'buy' : 'add',
@@ -245,7 +240,6 @@ export class CartEffect {
           openSideCart,
           buyItNow,
         }) => {
-          console.log('3- Done');
           this.store.dispatch(
             cartStatusAction({
               mainPageLoading: mainPageLoading,
@@ -256,6 +250,8 @@ export class CartEffect {
           const apiUrl = `https://adventures-hub.com/wp-json/custom/v1/cart${
             isLoggedIn ? '' : '/guest'
           }`;
+
+          console.log(apiUrl);
 
           const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
 
@@ -283,9 +279,30 @@ export class CartEffect {
 
           return requestMethod.pipe(
             map((response: any) => {
-              console.log('4- Done');
-              console.log(response);
+              if (response.errors.length > 0) {
+                const errorMessages = response.errors
+                  .filter((item: any) => item.code === 'out_of_stock')
+                  .map(
+                    (item: any) =>
+                      `${item.name} is out of stock and deleted from cart`
+                  )
+                  .join('\n');
+                this.uiService.showError(errorMessages);
+                const errorIds = response.errors.map(
+                  (err: any) => err.product_id
+                );
 
+                const updatedItems = loadedData.loadedCart.items.filter(
+                  (item: any) => !errorIds.includes(item.product_id)
+                );
+
+                const filteredCart = {
+                  ...loadedData.loadedCart,
+                  items: updatedItems,
+                };
+
+                localStorage.setItem('Cart', JSON.stringify(filteredCart));
+              }
               response.items = response.items.map((item: any) => {
                 return {
                   key: item.key,
