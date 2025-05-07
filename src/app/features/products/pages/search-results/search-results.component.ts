@@ -13,18 +13,17 @@ import { ProductsGridComponent } from '../../components/products-grid/products-g
 import { FilterSidebarComponent } from '../../components/filter-sidebar/filter-sidebar.component';
 import { FilterDrawerComponent } from '../../components/filter-drawer/filter-drawer.component';
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
-import { finalize, catchError } from 'rxjs/operators';
+import { finalize, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { SeoService } from '../../../../core/services/seo.service';
-import { SearchBarService } from '../../../../shared/services/search-bar.service';
+import { FilterService } from '../../../../core/services/filter.service';
+import isEqual from 'lodash/isEqual';
 
 @Component({
   selector: 'app-search-results',
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.css'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
   imports: [
     CommonModule,
     RouterModule,
@@ -50,6 +49,7 @@ export class SearchResultsComponent implements OnInit {
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
   attributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } } = {};
+  selectedFilters: { [key: string]: string[] } = {}; // إضافة selectedFilters
   schemaData: any;
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
@@ -58,7 +58,7 @@ export class SearchResultsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private searchService: SearchBarService,
+    private filterService: FilterService,
     private seoService: SeoService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -89,13 +89,17 @@ export class SearchResultsComponent implements OnInit {
   ngAfterViewInit() {
     if (this.filterSidebar) {
       this.filterSidebar.filtersChanges.subscribe((filters: any) => {
-        this.currentPage = 1;
-        this.products = [];
-        this.isInitialLoadComplete = false;
-        this.showSkeleton = true;
-        this.showEmptyState = false;
-        this.loadSearchResultsWithFilters(filters);
-        this.cdr.markForCheck();
+        console.log('Filters Changed from Sidebar:', filters);
+        if (!isEqual(filters, this.selectedFilters)) {
+          this.currentPage = 1;
+          this.products = [];
+          this.isInitialLoadComplete = false;
+          this.showSkeleton = true;
+          this.showEmptyState = false;
+          this.selectedFilters = filters; // تحديث selectedFilters
+          this.loadSearchResultsWithFilters(filters);
+          this.cdr.markForCheck();
+        }
       });
     }
   }
@@ -106,6 +110,7 @@ export class SearchResultsComponent implements OnInit {
     this.isInitialLoadComplete = false;
     this.showSkeleton = true;
     this.showEmptyState = false;
+    this.selectedFilters = {}; // إعادة تعيين الفلاتر
   }
 
   async loadSearchResults(): Promise<void> {
@@ -113,27 +118,33 @@ export class SearchResultsComponent implements OnInit {
     this.showSkeleton = true;
 
     try {
-      // Load basic search results first
-      const products = await this.searchService
-        .SearchProductsPage(this.searchQuery, this.currentPage, this.itemsPerPage)
+      // جلب المنتجات بدون فلاتر (سيرش عادي)
+      const products = await this.filterService
+        .getFilteredProductsByCategory(
+          null,
+          this.selectedFilters,
+          this.currentPage,
+          this.itemsPerPage,
+          this.selectedOrderby,
+          this.selectedOrder,
+          this.searchQuery
+        )
         .toPromise();
 
-      // Add products to display while loading filters
       this.products = products || [];
       this.showEmptyState = this.products.length === 0;
       this.cdr.markForCheck();
 
-      // Load initial filters for the search term to populate FilterSidebar
+      // جلب الفلاتر المتاحة بناءً على السيرش
       try {
-        const attributesData = await this.searchService
-          .getInitialSearchFilters(this.searchQuery)
+        const attributesData = await this.filterService
+          .getSearchFilters(this.searchQuery)
           .toPromise();
 
         this.attributes = attributesData || {};
         this.cdr.markForCheck();
       } catch (filterError) {
         console.error('Error loading search filters:', filterError);
-        // Continue with at least the products displayed
       }
     } catch (error) {
       console.error('Error loading search results:', error);
@@ -148,51 +159,43 @@ export class SearchResultsComponent implements OnInit {
 
   async loadSearchResultsWithFilters(filters: { [key: string]: string[] }): Promise<void> {
     this.isLoading = true;
+    console.log('Applying Filters:', filters);
 
-    try {
-      console.log('Loading filtered search results with:', {
-        query: this.searchQuery,
-        filters: filters,
-        page: this.currentPage,
-        perPage: this.itemsPerPage,
-        orderby: this.selectedOrderby,
-        order: this.selectedOrder
+    this.filterService
+      .getFilteredProductsByCategory(
+        null,
+        filters,
+        this.currentPage,
+        this.itemsPerPage,
+        this.selectedOrderby,
+        this.selectedOrder,
+        this.searchQuery
+      )
+      .pipe(
+        tap((products) => console.log('Received Products:', products)),
+        catchError((error) => {
+          console.error('Error in Subscription:', error);
+          return of([]);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+          this.isInitialLoadComplete = true;
+          this.showSkeleton = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((products) => {
+        console.log('Subscribed Products:', products);
+        this.products = products || [];
+        this.showEmptyState = this.products.length === 0;
+
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { query: this.searchQuery, page: this.currentPage },
+          queryParamsHandling: 'merge',
+        });
+        this.cdr.markForCheck();
       });
-
-      const products = await this.searchService
-        .searchProductsWithFilters(
-          this.searchQuery,
-          filters,
-          this.currentPage,
-          this.itemsPerPage,
-          this.selectedOrderby,
-          this.selectedOrder
-        )
-        .toPromise();
-
-      console.log('Received products:', products?.length || 0);
-      this.products = products || [];
-      this.showEmptyState = this.products.length === 0;
-
-      // Update URL with search parameters
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          query: this.searchQuery,
-          page: this.currentPage
-        },
-        queryParamsHandling: 'merge',
-      });
-    } catch (error) {
-      console.error('Error loading filtered search results:', error);
-      this.products = [];
-      this.showEmptyState = true;
-    } finally {
-      this.isLoading = false;
-      this.isInitialLoadComplete = true;
-      this.showSkeleton = false;
-      this.cdr.markForCheck();
-    }
   }
 
   async loadMoreResults(): Promise<void> {
@@ -201,31 +204,24 @@ export class SearchResultsComponent implements OnInit {
     }
 
     this.isLoadingMore = true;
-    this.currentPage++;
 
     try {
-      const filters = this.filterSidebar?.selectedFilters || {};
-      const products = await this.searchService
-        .searchProductsWithFilters(
-          this.searchQuery,
-          filters,
+      this.currentPage++;
+      const products = await this.filterService
+        .getFilteredProductsByCategory(
+          null,
+          this.selectedFilters,
           this.currentPage,
           this.itemsPerPage,
           this.selectedOrderby,
-          this.selectedOrder
+          this.selectedOrder,
+          this.searchQuery
         )
         .toPromise();
 
       this.products = [...this.products, ...(products || [])];
-
-      // Update URL with new page number
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { page: this.currentPage },
-        queryParamsHandling: 'merge',
-      });
     } catch (error) {
-      console.error('Error loading more search results:', error);
+      console.error('Error loading more results:', error);
     } finally {
       this.isLoadingMore = false;
       this.cdr.markForCheck();
@@ -266,9 +262,7 @@ export class SearchResultsComponent implements OnInit {
     this.showSkeleton = true;
     this.showEmptyState = false;
 
-    await this.loadSearchResultsWithFilters(
-      this.filterSidebar?.selectedFilters || {}
-    );
+    await this.loadSearchResultsWithFilters(this.selectedFilters);
 
     this.cdr.markForCheck();
   }
@@ -283,7 +277,6 @@ export class SearchResultsComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  // Listen for scroll events
   @HostListener('window:scroll', ['$event'])
   onScroll(): void {
     const windowHeight = window.innerHeight;

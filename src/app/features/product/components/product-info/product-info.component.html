@@ -130,14 +130,14 @@
         class="buy-btn"
         (click)="buyNow()"
         [disabled]="(loadingMap$ | async)?.['buy']"
-        aria-label="Buy it now"
+        aria-label="Buy Now"
       >
         <ng-container *ngIf="(loadingMap$ | async)?.['buy']; else buyNowText">
           <div class="spinner-container" role="status" aria-live="polite" aria-label="Processing purchase">
             <div class="spinner"></div>
           </div>
         </ng-container>
-        <ng-template #buyNowText>BUY IT NOW</ng-template>
+        <ng-template #buyNowText>BUY NOW</ng-template>
       </button>
     </div>
 

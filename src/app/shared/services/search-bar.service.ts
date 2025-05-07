@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import { Observable, forkJoin, map, of } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { CacheService } from '../../core/services/cashing.service';
 
@@ -266,9 +266,9 @@ export class SearchBarService {
     if (!searchTerm.trim()) {
       return of([]);
     }
-
+  
     const cacheKey = `search_products_filters_${searchTerm}_${JSON.stringify(filters)}_page_${page}_per_${perPage}_orderby_${orderby}_order_${order}`;
-
+  
     let params = new HttpParams()
       .set('search', searchTerm)
       .set('page', page.toString())
@@ -277,20 +277,23 @@ export class SearchBarService {
       .set('order', order)
       .set('status', 'publish')
       .set('stock_status', 'instock');
-
+  
     if (Object.keys(filters).length > 0) {
       const formattedFilters = Object.fromEntries(
         Object.entries(filters).map(([key, values]) => [
           key === 'brand' ? 'pa_brand' : `pa_${key}`,
-          values,
+          values.length === 1 ? values[0] : values, // لو في قيمة واحدة، رجعها كـ string
         ])
       );
       params = params.set('attributes', JSON.stringify(formattedFilters));
     }
-
+  
+    console.log('Generated API URL:', `https://adventures-hub.com/wp-json/wc/v3/products?${params.toString()}`);
+  
     return this.cacheService.cacheObservable(
       cacheKey,
       this.wooApi.getRequest<any[]>(`products`, { params }).pipe(
+        tap((response) => console.log('API Response:', response)),
         map((products: any[]) => {
           return products.map((product) => ({
             ...product,
@@ -307,8 +310,12 @@ export class SearchBarService {
                   )
                 : 0,
           }));
+        }),
+        catchError((error) => {
+          console.error('API Error:', error);
+          return of([]);
         })
       ),
-      300000 // Cache for 5 minutes
+      300000
     );
-}}
+  }}

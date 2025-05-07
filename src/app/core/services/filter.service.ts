@@ -26,7 +26,6 @@ export class FilterService {
       cacheKey,
       this.wooAPI.getRequest<any>(`categories/${categoryId}/filters`).pipe(
         map((response: any) => {
-          // Transform the response to match the expected format
           const attributesMap = response.filters?.reduce((acc: any, attr: any) => {
             acc[attr.slug] = {
               name: attr.name,
@@ -46,7 +45,7 @@ export class FilterService {
         }),
         shareReplay(1)
       ),
-      300000 // Cache for 5 minutes
+      300000
     );
   }
 
@@ -59,14 +58,15 @@ export class FilterService {
     page: number = 1,
     perPage: number = 6,
     orderby: string = 'date',
-    order: 'asc' | 'desc' = 'desc'
+    order: 'asc' | 'desc' = 'desc',
+    searchTerm?: string // إضافة searchTerm
   ): Observable<{
     products: Product[];
     attributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } };
     availableAttributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } };
   }> {
     return forkJoin({
-      products: this.getFilteredProductsByCategory(categoryId, filters, page, perPage, orderby, order),
+      products: this.getFilteredProductsByCategory(categoryId, filters, page, perPage, orderby, order, searchTerm),
       attributes: this.getAllAttributesAndTermsByCategory(categoryId),
       availableAttributes: this.getAvailableAttributesAndTerms(categoryId, filters),
     }).pipe(
@@ -91,7 +91,6 @@ export class FilterService {
       cacheKey,
       this.wooAPI.getRequest<any>(`categories/${categoryId}/available-filters`, { params }).pipe(
         map((response: any) => {
-          // Transform the response to match the expected format
           const attributesMap = response.filters?.reduce((acc: any, attr: any) => {
             acc[attr.slug] = {
               name: attr.name,
@@ -111,7 +110,7 @@ export class FilterService {
         }),
         shareReplay(1)
       ),
-      300000 // Cache for 5 minutes
+      300000
     );
   }
 
@@ -124,22 +123,25 @@ export class FilterService {
     page: number = 1,
     perPage: number = 6,
     orderby: string = 'date',
-    order: 'asc' | 'desc' = 'desc'
+    order: 'asc' | 'desc' = 'desc',
+    searchTerm?: string // إضافة searchTerm
   ): Observable<Product[]> {
-    const cacheKey = `filtered_products_category_${categoryId || 'all'}_filters_${JSON.stringify(filters)}_page_${page}_orderby_${orderby}_order_${order}`;
+    const cacheKey = `filtered_products_category_${categoryId || 'all'}_filters_${JSON.stringify(filters)}_page_${page}_orderby_${orderby}_order_${order}_search_${searchTerm || 'none'}`; // إضافة searchTerm للـ cache key
     return this.cachingService.cacheObservable(
       cacheKey,
       this.wooAPI
         .getRequestProducts<any>('products', {
-          params: this.buildFilterParams(categoryId, filters, page, perPage, orderby, order),
+          params: this.buildFilterParams(categoryId, filters, page, perPage, orderby, order, searchTerm),
           observe: 'response',
         })
         .pipe(
-          map((response: HttpResponse<any>) => {
+          tap((response: HttpResponse<any>) => {
             console.log('API Request URL:', `${response.url}`);
+          }),
+          map((response: HttpResponse<any>) => {
             return (response.body || []).map((product: any) => ({
               ...product,
-              images: product.images?.slice(0, 3) || [], // Load only the first image
+              images: product.images?.slice(0, 3) || [],
             }));
           }),
           catchError((error) => {
@@ -153,6 +155,40 @@ export class FilterService {
     );
   }
 
+/**
+ * Fetch available filters for a search term.
+ */
+getSearchFilters(searchTerm: string): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
+  const cacheKey = `search_filters_${searchTerm}`;
+  const params = new HttpParams().set('search', searchTerm);
+
+  return this.cachingService.cacheObservable(
+    cacheKey,
+    this.wooAPI.getRequest<any>(`search/filters`, { params }).pipe(
+      map((response: any) => {
+        const attributesMap = response.filters?.reduce((acc: any, attr: any) => {
+          acc[attr.slug] = {
+            name: attr.name,
+            terms: attr.terms?.map((term: any) => ({
+              id: term.id,
+              name: term.name,
+            })) || [],
+          };
+          return acc;
+        }, {}) || {};
+        return attributesMap;
+      }),
+      catchError((error) => {
+        console.error(`Error fetching search filters for ${searchTerm}:`, error);
+        this.handleErrorsService.handelError(error);
+        return of({});
+      }),
+      shareReplay(1)
+    ),
+    300000 // Cache for 5 minutes
+  );
+}
+
   /**
    * Build HTTP params for filtering products.
    */
@@ -162,7 +198,8 @@ export class FilterService {
     page: number,
     perPage: number,
     orderby: string,
-    order: 'asc' | 'desc'
+    order: 'asc' | 'desc',
+    searchTerm?: string // إضافة searchTerm
   ): HttpParams {
     let params = new HttpParams()
       .set('orderby', orderby)
@@ -177,6 +214,10 @@ export class FilterService {
       params = params.set('category', categoryId.toString());
     }
 
+    if (searchTerm) {
+      params = params.set('search', searchTerm); // إضافة searchTerm للـ params
+    }
+
     if (filters['on_sale'] && filters['on_sale'].includes('true')) {
       params = params.set('on_sale', 'true');
     }
@@ -187,7 +228,7 @@ export class FilterService {
       const formattedFilters = Object.fromEntries(
         Object.entries(attributeFilters).map(([key, values]) => [
           key === 'brand' ? 'pa_brand' : `pa_${key}`,
-          values,
+          values.length === 1 ? values[0] : values, // تحويل القيمة لـ string لو واحدة
         ])
       );
       params = params.set('attributes', JSON.stringify(formattedFilters));

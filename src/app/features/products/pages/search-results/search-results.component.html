@@ -3,9 +3,7 @@
 
   <div class="mb-8">
     <h1 class="text-2xl font-bold">Search Results for "{{ searchQuery }}"</h1>
-    <p *ngIf="!isLoading && products.length > 0" class="text-gray-600">
-      {{ products.length }} products found
-    </p>
+
     <p *ngIf="!isLoading && showEmptyState" class="text-gray-600">
       No results found for "{{ searchQuery }}"
     </p>
@@ -34,9 +32,13 @@
   <div *ngIf="products.length > 0 && isInitialLoadComplete" class="flex flex-col md:flex-row gap-6">
     <!-- Filters for desktop -->
     <div class="hidden md:block w-64 flex-shrink-0">
-      <app-filter-sidebar [selectedFilters]="{}" [categoryId]="null" ></app-filter-sidebar>
+      <app-filter-sidebar
+        [categoryId]="null"
+        [originalAttributes]="attributes"
+        [selectedFilters]="selectedFilters"
+        (filtersChanges)="loadSearchResultsWithFilters($event)"
+      ></app-filter-sidebar>
     </div>
-
     <div class="flex-1">
       <!-- Mobile Filter and Sort Menu -->
       <div class="flex justify-between items-center mb-6">
@@ -52,8 +54,12 @@
           </button>
           <app-filter-drawer
             [isOpen]="filterDrawerOpen"
-            (closed)="closeFilterDrawer()"
+            [categoryId]="null"
             [attributes]="attributes"
+            [selectedFilters]="selectedFilters"
+            (closed)="closeFilterDrawer()"
+            (filtersChanged)="loadSearchResultsWithFilters($event)"
+            (sortChange)="onSortChange($event)"
           ></app-filter-drawer>
         </div>
         <div class="ml-auto">
@@ -66,17 +72,22 @@
         <h2 class="text-lg font-semibold mb-4 border-b pb-2">
           Products ({{ products.length }})
         </h2>
-        <app-products-grid [products]="products"></app-products-grid>
+        <app-products-grid
+          [products]="products"
+          [isLoading]="isLoading"
+          [isLoadingMore]="isLoadingMore"
+          [isInitialLoadComplete]="isInitialLoadComplete"
+          [showSkeleton]="showSkeleton"
+        ></app-products-grid>
       </div>
 
       <!-- Loading More Indicator -->
       <div *ngIf="isLoadingMore" class="flex justify-center items-center py-8">
         <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-        <span class="ml-3 text-gray-600">Loading more results...</span>
       </div>
 
       <!-- End of Results Message -->
-      <div *ngIf="products.length > 0 && !isLoading && !isLoadingMore && products.length < itemsPerPage" class="py-8 text-center text-gray-500">
+      <div *ngIf="products.length > 0 && !isLoading && !isLoadingMore && products.length < totalProducts" class="py-8 text-center text-gray-500">
         <svg class="inline-block h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>

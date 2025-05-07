@@ -35,6 +35,7 @@
     "esbuild": "^0.25.1",
     "express": "^4.18.2",
     "gapi-script": "^1.2.0",
+    "glider-js": "^1.7.9",
     "intersection-observer": "^0.12.2",
     "ngx-toastr": "^19.0.0",
     "primeicons": "^7.0.0",
