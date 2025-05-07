@@ -138,8 +138,8 @@
     </ul>
   </p-drawer>
   }@else { @if (showNavbar()) {
-  <div class="links-parent" (mouseleave)="selectedCategory(null)" @visible>
-    <ul class="links-child bg-[#2E2E2E]">
+    <div class="links-parent" @visible>
+          <ul class="links-child bg-[#2E2E2E]">
       <div class="flex-grow flex gap-x-4">
         @if (categories) { @for (category of categories; track $index) {
         <li

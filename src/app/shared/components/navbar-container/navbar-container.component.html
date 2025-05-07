@@ -1,13 +1,19 @@
 <nav class="relative">
-  <app-navbar-main-categories
-    [categories]="mainCategories"
-    [allCategories]="allCategories"
-    (select)="getSubCategories($event)"
-  />
-  <div class="absolute top-full left-0 w-full shadow-lg z-50 group-hover:block">
-    <app-navbar-sub-categories
-      [subCategories$]="filterdCategories$"
-      [allCategoriesData]="allCategories"
+  <div
+    class="navbar-wrapper"
+    (mouseenter)="onMouseEnter()"
+    (mouseleave)="onMouseLeave()"
+  >
+    <app-navbar-main-categories
+      [categories]="mainCategories"
+      [allCategories]="allCategories"
+      (select)="getSubCategories($event)"
     />
+    <div class="absolute top-full left-0 w-full shadow-lg z-50">
+      <app-navbar-sub-categories
+        [subCategories$]="filterdCategories$"
+        [allCategoriesData]="allCategories"
+      />
+    </div>
   </div>
 </nav>

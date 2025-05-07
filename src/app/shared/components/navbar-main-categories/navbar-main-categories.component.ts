@@ -38,6 +38,7 @@ export class NavbarMainCategoriesComponent {
   @Input({ required: false }) allCategories: Category[] = [];
   @Output() select = new EventEmitter<number | null>();
   private navbarService = inject(NavbarService);
+  private clearSelectionTimeout: any;
 
   expandedCategories = new Set<number>();
   sidenavIsVisible = signal<boolean>(false);
@@ -82,9 +83,22 @@ export class NavbarMainCategoriesComponent {
     return this.allCategories.filter((cat) => cat.parent === categoryId);
   }
 
-  selectedCategory(id: number | null) {
-    this.selectedCategoryId = id;
-    this.select.emit(id);
+selectedCategory(id: number | null) {
+    // إلغي أي تأخير سابق
+    if (this.clearSelectionTimeout) {
+      clearTimeout(this.clearSelectionTimeout);
+    }
+
+    if (id === null) {
+      // أضف تأخير قبل ما تصفّر الـ selectedCategoryId
+      this.clearSelectionTimeout = setTimeout(() => {
+        this.selectedCategoryId = id;
+        this.select.emit(id);
+      }, 200); // تأخير 200ms
+    } else {
+      this.selectedCategoryId = id;
+      this.select.emit(id);
+    }
   }
 
   toggleCategory(categoryId: number): void {

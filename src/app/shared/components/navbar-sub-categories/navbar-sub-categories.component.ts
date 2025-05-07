@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output } from '@angular/core';
 import { Category } from '../../../interfaces/category.model';
 import { filter, map, Observable } from 'rxjs';
 import {
@@ -33,11 +33,11 @@ export class NavbarSubCategoriesComponent {
 
   @Input() allCategoriesData: Category[] = [];
   @Input({ required: true }) subCategories$!: Observable<any[]>;
-
   categoriesData: any[] = [];
   keepOpen: boolean = false;
   selectedCategoryId: number | null = null;
-
+  @Output() keepMenuOpen = new EventEmitter<boolean>(); // إضافة Output جديد
+  
   ngOnInit() {
     const subscription = this.subCategories$
       .pipe(map((response: any) => response || []))
@@ -55,10 +55,12 @@ export class NavbarSubCategoriesComponent {
   onLeave() {
     this.keepOpen = false;
     this.selectedCategoryId = null;
+    this.keepMenuOpen.emit(false);
   }
 
   onEnter() {
     this.keepOpen = true;
+    this.keepMenuOpen.emit(true);
   }
 
   getSubCategories(categoryId: number | null) {
