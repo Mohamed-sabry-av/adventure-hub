@@ -34,8 +34,7 @@ export class SideCartComponent {
   private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
 
-  constructor(  @Inject(PLATFORM_ID) private platformId: Object
-){}
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
@@ -55,7 +54,6 @@ export class SideCartComponent {
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {
       if (isPlatformBrowser(this.platformId)) {
-        
         if (visible) {
           document.body.style.overflow = 'hidden';
         } else {
@@ -76,6 +74,7 @@ export class SideCartComponent {
   }
 
   onDeleteProduct(selectedProduct: Product) {
-    this.cartService.deleteProductFromCart(selectedProduct);
+    const openSideCart = true;
+    this.cartService.deleteProductFromCart(selectedProduct, openSideCart);
   }
 }

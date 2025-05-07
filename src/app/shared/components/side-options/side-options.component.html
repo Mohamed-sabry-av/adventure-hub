@@ -1,10 +1,14 @@
 <!-- Backdrop for options panel -->
-<div
-  *ngIf="(stateIsOpen$ | async).isOpen"
-  class="panel-backdrop"
-  [class.active]="(stateIsOpen$ | async).isOpen"
-  (click)="closeSideOptions()"
-></div>
+<ng-container *ngIf="stateIsOpen$ | async as state">
+  <ng-container *ngIf="spinnerIsLoading$ | async as spinner">
+    <div
+      *ngIf="state.isOpen"
+      class="panel-backdrop"
+      [class.active]="state.isOpen"
+      (click)="!(spinner.buy || spinner.add) && closeSideOptions()"
+    ></div>
+  </ng-container>
+</ng-container>
 
 <!-- Product Options Side Panel for Desktop -->
 <div

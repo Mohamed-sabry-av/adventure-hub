@@ -77,159 +77,173 @@ export class CartEffect {
       ofType(addProductToUserCartAction),
       switchMap(({ product, isLoggedIn, buyItNow }) => {
         console.log('From Effect', product);
-        console.log('1- Done');
         this.store.dispatch(
           startLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
         );
 
-        const apiUrl = isLoggedIn
-          ? 'https://adventures-hub.com/wp-json/custom/v1/cart/add'
-          : `https://adventures-hub.com/wp-json/custom/v1/product/${product.id}/status`;
-
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
-        let requestMethod: Observable<any> = of();
 
         if (isLoggedIn) {
           const body = {
             product_id: product.id,
           };
-          requestMethod = this.httpClient.post(apiUrl, body, {
-            headers: loadedData.headers,
-          });
-        }
 
-        if (!isLoggedIn) {
-          requestMethod = this.httpClient.get(apiUrl);
-        }
-
-        return requestMethod.pipe(
-          map((response: any) => {
-            console.log('2- Done');
-            if (isLoggedIn) {
-              console.log('Product Added To Cart Online');
-
-              this.store.dispatch(
-                stopLoadingSpinnerAction({
-                  buttonName: buyItNow ? 'buy' : 'add',
-                })
-              );
-              this.sideOptionsService.closeSideOptions();
-              if (buyItNow) {
-                this.router.navigateByUrl('/checkout', { replaceUrl: true });
-                return getUserCartAction({ userCart: response });
-              } else {
-                this.cartService.cartMode(true);
-
-                return getUserCartAction({ userCart: response });
+          return this.httpClient
+            .post(
+              'https://adventures-hub.com/wp-json/custom/v1/cart/add',
+              body,
+              {
+                headers: loadedData.headers,
               }
-            } else {
-              const stockQuantity = response.stock_quantity || 0;
-              const quantityLimits = response.quantity_limits || {
-                minimum: 1,
-                maximum: null,
-                multiple_of: 1,
-              };
-              const minQuantity = quantityLimits.minimum || 1;
-              const maxQuantity = quantityLimits.maximum || null;
-
-              let selectedProduct = {
-                product_id: product.id,
-                quantity: 1,
-              };
-
-              const loadedCart = loadedData.loadedCart.items;
-              const productIndex = loadedCart.findIndex(
-                (p: any) => p.product_id === selectedProduct.product_id
-              );
-
-              let newQuantity = 1;
-              if (productIndex !== -1) {
-                newQuantity = loadedCart[productIndex].quantity + 1;
-              }
-
-              if (newQuantity < minQuantity) {
-                this.uiService.showError(
-                  `Minimum quantity for "${response.name}" is ${minQuantity}.`
+            )
+            .pipe(
+              map((response: any) => {
+                console.log('Product Added To Cart Online');
+                this.store.dispatch(
+                  stopLoadingSpinnerAction({
+                    buttonName: buyItNow ? 'buy' : 'add',
+                  })
                 );
-                return cartStatusAction({
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                  error: `Minimum quantity for "${response.name}" is ${minQuantity}.`,
-                });
-              }
-
-              if (maxQuantity !== null && newQuantity > maxQuantity) {
-                this.uiService.showError(
-                  `Maximum quantity for "${response.name}" is ${maxQuantity}.`
+                this.sideOptionsService.closeSideOptions();
+                if (buyItNow) {
+                  this.router.navigateByUrl('/checkout', { replaceUrl: true });
+                  return getUserCartAction({ userCart: response });
+                } else {
+                  this.cartService.cartMode(true);
+                  return getUserCartAction({ userCart: response });
+                }
+              }),
+              catchError((error: any) => {
+                this.store.dispatch(
+                  stopLoadingSpinnerAction({
+                    buttonName: buyItNow ? 'buy' : 'add',
+                  })
                 );
-                return cartStatusAction({
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                  error: `Maximum quantity for "${response.name}" is ${maxQuantity}.`,
-                });
-              }
 
-              if (newQuantity > stockQuantity) {
+                console.log('Error in adding product to Online cart:', error);
                 this.uiService.showError(
-                  `Cannot add more of "${response.name}" to the cart. Only ${stockQuantity} remaining in stock.`
+                  error.error?.message
+                    ? error.error.message
+                    : `Failed to Add Product.`
                 );
-                return cartStatusAction({
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                  error: `Cannot add more of "${response.name}". Only ${stockQuantity} remaining in stock.`,
-                });
-              }
-
-              if (productIndex !== -1) {
-                loadedCart[productIndex].quantity = newQuantity;
-              } else {
-                loadedCart.push(selectedProduct);
-              }
-
-              localStorage.setItem(
-                'Cart',
-                JSON.stringify(loadedData.loadedCart)
-              );
-
-              if (buyItNow) {
-                return fetchUserCartAction({
-                  isLoggedIn: false,
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                  openSideCart: false,
-                  buyItNow,
-                });
-              }
-
-              return fetchUserCartAction({
-                isLoggedIn: false,
-                mainPageLoading: false,
-                sideCartLoading: false,
-                openSideCart: true,
-                buyItNow,
-              });
-            }
-          }),
-          catchError((error: any) => {
-            this.store.dispatch(
-              stopLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
+                return of(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: error.message || 'Failed to Add Product',
+                  })
+                );
+              })
             );
+        } else {
+          const stockQuantity = product.product.stock_quantity || 0;
+          const quantityLimits = product.product.quantity_limits || {
+            minimum: 1,
+            maximum: null,
+            multiple_of: 1,
+          };
+          const minQuantity = quantityLimits.minimum || 1;
+          const maxQuantity = quantityLimits.maximum || null;
 
-            console.log('Error in adding product to cart:', error);
+          let selectedProduct = {
+            product_id: product.id,
+            quantity: 1,
+          };
+
+          const loadedCart = loadedData.loadedCart.items;
+          const productIndex = loadedCart.findIndex(
+            (p: any) => p.product_id === selectedProduct.product_id
+          );
+
+          let newQuantity = 1;
+          if (productIndex !== -1) {
+            newQuantity = loadedCart[productIndex].quantity + 1;
+          }
+
+          if (newQuantity < minQuantity) {
             this.uiService.showError(
-              error.error?.message
-                ? error.error.message
-                : `Failed to Add Product.`
+              `Minimum quantity for "${product.product.name}" is ${minQuantity}.`
+            );
+            this.store.dispatch(
+              stopLoadingSpinnerAction({
+                buttonName: buyItNow ? 'buy' : 'add',
+              })
             );
             return of(
               cartStatusAction({
                 mainPageLoading: false,
                 sideCartLoading: false,
-                error: error.message || 'Failed to Add Product',
+                error: `Minimum quantity for "${product.product.name}" is ${minQuantity}.`,
               })
             );
-          })
-        );
+          }
+
+          if (maxQuantity !== null && newQuantity > maxQuantity) {
+            this.uiService.showError(
+              `Maximum quantity for "${product.product.name}" is ${maxQuantity}.`
+            );
+            this.store.dispatch(
+              stopLoadingSpinnerAction({
+                buttonName: buyItNow ? 'buy' : 'add',
+              })
+            );
+            return of(
+              cartStatusAction({
+                mainPageLoading: false,
+                sideCartLoading: false,
+                error: `Maximum quantity for "${product.product.name}" is ${maxQuantity}.`,
+              })
+            );
+          }
+
+          if (newQuantity > stockQuantity) {
+            this.uiService.showError(
+              `Cannot add more of "${product.product.name}" to the cart. Only ${stockQuantity} remaining in stock.`
+            );
+            this.store.dispatch(
+              stopLoadingSpinnerAction({
+                buttonName: buyItNow ? 'buy' : 'add',
+              })
+            );
+            return of(
+              cartStatusAction({
+                mainPageLoading: false,
+                sideCartLoading: false,
+                error: `Cannot add more of "${product.product.name}". Only ${stockQuantity} remaining in stock.`,
+              })
+            );
+          }
+
+          if (productIndex !== -1) {
+            loadedCart[productIndex].quantity = newQuantity;
+          } else {
+            loadedCart.push(selectedProduct);
+          }
+
+          localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
+
+          if (buyItNow) {
+            return of(
+              fetchUserCartAction({
+                isLoggedIn: false,
+                mainPageLoading: false,
+                sideCartLoading: false,
+                openSideCart: false,
+                buyItNow,
+              })
+            );
+          }
+
+          return of(
+            fetchUserCartAction({
+              isLoggedIn: false,
+              mainPageLoading: false,
+              sideCartLoading: false,
+              openSideCart: true,
+              buyItNow,
+            })
+          );
+        }
       })
     )
   );
@@ -462,7 +476,7 @@ export class CartEffect {
   deleteProductOfUserCart = createEffect(() =>
     this.actions$.pipe(
       ofType(deleteProductOfUserCarAction),
-      switchMap(({ product: selectedProduct, isLoggedIn }) => {
+      switchMap(({ product: selectedProduct, isLoggedIn, openSideCart }) => {
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
 
         if (isLoggedIn) {
@@ -537,6 +551,7 @@ export class CartEffect {
               mainPageLoading: false,
               sideCartLoading: true,
               isLoggedIn: false,
+              openSideCart,
             })
           );
         }

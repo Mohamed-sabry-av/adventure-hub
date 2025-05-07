@@ -28,7 +28,7 @@ export const updateProductOfUserCartAction = createAction(
 
 export const deleteProductOfUserCarAction = createAction(
   '[Cart] Delete Product From User Cart ',
-  props<{ product: any; isLoggedIn: boolean }>()
+  props<{ product: any; isLoggedIn: boolean; openSideCart?: boolean }>()
 );
 
 export const updateCartStockStatusAction = createAction(
