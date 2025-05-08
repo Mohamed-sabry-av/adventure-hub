@@ -222,3 +222,42 @@
 .relatedProducts {
   z-index: 1 !important;
 }
+
+@media (max-width: 767px) {
+  .carousel-container {
+    padding: 8px 0; /* قلل البادينغ هنا */
+  }
+  .carousel-track {
+    padding: 0 8px; /* قلل البادينغ يمين وشمال */
+  }
+}
+
+@media (max-width: 767px) {
+  .carousel-track {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  .carousel-card {
+    width: 160px; /* زوّد عرض الكارد */
+  }
+  .skeleton-related-item {
+    width: 160px; /* زوّد عرض السكيليتون */
+  }
+
+  app-app-container {
+    padding-left: 0px; /* قلل البادينغ */
+    padding-right: 0px;
+    max-width: 100%; /* تأكد إن العرض مفتوح بالكامل */
+  }
+  .full-width-product-description {
+    padding: 16px 8px; /* قلل البادينغ هنا */
+    margin: 20px 0;
+  }
+  app-app-container {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+  .carousel-track {
+    gap: 6px; /* قلل المسافة بين الكروت */
+  }
+}

@@ -187,12 +187,8 @@
       </div>
     </div>
     <div class="actions">
-          <button
-        class="cart-btn"
-        (click)="addToCart()"
-        [disabled]="(loadingMap$ | async)?.['add']"
-        aria-label="Add to cart"
-      >
+      <button class="cart-btn" (click)="addToCart()" [disabled]="(loadingMap$ | async)?.['add']"
+        aria-label="Add to cart">
         <ng-container *ngIf="(loadingMap$ | async)?.['add']; else addToCartText">
           <div class="spinner-container" role="status" aria-live="polite" aria-label="Adding to cart">
             <div class="spinner"></div>

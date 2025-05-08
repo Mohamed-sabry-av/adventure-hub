@@ -14,6 +14,37 @@
   @apply bg-red-600;
 } */
 
+
+
+::ng-deep .sidenav-drawer .p-drawer-content {
+  background-color: #f8f9fa;
+  color: #333;
+  transition: all 0.3s ease;
+  padding: 0 0.8rem; /* Add slight padding to content to avoid edge overflow */
+}
+
+/* Ensure drawer-category respects the reduced width */
+.drawer-category {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 0.6rem; /* Add horizontal padding */
+  transition: all 0.3s ease;
+  width: 100%; /* Ensure it doesn't exceed drawer width */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Adjust subcategory containers */
+.haveChilds,
+.notHaveChilds {
+  @apply text-sm ml-3 mr-3; /* Add right margin to prevent content from touching edges */
+  transition: all 0.3s ease;
+}
+
+/* Ensure nested subcategory divs don't overflow */
+.drawer-category > div {
+  box-sizing: border-box;
+  width: 100%;
+}
+
 @media (min-width: 1500px) {
   .links-parent {
     @apply flex justify-center;
