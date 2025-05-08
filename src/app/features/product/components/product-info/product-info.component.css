@@ -1,8 +1,9 @@
 /* Basic Styling */
 .product-info {
-  max-width: 500px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 20px;
+  max-width: none;
 }
 
 /* Product Title */
@@ -100,9 +101,15 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.92); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Size Options */
@@ -154,7 +161,7 @@
 
 .out-of-stock-x::before,
 .out-of-stock-x::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 70%;
   height: 1px;
@@ -223,6 +230,12 @@
   gap: 10px;
   width: 100%;
 }
+/* 
+.cart-action-row.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+} */
 
 .cart-btn {
   flex: 1;
@@ -261,7 +274,7 @@
 .buy-btn {
   width: 100%;
   height: 44px;
-  background-color: #2E2E2E; /* تغيير لون زر الشراء الآن ليناسب لون الهيدر */
+  background-color: #2e2e2e; /* تغيير لون زر الشراء الآن ليناسب لون الهيدر */
   color: white;
   border: none;
   border-radius: 4px;
@@ -301,7 +314,8 @@
   cursor: pointer;
 }
 
-.wishlist-btn:hover, .wishlist-btn.active {
+.wishlist-btn:hover,
+.wishlist-btn.active {
   color: #ef4444;
   border-color: #ef4444;
 }
@@ -331,5 +345,149 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+:host {
+  width: 100%;
+  display: block;
+}
+
+.sticky-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 1rem;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1000;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.sticky-footer.visible {
+  transform: translateY(0);
+}
+
+.sticky-footer .quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.sticky-footer .add-to-cart-btn {
+  flex: 1;
+  max-width: 200px;
+  padding: 1rem;
+  border-radius: 8px;
+  border: none;
+  background: #000;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.sticky-footer .add-to-cart-btn:hover {
+  background: #333;
+}
+
+.quantity-btn {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.quantity-display {
+  min-width: 40px;
+  text-align: center;
+}
+
+.sticky-add-to-cart {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sticky-add-to-cart {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding: 12px 0;
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .sticky-add-to-cart.visible {
+    transform: translateY(0);
+  }
+
+  .sticky-add-to-cart .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .sticky-add-to-cart .product-info {
+    flex: 1;
+    padding: 0;
+  }
+
+  .sticky-add-to-cart .product-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sticky-add-to-cart .product-price {
+    font-weight: bold;
+  }
+
+  .sticky-add-to-cart .actions {
+    margin-left: 16px;
+  }
+
+  .sticky-add-to-cart .add-to-cart-btn {
+    background: var(--primary-color, #f4663c);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .sticky-add-to-cart .add-to-cart-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Hide sticky footer completely on desktop */
+@media (min-width: 768px) {
+  .sticky-add-to-cart,
+  .sticky-footer {
+    display: none !important;
   }
 }

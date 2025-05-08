@@ -1,90 +1,79 @@
 <app-app-container>
   <!-- Loading State -->
   @if (isLoading) {
-    <div class="flex flex-col md:flex-row gap-8 mb-8">
-      <!-- Skeleton for product images -->
-      <div class="md:w-1/2 lg:w-3/5">
-        <div class="h-96 bg-gray-200 animate-pulse rounded mb-4"></div>
-        <!-- Skeleton for desktop description -->
-        <div class="space-y-4">
-          <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
-          <div class="h-4 bg-gray-200 animate-pulse rounded w-2/4"></div>
-          <div class="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
-        </div>
-      </div>
-      <!-- Skeleton for product info -->
-      <div class="md:w-1/2 lg:w-2/5">
-        <div class="space-y-4">
-          <div class="h-6 bg-gray-200 animate-pulse rounded w-1/2"></div>
-          <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
-          <div class="h-10 bg-gray-200 animate-pulse rounded w-full"></div>
-        </div>
+  <div class="flex flex-col md:flex-row gap-8 mb-8">
+    <!-- Skeleton for product images -->
+    <div class="md:w-1/2 lg:w-3/5">
+      <div class="h-96 bg-gray-200 animate-pulse rounded mb-4"></div>
+      <!-- Skeleton for desktop description -->
+      <div class="space-y-4">
+        <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+        <div class="h-4 bg-gray-200 animate-pulse rounded w-2/4"></div>
+        <div class="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
       </div>
     </div>
+    <!-- Skeleton for product info -->
+    <div class="md:w-1/2 lg:w-2/5">
+      <div class="space-y-4">
+        <div class="h-6 bg-gray-200 animate-pulse rounded w-1/2"></div>
+        <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+        <div class="h-10 bg-gray-200 animate-pulse rounded w-full"></div>
+      </div>
+    </div>
+  </div>
   } @else {
-    <!-- Schema Data -->
-    <!-- @if (schemaData) {
+  <!-- Schema Data -->
+  <!-- @if (schemaData) {
       <ng-container>
         <script type="application/ld+json" [innerHTML]="schemaData"></script>
       </ng-container>
     } -->
 
-    <app-breadcrumb [productName]="productData?.name"></app-breadcrumb>
+  <app-breadcrumb [productName]="productData?.name"></app-breadcrumb>
 
-    <!-- Product or Error State -->
-    @if (productData) {
-      <div class="flex flex-col md:flex-row gap-8 mb-8">
-        <!-- Product Images - Left side -->
-        <div class="md:w-1/2 lg:w-3/5">
-          <app-product-images
-            [productImages]="productData?.images"
-            [selectedVariation]="selectedColorVariation"
-            [productName]="productData?.name"
-          ></app-product-images>
-          <!-- Desktop Description -->
-          <div class="full-width-product-description desktop-description">
-            <app-product-desc [productAdditionlInfo]="productDataForDesc" />
-          </div>
-        </div>
-
-        <!-- Product Info - Right side -->
-        <div class="md:w-1/2 lg:w-2/5 sticky-wrapper">
-          <div class="sticky-info">
-            <app-product-info
-              [productInfo]="productData"
-              (selectedAttributeChange)="onSelectedColorChange($event)"
-              (variationSelected)="onVariationSelected($event)"
-            />
-          </div>
-          <!-- Mobile Description -->
-          <div class="full-width-product-description mobile-description">
-            <app-product-desc [productAdditionlInfo]="productDataForDesc" />
-          </div>
-        </div>
+  <!-- Product or Error State -->
+  @if (productData) {
+  <div class="flex flex-col md:flex-row gap-8 mb-8">
+    <!-- Product Images - Left side -->
+    <div class="md:w-1/2 lg:w-3/5">
+      <app-product-images [productImages]="productData?.images" [selectedVariation]="selectedColorVariation"
+        [productName]="productData?.name"></app-product-images>
+      <!-- Desktop Description -->
+      <div class="full-width-product-description desktop-description">
+        <app-product-desc [productAdditionlInfo]="productDataForDesc" />
       </div>
+    </div>
 
-      <!-- Related Products -->
-      @if (productData?.id) {
-        <app-product-related
-          [relatedIds]="productData?.related_ids || []"
-          [productId]="productData.id"
-        />
-        <app-recent-products-mini></app-recent-products-mini>
-      }
-    } @else {
-      <!-- Error State -->
-      <div class="text-center py-8">
-        <p class="text-lg text-gray-600">
-          No products available
-        </p>
-        <a
-          routerLink="/home"
-          class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Back to Home page
-        </a>
+    <!-- Product Info - Right side -->
+    <div class="md:w-1/2 lg:w-2/5 sticky-wrapper">
+      <div class="sticky-info">
+        <app-product-info [productInfo]="productData" (selectedAttributeChange)="onSelectedColorChange($event)"
+          (variationSelected)="onVariationSelected($event)">
+        </app-product-info>
       </div>
-    }
+      <!-- Mobile Description -->
+      <div class="full-width-product-description mobile-description">
+        <app-product-desc [productAdditionlInfo]="productDataForDesc" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  @if (productData?.id) {
+  <app-product-related [relatedIds]="productData?.related_ids || []" [productId]="productData.id" />
+  <app-recent-products-mini></app-recent-products-mini>
+  }
+  } @else {
+  <!-- Error State -->
+  <div class="text-center py-8">
+    <p class="text-lg text-gray-600">
+      No products available
+    </p>
+    <a routerLink="/home" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded">
+      Back to Home page
+    </a>
+  </div>
+  }
   }
 </app-app-container>
 <app-dialog-error />

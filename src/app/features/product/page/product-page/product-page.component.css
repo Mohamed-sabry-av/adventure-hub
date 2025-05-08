@@ -1,3 +1,4 @@
+
 /* Sticky Product Info */
 .sticky-wrapper {
   position: relative;
@@ -8,14 +9,13 @@
   top: 20px;
 }
 
-
 /* Full Width Description */
 .full-width-product-description {
-  margin: 40px 0;
-  padding: 20px 0;
+  margin: 32px 0;
+  padding: 16px 0;
   border-top: 1px solid #eee;
-  width: 100%; /* Ensure it stays within its parent */
-  box-sizing: border-box; /* Prevent padding/margin from causing overflow */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Mobile/Desktop Descriptions */
@@ -46,26 +46,24 @@
 /* Carousel Track */
 .carousel-track {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Mobile: 150px cards */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 12px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
   padding: 0 16px;
-  scrollbar-width: none; /* Hide scrollbar in Firefox */
+  scrollbar-width: none;
 }
 
 .carousel-track::-webkit-scrollbar {
-  display: none; /* Hide scrollbar in Chrome/Safari */
+  display: none;
 }
-
-
 
 /* Card Image */
 .card-image {
   width: 100%;
-  height: 120px; /* Smaller image height */
+  height: 120px;
   object-fit: cover;
   border-radius: 6px;
 }
@@ -99,12 +97,12 @@
 /* Desktop Layout */
 @media (min-width: 768px) {
   .carousel-track {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Larger cards on desktop */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     padding: 0 24px;
   }
 
   .carousel-card {
-    width: 180px; /* Slightly larger for desktop */
+    width: 180px;
     height: 260px;
   }
 
@@ -129,7 +127,7 @@
 /* Mobile Layout (Two Cards per Row) */
 @media (max-width: 767px) {
   .carousel-track {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Slightly smaller for smaller screens */
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 10px;
   }
 
@@ -215,8 +213,8 @@
   }
 
   .full-width-product-description.mobile-description {
-    margin-top: 20px; /* Add space to separate from product info */
-    position: relative; /* Ensure it respects the normal flow */
+    margin-top: 20px;
+    position: relative;
   }
 }
 

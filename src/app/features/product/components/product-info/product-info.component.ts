@@ -1,4 +1,12 @@
-import { Component, EventEmitter, input, Output, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  input,
+  Output,
+  OnInit,
+  OnDestroy,
+  inject,
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -13,6 +21,8 @@ import { switchMap, takeWhile, tap, take } from 'rxjs/operators';
 import { WalletPaymentComponent } from '../../../checkout/component/googlePay-button/google-pay-button.component';
 import { TabbyPromoComponent } from '../TabbyPromoComponent/TabbyPromo.Component';
 import { TabbyConfigService } from '../TabbyPromoComponent/Tabby.cofing.service';
+import { StickyFooterService } from '../../../../shared/services/sticky-footer.service';
+import { ProductInfoService } from '../../services/product-info.service';
 
 /**
  * Interface for product attribute options
@@ -49,7 +59,6 @@ declare var _learnq: any;
 })
 export class ProductInfoComponent implements OnInit, OnDestroy {
   productInfo = input<any>();
-  images: string[] = ['slider/1.webp', 'slider/2.webp'];
   maxLength: number = 10;
   quantity: number = 1;
   selectedAttributes: { [key: string]: string | null } = {};
@@ -58,16 +67,18 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   wishlistMessage: string | null = null;
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
-
   showOutOfStockVariations: boolean = true;
   tabbyConfig: { publicKey: string; merchantCode: string };
-
   loadingMap$: Observable<{ [key: string]: boolean }>;
-
-  @Output() selectedAttributeChange = new EventEmitter<AttributeSelection>();
-  @Output() variationSelected = new EventEmitter<any>();
-
   linkCopied: boolean = false;
+
+  private stickyFooterService = inject(StickyFooterService);
+  private productInfoService = inject(ProductInfoService);
+  isFooterVisible$ = this.stickyFooterService.isFooterVisible$;
+  private scrollHandler!: () => void;
+
+  @Output() variationSelected = new EventEmitter<any>();
+  @Output() selectedAttributeChange = new EventEmitter<AttributeSelection>();
 
   constructor(
     private cartService: CartService,
@@ -82,34 +93,19 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     this.tabbyConfig = this.tabbyConfigService.getConfig();
   }
 
-  /**
-   * Handles attribute click with improved event handling
-   * Prevents the need for multiple clicks by stopping propagation and providing focus feedback
-   */
-  handleAttributeClick(event: Event, name: string, value: string): void {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const element = event.currentTarget as HTMLElement;
-    element.classList.add('clicking');
-
-    setTimeout(() => {
-      this.selectAttribute(name, value);
-      element.classList.remove('clicking');
-    }, 10);
-  }
-
   ngOnInit() {
     const product = this.productInfo();
     if (product) {
       this.quantity = 1;
-      this.setDefaultAttributes();
+      this.selectedAttributes =
+        this.productInfoService.setDefaultAttributes(product);
       this.updateMaxLength();
       this.checkWishlistStatus(product.id);
     }
+    this.scrollHandler = this.stickyFooterService.initScrollHandler();
   }
 
-  handleClick(event: Event, name: string, value: string): void {
+  handleAttributeClick(event: Event, name: string, value: string): void {
     console.log(`Click event on ${name} = ${value}`);
     this.selectAttribute(name, value);
   }
@@ -117,6 +113,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.wishlistSubscription) {
       this.wishlistSubscription.unsubscribe();
+    }
+    if (this.scrollHandler) {
+      this.scrollHandler();
     }
   }
 
@@ -139,31 +138,39 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const selectedVariation = this.getSelectedVariation();
+    const selectedVariation = this.productInfoService.getSelectedVariation(
+      product,
+      this.selectedAttributes
+    );
     this.maxLength = selectedVariation?.stock_quantity || 10;
   }
 
   get productSku() {
-    const shortTitle = this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
+    const shortTitle =
+      this.productInfo()?.name?.split(' ').slice(0, 2).join('') || '';
     const sku = this.productInfo()?.sku || '';
     return { shortTitle, sku };
   }
 
   get brandName() {
-    return this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.name || 'brand';
+    return (
+      this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')
+        ?.options?.[0]?.name || 'brand'
+    );
   }
 
   get brandSlug() {
-    return this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')?.options?.[0]?.slug || 'brand';
+    return (
+      this.productInfo()?.attributes?.find((attr: any) => attr.name === 'Brand')
+        ?.options?.[0]?.slug || 'brand'
+    );
   }
 
   /**
    * Returns the names of the attributes that are used for variations.
    */
   getVariationAttributes(): string[] {
-    return this.productInfo()?.attributes
-      ?.filter((attr: any) => attr.variation)
-      ?.map((attr: any) => attr.name) || [];
+    return this.productInfoService.getVariationAttributes(this.productInfo());
   }
 
   /**
@@ -174,57 +181,11 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     attributeName: string,
     dependentAttributeValue: string | null = null
   ): ProductAttributeOption[] {
-    const product = this.productInfo();
-    if (!product) return [];
-
-    const variations = product.variations || [];
-    if (!Array.isArray(variations) || !variations.length) {
-      return [];
-    }
-
-    if (attributeName === 'Color') {
-      const colorOptions = this.variationService.getColorOptions(variations);
-      return colorOptions.map(option => ({
-        value: option.color,
-        image: option.image,
-        inStock: option.inStock
-      }));
-    } else if (attributeName === 'Size' && dependentAttributeValue) {
-      const sizeOptions = this.variationService.getSizesForColor(variations, dependentAttributeValue);
-      return sizeOptions.map(option => ({
-        value: option.size,
-        inStock: option.inStock
-      }));
-    }
-
-    const optionMap = new Map<string, { image?: string; inStock: boolean }>();
-
-    variations.forEach((v: any) => {
-      const attr = v.attributes?.find((attr: any) => attr?.name === attributeName);
-      if (!attr) return;
-
-      const matchesDependentAttribute = !dependentAttributeValue ||
-        v.attributes?.some(
-          (a: any) => a.name !== attributeName && a.option === dependentAttributeValue
-        );
-
-      if (matchesDependentAttribute) {
-        const isInStock = v.stock_status === 'instock';
-        const currentValue = optionMap.get(attr.option);
-
-        if (!currentValue || (!currentValue.inStock && isInStock)) {
-          optionMap.set(attr.option, {
-            inStock: isInStock,
-          });
-        }
-      }
-    });
-
-    return Array.from(optionMap, ([value, data]) => ({
-      value,
-      image: data.image,
-      inStock: data.inStock,
-    }));
+    return this.productInfoService.getVariationOptions(
+      this.productInfo(),
+      attributeName,
+      dependentAttributeValue
+    );
   }
 
   /**
@@ -236,7 +197,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
     this.selectedAttributes = {
       ...this.selectedAttributes,
-      [name]: value
+      [name]: value,
     };
 
     this.selectedAttributeChange.emit({ name, value });
@@ -246,7 +207,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
       const availableSizes = this.getVariationOptions('Size', value);
       if (availableSizes.length > 0) {
-        const firstInStockSize = availableSizes.find(size => size.inStock);
+        const firstInStockSize = availableSizes.find((size) => size.inStock);
 
         if (firstInStockSize) {
           setTimeout(() => {
@@ -261,7 +222,10 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     if (this.allVariationAttributesSelected) {
-      const selectedVariation = this.getSelectedVariation();
+      const selectedVariation = this.productInfoService.getSelectedVariation(
+        this.productInfo(),
+        this.selectedAttributes
+      );
       if (selectedVariation) {
         this.variationService.setSelectedVariation(selectedVariation);
         this.variationSelected.emit(selectedVariation);
@@ -279,9 +243,11 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
    * Helps users understand their selection was successful
    */
   private addFeedbackAnimation(): void {
-    const activeElements = document.querySelectorAll('.color-option.active, .size-option.active');
+    const activeElements = document.querySelectorAll(
+      '.color-option.active, .size-option.active'
+    );
 
-    activeElements.forEach(el => {
+    activeElements.forEach((el) => {
       el.classList.add('feedback-animation');
       setTimeout(() => {
         el.classList.remove('feedback-animation');
@@ -290,75 +256,24 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   }
 
   getSelectedVariation() {
-    const variations = this.productInfo()?.variations || [];
-    if (!Array.isArray(variations) || !variations.length) {
-      return null;
-    }
-
-    const variationAttributes = this.getVariationAttributes();
-    if (!variationAttributes.length) {
-      return null;
-    }
-
-    return this.variationService.findVariationByAttributes(variations, this.selectedAttributes);
+    return this.productInfoService.getSelectedVariation(
+      this.productInfo(),
+      this.selectedAttributes
+    );
   }
 
   get isProductInStock(): boolean {
-    const product = this.productInfo();
-    if (!product) return false;
-
-    if (product.type === 'simple') {
-      if (!product.manage_stock) {
-        return product.stock_status === 'instock';
-      }
-      return product.stock_status === 'instock' && (product.stock_quantity > 0 || product.backorders_allowed);
-    }
-
-    const variations = product.variations || [];
-    return variations.some((v: any) => v.stock_status === 'instock');
+    return this.productInfoService.isProductInStock(
+      this.productInfo(),
+      this.selectedAttributes
+    );
   }
 
   getPriceInfo(): { price: string; regularPrice: string; isOnSale: boolean } {
-    const product = this.productInfo();
-    if (!product) {
-      return { price: '0', regularPrice: '0', isOnSale: false };
-    }
-
-    const normalizePrice = (value: any): string => {
-      return value ? String(value).replace(/[^0-9.]/g, '') : '0';
-    };
-
-    if (product.type === 'simple') {
-      const price = normalizePrice(product.price);
-      const regularPrice = normalizePrice(product.regular_price || price);
-      const salePrice = normalizePrice(product.sale_price);
-      const isOnSale =
-        (product.sale_price && salePrice !== regularPrice) ||
-        (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
-
-      return { price, regularPrice, isOnSale };
-    }
-
-    const selectedVariation = this.getSelectedVariation();
-    if (selectedVariation && this.allVariationAttributesSelected) {
-      const price = normalizePrice(selectedVariation.price || product.price);
-      const regularPrice = normalizePrice(selectedVariation.regular_price || price);
-      const salePrice = normalizePrice(selectedVariation.sale_price);
-      const isOnSale =
-        (selectedVariation.sale_price && salePrice !== regularPrice) ||
-        (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
-
-      return { price, regularPrice, isOnSale };
-    }
-
-    const price = normalizePrice(product.price);
-    const regularPrice = normalizePrice(product.regular_price || price);
-    const salePrice = normalizePrice(product.sale_price);
-    const isOnSale =
-      (product.sale_price && salePrice !== regularPrice) ||
-      (price !== regularPrice && parseFloat(price) < parseFloat(regularPrice));
-
-    return { price, regularPrice, isOnSale };
+    return this.productInfoService.getPriceInfo(
+      this.productInfo(),
+      this.selectedAttributes
+    );
   }
 
   addToCart(buyItNow: boolean = false): void {
@@ -367,32 +282,12 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return;
     }
 
-    let cartProduct: any;
-    if (product.type === 'simple') {
-      if (product.stock_status !== 'instock') {
-        return;
-      }
-      cartProduct = { ...product, quantity: this.quantity };
-    } else {
-      if (!this.allVariationAttributesSelected) {
-        return;
-      }
-      const selectedVariation = this.getSelectedVariation();
-      if (!selectedVariation) {
-        return;
-      }
-      if (selectedVariation.stock_status !== 'instock') {
-        return;
-      }
-      cartProduct = this.variationService.prepareProductForCart(
-        product,
-        selectedVariation,
-        this.quantity
-      );
-    }
-
-    if (!this.cartService) {
-      console.error('CartService is not initialized');
+    const cartProduct = this.productInfoService.prepareCartProduct(
+      product,
+      this.selectedAttributes,
+      this.quantity
+    );
+    if (!cartProduct) {
       return;
     }
 
@@ -420,37 +315,11 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   }
 
   getCartProduct() {
-    const product = this.productInfo();
-
-    if (!product) return null;
-
-    if (product.type === 'variable') {
-      if (!this.allVariationAttributesSelected || !this.isProductInStock) {
-        return null;
-      }
-      const selectedVariation: any = this.getSelectedVariation();
-      return {
-        id: selectedVariation?.id || product.id,
-        price: this.getPriceInfo().price,
-        quantity: this.quantity,
-        name: product.name,
-        variation_id: selectedVariation?.id ? parseInt(selectedVariation.id, 10) : 0,
-        stock_status: selectedVariation?.stock_status || 'outofstock',
-      };
-    }
-
-    if (product.stock_status !== 'instock') {
-      return null;
-    }
-
-    return {
-      id: product.id,
-      price: this.getPriceInfo().price,
-      quantity: this.quantity,
-      name: product.name,
-      variation_id: 0,
-      stock_status: product.stock_status,
-    };
+    return this.productInfoService.prepareCartProduct(
+      this.productInfo(),
+      this.selectedAttributes,
+      this.quantity
+    );
   }
 
   onWalletPaymentSucceeded(paymentIntentId: string) {
@@ -475,21 +344,23 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   }
 
   private pollOrderStatus(paymentIntentId: string) {
-    interval(2000).pipe(
-      switchMap(() => this.checkoutService.checkOrderStatus(paymentIntentId)),
-      takeWhile((response) => !(response.success && response.orderId), true),
-      tap((response) => {
-        if (response.success && response.orderId) {
-          console.log('Wallet order created successfully:', response.orderId);
-          this.router.navigate(['/order-received', response.orderId]);
-        }
-      })
-    ).subscribe({
-      error: (error) => {
-        console.error('Error polling order status:', error);
-        this.router.navigate(['/']);
-      },
-    });
+    interval(2000)
+      .pipe(
+        switchMap(() => this.checkoutService.checkOrderStatus(paymentIntentId)),
+        takeWhile((response) => !(response.success && response.orderId), true),
+        tap((response) => {
+          if (response.success && response.orderId) {
+            console.log('Wallet order created successfully:', response.orderId);
+            this.router.navigate(['/order-received', response.orderId]);
+          }
+        })
+      )
+      .subscribe({
+        error: (error) => {
+          console.error('Error polling order status:', error);
+          this.router.navigate(['/']);
+        },
+      });
   }
 
   parseFloatValue(value: any): number {
@@ -510,10 +381,15 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     const variationAttributes = this.getVariationAttributes();
     const defaultAttributes = product.default_attributes || [];
 
-    const inStockVariation = variations.find((v: any) => v.stock_status === 'instock');
+    const inStockVariation = variations.find(
+      (v: any) => v.stock_status === 'instock'
+    );
     let defaultAttributesToUse = defaultAttributes;
 
-    if (inStockVariation && !this.isDefaultVariationInStock(defaultAttributes, variations)) {
+    if (
+      inStockVariation &&
+      !this.isDefaultVariationInStock(defaultAttributes, variations)
+    ) {
       defaultAttributesToUse = inStockVariation.attributes.map((attr: any) => ({
         name: attr.name,
         option: attr.option,
@@ -521,7 +397,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     variationAttributes.forEach((attrName: string) => {
-      const defaultAttr = defaultAttributesToUse.find((attr: any) => attr.name === attrName);
+      const defaultAttr = defaultAttributesToUse.find(
+        (attr: any) => attr.name === attrName
+      );
       let selectedOption = null;
 
       if (defaultAttr) {
@@ -530,7 +408,8 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
           attrName === 'Size' ? this.selectedAttributes['Color'] : null
         ).find(
           (opt) =>
-            opt.value.toLowerCase() === defaultAttr.option.toLowerCase() && (opt.inStock || this.showOutOfStockVariations)
+            opt.value.toLowerCase() === defaultAttr.option.toLowerCase() &&
+            (opt.inStock || this.showOutOfStockVariations)
         );
       }
 
@@ -554,35 +433,38 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     });
   }
 
-  private isDefaultVariationInStock(defaultAttributes: any[], variations: any[]): boolean {
+  private isDefaultVariationInStock(
+    defaultAttributes: any[],
+    variations: any[]
+  ): boolean {
     const defaultAttrsMap = defaultAttributes.reduce((acc: any, attr: any) => {
       acc[attr.name] = attr.option;
       return acc;
     }, {});
-    const defaultVariation = this.variationService.findVariationByAttributes(variations, defaultAttrsMap);
+    const defaultVariation = this.variationService.findVariationByAttributes(
+      variations,
+      defaultAttrsMap
+    );
     return defaultVariation?.stock_status === 'instock';
   }
 
   get isCompletelyOutOfStock(): boolean {
-    const product = this.productInfo();
-    if (!product) return true;
-    if (product.type === 'simple') {
-      return product.stock_status === 'outofstock';
-    }
-    return !product.variations?.some((v: any) => v.stock_status === 'instock');
+    return this.productInfoService.isCompletelyOutOfStock(this.productInfo());
   }
 
   get allVariationAttributesSelected(): boolean {
-    const variationAttributes = this.getVariationAttributes();
-    return (
-      variationAttributes.length === 0 ||
-      variationAttributes.every((attrName: string) => this.selectedAttributes[attrName] !== null)
+    return this.productInfoService.allVariationAttributesSelected(
+      this.productInfo(),
+      this.selectedAttributes
     );
   }
 
   addToWishList(productId: number) {
     if (!productId) {
-      this.showWishlistMessage('Failed to add to wishlist: Invalid product ID', false);
+      this.showWishlistMessage(
+        'Failed to add to wishlist: Invalid product ID',
+        false
+      );
       return;
     }
 
@@ -594,37 +476,45 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     this.isAddingToWishlist = true;
     this.wishlistMessage = null;
 
-    this.wishlistSubscription = this.wishlistService.addToWishlist(productId).subscribe({
-      next: (response) => {
-        this.isAddingToWishlist = false;
-        if (response.success) {
-          this.isInWishlist = true;
-          this.showWishlistMessage('Product added to wishlist', true);
-          if (typeof _learnq !== 'undefined') {
-            _learnq.push([
-              'track',
-              'Added to Wishlist',
-              {
-                ProductID: productId,
-                ProductName: this.productInfo()?.name,
-                Price: this.getPriceInfo().price,
-                Brand: this.brandName,
-                Categories: this.productInfo()?.categories?.map((cat: any) => cat.name) || [],
-              },
-            ]);
+    this.wishlistSubscription = this.wishlistService
+      .addToWishlist(productId)
+      .subscribe({
+        next: (response) => {
+          this.isAddingToWishlist = false;
+          if (response.success) {
+            this.isInWishlist = true;
+            this.showWishlistMessage('Product added to wishlist', true);
+            if (typeof _learnq !== 'undefined') {
+              _learnq.push([
+                'track',
+                'Added to Wishlist',
+                {
+                  ProductID: productId,
+                  ProductName: this.productInfo()?.name,
+                  Price: this.getPriceInfo().price,
+                  Brand: this.brandName,
+                  Categories:
+                    this.productInfo()?.categories?.map(
+                      (cat: any) => cat.name
+                    ) || [],
+                },
+              ]);
+            }
+          } else {
+            this.showWishlistMessage(
+              response.message || 'Failed to add to wishlist',
+              false
+            );
           }
-        } else {
-          this.showWishlistMessage(response.message || 'Failed to add to wishlist', false);
-        }
-      },
-      error: (error) => {
-        this.isAddingToWishlist = false;
-        this.showWishlistMessage(
-          'Failed to add to wishlist: ' + (error.message || 'Unknown error'),
-          false
-        );
-      },
-    });
+        },
+        error: (error) => {
+          this.isAddingToWishlist = false;
+          this.showWishlistMessage(
+            'Failed to add to wishlist: ' + (error.message || 'Unknown error'),
+            false
+          );
+        },
+      });
   }
 
   private checkWishlistStatus(productId: number) {
@@ -636,7 +526,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     this.wishlistSubscription = this.wishlistService.getWishlist().subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.isInWishlist = response.data.some((item: any) => item.product_id === productId);
+          this.isInWishlist = response.data.some(
+            (item: any) => item.product_id === productId
+          );
         } else {
           this.isInWishlist = false;
         }

@@ -21,6 +21,7 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
 import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
 import { RelatedProductsService } from '../../../../core/services/related-products.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AttributeSelection } from '../../components/product-info/product-info.component';
 
 declare var _learnq: any;
 
@@ -165,52 +166,9 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  onSelectedColorChange(event: { name: string; value: any | null }) {
-    if (event.name === 'Color') {
-      this.selectedColor = event.value;
-      if (typeof _learnq !== 'undefined' && event.value && this.productData) {
-        _learnq.push([
-          'track',
-          'Selected Color',
-          {
-            ProductID: this.productData.id,
-            ProductName: this.productData.name,
-            Color: event.value,
-            Brand: this.productData.brand || 'Unknown',
-            Categories:
-              this.productData.categories?.map((cat: any) => cat.name) || [],
-          },
-        ]);
-      }
-
-      if (event.value) {
-        const variation = this.productData.variations.find((v: any) =>
-          v.attributes.some(
-            (attr: any) =>
-              attr.name === 'Color' &&
-              attr.option.toLowerCase() === event.value.toLowerCase()
-          )
-        );
-
-        if (variation) {
-          this.productService
-            .getVariationById(this.productData.id, variation.id)
-            .subscribe({
-              next: (fullVariation) => {
-                this.selectedColorVariation = fullVariation;
-              },
-              error: (err) => {
-                console.error('Error fetching variation:', err);
-                this.selectedColorVariation = null;
-              },
-            });
-        } else {
-          this.selectedColorVariation = null;
-        }
-      } else {
-        this.selectedColorVariation = null;
-      }
-    }
+  onSelectedColorChange(event: AttributeSelection) {
+    console.log('Color changed:', event);
+    this.selectedColor = event.value;
   }
 
   onVariationSelected(variation: any) {
@@ -227,11 +185,13 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           VariationID: variation.id,
           Price: variation.price,
           Brand: this.productData.brand || 'Unknown',
-          Categories: this.productData.categories?.map((cat: any) => cat.name) || [],
-          Attributes: variation.attributes?.reduce((obj: any, attr: any) => {
-            obj[attr.name] = attr.option;
-            return obj;
-          }, {}) || {},
+          Categories:
+            this.productData.categories?.map((cat: any) => cat.name) || [],
+          Attributes:
+            variation.attributes?.reduce((obj: any, attr: any) => {
+              obj[attr.name] = attr.option;
+              return obj;
+            }, {}) || {},
         },
       ]);
     }
