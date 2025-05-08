@@ -152,7 +152,8 @@ export class CheckoutEffect {
                 catchError((error: any) => {
                   console.error('Error applying coupon:', error);
                   this.store.dispatch(stopLoadingCouponAction());
-                  const errorMessage = error.error?.data?.data?.reason || 'Failed to apply coupon';
+                  const errorMessage =
+                    error.error?.data?.data?.reason || 'Failed to apply coupon';
                   this.uiService.showError(errorMessage);
                   this.store.dispatch(
                     cartStatusAction({
@@ -188,8 +189,69 @@ export class CheckoutEffect {
             );
           }
         } else {
-          this.store.dispatch(stopLoadingCouponAction());
-          if (invalidCoupon) {
+          if (validCoupon) {
+            const body = {
+              cart_id: loadedData.loadedCart,
+              coupon_code: validCoupon[0].code,
+              action: 'apply',
+            };
+
+            return this.httpClient
+              .post(
+                'https://adventures-hub.com/wp-json/custom/v1/cart/guest/coupon',
+                body
+              )
+              .pipe(
+                map((response: any) => {
+                  console.log(response);
+                  this.store.dispatch(
+                    getCouponStatusAction({
+                      errorMsg: null,
+                      successMsg: 'Coupon applied successfully',
+                    })
+                  );
+
+                  response.items = response.items.map((item: any) => ({
+                    ...item,
+                    images: {
+                      imageSrc: item.image.thumbnail,
+                      imageAlt: item.image.alt,
+                    },
+                  }));
+
+                  this.store.dispatch(stopLoadingCouponAction());
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
+                  );
+                  return getUserCartAction({ userCart: response });
+                }),
+                catchError((error: any) => {
+                  console.error('Error applying coupon:', error);
+                  this.store.dispatch(stopLoadingCouponAction());
+                  const errorMessage =
+                    error.error?.data?.data?.reason || 'Failed to apply coupon';
+                  this.uiService.showError(errorMessage);
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
+                  );
+                  return of(
+                    getCouponStatusAction({
+                      errorMsg: errorMessage,
+                      successMsg: null,
+                    })
+                  );
+                })
+              );
+          } else {
+            this.store.dispatch(stopLoadingCouponAction());
             const errorMessage = `Coupon ${invalidCoupon} does not exist`;
             this.uiService.showError(errorMessage);
             this.store.dispatch(
@@ -206,31 +268,6 @@ export class CheckoutEffect {
               })
             );
           }
-
-          this.store.dispatch(
-            getCouponStatusAction({
-              errorMsg: null,
-              successMsg: 'Coupon applied successfully',
-            })
-          );
-
-          const coupon = { coupon_code: validCoupon[0].code };
-          const isCouponExists = loadedData.loadedCart.coupons.some(
-            (c: any) => c.code === coupon.coupon_code
-          );
-
-          if (!isCouponExists) {
-            loadedData.loadedCart.coupons.push(coupon);
-            localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
-          }
-
-          return of(
-            fetchUserCartAction({
-              isLoggedIn: false,
-              mainPageLoading: false,
-              sideCartLoading: true,
-            })
-          );
         }
       })
     )
@@ -275,16 +312,37 @@ export class CheckoutEffect {
               })
             );
         } else {
-          loadedData.loadedCart.coupons = [];
-          localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
-          setTimeout(() => this.store.dispatch(stopLoadingCouponAction()), 3000);
-          return of(
-            fetchUserCartAction({
-              mainPageLoading: false,
-              sideCartLoading: true,
-              isLoggedIn: false,
-            })
-          );
+          const body = {
+            cart_id: loadedData.loadedCart,
+            coupon_code: validCoupon,
+            action: 'remove',
+          };
+
+          return this.httpClient
+            .post(
+              'https://adventures-hub.com/wp-json/custom/v1/cart/guest/coupon',
+              body
+            )
+            .pipe(
+              map((response: any) => {
+                console.log('Coupon removed successfully:', response);
+                this.store.dispatch(stopLoadingCouponAction());
+                response.items = response.items.map((item: any) => ({
+                  ...item,
+                  images: {
+                    imageSrc: item.image.thumbnail,
+                    imageAlt: item.image.alt,
+                  },
+                }));
+                return getUserCartAction({ userCart: response });
+              }),
+              catchError((error: any) => {
+                console.error('Error removing coupon:', error);
+                this.store.dispatch(stopLoadingCouponAction());
+                this.uiService.showError('Failed to remove coupon');
+                return of(error);
+              })
+            );
         }
       })
     )
@@ -297,7 +355,7 @@ export class CheckoutEffect {
       switchMap(({ orderDetails }) => {
         return this.httpClient
           .post('http://localhost:4000/api/orders', orderDetails, {
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
           })
           .pipe(
             map((res: any) => {
@@ -315,7 +373,10 @@ export class CheckoutEffect {
                 status: error.status,
                 statusText: error.statusText,
                 message: error.message,
-                response: typeof error.error === 'string' ? error.error.substring(0, 200) : error.error
+                response:
+                  typeof error.error === 'string'
+                    ? error.error.substring(0, 200)
+                    : error.error,
               });
               this.store.dispatch(stopLoadingOrderAction());
               this.uiService.showError('Failed to create order');

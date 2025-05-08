@@ -1,17 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  Input,
-} from '@angular/core';
-import { AppContainerComponent } from '../app-container/app-container.component';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { Category } from '../../../interfaces/category.model';
-import { RouterLink } from '@angular/router';
 import { NavbarMainCategoriesComponent } from '../navbar-main-categories/navbar-main-categories.component';
 import { NavbarSubCategoriesComponent } from '../navbar-sub-categories/navbar-sub-categories.component';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
-import { FilterSidebarComponent } from '../../../features/products/components/filter-sidebar/filter-sidebar.component';
 
 @Component({
   selector: 'app-navbar-container',
@@ -35,7 +26,6 @@ export class NavbarContainerComponent {
         ? this.allCategories.filter((cat) => cat.parent === categoryId)
         : [];
 
-    console.log(filteredCategories);
     this.subCategoriesSubject.next(filteredCategories);
   }
 }

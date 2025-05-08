@@ -48,10 +48,8 @@ export class CartService {
 
       return { headers, params };
     } else {
-      let loadedCart: any = localStorage.getItem('Cart');
-      loadedCart = loadedCart
-        ? JSON.parse(loadedCart)
-        : { items: [], coupons: [] };
+      let loadedCart: any = localStorage.getItem('cartId');
+      loadedCart = loadedCart ? JSON.parse(loadedCart) : '';
 
       return { loadedCart, params };
     }
@@ -183,15 +181,10 @@ export class CartService {
 
         console.log(loadedCart);
 
-        if (loadedCart.items.length > 0) {
-          const cartItems = loadedCart.items.map((item: any) => {
-            return { product_id: item.id, quantity: item.quantity };
-          });
-
+        if (loadedCart) {
           this.store.dispatch(
             syncCartAction({
               authToken: authToken.value,
-              items: cartItems,
             })
           );
         } else {

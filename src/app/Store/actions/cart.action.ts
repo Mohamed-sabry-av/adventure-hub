@@ -38,7 +38,7 @@ export const updateCartStockStatusAction = createAction(
 
 export const syncCartAction = createAction(
   '[Cart] Add Multiple Products To User Cart',
-  props<{ authToken: string; items: any[] }>()
+  props<{ authToken: string }>()
 );
 
 export const clearUserCarAction = createAction(
