@@ -122,8 +122,9 @@ export class HeaderComponent implements OnInit {
     this.categoriesService
       .getAllCategories(['default'])
       .subscribe((categories) => {
-        this.allCategories = categories;
-        this.mainCategories = categories.filter((cat) => cat.parent === 0);
+        this.allCategories = categories || [];
+        this.mainCategories = this.allCategories.filter((cat) => cat.parent === 0);
+        this.cdr.detectChanges();
       });
   }
 

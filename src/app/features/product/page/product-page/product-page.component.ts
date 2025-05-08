@@ -40,7 +40,6 @@ declare var _learnq: any;
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.css'],
   host: { ngSkipHydration: '' },
-  standalone: true,
   // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent implements OnInit, OnDestroy {
@@ -51,10 +50,8 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   selectedVariation: any | null = null;
   isLoading: boolean = true;
   selectedColorVariation: any | null = null;
-  
-  // للتأكد من إلغاء الاشتراكات عند تدمير المكون
+
   private destroy$ = new Subject<void>();
-  
   private schemaScript: HTMLScriptElement | null = null;
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
@@ -100,6 +97,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
 
           this.isLoading = true;
           this.productData = null;
+          this.productDataForDesc = null; // إعادة تعيين
           this.schemaData = null;
           this.schemaScript = null;
 
@@ -119,6 +117,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           if (response) {
             this.productData = response;
+            this.productDataForDesc = response; // تعيين productDataForDesc
 
             // Apply SEO tags
             const schemaData = this.seoService.applySeoTags(this.productData, {
@@ -134,8 +133,12 @@ export class ProductPageComponent implements OnInit, OnDestroy {
               this.schemaScript.text = schemaData.toString();
               this.document.head.appendChild(this.schemaScript);
             }
+
+            // أضف المنتج لقائمة Recently Visited
+            this.recentlyVisitedService.addProduct(this.productData);
           } else {
             this.productData = null;
+            this.productDataForDesc = null;
             this.seoService.applySeoTags(null, {
               title: 'Product Not Found',
             });
@@ -149,6 +152,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           console.error('Error fetching product data:', err);
           this.isLoading = false;
           this.productData = null;
+          this.productDataForDesc = null;
           this.seoService.applySeoTags(null, {
             title: 'Product Page Error',
           });
@@ -160,7 +164,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
         },
       });
   }
-
 
   onSelectedColorChange(event: { name: string; value: any | null }) {
     if (event.name === 'Color') {
@@ -181,7 +184,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       }
 
       if (event.value) {
-        // ابحث عن أي variation ليها اللون ده
         const variation = this.productData.variations.find((v: any) =>
           v.attributes.some(
             (attr: any) =>

@@ -3,51 +3,56 @@ import {
   OnInit,
   HostListener,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { CarouselModule, OwlOptions } from 'ngx-owl-carousel-o';
 import { HomeService } from '../../service/home.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { CustomCarouselComponent } from '../custom-carousel/custom-carousel.component';
 
 @Component({
   selector: 'app-sale-products',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent, CustomCarouselComponent],
-
+  imports: [CommonModule, RouterModule, CarouselModule, ProductCardComponent],
   templateUrl: './sale-products.component.html',
   styleUrls: ['./sale-products.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SaleProductsComponent implements OnInit {
+  private homeService = inject(HomeService);
+  private cdr = inject(ChangeDetectorRef);
+
   products: any[] = [];
   loading: boolean = true;
   error: string | null = null;
   screenWidth: number = window.innerWidth;
 
-  responsiveOptions = [
-    {
-      breakpoint: '1199px',
-      numVisible: 4,
-      numScroll: 1,
+  carouselOptions: OwlOptions = {
+    loop: true,
+    mouseDrag: true,
+    touchDrag: true,
+    pullDrag: false,
+    dots: true,
+    navSpeed: 700,
+    navText: ['<i class="fas fa-chevron-left"></i>', '<i class="fas fa-chevron-right"></i>'],
+    responsive: {
+      0: {
+        items: 2
+      },
+      576: {
+        items: 2
+      },
+      768: {
+        items: 3
+      },
+      992: {
+        items: 4
+      }
     },
-    {
-      breakpoint: '991px',
-      numVisible: 3,
-      numScroll: 1,
-    },
-    {
-      breakpoint: '767px',
-      numVisible: 2.5,
-      numScroll: 1,
-    },
-    {
-      breakpoint: '575px',
-      numVisible: 2, // منتجين فقط على الهاتف
-      numScroll: 1,
-    },
-  ];
-
-  constructor(private homeService: HomeService) {}
+    nav: true
+  };
 
   ngOnInit(): void {
     this.loadSaleProducts();
@@ -56,33 +61,23 @@ export class SaleProductsComponent implements OnInit {
 
   loadSaleProducts(): void {
     this.loading = true;
-    this.homeService.getSaleProducts(1, 15).subscribe({
+    this.homeService.getSaleProducts(1, 10).subscribe({
       next: (data: any) => {
         this.products = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err: any) => {
         this.error = 'Failed to load sale products';
         this.loading = false;
-        console.error('Error loading sale products:', err);
+        this.cdr.markForCheck();
       },
     });
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.screenWidth = window.innerWidth;
-  }
-
-  getVisibleItemsCount(): number {
-    if (this.screenWidth < 576) {
-      return 2; // Mobile
-    } else if (this.screenWidth < 768) {
-      return 2.5; // Small tablet
-    } else if (this.screenWidth < 992) {
-      return 3; // Tablet
-    } else {
-      return 4; // Desktop
-    }
+    this.cdr.markForCheck();
   }
 }

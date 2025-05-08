@@ -8,20 +8,15 @@
 
   <div class="products-slider">
     <ng-container *ngIf="recentProducts$ | async as recentProducts">
-      <app-custom-carousel
-        [items]="recentProducts"
-        [numVisible]="4"
-        [numScroll]="1"
-        [circular]="true"
-        [responsiveOptions]="responsiveOptions"
-        [showControls]="true"
-        [autoplayInterval]="0">
-        <ng-template #item let-product>
-          <div class="product-item p-2">
-            <app-product-card [product]="product"></app-product-card>
-          </div>
-        </ng-template>
-      </app-custom-carousel>
+      <owl-carousel-o [options]="carouselOptions">
+        @for (product of recentProducts; track product.id) {
+          <ng-template carouselSlide [id:string]="product.id">
+            <div class="product-item p-2">
+              <app-product-card [product]="product"></app-product-card>
+            </div>
+          </ng-template>
+        }
+      </owl-carousel-o>
     </ng-container>
   </div>
 </div>

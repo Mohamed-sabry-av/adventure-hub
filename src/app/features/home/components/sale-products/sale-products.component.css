@@ -40,3 +40,39 @@
     padding: 0 0.25rem;
   }
 }
+
+.sale-products {
+  padding: 20px 0;
+}
+
+.carousel-item {
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1199px) {
+  .carousel-item {
+    width: 25%;
+  }
+}
+
+@media (max-width: 991px) {
+  .carousel-item {
+    width: 33.33%;
+  }
+}
+
+@media (max-width: 767px) {
+  .carousel-item {
+    width: 40%;
+  }
+}
+
+@media (max-width: 575px) {
+  .carousel-item {
+    width: 50%;
+  }
+}

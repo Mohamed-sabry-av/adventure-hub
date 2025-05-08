@@ -6,13 +6,20 @@ import { Observable, throwError } from 'rxjs';
   providedIn: 'root',
 })
 export class HandleErrorsService {
-  handelError(errorResponse?: HttpErrorResponse): Observable<any> {
-    if (errorResponse?.status === 0) {
-    } else {
-     
+  handelError(error: any): Observable<never> {
+    console.error('Raw error:', error);
+    let errorMessage = 'Something bad happened. Please try again later.';
+    
+    if (error instanceof HttpErrorResponse) {
+      errorMessage = `HTTP Error ${error.status}: ${error.statusText}`;
+      if (error.error) {
+        errorMessage += ` - Details: ${JSON.stringify(error.error)}`;
+      }
+    } else if (error.message) {
+      errorMessage = `Error: ${error.message}`;
     }
-    return throwError(
-      () => new Error('Something bad happened. please try again later.')
-    );
+    
+    console.error('Processed error message:', errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 }

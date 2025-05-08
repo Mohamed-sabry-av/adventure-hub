@@ -2,14 +2,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
-  HostListener,
   inject,
-  ChangeDetectorRef
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
 import { catchError, forkJoin, of } from 'rxjs';
+import { CarouselModule, OwlOptions } from 'ngx-owl-carousel-o';
 
 interface Brand {
   id: number;
@@ -27,139 +27,123 @@ interface Brand {
 @Component({
   selector: 'app-brand-logos',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, CarouselModule],
   template: `
-    <div class="brand-logos py-2 px-2 bg-white">
-      <div class="container mx-auto">
-        @if (brands.length > 0) {
-          <div class="brands-carousel relative">
-            <div class="brands-slider overflow-hidden">
-              <div
-                class="brands-track flex transition-transform duration-500 ease-in-out"
-                [style.transform]="'translateX(' + -currentPosition + 'px)'"
-                [style.width]="totalWidth + 'px'"
+<div class="brand-logos py-2 px-2 bg-white">
+  <div class="container mx-auto">
+    @if (brands.length > 0) {
+      <div class="brands-carousel relative">
+        <owl-carousel-o [options]="carouselOptions">
+          @for (brand of brands; track brand.id) {
+            <ng-template carouselSlide [id:string]="brand.id">
+              <a
+                [routerLink]="['/brand', brand.slug]"
+                class="brand-logo flex items-center justify-center h-12 p-2 transition-all duration-300"
               >
-                @for (brand of brands; track brand.id) {
-                  <a
-                    [routerLink]="['/brand', brand.slug]"
-                    class="brand-logo flex items-center justify-center h-12 p-2 transition-all duration-300"
-                    [style.min-width.px]="getItemWidth()"
-                  >
-                    @if (brand.image && brand.image.url) {
-                      <img
-                        [src]="brand.image.url"
-                        [alt]="brand.name"
-                        class="max-h-full max-w-full object-contain brand-image transition-all duration-300"
-                      />
-                    } @else {
-                      <span class="font-bold text-gray-800">{{ brand.name }}</span>
-                    }
-                  </a>
+                @if (brand.image && brand.image.url) {
+                  <img
+                    [src]="brand.image.url"
+                    [alt]="brand.name"
+                    class="max-h-full max-w-full object-contain brand-image transition-all duration-300"
+                  />
+                } @else {
+                  <span class="font-bold text-gray-800">{{ brand.name }}</span>
                 }
-              </div>
-            </div>
-
-            <!-- Navigation arrows - only shown on desktop -->
-            <button
-              *ngIf="showControls && brands.length > getVisibleItems()"
-              (click)="prev()"
-              class="carousel-nav prev absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white bg-opacity-80 rounded-full p-2 shadow-md focus:outline-none"
-              aria-label="Previous brands"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </button>
-            <button
-              *ngIf="showControls && brands.length > getVisibleItems()"
-              (click)="next()"
-              class="carousel-nav next absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white bg-opacity-80 rounded-full p-2 shadow-md focus:outline-none"
-              aria-label="Next brands"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
-        } @else {
-          <div class="text-center text-gray-500">No brands available at the moment.</div>
-        }
+              </a>
+            </ng-template>
+          }
+        </owl-carousel-o>
       </div>
-    </div>
+    } @else {
+      <div class="text-center text-gray-500">No brands available at the moment.</div>
+    }
+  </div>
+</div>
   `,
   styles: [
     `
-      .brands-carousel {
-        // padding: 0 40px;
-      }
+     .brands-carousel {
+  padding: 0;
+}
 
-      .brands-slider {
-        margin: 0 auto;
-        width: 100%;
-      }
+.brand-logo {
+  border-radius: 8px;
+  margin: 0 10px;
+  text-align: center;
+}
 
-      .brand-logo {
-        // border: 1px solid #f0f0f0;
-        border-radius: 8px;
-        margin: 0 10px;
-      }
+.brand-image {
+  filter: grayscale(100%);
+  opacity: 0.6;
+  max-height: 40px;
+}
 
-      .brand-image {
-        filter: grayscale(100%);
-        opacity: 0.6;
-        max-height: 40px;
-      }
+.brand-logo:hover .brand-image {
+  filter: grayscale(0%);
+  opacity: 1;
+}
 
-      .brand-logo:hover .brand-image {
-        filter: grayscale(0%);
-        opacity: 1;
-      }
+/* إخفاء أي عناصر تحكم زائدة (تحسبًا) */
+.owl-nav,
+.owl-dots {
+  display: none !important;
+}
 
-      @media (max-width: 768px) {
-        .brands-carousel {
-          padding: 0;
-        }
-
-        .carousel-nav {
-          display: none;
-        }
-      }
+/* ضبط عرض العناصر في الـ carousel */
+.owl-carousel .owl-item .brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+}
     `,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BrandLogosComponent implements OnInit {
-  // private productsBrandService = inject(ProductsBrandService);
-
   private homeService = inject(HomeService);
   private cdr = inject(ChangeDetectorRef);
 
   private readonly allowedBrandIds = [550, 5126, 1126, 2461, 1441, 989, 877, 971, 3537];
 
   brands: Brand[] = [];
-  currentPosition = 0;
-  screenWidth = window.innerWidth;
-  totalWidth = 0;
-  showControls = true;
 
-  @HostListener('window:resize', ['$event'])
-  onResize() {
-    this.screenWidth = window.innerWidth;
-    this.showControls = this.screenWidth > 768;
-    this.setCarouselParameters();
-  }
+  carouselOptions: OwlOptions = {
+    loop: true,
+    mouseDrag: true,
+    touchDrag: true,
+    pullDrag: false,
+    dots: false, // إخفاء النقاط
+    nav: false, // إخفاء الأزرار
+    autoplay: true, // التمرير التلقائي
+    autoplayTimeout: 3000, // زمن التمرير التلقائي (3 ثواني)
+    autoplayHoverPause: true, // إيقاف التمرير عند الـ hover
+    navSpeed: 700,
+    responsive: {
+      0: {
+        items: 3, // 3 براندات على الشاشات الصغيرة
+      },
+      640: {
+        items: 4, // 4 براندات على الشاشات المتوسطة
+      },
+      768: {
+        items: 5, // 5 براندات على الشاشات الأكبر
+      },
+      1024: {
+        items: 8, // 8 براندات على الشاشات الكبيرة
+      },
+    },
+  };
 
   ngOnInit(): void {
     this.loadBrands();
-    this.screenWidth = window.innerWidth;
-    this.showControls = this.screenWidth > 768;
   }
 
   loadBrands(): void {
     const brandObservables = this.allowedBrandIds.map(id =>
       this.homeService.getBrandById(id).pipe(
         catchError(error => {
-          return of(null); 
+          return of(null);
         })
       )
     );
@@ -168,65 +152,10 @@ export class BrandLogosComponent implements OnInit {
       next: (brands: Brand[]) => {
         this.brands = brands.filter(brand => brand !== null);
         this.cdr.markForCheck();
-        setTimeout(() => this.setCarouselParameters(), 100);
       },
       error: (error) => {
         this.brands = [];
         this.cdr.markForCheck();
-        setTimeout(() => this.setCarouselParameters(), 100);
-      }
+      },
     });
-  }
-
-  setCarouselParameters(): void {
-    const itemWidth = this.getItemWidth();
-    this.totalWidth = itemWidth * this.brands.length;
-    this.currentPosition = 0;
-  }
-
-  getItemWidth(): number {
-    if (this.screenWidth < 640) {
-      return this.screenWidth / 3;
-    } else if (this.screenWidth < 768) {
-      return this.screenWidth / 4;
-    } else if (this.screenWidth < 1024) {
-      return this.screenWidth / 5;
-    } else {
-      return this.screenWidth / 8;
-    }
-  }
-
-  getVisibleItems(): number {
-    if (this.screenWidth < 640) {
-      return 3;
-    } else if (this.screenWidth < 768) {
-      return 4;
-    } else if (this.screenWidth < 1024) {
-      return 5;
-    } else {
-      return 8;
-    }
-  }
-
-  next(): void {
-    const itemWidth = this.getItemWidth();
-    const maxPosition = this.totalWidth - (this.getVisibleItems() * itemWidth);
-
-    if (this.currentPosition < maxPosition) {
-      this.currentPosition += itemWidth * Math.min(3, this.getVisibleItems());
-      if (this.currentPosition > maxPosition) {
-        this.currentPosition = maxPosition;
-      }
-    }
-  }
-
-  prev(): void {
-    const itemWidth = this.getItemWidth();
-    if (this.currentPosition > 0) {
-      this.currentPosition -= itemWidth * Math.min(3, this.getVisibleItems());
-      if (this.currentPosition < 0) {
-        this.currentPosition = 0;
-      }
-    }
-  }
-}
+  }}

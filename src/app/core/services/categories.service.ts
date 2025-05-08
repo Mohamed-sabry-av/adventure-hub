@@ -82,28 +82,22 @@ export class CategoriesService {
   /**
    * Fetches all categories page by page from the API.
    */
-  private fetchAllCategories(page: number = 1, accumulatedCategories: Category[] = []): Observable<Category[]> {
-    return this.WooAPI.getRequest<Category[]>('products/categories', {
-      params: new HttpParams()
-        .set('_fields', 'id,name,slug,parent,description,display,image,menu_order,count,yoast_head,yoast_head_json')
-        .set('per_page', '100')
-        .set('page', page.toString()),
-    }).pipe(
-      switchMap((categories: Category[]) => {
-        const updatedCategories = accumulatedCategories.concat(categories);
+private fetchAllCategories(): Observable<Category[]> {
+  const endpoint = 'custom/v1/nav-categories';
+  return this.WooAPI.getRequest<Category[]>(endpoint, {
+    params: new HttpParams().set('_fields', 'id,name,slug,parent,count')
+  }).pipe(
+    map((categories: Category[]) => {
+      console.log('Fetched categories:', categories);
+      return categories || [];
+    }),
+    catchError((error) => {
+      console.error('Error fetching categories from nav-categories endpoint:', error);
+      return this.handleErrorsService.handelError(error);
+    })
+  );
+}
 
-        if (categories.length < 100) {
-          return of(updatedCategories);
-        }
-
-        return this.fetchAllCategories(page + 1, updatedCategories);
-      }),
-      catchError((error) => {
-        console.error(`Error fetching categories at page ${page}:`, error);
-        return this.handleErrorsService.handelError(error);
-      })
-    );
-  }
 
   /**
    * Retrieves a category by its slug directly from the API.
@@ -131,7 +125,7 @@ export class CategoriesService {
         return this.WooAPI.getRequest<Category[]>('products/categories', {
           params: new HttpParams()
             .set('slug', slug)
-            .set('_fields', 'id,name,slug,parent,description,display,image,menu_order,count,yoast_head,yoast_head_json'),
+            .set('_fields', 'id,name,slug,parent,description,display,image,menu_order,count,yoast_head,yoast_head_json,count'),
         }).pipe(
           map((categories) => (categories && categories.length > 0 ? categories[0] : null)),
           tap((category) => {
@@ -168,8 +162,9 @@ export class CategoriesService {
    * Filters categories based on the display field.
    */
   private excludeUnwantedCategories(categories: Category[]): Category[] {
-    const filtered = categories.filter((category) => !this.EXCLUDED_SLUGS.includes(category.slug));
-    return filtered;
+    return categories.filter(
+      (category:Category) => !this.EXCLUDED_SLUGS.includes(category.slug) && category.count > 0
+    );
   }
 
   /**

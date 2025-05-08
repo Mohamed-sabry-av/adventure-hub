@@ -26,7 +26,7 @@ interface Attribute {
 @Component({
   selector: 'app-product-desc',
   standalone: true,
-  imports: [CommonModule, SafeHtmlPipe],
+  imports: [CommonModule],
   templateUrl: './product-desc.component.html',
   styleUrls: ['./product-desc.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -165,6 +165,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     }
 
     try {
+      console.log('Raw description:', description);
       this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(description);
     } catch (error) {
       console.error('Error sanitizing product description:', error);

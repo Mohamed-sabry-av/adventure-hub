@@ -10,41 +10,32 @@
       </a>
     </div>
 
-    <!-- Loading Indicator -->
     @if (loading) {
       <div class="flex justify-center py-8">
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     }
 
-    <!-- Error Message -->
     @if (error) {
       <div class="bg-red-100 text-red-700 p-4 mb-4 rounded">
         {{ error }}
       </div>
     }
 
-    <!-- Products Carousel -->
     @if (!loading && !error && products.length > 0) {
       <div class="products-carousel overflow-hidden">
-        <app-custom-carousel
-          [items]="products"
-          [numVisible]="getVisibleItemsCount()"
-          [numScroll]="1"
-          [circular]="true"
-          [autoplayInterval]="5000"
-          [responsiveOptions]="responsiveOptions"
-        >
-          <ng-template #item let-product>
-            <div class="carousel-item px-2">
-              <app-product-card [product]="product"></app-product-card>
-            </div>
-          </ng-template>
-        </app-custom-carousel>
+        <owl-carousel-o [options]="carouselOptions">
+          @for (product of products; track product.id) {
+            <ng-template carouselSlide [id]="product.id">
+              <div class="px-2">
+                <app-product-card [product]="product"></app-product-card>
+              </div>
+            </ng-template>
+          }
+        </owl-carousel-o>
       </div>
     }
 
-    <!-- No Products Found -->
     @if (!loading && !error && products.length === 0) {
       <div class="text-center py-8 bg-gray-100 rounded-lg">
         <p class="text-gray-600">No sale products available at the moment.</p>

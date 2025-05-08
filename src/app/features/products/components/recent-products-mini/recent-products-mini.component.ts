@@ -5,48 +5,53 @@ import { RecentlyVisitedService } from '../../../../core/services/recently-visit
 import { Product } from '../../../../interfaces/product';
 import { Observable, map } from 'rxjs';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { CustomCarouselComponent } from '../../../home/components/custom-carousel/custom-carousel.component';
+import { CarouselModule, OwlOptions } from 'ngx-owl-carousel-o'; // استبدال CustomCarouselComponent
 
 @Component({
   selector: 'app-recent-products-mini',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent, CustomCarouselComponent],
+  imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule], // استبدال CustomCarouselComponent
   templateUrl: './recent-products-mini.component.html',
   styleUrls: ['./recent-products-mini.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecentProductsMiniComponent implements OnInit {
   recentProducts$!: Observable<Product[]>;
 
-  responsiveOptions = [
-    {
-      breakpoint: '1400px',
-      numVisible: 4,
-      numScroll: 1,
+  // إعدادات الـ Carousel
+  carouselOptions: OwlOptions = {
+    loop: true,
+    mouseDrag: true,
+    touchDrag: true,
+    pullDrag: false,
+    dots: true,
+    navSpeed: 700,
+    navText: ['<i class="fas fa-chevron-left"></i>', '<i class="fas fa-chevron-right"></i>'],
+    responsive: {
+      0: {
+        items: 2,
+      },
+      480: {
+        items: 2,
+      },
+      768: {
+        items: 2,
+      },
+      1024: {
+        items: 4,
+      },
+      1400: {
+        items: 4,
+      },
     },
-    {
-      breakpoint: '1024px',
-      numVisible: 3,
-      numScroll: 1,
-    },
-    {
-      breakpoint: '768px',
-      numVisible: 2,
-      numScroll: 1,
-    },
-    {
-      breakpoint: '480px',
-      numVisible: 2,
-      numScroll: 1,
-    },
-  ];
+    nav: true,
+  };
 
   constructor(private recentlyVisitedService: RecentlyVisitedService) {}
 
   ngOnInit(): void {
-    // Get only the last 8 recently visited products
-    this.recentProducts$ =
-      this.recentlyVisitedService.recentlyVisitedProducts$.pipe(
-        map((products) => products.slice(0, 8))
-      );
+    this.recentProducts$ = this.recentlyVisitedService.recentlyVisitedProducts$.pipe(
+      map((products) => products.slice(0, 8))
+    );
   }
 }

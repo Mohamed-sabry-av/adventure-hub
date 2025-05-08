@@ -1,66 +1,26 @@
-.related-products-section {
-  padding: 10px 0;
-  background: #fff;
+.related-products-slider {
+  padding: 0 10px;
 }
 
-.full-width-container {
-  width: 100%;
-}
-
-
-
-/* تخصيص الـ PrimeNG carousel */
-:host ::ng-deep .p-carousel {
-  position: relative;
-}
-
-/* تخصيص الـ navigation arrows */
-:host ::ng-deep .p-carousel-prev,
-:host ::ng-deep .p-carousel-next {
-  display: none; /* إخفاء السهمين افتراضياً على الموبايل */
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  padding: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-  transition: background 0.3s ease;
-}
-
-:host ::ng-deep .p-carousel-prev:hover,
-:host ::ng-deep .p-carousel-next:hover {
-  background: rgba(255, 255, 255, 1);
-}
-
-/* إظهار السهمين على الديسكتوب */
-@media (min-width: 768px) {
-  :host ::ng-deep .p-carousel-prev,
-  :host ::ng-deep .p-carousel-next {
-    display: flex; /* إظهار السهمين */
-    align-items: center;
-    justify-content: center;
-  }
-
-  :host ::ng-deep .p-carousel-prev {
-    left: -20px; /* وض  ضع السهم الأيسر خارج الـ carousel */
-  }
-
-  :host ::ng-deep .p-carousel-next {
-    right: -20px; /* ضع السهم الأيمن خارج الـ carousel */
-  }
-}
-
-/* تخصيص الـ product card */
 .product-item {
-  padding: 8px;
+  padding: 0 10px;
 }
 
-.loading-container {
-  min-height: 100px;
+.owl-carousel .owl-nav button.owl-prev,
+.owl-carousel .owl-nav button.owl-next {
+  font-size: 24px;
+  color: #333;
 }
 
-.no-products {
-  color: #6b7280;
+.owl-carousel .owl-dots {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.owl-carousel .owl-dots .owl-dot.active span {
+  background: #007bff;
+}
+
+.owl-carousel .owl-dots .owl-dot span {
+  background: #ccc;
 }

@@ -15,23 +15,15 @@
 
   <!-- المنتجات ذات الصلة -->
   <div class="related-products-slider" *ngIf="!isLoading && relatedProducts.length > 0">
-    <app-custom-carousel
-      [items]="relatedProducts"
-      [numVisible]="4"
-      [numScroll]="1"
-      [circular]="true"
-      [responsiveOptions]="responsiveOptions"
-      [showControls]="true"
-      [autoplayInterval]="0">
-
-      <ng-template #item let-product>
-        <div class="product-item p-2">
-          <div  (click)="onProductClick(product.slug)">
+    <owl-carousel-o [options]="carouselOptions">
+      @for (product of relatedProducts; track product.id) {
+        <ng-template carouselSlide [id]="product.id">
+          <div class="product-item p-2" (click)="onProductClick(product.slug)">
             <app-product-card [product]="product"></app-product-card>
           </div>
-        </div>
-      </ng-template>
-    </app-custom-carousel>
+        </ng-template>
+      }
+    </owl-carousel-o>
   </div>
 
   <!-- رسالة في حالة عدم وجود منتجات -->

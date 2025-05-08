@@ -37,8 +37,8 @@ export class HomeService {
             ...product,
             images: product.images.slice(0, 3) || [],
           }));
-          return response.body;
-        }),
+          return products
+                }),
         catchError((error) => {
           console.error('Error fetching products:', error);
           return of([]);
@@ -69,7 +69,8 @@ export class HomeService {
             ...product,
             images: product.images.slice(0, 3) || [],
           }));
-          return response.body;
+          return products
+        
         }),
         catchError((error) => {
           console.error('Error fetching products:', error);
