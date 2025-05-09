@@ -30,22 +30,48 @@
             ],
             "styles": [
               "src/styles.css",
-"node_modules/owl.carousel/dist/assets/owl.carousel.css",
-  "node_modules/owl.carousel/dist/assets/owl.theme.default.css"            ],
+              "node_modules/owl.carousel/dist/assets/owl.carousel.css",
+              "node_modules/owl.carousel/dist/assets/owl.theme.default.css"            
+            ],
             "scripts": ["node_modules/glider-js/glider.min.js"],
             "server": "src/main.server.ts",
-            "prerender": false,
+            "prerender": {
+              "discoverRoutes": true
+            },
             "ssr": {
               "entry": "src/server.ts"
-            }
+            },
+            "optimization": {
+              "scripts": true,
+              "styles": {
+                "minify": true,
+                "inlineCritical": true
+              },
+              "fonts": true
+            },
+            "sourceMap": false,
+            "namedChunks": true,
+            "extractLicenses": true,
+            "budgets": [
+              {
+                "type": "initial",
+                "maximumWarning": "800kb",
+                "maximumError": "1.2mb"
+              },
+              {
+                "type": "anyComponentStyle",
+                "maximumWarning": "10kb",
+                "maximumError": "20kb"
+              }
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1mb",
-                  "maximumError": "1.5mb"
+                  "maximumWarning": "800kb",
+                  "maximumError": "1.2mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -56,11 +82,26 @@
               "outputHashing": "all",
               "optimization": {
                 "scripts": true,
-                "styles": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
                 "fonts": true
               },
               "sourceMap": false,
               "extractLicenses": true,
+              "externalDependencies": [
+                "rxjs",
+                "@angular/material",
+                "tslib",
+                "zone.js"
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "serviceWorker": "ngsw-config.json"
             },
             "development": {

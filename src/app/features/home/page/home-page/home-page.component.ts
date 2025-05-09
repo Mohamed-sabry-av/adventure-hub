@@ -13,6 +13,7 @@ import { Observable } from 'rxjs';
 import { CartStatus } from '../../../cart/model/cart.model';
 import { LatestBlogPostsComponent } from '../../components/latest-blog-posts/latest-blog-posts.component';
 import { SeoService } from '../../../../core/services/seo.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-home-page',
@@ -30,10 +31,13 @@ import { SeoService } from '../../../../core/services/seo.service';
   ],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomePageComponent implements OnInit {
   private uiService = inject(UIService);
   private seoService = inject(SeoService);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
@@ -42,73 +46,59 @@ export class HomePageComponent implements OnInit {
   }
 
   /**
-   * تحديث بيانات SEO للصفحة الرئيسية
+   * Apply comprehensive SEO metadata for the homepage
    */
   private setupSeo(): void {
-    // this.seoService.updateSeoTags({
-    //   title: 'Adventures Hub - Your Ultimate Outdoor Gear & Adventure Resource',
-    //   description: 'Find the best outdoor gear, hiking equipment, camping supplies, and adventure tips. Discover high-quality products for your outdoor adventures.',
-    //   keywords: 'outdoor gear, adventure equipment, hiking supplies, camping gear, trekking equipment, outdoor activities',
-    //   type: 'website',
-    //   url: 'https://adventures-hub.com',
-    // });
+    // Define and apply SEO metadata
+    const seoData = {
+      title: 'Adventures HUB - Premium Outdoor & Adventure Sports Equipment',
+      description: 'Discover high-quality outdoor gear, hiking equipment, camping supplies, and adventure accessories at Adventures HUB. UAE\'s leading outdoor sports shop with worldwide shipping.',
+      keywords: ['outdoor gear', 'hiking equipment', 'camping supplies', 'adventure gear', 'sports equipment', 'UAE', 'Dubai'],
+      type: 'website',
+      image: 'https://adventures-hub.com/assets/images/homepage-hero.jpg'
+    };
 
-    // إضافة مخطط Schema.org للصفحة الرئيسية
+    // Apply SEO tags via the SeoService
+    this.seoService.applySeoTags(null, seoData);
+
+    // Add specific structured data for the home page
     this.addHomePageSchema();
+
+    // Add performance optimization tags
+    this.metaService.addTag({ name: 'preload', content: 'home-critical' });
   }
 
   /**
-   * إضافة مخطط Schema.org للصفحة الرئيسية
+   * Create and add structured data schema for the home page
    */
   private addHomePageSchema(): void {
     const schema = {
       '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'Adventures Hub',
+      '@type': 'WebPage',
+      name: 'Adventures Hub - Premium Outdoor Sports Equipment',
+      description: 'Discover high-quality outdoor gear, hiking equipment, camping supplies, and adventure accessories at Adventures HUB.',
       url: 'https://adventures-hub.com',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: 'https://adventures-hub.com/search?q={search_term_string}'
-        },
-        'query-input': 'required name=search_term_string'
+      speakable: {
+        '@type': 'SpeakableSpecification',
+        cssSelector: ['h1', 'h2', '.product-category-heading']
       },
-      sameAs: [
-        'https://www.facebook.com/adventureshub',
-        'https://www.instagram.com/adventureshub',
-        'https://twitter.com/adventureshub'
+      hasPart: [
+        {
+          '@type': 'WebPageElement',
+          isPartOf: {
+            '@id': 'https://adventures-hub.com/#website'
+          },
+          image: 'https://adventures-hub.com/assets/images/homepage-hero.jpg'
+        }
       ]
     };
 
-    const organizationSchema = {
-      '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: 'Adventures Hub',
-      url: 'https://adventures-hub.com',
-      logo: 'https://adventures-hub.com/wp-content/uploads/2025/01/logo.png',
-      contactPoint: {
-        '@type': 'ContactPoint',
-        telephone: '+1-234-567-8900',
-        contactType: 'customer service',
-        availableLanguage: ['English', 'Arabic']
-      }
-    };
-
-    this.addSchemaToHead(schema);
-    this.addSchemaToHead(organizationSchema);
-  }
-
-  /**
-   * إضافة مخطط JSON-LD إلى رأس الصفحة
-   */
-  private addSchemaToHead(schema: any): void {
-    // التحقق مما إذا كان في بيئة المتصفح
-    if (typeof document !== 'undefined') {
-      const script = document.createElement('script');
-      script.type = 'application/ld+json';
-      script.innerHTML = JSON.stringify(schema);
-      document.head.appendChild(script);
-    }
+    // In a real app, this would be passed to a service
+    // that handles the schema.org tags
+    this.seoService.applySeoTags(null, {
+      title: 'Adventures HUB - Premium Outdoor & Adventure Sports Equipment',
+      description: 'Discover high-quality outdoor gear, hiking equipment, camping supplies, and adventure accessories at Adventures HUB. UAE\'s leading outdoor sports shop with worldwide shipping.',
+      schema: schema
+    });
   }
 }

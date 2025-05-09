@@ -2,19 +2,22 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
-  inject,
   OnDestroy,
+  inject,
+  DestroyRef,
+  TransferState,
+  makeStateKey
 } from '@angular/core';
-import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { ActivatedRoute, Router, NavigationEnd, RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
-import { map, of, switchMap, filter, takeUntil, Subject } from 'rxjs';
+import { filter, switchMap, of, EMPTY } from 'rxjs';
 import { CommonModule, DOCUMENT } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
 import { ProductDescComponent } from '../../components/product-desc/product-desc.component';
 import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
-import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
 import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
@@ -22,26 +25,31 @@ import { RecentlyVisitedService } from '../../../../core/services/recently-visit
 import { RelatedProductsService } from '../../../../core/services/related-products.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AttributeSelection } from '../../components/product-info/product-info.component';
+import { catchError } from 'rxjs/operators';
+import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
+
+const PRODUCT_DATA_KEY = makeStateKey<any>('product_data');
 
 declare var _learnq: any;
 
 @Component({
   selector: 'app-product-page',
+  standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     ProductImagesComponent,
     ProductInfoComponent,
     ProductDescComponent,
     ProductRelatedComponent,
-    AppContainerComponent,
     BreadcrumbComponent,
     RecentProductsMiniComponent,
     DialogErrorComponent,
+    AppContainerComponent
   ],
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.css'],
-  host: { ngSkipHydration: '' },
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent implements OnInit, OnDestroy {
   schemaData: SafeHtml | null = null;
@@ -52,8 +60,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   isLoading: boolean = true;
   selectedColorVariation: any | null = null;
 
-  private destroy$ = new Subject<void>();
-  private schemaScript: HTMLScriptElement | null = null;
+  private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private seoService = inject(SeoService);
@@ -62,16 +69,18 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
   private document = inject(DOCUMENT);
+  private transferState = inject(TransferState);
+
+  private schemaScript: HTMLScriptElement | null = null;
 
   ngOnInit() {
-    this.router.events
-      .pipe(
-        filter((event) => event instanceof NavigationEnd),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(() => {
-        this.loadProductData();
-      });
+    // Listen for navigation events to reload product data
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      this.loadProductData();
+    });
 
     this.loadProductData();
   }
@@ -81,119 +90,167 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       this.schemaScript.remove();
       this.schemaScript = null;
     }
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private loadProductData() {
-    this.route.paramMap
-      .pipe(
-        takeUntil(this.destroy$),
-        switchMap((params) => {
-          const slug = params.get('slug');
-          if (!slug) {
-            this.router.navigate(['/']);
-            return of(null);
-          }
+    // Reset state before loading
+    this.isLoading = true;
+    this.productData = null;
+    this.productDataForDesc = null;
+    this.schemaData = null;
+    this.removeSchemaScript();
 
-          this.isLoading = true;
-          this.productData = null;
-          this.productDataForDesc = null; // إعادة تعيين
-          this.schemaData = null;
-          this.schemaScript = null;
+    // Get slug from URL
+    const slug = this.route.snapshot.paramMap.get('slug');
+    if (!slug) {
+      this.handleError('Product slug not found');
+      return;
+    }
 
-          return this.productService.getProductBySlug(slug).pipe(
-            map((product: any) => {
-              if (!product) {
-                this.router.navigate(['/']);
-                return null;
-              }
-              return product;
-            })
-          );
-        })
-      )
-      .subscribe({
-        next: (response: any) => {
-          this.isLoading = false;
-          if (response) {
-            this.productData = response;
-            this.productDataForDesc = response; // تعيين productDataForDesc
+    // Check if product data is in transfer state
+    const cacheKey = `${PRODUCT_DATA_KEY.toString()}_${slug}`;
+    const cachedProductData = this.transferState.get(makeStateKey(cacheKey), null);
+    
+    if (cachedProductData) {
+      this.isLoading = false;
+      this.processProductData(cachedProductData);
+      return;
+    }
 
-            // Apply SEO tags
-            const schemaData = this.seoService.applySeoTags(this.productData, {
-              title: this.productData?.name,
-              description: this.productData?.short_description,
-              image: this.productData?.images?.[0]?.src,
-            });
+    // Fetch product data
+    this.productService.getProductBySlug(slug).pipe(
+      catchError((error) => {
+        this.handleError(`Error fetching product: ${error.message}`);
+        return EMPTY;
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((response: any) => {
+      this.isLoading = false;
+      
+      if (!response) {
+        this.handleError('Product not found');
+        return;
+      }
+      
+      // Store in transfer state for SSR
+      this.transferState.set(makeStateKey(cacheKey), response);
+      this.processProductData(response);
+    });
+  }
 
-            // Add schema to <head>
-            if (schemaData) {
-              this.schemaScript = this.document.createElement('script');
-              this.schemaScript.type = 'application/ld+json';
-              this.schemaScript.text = schemaData.toString();
-              this.document.head.appendChild(this.schemaScript);
-            }
+  private processProductData(product: any) {
+    this.productData = product;
+    this.productDataForDesc = product;
 
-            // أضف المنتج لقائمة Recently Visited
-            this.recentlyVisitedService.addProduct(this.productData);
-          } else {
-            this.productData = null;
-            this.productDataForDesc = null;
-            this.seoService.applySeoTags(null, {
-              title: 'Product Not Found',
-            });
-            this.seoService.metaService.updateTag({
-              name: 'robots',
-              content: 'noindex, nofollow',
-            });
-          }
-        },
-        error: (err) => {
-          console.error('Error fetching product data:', err);
-          this.isLoading = false;
-          this.productData = null;
-          this.productDataForDesc = null;
-          this.seoService.applySeoTags(null, {
-            title: 'Product Page Error',
-          });
-          this.seoService.metaService.updateTag({
-            name: 'robots',
-            content: 'noindex, nofollow',
-          });
-          this.router.navigate(['/']);
-        },
-      });
+    // Set up SEO
+    this.setupSeo(product);
+
+    // Add to recently visited products
+    if (product) {
+      this.recentlyVisitedService.addProduct(product);
+    }
+
+    // Track product view in Klaviyo if available
+    this.trackProductView(product);
+  }
+
+  private setupSeo(product: any) {
+    // Apply comprehensive SEO tags
+    const schemaData = this.seoService.applySeoTags(product, {
+      title: product?.name,
+      description: this.stripHtml(product?.short_description || ''),
+      image: product?.images?.[0]?.src,
+      type: 'product'
+    });
+
+    // Add schema to <head>
+    if (schemaData) {
+      this.schemaScript = this.document.createElement('script');
+      this.schemaScript.type = 'application/ld+json';
+      this.schemaScript.text = schemaData.toString();
+      this.document.head.appendChild(this.schemaScript);
+    }
+  }
+
+  private removeSchemaScript() {
+    if (this.schemaScript && this.schemaScript.parentNode) {
+      this.schemaScript.parentNode.removeChild(this.schemaScript);
+      this.schemaScript = null;
+    }
+  }
+
+  private trackProductView(product: any) {
+    if (typeof _learnq !== 'undefined' && product) {
+      try {
+        _learnq.push(['track', 'Viewed Product', {
+          ProductID: product.id,
+          ProductName: product.name,
+          Price: product.price,
+          Brand: this.getBrandFromProduct(product),
+          Categories: product.categories?.map((cat: any) => cat.name) || [],
+          ImageURL: product.images?.[0]?.src,
+          ProductURL: window.location.href
+        }]);
+      } catch (error) {
+        console.error('Error tracking product view in Klaviyo:', error);
+      }
+    }
+  }
+
+  private getBrandFromProduct(product: any): string {
+    return product?.attributes?.find((attr: any) => attr.name === 'Brand')
+      ?.options?.[0]?.name || 'Adventures Hub';
+  }
+
+  private handleError(message: string) {
+    console.error(message);
+    this.isLoading = false;
+    this.productData = null;
+    this.productDataForDesc = null;
+    
+    // Set up 404 SEO
+    this.seoService.applySeoTags(null, {
+      title: 'Product Not Found',
+      robots: 'noindex, nofollow'
+    });
+    
+    // Navigate to home page or 404 page
+    this.router.navigate(['/page-not-found']);
   }
 
   onSelectedColorChange(event: AttributeSelection) {
-    console.log('Color changed:', event);
     this.selectedColor = event.value;
   }
 
   onVariationSelected(variation: any) {
     this.selectedVariation = variation;
-    console.log('Selected variation:', variation);
 
-    if (typeof _learnq !== 'undefined' && this.productData) {
-      _learnq.push([
-        'track',
-        'Selected Variation',
-        {
-          ProductID: this.productData.id,
-          ProductName: this.productData.name,
-          VariationID: variation.id,
-          Price: variation.price,
-          Brand: this.productData.brand || 'Unknown',
-          Categories:
-            this.productData.categories?.map((cat: any) => cat.name) || [],
-          Attributes:
-            variation.attributes?.reduce((obj: any, attr: any) => {
+    // Track variation selection in Klaviyo if available
+    this.trackVariationSelection(variation);
+  }
+
+  private trackVariationSelection(variation: any) {
+    if (typeof _learnq !== 'undefined' && this.productData && variation) {
+      try {
+        _learnq.push([
+          'track',
+          'Selected Variation',
+          {
+            ProductID: this.productData.id,
+            ProductName: this.productData.name,
+            VariationID: variation.id,
+            Price: variation.price,
+            Brand: this.getBrandFromProduct(this.productData),
+            Categories: this.productData.categories?.map((cat: any) => cat.name) || [],
+            Attributes: variation.attributes?.reduce((obj: any, attr: any) => {
               obj[attr.name] = attr.option;
               return obj;
             }, {}) || {},
-        },
-      ]);
+          },
+        ]);
+      } catch (error) {
+        console.error('Error tracking variation selection in Klaviyo:', error);
+      }
     }
   }
 
@@ -204,5 +261,9 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
+  }
+
+  private stripHtml(html: string): string {
+    return html.replace(/<\/?[^>]+(>|$)/g, '');
   }
 }

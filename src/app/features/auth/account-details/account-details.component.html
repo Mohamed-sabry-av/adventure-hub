@@ -1,4 +1,4 @@
-<app-app-container>
+<app-container>
   <!-- Slug -->
   <div class="flex gap-x-2 text-sm py-4">
     <p>Home</p>
@@ -11,10 +11,7 @@
     <div>
       <h1 class="text-4xl font-semibold">My account</h1>
     </div>
-    <i
-      (click)="toggleMobileMenu()"
-      class="pi pi-bars text-xl cursor-pointer lg:hidden"
-    ></i>
+    <i (click)="toggleMobileMenu()" class="pi pi-bars text-xl cursor-pointer lg:hidden"></i>
   </div>
 
   <!-- content -->
@@ -23,80 +20,63 @@
     <div class="col-span-12 lg:col-span-3 hidden lg:block">
       <nav class="account-nav">
         <!-- Dashboard -->
-        <div
-          (click)="setActiveSection('dashboard')"
+        <div (click)="setActiveSection('dashboard')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'dashboard'"
-        >
+          [class.active]="activeSection === 'dashboard'">
           <p>Dashboard</p>
           <i class="pi text-gray-400 pi-user"></i>
         </div>
 
         <!-- Orders -->
-        <div
-          (click)="setActiveSection('orders')"
+        <div (click)="setActiveSection('orders')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'orders'"
-        >
+          [class.active]="activeSection === 'orders'">
           <p>Orders</p>
           <i class="pi text-gray-400 pi-clipboard"></i>
         </div>
 
         <!-- Downloads -->
-        <div
-          (click)="setActiveSection('downloads')"
+        <div (click)="setActiveSection('downloads')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'downloads'"
-        >
+          [class.active]="activeSection === 'downloads'">
           <p>Downloads</p>
           <i class="pi text-gray-400 pi-download"></i>
         </div>
 
         <!-- Addresses -->
-        <div
-          (click)="setActiveSection('addresses')"
+        <div (click)="setActiveSection('addresses')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'addresses'"
-        >
+          [class.active]="activeSection === 'addresses'">
           <p>Addresses</p>
           <i class="pi text-gray-400 pi-home"></i>
         </div>
 
         <!-- Payment methods -->
-        <div
-          (click)="setActiveSection('payment-methods')"
+        <div (click)="setActiveSection('payment-methods')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'payment-methods'"
-        >
+          [class.active]="activeSection === 'payment-methods'">
           <p>Payment methods</p>
           <i class="pi text-gray-400 pi-credit-card"></i>
         </div>
 
         <!-- Account Details -->
-        <div
-          (click)="setActiveSection('account-details')"
+        <div (click)="setActiveSection('account-details')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'account-details'"
-        >
+          [class.active]="activeSection === 'account-details'">
           <p>Account details</p>
           <i class="pi text-gray-400 pi-user-edit"></i>
         </div>
 
         <!-- Wishlist -->
-        <div
-          (click)="setActiveSection('wishlist')"
+        <div (click)="setActiveSection('wishlist')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'wishlist'"
-        >
+          [class.active]="activeSection === 'wishlist'">
           <p>My wishlist</p>
           <i class="pi text-gray-400 pi-heart"></i>
         </div>
 
         <!-- Logout -->
-        <div
-          (click)="logout()"
-          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-        >
+        <div (click)="logout()" class="nav-item flex justify-between items-center py-4 border-b cursor-pointer">
           <p>Log out</p>
           <i class="pi text-gray-400 pi-sign-out"></i>
         </div>
@@ -104,101 +84,76 @@
     </div>
 
     <!-- Mobile menu overlay -->
-    <div
-      *ngIf="isMobileMenuOpen"
-      class="mobile-menu-overlay fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-      (click)="toggleMobileMenu()"
-    ></div>
+    <div *ngIf="isMobileMenuOpen" class="mobile-menu-overlay fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+      (click)="toggleMobileMenu()"></div>
 
     <!-- Mobile menu -->
-    <div
-      *ngIf="isMobileMenuOpen"
-      class="mobile-menu fixed top-0 left-0 h-full w-3/4 bg-white z-[100000] p-5 transform transition-transform lg:hidden"
-    >
+    <div *ngIf="isMobileMenuOpen"
+      class="mobile-menu fixed top-0 left-0 h-full w-3/4 bg-white z-[100000] p-5 transform transition-transform lg:hidden">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold">Account Menu</h2>
-        <i
-          (click)="toggleMobileMenu()"
-          class="pi pi-times text-xl cursor-pointer"
-        ></i>
+        <i (click)="toggleMobileMenu()" class="pi pi-times text-xl cursor-pointer"></i>
       </div>
 
       <nav class="account-nav">
         <!-- Dashboard -->
-        <div
-          (click)="setActiveSection('dashboard')"
+        <div (click)="setActiveSection('dashboard')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'dashboard'"
-        >
+          [class.active]="activeSection === 'dashboard'">
           <p>Dashboard</p>
           <i class="pi text-gray-400 pi-user"></i>
         </div>
 
         <!-- Orders -->
-        <div
-          (click)="setActiveSection('orders')"
+        <div (click)="setActiveSection('orders')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'orders'"
-        >
+          [class.active]="activeSection === 'orders'">
           <p>Orders</p>
           <i class="pi text-gray-400 pi-clipboard"></i>
         </div>
 
         <!-- Downloads -->
-        <div
-          (click)="setActiveSection('downloads')"
+        <div (click)="setActiveSection('downloads')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'downloads'"
-        >
+          [class.active]="activeSection === 'downloads'">
           <p>Downloads</p>
           <i class="pi text-gray-400 pi-download"></i>
         </div>
 
         <!-- Addresses -->
-        <div
-          (click)="setActiveSection('addresses')"
+        <div (click)="setActiveSection('addresses')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'addresses'"
-        >
+          [class.active]="activeSection === 'addresses'">
           <p>Addresses</p>
           <i class="pi text-gray-400 pi-home"></i>
         </div>
 
         <!-- Payment methods -->
-        <div
-          (click)="setActiveSection('payment-methods')"
+        <div (click)="setActiveSection('payment-methods')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'payment-methods'"
-        >
+          [class.active]="activeSection === 'payment-methods'">
           <p>Payment methods</p>
           <i class="pi text-gray-400 pi-credit-card"></i>
         </div>
 
         <!-- Account Details -->
-        <div
-          (click)="setActiveSection('account-details')"
+        <div (click)="setActiveSection('account-details')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'account-details'"
-        >
+          [class.active]="activeSection === 'account-details'">
           <p>Account details</p>
           <i class="pi text-gray-400 pi-user-edit"></i>
         </div>
 
         <!-- Wishlist -->
-        <div
-          (click)="setActiveSection('wishlist')"
+        <div (click)="setActiveSection('wishlist')"
           class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-          [class.active]="activeSection === 'wishlist'"
-        >
+          [class.active]="activeSection === 'wishlist'">
           <p>My wishlist</p>
           <i class="pi text-gray-400 pi-heart"></i>
         </div>
 
         <!-- Logout -->
-        <div
-          (click)="logout()"
-          class="nav-item flex justify-between items-center py-4 border-b cursor-pointer"
-        >
+        <div (click)="logout()" class="nav-item flex justify-between items-center py-4 border-b cursor-pointer">
           <p>Log out</p>
           <i class="pi text-gray-400 pi-sign-out"></i>
         </div>
@@ -213,16 +168,12 @@
         <app-orders *ngSwitchCase="'orders'"></app-orders>
         <app-downloads *ngSwitchCase="'downloads'"></app-downloads>
         <app-addresses *ngSwitchCase="'addresses'"></app-addresses>
-        <app-payment-methods
-          *ngSwitchCase="'payment-methods'"
-        ></app-payment-methods>
-        <app-account-details-edit
-          *ngSwitchCase="'account-details'"
-        ></app-account-details-edit>
+        <app-payment-methods *ngSwitchCase="'payment-methods'"></app-payment-methods>
+        <app-account-details-edit *ngSwitchCase="'account-details'"></app-account-details-edit>
         <app-wishlist *ngSwitchCase="'wishlist'"></app-wishlist>
       </div>
     </div>
   </div>
 
   <app-service-highlights></app-service-highlights>
-</app-app-container>
+</app-container>

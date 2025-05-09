@@ -56,13 +56,23 @@ export class ProductsGridComponent implements OnChanges {
   @Input() isLoading: boolean = false;
   @Input() isLoadingMore: boolean = false;
   @Input() isInitialLoadComplete: boolean = false;
-  @Input() showSkeleton: boolean = true; // افتراضي true للـ SSR
+  @Input() showSkeleton: boolean = true;
   showEmptyState: boolean = false;
-  skeletonCount = 6; // تقليل العدد لتحسين الأداء
+  skeletonCount = 8; // Consistent skeleton count
+  displayedProducts: any[] = []; // Track displayed products separately to prevent flicker
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
+    // Only update displayed products when we have new products and aren't loading more
+    if (changes['products'] && !this.isLoadingMore) {
+      this.displayedProducts = [...this.products];
+    } 
+    // Append products when loading more
+    else if (changes['isLoadingMore'] && changes['isLoadingMore'].previousValue === true && !this.isLoadingMore) {
+      this.displayedProducts = [...this.products];
+    }
+    
     if (
       changes['products'] ||
       changes['isLoading'] ||
@@ -75,11 +85,11 @@ export class ProductsGridComponent implements OnChanges {
         !this.isLoading &&
         !this.isLoadingMore &&
         this.isInitialLoadComplete &&
-        this.products.length === 0 // إضافة شرط صريح
+        this.products.length === 0
       ) {
         this.showEmptyState = true;
       } else {
-        this.showEmptyState = false; // التأكد من إخفاء الحالة الفارغة أثناء التحميل
+        this.showEmptyState = false;
       }
       this.cdr.markForCheck();
     }
@@ -99,6 +109,7 @@ export class ProductsGridComponent implements OnChanges {
 
   ngOnDestroy() {
     this.products = [];
+    this.displayedProducts = [];
     this.isLoading = false;
     this.isLoadingMore = false;
     this.skeletonCount = 0;

@@ -46,14 +46,14 @@ import {
       transition(':enter', [
         style({ transform: 'translateY(-100%)', opacity: 0 }),
         animate(
-          '300ms ease-in-out',
+          '400ms cubic-bezier(0.33, 1, 0.68, 1)',
           style({ transform: 'translateY(0)', opacity: 1 })
         ),
       ]),
       transition(':leave', [
         style({ transform: 'translateY(0)', opacity: 1 }),
         animate(
-          '300ms ease-in-out',
+          '400ms cubic-bezier(0.33, 1, 0.68, 1)',
           style({ transform: 'translateY(-100%)', opacity: 0 })
         ),
       ]),
@@ -138,15 +138,26 @@ export class HeaderComponent implements OnInit {
     }
 
     const currentScrollY = window.scrollY;
-
-    if (currentScrollY > this.lastScrollY() && currentScrollY > 50) {
+    const scrollDelta = currentScrollY - this.lastScrollY();
+    
+    // Only trigger hide/show for significant scroll amounts (more than 10px)
+    if (Math.abs(scrollDelta) > 10) {
+      // Scrolling down - hide header with a small delay for smoother experience
+      if (scrollDelta > 0 && currentScrollY > 100) {
+        setTimeout(() => {
       this.showNavbar.set(false);
-    } else if (currentScrollY < this.lastScrollY()) {
+          this.navbarService.showNavbar(false);
+          this.cdr.detectChanges();
+        }, 50);
+      } 
+      // Scrolling up - show header immediately for responsive feel
+      else if (scrollDelta < 0) {
       this.showNavbar.set(true);
+        this.navbarService.showNavbar(true);
+      }
     }
 
     this.lastScrollY.set(currentScrollY);
-    this.navbarService.showNavbar(this.showNavbar());
     this.onSetHeaderHeight();
   }
 

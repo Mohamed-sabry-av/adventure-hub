@@ -1,17 +1,18 @@
 <!-- Loading Spinner or Skeleton -->
 @if (isLoading$ | async) {
-  <!-- Skeleton loader for order confirmation page -->
-  <app-app-container>
-    <app-order-confirmation-skeleton></app-order-confirmation-skeleton>
-  </app-app-container>
+<!-- Skeleton loader for order confirmation page -->
+<app-container>
+  <app-order-confirmation-skeleton></app-order-confirmation-skeleton>
+</app-container>
 } @else if (!(dataLoaded$ | async)) {
-  <!-- Skeleton loader when data is loading but not yet processed -->
-  <app-app-container>
-    <app-order-confirmation-skeleton></app-order-confirmation-skeleton>
-  </app-app-container>
+<!-- Skeleton loader when data is loading but not yet processed -->
+<app-container>
+  <app-order-confirmation-skeleton></app-order-confirmation-skeleton>
+</app-container>
 } @else {
-  <!-- Order Confirmation Content -->
-  <app-app-container>
+<!-- Order Confirmation Content -->
+<div class="container mx-auto px-4 py-8">
+  <app-container>
     <!-- Order Confirmation Header with success message and order metadata -->
     <app-order-confirmation-header />
 
@@ -27,10 +28,11 @@
 
     <!-- Customer Addresses -->
     <app-order-confirmation-addresses />
-  </app-app-container>
+  </app-container>
 
   <!-- Service Highlights at bottom of page -->
   <app-service-highlights />
+</div>
 }
 
 <!-- Error Dialog Component -->

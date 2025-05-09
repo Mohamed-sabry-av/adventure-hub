@@ -5,8 +5,13 @@ import {
   HostListener,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  inject,
+  TransferState,
+  makeStateKey,
+  DestroyRef,
+  OnDestroy
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FilterSidebarComponent } from '../../components/filter-sidebar/filter-sidebar.component';
 import { BreadcrumbComponent } from '../../components/breadcrumb/breadcrumb.component';
@@ -15,6 +20,13 @@ import { SortMenuComponent } from '../../components/sort-menu/sort-menu.componen
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
 import { ProductsBrandService } from '../../services/products-brand.service';
 import { SeoService } from '../../../../core/services/seo.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, catchError, of, throwError } from 'rxjs';
+import { debounceTime, finalize } from 'rxjs/operators';
+import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
+
+const BRAND_PRODUCTS_KEY = makeStateKey<any[]>('brand_products');
+const BRAND_INFO_KEY = makeStateKey<any>('brand_info');
 
 @Component({
   selector: 'app-brand-products',
@@ -26,32 +38,38 @@ import { SeoService } from '../../../../core/services/seo.service';
     FilterDrawerComponent,
     SortMenuComponent,
     ProductsGridComponent,
+    DialogErrorComponent
   ],
   templateUrl: './products-by-brand.component.html',
   styleUrls: ['./products-by-brand.component.css'],
   providers: [ProductsBrandService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductsByBrandComponent implements OnInit {
+export class ProductsByBrandComponent implements OnInit, OnDestroy {
+  protected Object = Object;
+
   products: any[] = [];
   isLoading = false;
   isLoadingMore = false;
+  isFetching = false;
   isInitialLoadComplete = false;
-  showSkeleton = true; // لإظهار الـ skeleton
-  showEmptyState = false; // لإدارة حالة "No products found"
-  currentBrandTermId: any | null = null;
+  showSkeleton = true;
+  showEmptyState = false;
+  currentBrandTermId: number | null = null;
   currentBrandSlug: string | null = null;
   brandName: string = 'Loading...';
   currentPage: number = 1;
   brandInfo: any = null;
-  itemPerPage: number = 8; // تقليل العدد لتحسين التحميل الأولي
+  itemsPerPage: number = 8;
   totalProducts: number = 0;
   filterDrawerOpen = false;
   selectedOrderby: string = 'date';
   selectedOrder: 'asc' | 'desc' = 'desc';
   schemaData: any;
   attributes: { [key: string]: { name: string; terms: { id: number; name: string }[] } } = {};
-  Object = Object; // إتاحة Object للاستخدام في القالب
+  private scrollSubject = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
+  private transferState = inject(TransferState);
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
@@ -59,79 +77,43 @@ export class ProductsByBrandComponent implements OnInit {
   constructor(
     private productsBrandService: ProductsBrandService,
     private route: ActivatedRoute,
+    private router: Router,
     private seoService: SeoService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.showSkeleton = true;
+    this.scrollSubject.pipe(
+      debounceTime(50),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+      if (
+        scrollTop + windowHeight >= documentHeight - 900 &&
+        !this.isLoading &&
+        !this.isLoadingMore &&
+        !this.isFetching &&
+        this.currentPage * this.itemsPerPage < this.totalProducts
+      ) {
+        this.loadMoreProducts();
+      }
+    });
+  }
 
   async ngOnInit() {
-    console.log('ProductsByBrandComponent initialized');
     this.showSkeleton = true;
-    this.isLoading = true;
-    try {
-      this.currentBrandSlug = this.route.snapshot.paramMap.get('brandSlug');
-
-      if (this.currentBrandSlug) {
-        this.brandInfo = await this.productsBrandService
-          .getBrandInfoBySlug(this.currentBrandSlug)
-          .toPromise();
-
-        if (this.brandInfo) {
-          this.currentBrandTermId = this.brandInfo.id;
-          this.brandName = this.brandInfo.name;
-
-          this.schemaData = this.seoService.applySeoTags(this.brandInfo, {
-            title:
-              this.brandInfo?.name ||
-              'Brand Products - Adventures HUB Sports Shop',
-            description:
-              this.brandInfo?.description ||
-              `Explore products by ${this.brandInfo?.name} at Adventures HUB Sports Shop.`,
-          });
-
-          // Load attributes for the brand
-          console.log('Loading brand attributes for brand ID:', this.currentBrandTermId);
-          await this.loadBrandAttributes(this.currentBrandTermId);
-
-          console.log('Loading initial products for brand ID:', this.currentBrandTermId);
-          await Promise.all([
-            this.loadProducts(this.currentBrandTermId, this.currentPage),
-            this.loadTotalProducts(this.currentBrandTermId),
-          ]);
-        } else {
-          console.warn('Brand info not found for slug:', this.currentBrandSlug);
-          this.schemaData = this.seoService.applySeoTags(null, {
-            title: 'Brand Products - Adventures HUB Sports Shop',
-            description:
-              'Explore products by brand at Adventures HUB Sports Shop.',
-          });
-        }
-      } else {
-        console.warn('No brand slug provided in URL');
-        this.schemaData = this.seoService.applySeoTags(null, {
-          title: 'Brand Products - Adventures HUB Sports Shop',
-          description:
-            'Explore products by brand at Adventures HUB Sports Shop.',
-        });
-      }
-    } catch (error) {
-      console.error('Error in ngOnInit:', error);
-      this.schemaData = this.seoService.applySeoTags(null, {
-        title: 'Brand Products - Adventures HUB Sports Shop',
-        description: 'Explore products by brand at Adventures HUB Sports Shop.',
-      });
-    } finally {
-      this.isLoading = false;
-      this.isInitialLoadComplete = true;
-      this.showSkeleton = this.products.length === 0;
-      this.showEmptyState = this.products.length === 0;
       this.cdr.markForCheck();
-    }
   }
 
   ngAfterViewInit() {
+    this.loadInitialData();
+    
     if (this.filterSidebar) {
-      this.filterSidebar.filtersChanges.subscribe((filters: any) => {
-        console.log('Filters changed from sidebar:', filters);
+      this.filterSidebar.filtersChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((filters: any) => {
         this.currentPage = 1;
         this.products = [];
         this.isInitialLoadComplete = false;
@@ -145,32 +127,109 @@ export class ProductsByBrandComponent implements OnInit {
     }
   }
 
-  @HostListener('window:scroll', ['$event'])
-  onScroll(event: Event) {
-    const windowHeight = window.innerHeight;
-    const documentHeight = document.documentElement.scrollHeight;
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  async loadInitialData() {
+    this.isLoading = true;
+    this.showSkeleton = true;
+    this.cdr.markForCheck();
+    
+    try {
+      this.currentBrandSlug = this.route.snapshot.paramMap.get('brandSlug');
+      
+      if (!this.currentBrandSlug) {
+        this.router.navigate(['/page-not-found']);
+        return;
+      }
+      
+      // Try to get brand info from transfer state
+      const cachedBrandInfo = this.transferState.get(BRAND_INFO_KEY, null);
+      if (cachedBrandInfo) {
+        this.brandInfo = cachedBrandInfo;
+        this.currentBrandTermId = this.brandInfo.id;
+        this.brandName = this.brandInfo.name;
+        this.setupSEO();
+      } else {
+        await this.loadBrandInfo();
+      }
 
-    if (
-      scrollTop + windowHeight >= documentHeight - 500 &&
-      !this.isLoading &&
-      !this.isLoadingMore &&
-      this.currentPage * this.itemPerPage < this.totalProducts &&
-      this.currentBrandTermId
-    ) {
-      this.currentPage++;
-      this.loadProducts(this.currentBrandTermId, this.currentPage);
+      if (!this.currentBrandTermId) {
+        this.router.navigate(['/page-not-found']);
+        return;
+      }
+
+      // Load attributes for the brand first
+      await this.loadBrandAttributes(this.currentBrandTermId);
+
+      // Only after attributes are loaded, try to get products from transfer state
+      const cachedProducts = this.transferState.get(BRAND_PRODUCTS_KEY, null);
+      if (cachedProducts) {
+        this.products = cachedProducts;
+        this.isInitialLoadComplete = true;
+        this.showSkeleton = false;
+        this.showEmptyState = this.products.length === 0;
+        this.cdr.markForCheck();
+      } else {
+        // Load products and total count in parallel
+        await Promise.all([
+          this.loadProducts(this.currentBrandTermId, this.currentPage),
+          this.loadTotalProducts(this.currentBrandTermId)
+        ]);
+      }
+    } catch (error) {
+      console.error('Error in loadInitialData:', error);
+      this.schemaData = this.seoService.applySeoTags(null, {
+        title: 'Brand Products - Adventures HUB Sports Shop',
+        description: 'Explore products by brand at Adventures HUB Sports Shop.',
+      });
+      this.showEmptyState = true;
+    } finally {
+      this.isLoading = false;
+      this.isInitialLoadComplete = true;
+      this.showSkeleton = false;
+      this.cdr.markForCheck();
     }
   }
 
+  private async loadBrandInfo(): Promise<void> {
+    try {
+      this.brandInfo = await this.productsBrandService
+        .getBrandInfoBySlug(this.currentBrandSlug!)
+        .pipe(
+          catchError((error) => {
+            console.error('Brand not found:', error);
+            this.router.navigate(['/page-not-found']);
+            return throwError(() => new Error('Brand not found'));
+          })
+        )
+        .toPromise();
+
+      if (this.brandInfo) {
+        this.currentBrandTermId = this.brandInfo.id;
+        this.brandName = this.brandInfo.name;
+        this.transferState.set(BRAND_INFO_KEY, this.brandInfo);
+        this.setupSEO();
+      } else {
+        this.router.navigate(['/page-not-found']);
+      }
+    } catch (error) {
+      console.error('Error loading brand info:', error);
+      throw error;
+    }
+  }
+
+  private setupSEO(): void {
+    // Always prioritize brand name and description over Yoast data
+    this.schemaData = this.seoService.applySeoTags(this.brandInfo, {
+      title: this.brandInfo?.name || (this.brandInfo?.yoast_head_json?.title || `Brand - Adventures HUB Sports Shop`),
+      description: this.brandInfo?.description || (this.brandInfo?.yoast_head_json?.description || `Explore products at Adventures HUB Sports Shop.`),
+    });
+  }
+
   private async loadBrandAttributes(brandTermId: number): Promise<void> {
-    console.log('loadBrandAttributes called with ID:', brandTermId);
     try {
       const attributesData = await this.productsBrandService
         .getAllAttributesAndTermsByBrand(brandTermId)
         .toPromise();
 
-      console.log('Received brand attributes:', attributesData);
       this.attributes = attributesData || {};
       this.cdr.markForCheck();
     } catch (error) {
@@ -179,9 +238,10 @@ export class ProductsByBrandComponent implements OnInit {
   }
 
   private async loadProducts(brandTermId: number, page: number) {
-    console.log('loadProducts called with ID:', brandTermId, 'page:', page);
     const isInitialLoad = page === 1;
+    
     if (isInitialLoad) {
+      this.isFetching = true;
       this.isLoading = true;
       this.showSkeleton = true;
       this.showEmptyState = false;
@@ -195,28 +255,41 @@ export class ProductsByBrandComponent implements OnInit {
         .getProductsByBrandTermId(
           brandTermId,
           page,
-          this.itemPerPage,
+          this.itemsPerPage,
           this.selectedOrderby,
           this.selectedOrder,
           filters
         )
         .toPromise();
 
-      console.log('Received products:', products?.length || 0);
-      this.products = isInitialLoad
-        ? products || []
-        : [...this.products, ...(products || [])];
+      if (isInitialLoad) {
+        this.products = products || [];
+        this.transferState.set(BRAND_PRODUCTS_KEY, this.products);
+      } else {
+        // Only append new products if we got results and we're not on the first page
+        if (products && products.length > 0) {
+          this.products = [...this.products, ...products];
+        }
+      }
+      
+      this.showEmptyState = this.products.length === 0;
     } catch (error) {
       console.error('Error loading products:', error);
       if (isInitialLoad) this.products = [];
+      this.showEmptyState = this.products.length === 0;
     } finally {
+      this.isFetching = false;
       this.isLoading = false;
       this.isLoadingMore = false;
       this.isInitialLoadComplete = true;
-      this.showSkeleton = this.products.length === 0;
-      this.showEmptyState = this.products.length === 0;
+      this.showSkeleton = false;
       this.cdr.markForCheck();
     }
+  }
+
+  private async loadMoreProducts() {
+    this.currentPage++;
+    await this.loadProducts(this.currentBrandTermId!, this.currentPage);
   }
 
   private async loadTotalProducts(brandTermId: number) {
@@ -226,7 +299,6 @@ export class ProductsByBrandComponent implements OnInit {
         .getTotalProductsByBrandTermId(brandTermId, filters)
         .toPromise();
       this.totalProducts = total ?? 0;
-      console.log('Total products count:', this.totalProducts);
       this.cdr.markForCheck();
     } catch (error) {
       console.error('Error loading total products:', error);
@@ -239,44 +311,38 @@ export class ProductsByBrandComponent implements OnInit {
     brandTermId: number | null,
     filters: { [key: string]: string[] }
   ): Promise<void> {
-    console.log('loadProductsWithFilters called with ID:', brandTermId, 'filters:', filters);
+    if (!brandTermId) return;
+    
+    this.isFetching = true;
     this.isLoading = true;
     this.currentPage = 1;
     this.products = [];
     this.isInitialLoadComplete = false;
     this.showSkeleton = true;
     this.showEmptyState = false;
+    this.cdr.markForCheck();
 
     try {
-      if (brandTermId) {
-        // Get available attributes for the selected filters
-        const availableAttrs = await this.productsBrandService
-          .getAvailableAttributesAndTermsByBrand(brandTermId, filters)
-          .toPromise();
-
-        // Update attributes with available ones
-        console.log('Received available attributes:', availableAttrs);
-        this.attributes = availableAttrs || {};
-
         const products = await this.productsBrandService
           .getProductsByBrandTermId(
             brandTermId,
             this.currentPage,
-            this.itemPerPage,
+          this.itemsPerPage,
             this.selectedOrderby,
             this.selectedOrder,
             filters
           )
         .toPromise();
 
-        console.log('Received filtered products:', products?.length || 0);
         this.products = products || [];
+      
+      // Also update total count with filters
         await this.loadTotalProducts(brandTermId);
-      }
     } catch (error) {
       console.error('Error loading filtered products:', error);
       this.products = [];
     } finally {
+      this.isFetching = false;
       this.isLoading = false;
       this.isInitialLoadComplete = true;
       this.showSkeleton = this.products.length === 0;
@@ -286,7 +352,6 @@ export class ProductsByBrandComponent implements OnInit {
   }
 
   async onSortChange(sortValue: string) {
-    console.log('Sort changed to:', sortValue);
     switch (sortValue) {
       case 'popular':
         this.selectedOrderby = 'popularity';
@@ -311,31 +376,34 @@ export class ProductsByBrandComponent implements OnInit {
       default:
         this.selectedOrderby = 'date';
         this.selectedOrder = 'desc';
-        break;
     }
-    if (this.currentBrandTermId) {
-      this.currentPage = 1;
-      this.products = [];
+    
       this.isInitialLoadComplete = false;
       this.showSkeleton = true;
       this.showEmptyState = false;
-      await this.loadProductsWithFilters(
-        this.currentBrandTermId,
-        this.filterSidebar?.selectedFilters || {}
-      );
-      this.cdr.markForCheck();
-    }
+    this.currentPage = 1;
+    this.products = [];
+    
+    const filters = this.filterSidebar?.selectedFilters || {};
+    await this.loadProducts(this.currentBrandTermId!, this.currentPage);
   }
 
   openFilterDrawer() {
-    console.log('Opening filter drawer');
     this.filterDrawerOpen = true;
     this.cdr.markForCheck();
   }
 
   closeFilterDrawer() {
-    console.log('Closing filter drawer');
     this.filterDrawerOpen = false;
     this.cdr.markForCheck();
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  onScroll() {
+    this.scrollSubject.next();
+  }
+
+  ngOnDestroy() {
+    // Cleanup logic if needed
   }
 }

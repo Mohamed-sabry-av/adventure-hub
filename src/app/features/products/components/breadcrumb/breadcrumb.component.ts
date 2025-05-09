@@ -27,6 +27,7 @@ interface BreadcrumbItem {
 })
 export class BreadcrumbComponent implements OnInit {
   @Input() productName: string | null = null;
+  @Input() paths: any[] = [];
   breadcrumbs$!: Observable<BreadcrumbItem[]>;
   currentCategoryId: number | null = null;
   @Output() categoryIdChange = new EventEmitter<number | null>();

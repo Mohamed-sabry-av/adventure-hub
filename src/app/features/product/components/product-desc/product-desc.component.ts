@@ -33,6 +33,7 @@ interface Attribute {
 })
 export class ProductDescComponent implements OnInit, AfterViewInit {
   @Input() productAdditionlInfo: any;
+  @Input() product: any;
   activeSection: 'description' | 'additional-info' | 'reviews' = 'description';
   reviewCount: number = 0;
   safeDescription: SafeHtml | null = null;

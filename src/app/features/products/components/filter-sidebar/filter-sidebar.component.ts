@@ -8,13 +8,15 @@ import {
   ChangeDetectorRef,
   SimpleChanges,
   OnChanges,
+  inject,
+  DestroyRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FilterService } from '../../../../core/services/filter.service';
 import { BreadcrumbRoutesComponent } from '../breadcrumb-routes/breadcrumb-routes.component';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime, finalize, switchMap } from 'rxjs/operators';
+import { debounceTime, finalize, switchMap, takeUntil } from 'rxjs/operators';
 import {
   trigger,
   state,
@@ -22,6 +24,7 @@ import {
   transition,
   animate,
 } from '@angular/animations';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface Term {
   id: number;
@@ -45,6 +48,7 @@ interface SectionState {
   imports: [CommonModule, FormsModule, BreadcrumbRoutesComponent],
   templateUrl: './filter-sidebar.component.html',
   styleUrls: ['./filter-sidebar.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('expandCollapse', [
       state(
@@ -68,7 +72,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
   errorMessage: string | null = null;
   private readonly DEFAULT_VISIBLE_TERMS = 5;
   private filtersSubject = new BehaviorSubject<{ [key: string]: string[] }>({});
-
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private filterService: FilterService,
@@ -138,7 +142,8 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
                 this.updateUI();
               })
             )
-        )
+        ),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (data) => {
@@ -167,6 +172,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
           this.updateUI();
         },
         error: (error) => {
+          console.error('Error updating available attributes:', error);
           this.errorMessage = 'Failed to update filters.';
           this.updateUI();
         },
@@ -277,7 +283,6 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
       this.selectedFilters[attrSlug].push(termIdStr);
     }
 
-    console.log('Filter changed in sidebar:', this.selectedFilters);
     if (this.categoryId) {
       localStorage.setItem(
         `filters_${this.categoryId}`,
@@ -363,7 +368,6 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
       return aSelected === bSelected ? 0 : aSelected ? -1 : 1;
     });
 
-    // نرجع العناصر المرئية بناءً على showAll أو DEFAULT_VISIBLE_TERMS
     return sortedTerms.slice(
       0,
       state?.showAll ? sortedTerms.length : this.DEFAULT_VISIBLE_TERMS

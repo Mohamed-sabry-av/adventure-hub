@@ -3,30 +3,49 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Advhub</title>
+  <title>Adventures HUB Sports Shop</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#1976d2">
+  <meta name="description"
+    content="Premium outdoor and adventure sports equipment for enthusiasts. Shop high-quality gear for hiking, camping, and outdoor activities.">
+  <meta name="theme-color" content="#2E2E2E">
 
-  <!-- Preconnect للخوادم المهمة -->
+  <!-- Resource hints -->
+  <link rel="preconnect" href="https://adventures-hub.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
-  <link rel="preconnect" href="https://adventures-hub.com" crossorigin>
+  <link rel="dns-prefetch" href="https://static.klaviyo.com">
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://connect.facebook.net">
 
-  <!-- <link rel="preload" href="/assets/fonts/Roboto-Regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/Poppins-Regular.woff2" as="font" type="font/woff2" crossorigin> -->
-  <!-- <link rel="preload" href="/assets/fonts/poppins-regular-webfont.woff2" as="font" type="font/woff2" crossorigin> -->
+  <!-- Priority metadata for browsers -->
+  <meta name="priority" content="high">
+  <meta http-equiv="priority" content="high">
+
+  <!-- Core assets with high fetchpriority -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="/assets/fonts/poppins-regular-webfont.woff2" as="font" type="font/woff2" crossorigin
+    fetchpriority="high">
 
   <!-- Critical CSS -->
   <style>
+    @font-face {
+      font-family: 'Poppins';
+      src: url('/assets/fonts/poppins-regular-webfont.woff2') format('woff2');
+      font-weight: 400;
+      font-display: swap;
+    }
+
     body {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Poppins', Arial, sans-serif;
+      background-color: #FFFFFF;
+      color: #333333;
     }
 
     .product-gallery {
@@ -46,73 +65,154 @@
       height: 80px;
       object-fit: cover;
     }
+
+    /* App loading indicator */
+    .app-loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: #fff;
+      z-index: 999;
+    }
+
+    .app-loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2E2E2E;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
   </style>
-  <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'">
+
+  <!-- Non-critical CSS - load asynchronously -->
+  <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'; this.onload=null;">
+  <noscript>
+    <link rel="stylesheet" href="/styles.css">
+  </noscript>
 </head>
 
-<body class="mat-typography">
-  <app-root></app-root>
+<body>
+  <app-root>
+    <div class="app-loading">
+      <div class="spinner"></div>
+    </div>
+  </app-root>
+
   <noscript>
     <p>Please enable JavaScript to continue using this application.</p>
     <p>Adventures HUB Sports Shop offers premium sports equipment for adventurers and outdoor enthusiasts. Visit our
       store in Dubai or shop online for quality sports gear and outdoor equipment.</p>
   </noscript>
 
-  <!-- Klaviyo -->
-  <script async defer src="https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=QXDLFh"></script>
-
-  <!-- Google Tag Manager -->
-  <script async defer src="https://www.googletagmanager.com/gtm.js?id=GTM-KQZ3H8ND"></script>
-
-  <!-- Facebook SDK -->
-  <script async defer id="facebook-jssdk" src="https://connect.facebook.net/en_US/sdk.js"></script>
+  <!-- Initialize dataLayer for GTM -->
   <script>
-    setTimeout(() => {
-      // Klaviyo
-      var s = document.createElement('script');
-      s.src = 'https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=QXDLFh';
-      s.async = true;
-      document.body.appendChild(s);
-
-      // Google Tag Manager
-      var gtm = document.createElement('script');
-      gtm.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-KQZ3H8ND';
-      gtm.async = true;
-      document.body.appendChild(gtm);
-
-      // Facebook SDK
-      var fb = document.createElement('script');
-      fb.src = 'https://connect.facebook.net/en_US/sdk.js';
-      fb.async = true;
-      fb.id = 'facebook-jssdk';
-      document.body.appendChild(fb);
-      window.fbAsyncInit = function () {
-        FB.init({
-          appId: '639673088797642',
-          cookie: true,
-          xfbml: true,
-          version: 'v13.0',
-        });
-        FB.AppEvents.logPageView();
-      };
-
-      // Recaptcha
-      var recaptcha = document.createElement('script');
-      recaptcha.src = 'https://www.google.com/recaptcha/api.js';
-      recaptcha.async = true;
-      recaptcha.defer = true;
-      document.body.appendChild(recaptcha);
-
-      // Google Sign-In
-      var gsi = document.createElement('script');
-      gsi.src = 'https://accounts.google.com/gsi/client';
-      gsi.async = true;
-      gsi.defer = true;
-      document.body.appendChild(gsi);
-    }, 2000);
+    window.dataLayer = window.dataLayer || [];
   </script>
 
-  <!-- Google Tag Manager (noscript) -->
+  <!-- Deferred, non-critical scripts using Intersection Observer -->
+  <script type="text/javascript">
+    // Strategy: Load critical tracking immediately but with async, defer other scripts
+    document.addEventListener('DOMContentLoaded', function () {
+      // Create a single observer for all lazy-loaded scripts
+      const observer = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) {
+          loadThirdPartyScripts();
+          observer.disconnect();
+        }
+      }, { threshold: 0.1 });
+
+      // Observe the first interactive element
+      const target = document.querySelector('app-root') || document.body;
+      observer.observe(target);
+
+      // Start GTM immediately as it's critical for analytics
+      loadGTM();
+
+      // Load other scripts when user is inactive or page is fully rendered
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(function () {
+          loadThirdPartyScripts();
+        }, { timeout: 5000 });
+      } else {
+        setTimeout(loadThirdPartyScripts, 3000);
+      }
+
+      function loadGTM() {
+        // Google Tag Manager - critical for analytics
+        const gtmScript = document.createElement('script');
+        gtmScript.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-KQZ3H8ND';
+        gtmScript.async = true;
+        document.head.appendChild(gtmScript);
+      }
+
+      function loadThirdPartyScripts() {
+        // Klaviyo
+        const klaviyoScript = document.createElement('script');
+        klaviyoScript.src = 'https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=QXDLFh';
+        klaviyoScript.async = true;
+        document.body.appendChild(klaviyoScript);
+
+        // Facebook SDK - Load with lower priority
+        const fbScript = document.createElement('script');
+        fbScript.src = 'https://connect.facebook.net/en_US/sdk.js';
+        fbScript.async = true;
+        fbScript.id = 'facebook-jssdk';
+        document.body.appendChild(fbScript);
+
+        // Facebook initialization
+        window.fbAsyncInit = function () {
+          FB.init({
+            appId: '639673088797642',
+            cookie: true,
+            xfbml: true,
+            version: 'v13.0',
+          });
+          FB.AppEvents.logPageView();
+        };
+
+        // Load specialized scripts based on page needs
+        loadConditionalScripts();
+      }
+
+      function loadConditionalScripts() {
+        // Recaptcha - load only when needed
+        const recaptchaElements = document.querySelectorAll('.g-recaptcha');
+        if (recaptchaElements.length > 0) {
+          const recaptchaScript = document.createElement('script');
+          recaptchaScript.src = 'https://www.google.com/recaptcha/api.js';
+          recaptchaScript.async = true;
+          document.body.appendChild(recaptchaScript);
+        }
+
+        // Google Sign-In - load only when needed
+        const gsiElements = document.querySelectorAll('.google-signin-btn');
+        if (gsiElements.length > 0) {
+          const gsiScript = document.createElement('script');
+          gsiScript.src = 'https://accounts.google.com/gsi/client';
+          gsiScript.async = true;
+          document.body.appendChild(gsiScript);
+        }
+      }
+    });
+  </script>
+
+  <!-- Google Tag Manager (noscript) - for users without JavaScript -->
   <noscript>
     <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KQZ3H8ND" height="0" width="0"
       style="display:none;visibility:hidden"></iframe>

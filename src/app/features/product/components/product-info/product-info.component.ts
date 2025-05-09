@@ -97,8 +97,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     const product = this.productInfo();
     if (product) {
       this.quantity = 1;
-      this.selectedAttributes =
-        this.productInfoService.setDefaultAttributes(product);
+      this.selectedAttributes = this.productInfoService.setDefaultAttributes(product);
       this.updateMaxLength();
       this.checkWishlistStatus(product.id);
     }
@@ -367,96 +366,15 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     return parseFloat(value);
   }
 
-  private setDefaultAttributes(): void {
-    const product = this.productInfo();
-    if (!product || product.type === 'simple') {
-      return;
-    }
-
-    const variations = product.variations || [];
-    if (!Array.isArray(variations) || !variations.length) {
-      return;
-    }
-
-    const variationAttributes = this.getVariationAttributes();
-    const defaultAttributes = product.default_attributes || [];
-
-    const inStockVariation = variations.find(
-      (v: any) => v.stock_status === 'instock'
-    );
-    let defaultAttributesToUse = defaultAttributes;
-
-    if (
-      inStockVariation &&
-      !this.isDefaultVariationInStock(defaultAttributes, variations)
-    ) {
-      defaultAttributesToUse = inStockVariation.attributes.map((attr: any) => ({
-        name: attr.name,
-        option: attr.option,
-      }));
-    }
-
-    variationAttributes.forEach((attrName: string) => {
-      const defaultAttr = defaultAttributesToUse.find(
-        (attr: any) => attr.name === attrName
-      );
-      let selectedOption = null;
-
-      if (defaultAttr) {
-        selectedOption = this.getVariationOptions(
-          attrName,
-          attrName === 'Size' ? this.selectedAttributes['Color'] : null
-        ).find(
-          (opt) =>
-            opt.value.toLowerCase() === defaultAttr.option.toLowerCase() &&
-            (opt.inStock || this.showOutOfStockVariations)
-        );
-      }
-
-      if (!selectedOption) {
-        selectedOption = this.getVariationOptions(
-          attrName,
-          attrName === 'Size' ? this.selectedAttributes['Color'] : null
-        ).find((opt) => opt.inStock);
-      }
-
-      if (!selectedOption && this.showOutOfStockVariations) {
-        selectedOption = this.getVariationOptions(
-          attrName,
-          attrName === 'Size' ? this.selectedAttributes['Color'] : null
-        )[0];
-      }
-
-      if (selectedOption) {
-        this.selectAttribute(attrName, selectedOption.value);
-      }
-    });
-  }
-
-  private isDefaultVariationInStock(
-    defaultAttributes: any[],
-    variations: any[]
-  ): boolean {
-    const defaultAttrsMap = defaultAttributes.reduce((acc: any, attr: any) => {
-      acc[attr.name] = attr.option;
-      return acc;
-    }, {});
-    const defaultVariation = this.variationService.findVariationByAttributes(
-      variations,
-      defaultAttrsMap
-    );
-    return defaultVariation?.stock_status === 'instock';
-  }
-
-  get isCompletelyOutOfStock(): boolean {
-    return this.productInfoService.isCompletelyOutOfStock(this.productInfo());
-  }
-
   get allVariationAttributesSelected(): boolean {
     return this.productInfoService.allVariationAttributesSelected(
       this.productInfo(),
       this.selectedAttributes
     );
+  }
+
+  get isCompletelyOutOfStock(): boolean {
+    return this.productInfoService.isCompletelyOutOfStock(this.productInfo());
   }
 
   addToWishList(productId: number) {

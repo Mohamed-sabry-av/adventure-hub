@@ -1,0 +1,53 @@
+# Robots.txt for Adventures HUB Sports Shop
+# Optimized for headless WooCommerce setup with Angular SSR
+
+User-agent: *
+Allow: /
+Allow: /product/
+Allow: /category/
+Allow: /blog/
+Allow: /pages/
+
+# Prevent duplicate content and crawling of user/account pages
+Disallow: /checkout/
+Disallow: /user/
+Disallow: /*?*sort=
+Disallow: /*?*order=
+Disallow: /*?*filter=
+Disallow: /*?*add-to-cart=
+Disallow: /*?*lang=
+
+# Media and document crawling allowed
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.webp$
+Allow: /*.pdf$
+
+# Sitemap location
+Sitemap: https://adventures-hub.com/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 1
+
+# Specialized bot rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: Googlebot-Image
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.webp$
+Crawl-delay: 0.5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Yandex
+Allow: /
+Crawl-delay: 1 

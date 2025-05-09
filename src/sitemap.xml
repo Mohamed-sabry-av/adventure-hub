@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+    
+    <!-- Home Page -->
+    <url>
+        <loc>https://adventures-hub.com/</loc>
+        <lastmod>2024-08-01</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    
+    <!-- Main Categories -->
+    <url>
+        <loc>https://adventures-hub.com/category/hiking</loc>
+        <lastmod>2024-08-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://adventures-hub.com/category/camping</loc>
+        <lastmod>2024-08-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://adventures-hub.com/category/climbing</loc>
+        <lastmod>2024-08-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- Static Pages -->
+    <url>
+        <loc>https://adventures-hub.com/pages/about-us</loc>
+        <lastmod>2024-07-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://adventures-hub.com/pages/contact</loc>
+        <lastmod>2024-07-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://adventures-hub.com/pages/terms-and-conditions</loc>
+        <lastmod>2024-07-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>https://adventures-hub.com/pages/privacy-policy</loc>
+        <lastmod>2024-07-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    
+    <!-- Blog Pages -->
+    <url>
+        <loc>https://adventures-hub.com/blog</loc>
+        <lastmod>2024-08-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://adventures-hub.com/blog/top-10-hiking-trails-in-uae</loc>
+        <lastmod>2024-08-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://adventures-hub.com/assets/images/blog/hiking-trails-uae.jpg</image:loc>
+            <image:title>Top 10 Hiking Trails in UAE</image:title>
+        </image:image>
+    </url>
+    
+    <!-- Product Pages (Examples) -->
+    <url>
+        <loc>https://adventures-hub.com/product/premium-hiking-boots</loc>
+        <lastmod>2024-08-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://adventures-hub.com/assets/images/products/hiking-boots-main.jpg</image:loc>
+            <image:title>Premium Hiking Boots</image:title>
+        </image:image>
+    </url>
+    <url>
+        <loc>https://adventures-hub.com/product/ultralight-camping-tent</loc>
+        <lastmod>2024-08-02</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://adventures-hub.com/assets/images/products/camping-tent-main.jpg</image:loc>
+            <image:title>Ultralight Camping Tent</image:title>
+        </image:image>
+    </url>
+    
+    <!-- This sitemap will be dynamically generated in production -->
+</urlset> 

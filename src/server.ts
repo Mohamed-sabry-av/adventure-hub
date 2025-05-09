@@ -9,6 +9,11 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import bootstrap from './main.server';
+// Import compression middleware for response optimization
+import compression from 'compression';
+// Import caching libraries
+import { createClient } from 'redis';
+import mcache from 'memory-cache';
 
 declare module 'express' {
   interface Request {
@@ -79,7 +84,53 @@ const indexHtml = join(serverDistFolder, 'index.server.html');
 const app = express();
 const commonEngine = new CommonEngine();
 
+// Initialize Redis client (if needed)
+let redisClient;
+if (process.env['REDIS_URL']) {
+  try {
+    redisClient = createClient({
+      url: process.env['REDIS_URL']
+    });
+    redisClient.connect().then(() => {
+      console.log('Redis client connected');
+    }).catch(err => {
+      console.error('Redis connection error:', err);
+    });
+  } catch (error) {
+    console.error('Error initializing Redis:', error);
+  }
+}
+
+// Simple in-memory cache for SSR responses
+const cache = (duration: number) => {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    // Skip caching for authenticated users or POST requests
+    if (req.method !== 'GET' || req.headers.authorization) {
+      return next();
+    }
+    
+    const key = '__ssr_cache__' + req.originalUrl || req.url;
+    const cachedBody = mcache.get(key);
+    
+    if (cachedBody) {
+      res.send(cachedBody);
+      return;
+    } else {
+      const originalSend = res.send;
+      res.send = function(body) {
+        mcache.put(key, body, duration * 1000);
+        return originalSend.call(this, body);
+      };
+      next();
+    }
+  };
+};
+
 // Middleware setup
+// Apply compression middleware to all responses
+app.use(compression({ level: 6, threshold: 0 }));
+
+// CORS setup
 app.use(cors({ origin: process.env['CLIENT_URL']!, credentials: true }));
 
 // Custom middleware to bypass JSON parsing for webhook
@@ -248,7 +299,7 @@ app.post(
       // Restrict COD to UAE only
       const isUAE = billing.country?.toLowerCase() === 'ae';
       if (!isUAE) {
-        return res.status(400).json({ success: false, error: 'Cash on Delivery is only available in the UAE' });
+        return res.status(400).json({ success: false, error: 'Cash on Delivery is only available for UAE orders' });
       }
 
       // Calculate total if not provided (optional, if needed by WooCommerce)
@@ -311,37 +362,72 @@ app.get(
   }
 );
 
-// Serve static files from /browser
-app.get(
-  '**',
-  express.static(browserDistFolder, {
-    maxAge: '1y',
-    index: 'index.html',
-  })
-);
-
-// Render Angular application
-app.get(
-  '**',
-  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+// Define common SSR engine options
+const renderPage = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
     const { protocol, originalUrl, baseUrl, headers } = req;
-    commonEngine
-      .render({
-        bootstrap,
-        documentFilePath: indexHtml,
-        url: `${protocol}://${headers.host}${originalUrl}`,
-        publicPath: browserDistFolder,
-        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
-      })
-      .then((html) => res.send(html))
-      .catch((err) => next(err));
+    
+    // Set performance and caching headers
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    const html = await commonEngine.render({
+      bootstrap,
+      documentFilePath: indexHtml,
+      url: `${protocol}://${headers.host}${originalUrl}`,
+      publicPath: browserDistFolder,
+      providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+      inlineCriticalCss: true,
+    });
+    
+    // Set Cache-Control header for SSR'd pages 
+    // Enable caching, but require revalidation
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    
+    // Send the rendered HTML
+    return res.send(html);
+  } catch (error) {
+    console.error('SSR rendering error:', error);
+    next(error);
+    return undefined;
   }
-);
+};
+
+// Routes that don't change frequently - apply longer caching
+app.get('/home', cache(60), renderPage); // Cache homepage for 1 minute
+app.get('/product/category/*', cache(300), renderPage); // Cache category pages for 5 minutes
+
+// Product pages - cache for 10 minutes
+app.get('/product/:slug', cache(600), (req, res, next) => {
+  // Add resource hints for product pages
+  res.setHeader('Link', [
+    '</assets/styles/product.css>; rel=preload; as=style',
+    '</assets/js/product.js>; rel=preload; as=script'
+  ].join(', '));
+  return renderPage(req, res, next);
+});
+
+// Brand pages - cache for 5 minutes
+app.get('/brand/:brandSlug', cache(300), renderPage);
+
+// Search results - shorter cache time as they're more dynamic
+app.get('/search', cache(30), (req, res, next) => {
+  // Don't cache search results with user-specific parameters
+  if (req.query['user_id'] || req.query['session_id']) {
+    return renderPage(req, res, next);
+  }
+  return renderPage(req, res, next);
+});
+
+// Render Angular application - no caching for dynamic pages
+app.get('**', renderPage);
 
 // Start the server
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
   app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
+    console.log(`Server running in ${process.env['NODE_ENV'] || 'development'} mode`);
   });
 }

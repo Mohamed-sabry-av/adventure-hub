@@ -1,24 +1,13 @@
 <!-- <div *ngIf="lastScrollY() !== 0" [style.height.px]="headerHeight()"></div> -->
-<header
-  class="w-full"
-  [class]="{
+<header class="w-full" [class]="{
     'is-scroll': lastScrollY() !== 0 && !isProductPage,
     'non-sticky': isProductPage
-  }"
-  #headerEl
->
+  }" #headerEl>
   @if (currentPage === 'checkout') {
-  <div
-    class="h-[135px] w-full bg-white border-b relative flex items-center justify-center"
-  >
+  <div class="h-[135px] w-full bg-white border-b relative flex items-center justify-center">
     <a class="block" [routerLink]="''">
-      <img
-        src="header/adv-hub-logo-n.png"
-        alt="Adventures hub logo"
-        routerLink="/home"
-        class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
-        loading="lazy"
-      />
+      <img src="header/adv-hub-logo-n.png" alt="Adventures hub logo" routerLink="/home"
+        class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" loading="lazy" />
     </a>
 
     <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
@@ -29,8 +18,7 @@
   @if (showNavbar() && lastScrollY()===0) {
   <div
     class="relative mt-1 lg:mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6 transform duration-150 translate-y-1"
-    @navbarAnimation
-  >
+    @navbarAnimation>
     <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
       <strong>Free Delivery</strong> for orders over AED 100
     </p>
@@ -41,19 +29,14 @@
   }
 
   <!-- Main Info -->
-  <app-app-container>
+  <app-container>
     <div class="py-3 flex items-center justify-between">
       <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
 
       <!-- Logo -->
       <a class="block">
-        <img
-          loading="lazy"
-          src="header/White logo-01.webp"
-          alt="Adventures hub logo"
-          routerLink="/home"
-          class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer"
-        />
+        <img loading="lazy" src="header/White logo-01.webp" alt="Adventures hub logo" routerLink="/home"
+          class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" />
       </a>
 
       <!-- Search -->
@@ -62,20 +45,10 @@
       </div>
 
       <!-- Icons -->
-      <div
-        class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3"
-      >
-        <i
-          class="pi pi-times md:hidden block"
-          (click)="onShowSearchbar()"
-          *ngIf="showSearchbar()"
-        ></i>
+      <div class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3">
+        <i class="pi pi-times md:hidden block" (click)="onShowSearchbar()" *ngIf="showSearchbar()"></i>
 
-        <i
-          class="pi pi-search md:hidden block"
-          (click)="onShowSearchbar()"
-          *ngIf="!showSearchbar()"
-        ></i>
+        <i class="pi pi-search md:hidden block" (click)="onShowSearchbar()" *ngIf="!showSearchbar()"></i>
 
         <a routerLink="/user">
           <i class="pi pi-user"></i>
@@ -90,14 +63,11 @@
       <app-search-bar />
     </div>
     }
-  </app-app-container>
+  </app-container>
 
   <div>
     @defer (on idle) {
-    <app-navbar-container
-      [mainCategories]="mainCategories"
-      [allCategories]="allCategories"
-    />
+    <app-navbar-container [mainCategories]="mainCategories" [allCategories]="allCategories" />
     }
   </div>
   }

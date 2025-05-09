@@ -1,77 +1,77 @@
 @if (isOrderLoading$ | async) {
-  <div class="my-8">
-    <!-- Skeleton for OrderMetaDataComponent -->
-    <div class="bg-white shadow rounded-lg p-6 mb-6 animate-pulse">
-      <div class="flex justify-between items-center mb-4">
-        <div class="h-6 bg-gray-200 rounded w-1/3"></div>
-        <div class="h-6 bg-gray-200 rounded w-1/4"></div>
-      </div>
-      <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+<div class="my-8">
+  <!-- Skeleton for OrderMetaDataComponent -->
+  <div class="bg-white shadow rounded-lg p-6 mb-6 animate-pulse">
+    <div class="flex justify-between items-center mb-4">
+      <div class="h-6 bg-gray-200 rounded w-1/3"></div>
+      <div class="h-6 bg-gray-200 rounded w-1/4"></div>
     </div>
+    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+  </div>
 
-    <!-- Skeleton for OrderMainDataComponent -->
-    <div class="bg-white shadow rounded-lg p-6 mb-6 animate-pulse">
-      <!-- Table Header -->
-      <div class="flex items-center mb-4">
-        <div class="h-4 bg-gray-200 rounded w-1/4 mr-4"></div>
-        <div class="h-4 bg-gray-200 rounded w-1/4 mr-4"></div>
-        <div class="h-4 bg-gray-200 rounded w-1/4"></div>
-      </div>
-      <!-- Table Rows -->
-      <div class="space-y-4">
-        <div class="flex items-center">
-          <div class="h-16 w-16 bg-gray-200 rounded mr-4"></div>
-          <div class="flex-1">
-            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-          <div class="h-4 bg-gray-200 rounded w-1/6"></div>
-        </div>
-        <div class="flex items-center">
-          <div class="h-16 w-16 bg-gray-200 rounded mr-4"></div>
-          <div class="flex-1">
-            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-          <div class="h-4 bg-gray-200 rounded w-1/6"></div>
-        </div>
-      </div>
+  <!-- Skeleton for OrderMainDataComponent -->
+  <div class="bg-white shadow rounded-lg p-6 mb-6 animate-pulse">
+    <!-- Table Header -->
+    <div class="flex items-center mb-4">
+      <div class="h-4 bg-gray-200 rounded w-1/4 mr-4"></div>
+      <div class="h-4 bg-gray-200 rounded w-1/4 mr-4"></div>
+      <div class="h-4 bg-gray-200 rounded w-1/4"></div>
     </div>
-
-    <!-- Skeleton for ServiceHighlightsComponent -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
-      <div class="flex items-center p-4 bg-gray-50 rounded-lg">
-        <div class="h-8 w-8 bg-gray-200 rounded-full mr-4"></div>
-        <div>
-          <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-          <div class="h-4 bg-gray-200 rounded w-24"></div>
+    <!-- Table Rows -->
+    <div class="space-y-4">
+      <div class="flex items-center">
+        <div class="h-16 w-16 bg-gray-200 rounded mr-4"></div>
+        <div class="flex-1">
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
         </div>
+        <div class="h-4 bg-gray-200 rounded w-1/6"></div>
       </div>
-      <div class="flex items-center p-4 bg-gray-50 rounded-lg">
-        <div class="h-8 w-8 bg-gray-200 rounded-full mr-4"></div>
-        <div>
-          <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-          <div class="h-4 bg-gray-200 rounded w-24"></div>
+      <div class="flex items-center">
+        <div class="h-16 w-16 bg-gray-200 rounded mr-4"></div>
+        <div class="flex-1">
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
         </div>
-      </div>
-      <div class="flex items-center p-4 bg-gray-50 rounded-lg">
-        <div class="h-8 w-8 bg-gray-200 rounded-full mr-4"></div>
-        <div>
-          <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-          <div class="h-4 bg-gray-200 rounded w-24"></div>
-        </div>
+        <div class="h-4 bg-gray-200 rounded w-1/6"></div>
       </div>
     </div>
   </div>
-} @else {
-  <app-app-container>
-    <app-order-meta-data />
-    <app-order-main-data />
-  </app-app-container>
 
-  <app-service-highlights />
+  <!-- Skeleton for ServiceHighlightsComponent -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
+    <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+      <div class="h-8 w-8 bg-gray-200 rounded-full mr-4"></div>
+      <div>
+        <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+        <div class="h-4 bg-gray-200 rounded w-24"></div>
+      </div>
+    </div>
+    <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+      <div class="h-8 w-8 bg-gray-200 rounded-full mr-4"></div>
+      <div>
+        <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+        <div class="h-4 bg-gray-200 rounded w-24"></div>
+      </div>
+    </div>
+    <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+      <div class="h-8 w-8 bg-gray-200 rounded-full mr-4"></div>
+      <div>
+        <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+        <div class="h-4 bg-gray-200 rounded w-24"></div>
+      </div>
+    </div>
+  </div>
+</div>
+} @else {
+<app-container>
+  <app-order-meta-data />
+  <app-order-main-data />
+</app-container>
+
+<app-service-highlights />
 }
 
 @if (isError$ | async) {
-  <app-dialog-error />
+<app-dialog-error />
 }

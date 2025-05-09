@@ -1,79 +1,99 @@
-<app-app-container>
-  <!-- Loading State -->
-  @if (isLoading) {
-  <div class="flex flex-col md:flex-row gap-8 mb-8">
-    <!-- Skeleton for product images -->
-    <div class="md:w-1/2 lg:w-3/5">
-      <div class="h-96 bg-gray-200 animate-pulse rounded mb-4"></div>
-      <!-- Skeleton for desktop description -->
-      <div class="space-y-4">
-        <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
-        <div class="h-4 bg-gray-200 animate-pulse rounded w-2/4"></div>
-        <div class="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
+<main class="product-page-container">
+  <app-container>
+    @if (isLoading) {
+    <!-- Skeleton loading state for product details -->
+    <div class="animate-pulse py-4 px-3">
+      <div class="max-w-screen-xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Skeleton for product image -->
+          <div class="aspect-square bg-gray-200 rounded-lg mb-4"></div>
+
+          <!-- Skeleton for product info -->
+          <div>
+            <div class="h-8 bg-gray-200 rounded mb-4 w-3/4"></div>
+            <div class="h-6 bg-gray-200 rounded mb-4 w-1/2"></div>
+            <div class="h-4 bg-gray-200 rounded mb-8 w-1/4"></div>
+
+            <div class="h-5 bg-gray-200 rounded mb-2 w-1/3"></div>
+            <div class="flex gap-3 mb-6">
+              @for (i of [0, 1, 2, 3]; track i) {
+              <div class="h-10 w-10 bg-gray-200 rounded-sm"></div>
+              }
+            </div>
+
+            <div class="h-5 bg-gray-200 rounded mb-2 w-1/3"></div>
+            <div class="flex gap-3 mb-6">
+              @for (i of [0, 1, 2, 3]; track i) {
+              <div class="h-8 w-12 bg-gray-200 rounded-sm"></div>
+              }
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-8">
+              <div class="h-12 bg-gray-200 rounded"></div>
+              <div class="h-12 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- Skeleton for product info -->
-    <div class="md:w-1/2 lg:w-2/5">
-      <div class="space-y-4">
-        <div class="h-6 bg-gray-200 animate-pulse rounded w-1/2"></div>
-        <div class="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
-        <div class="h-10 bg-gray-200 animate-pulse rounded w-full"></div>
-      </div>
-    </div>
-  </div>
-  } @else {
-  <!-- Schema Data -->
-  <!-- @if (schemaData) {
-      <ng-container>
-        <script type="application/ld+json" [innerHTML]="schemaData"></script>
-      </ng-container>
-    } -->
+    } @else if (productData) {
+    <!-- Breadcrumb for navigation (loads early) -->
+    <app-breadcrumb [paths]="productData.categories || []" [productName]="productData.name">
+    </app-breadcrumb>
 
-  <app-breadcrumb [productName]="productData?.name"></app-breadcrumb>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Product Images - Critical for viewing -->
+      <app-product-images [productImages]="productData.images" [selectedColor]="selectedColor">
+      </app-product-images>
 
-  <!-- Product or Error State -->
-  @if (productData) {
-  <div class="flex flex-col md:flex-row gap-8 mb-8">
-    <!-- Product Images - Left side -->
-    <div class="md:w-1/2 lg:w-3/5">
-      <app-product-images [productImages]="productData?.images" [selectedVariation]="selectedColorVariation"
-        [productName]="productData?.name"></app-product-images>
-      <!-- Desktop Description -->
-      <div class="full-width-product-description desktop-description">
-        <app-product-desc [productAdditionlInfo]="productDataForDesc" />
-      </div>
+      <!-- Product Info - Critical for purchase decisions -->
+      <app-product-info [productInfo]="productData" (selectedAttributeChange)="onSelectedColorChange($event)"
+        (variationSelected)="onVariationSelected($event)">
+      </app-product-info>
     </div>
 
-    <!-- Product Info - Right side -->
-    <div class="md:w-1/2 lg:w-2/5 sticky-wrapper">
-      <div class="sticky-info">
-        <app-product-info [productInfo]="productData" (selectedAttributeChange)="onSelectedColorChange($event)"
-          (variationSelected)="onVariationSelected($event)">
-        </app-product-info>
-      </div>
-      <!-- Mobile Description -->
-      <div class="full-width-product-description mobile-description">
-        <app-product-desc [productAdditionlInfo]="productDataForDesc" />
+    <!-- Product Description - Less critical, can be deferred -->
+    @defer (on viewport) {
+    <app-product-desc [product]="productDataForDesc"></app-product-desc>
+    } @placeholder (minimum 200ms) {
+    <div class="animate-pulse mt-8">
+      <div class="h-7 bg-gray-200 rounded mb-4 w-1/4"></div>
+      <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
+      <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
+      <div class="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+    </div>
+    }
+
+    <!-- Related Products - Lowest priority, load last -->
+    @defer (on viewport; on idle) {
+    <app-product-related [productId]="productData.id"></app-product-related>
+    } @placeholder (minimum 200ms) {
+    <div class="mt-12">
+      <h2 class="text-xl font-semibold mb-6">You May Also Like</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        @for (i of [0, 1, 2, 3]; track i) {
+        <div class="animate-pulse">
+          <div class="bg-gray-200 h-40 rounded-lg mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+        }
       </div>
     </div>
-  </div>
+    }
 
-  <!-- Related Products -->
-  @if (productData?.id) {
-  <app-product-related [relatedIds]="productData?.related_ids || []" [productId]="productData.id" />
-  <app-recent-products-mini></app-recent-products-mini>
-  }
-  } @else {
-  <!-- Error State -->
-  <div class="text-center py-8">
-    <p class="text-lg text-gray-600">
-      No products available
-    </p>
-    <a routerLink="/home" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded">
-      Back to Home page
-    </a>
-  </div>
-  }
-  }
-</app-app-container>
-<app-dialog-error />
+    <!-- Recently Viewed Products - Only load on idle -->
+    @defer (on idle) {
+    <app-recent-products-mini></app-recent-products-mini>
+    }
+    } @else {
+    <div class="py-12 text-center">
+      <h2 class="text-xl font-semibold mb-4">Product Not Found</h2>
+      <p class="mb-4">Sorry, we couldn't find the product you're looking for.</p>
+      <a routerLink="/home" class="text-blue-600 hover:underline">Return to Homepage</a>
+    </div>
+    }
+  </app-container>
+
+  <app-dialog-error></app-dialog-error>
+</main>
