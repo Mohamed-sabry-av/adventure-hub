@@ -24,12 +24,14 @@ import {
 import { UIService } from '../../shared/services/ui.service';
 import { Router } from '@angular/router';
 import { SideOptionsService } from '../../core/services/side-options.service';
+import { ApiService } from '../../core/services/api.service';
 
 export class CartEffect {
   private actions$ = inject(Actions);
   private store = inject(Store<StoreInterface>);
   private httpClient = inject(HttpClient);
   private cartService = inject(CartService);
+  private apiService = inject(ApiService);
   private uiService = inject(UIService);
   private router = inject(Router);
   private sideOptionsService = inject(SideOptionsService);
@@ -37,29 +39,24 @@ export class CartEffect {
   syncOfflineCartToLive = createEffect(() =>
     this.actions$.pipe(
       ofType(syncCartAction),
-      switchMap(({ authToken, items }) => {
-        const body = { products: items };
-
+      switchMap(({ authToken }) => {
         const headers = new HttpHeaders({
           Authorization: `Bearer ${authToken}`,
         });
 
+        const loadedCart = this.cartService.loadedDataFromLS(false).loadedCart;
+        const body = { cart_id: loadedCart };
+
         return this.httpClient
           .post(
-            'https://adventures-hub.com/wp-json/custom/v1/cart/add_multiple',
+            'https://adventures-hub.com/wp-json/custom/v1/cart/bulk-add',
             body,
             { headers }
           )
           .pipe(
-            map(() => {
-              console.log('cart Synceed');
-              localStorage.removeItem('Cart');
-              return fetchUserCartAction({
-                isLoggedIn: true,
-                mainPageLoading: true,
-                sideCartLoading: false,
-                openSideCart: false,
-              });
+            map((response: any) => {
+              localStorage.removeItem('cartId');
+              return getUserCartAction({ userCart: response });
             }),
             catchError((error: any) => {
               this.uiService.showError(
@@ -80,151 +77,107 @@ export class CartEffect {
           startLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
         );
 
-        const apiUrl = isLoggedIn
-          ? 'https://adventures-hub.com/wp-json/custom/v1/cart/add'
-          : `https://adventures-hub.com/wp-json/custom/v1/product/${product.id}/status`;
-
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
-        let requestMethod: Observable<any> = of();
 
         if (isLoggedIn) {
           const body = {
             product_id: product.id,
           };
-          requestMethod = this.httpClient.post(apiUrl, body, {
-            headers: loadedData.headers,
-          });
-        }
 
-        if (!isLoggedIn) {
-          requestMethod = this.httpClient.get(apiUrl);
-        }
+          return this.httpClient
+            .post(
+              'https://adventures-hub.com/wp-json/custom/v1/cart/add',
+              body,
+              {
+                headers: loadedData.headers,
+              }
+            )
+            .pipe(
+              map((response: any) => {
+                this.store.dispatch(
+                  stopLoadingSpinnerAction({
+                    buttonName: buyItNow ? 'buy' : 'add',
+                  })
+                );
+                this.sideOptionsService.closeSideOptions();
+                if (buyItNow) {
+                  this.router.navigateByUrl('/checkout', { replaceUrl: true });
+                  return getUserCartAction({ userCart: response });
+                } else {
+                  this.cartService.cartMode(true);
+                  return getUserCartAction({ userCart: response });
+                }
+              }),
+              catchError((error: any) => {
+                this.store.dispatch(
+                  stopLoadingSpinnerAction({
+                    buttonName: buyItNow ? 'buy' : 'add',
+                  })
+                );
 
-        return requestMethod.pipe(
-          map((response: any) => {
-            if (isLoggedIn) {
+                this.uiService.showError(
+                  error.error?.message
+                    ? error.error.message
+                    : `Failed to Add Product.`
+                );
+                return of(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: error.message || 'Failed to Add Product',
+                  })
+                );
+              })
+            );
+        } else {
+          const apiUrl = loadedData?.loadedCart
+            ? 'https://adventures-hub.com/wp-json/custom/v1/cart/guest/add'
+            : 'https://adventures-hub.com/wp-json/custom/v1/cart/guest';
+
+          const body = {
+            cart_id: loadedData.loadedCart ? loadedData.loadedCart : '',
+            product_id: product.id,
+          };
+
+          return this.httpClient.post(apiUrl, body).pipe(
+            map((response: any) => {
               this.store.dispatch(
                 stopLoadingSpinnerAction({
                   buttonName: buyItNow ? 'buy' : 'add',
                 })
               );
               this.sideOptionsService.closeSideOptions();
+              localStorage.setItem('cartId', JSON.stringify(response.cart_id));
               if (buyItNow) {
                 this.router.navigateByUrl('/checkout', { replaceUrl: true });
                 return getUserCartAction({ userCart: response });
               } else {
                 this.cartService.cartMode(true);
-
                 return getUserCartAction({ userCart: response });
               }
-            } else {
-              const stockQuantity = response.stock_quantity || 0;
-              const quantityLimits = response.quantity_limits || {
-                minimum: 1,
-                maximum: null,
-                multiple_of: 1,
-              };
-              const minQuantity = quantityLimits.minimum || 1;
-              const maxQuantity = quantityLimits.maximum || null;
-
-              let selectedProduct = {
-                product_id: product.id,
-                quantity: 1,
-              };
-
-              const loadedCart = loadedData.loadedCart.items;
-              const productIndex = loadedCart.findIndex(
-                (p: any) => p.product_id === selectedProduct.product_id
+            }),
+            catchError((error: any) => {
+              this.store.dispatch(
+                stopLoadingSpinnerAction({
+                  buttonName: buyItNow ? 'buy' : 'add',
+                })
               );
 
-              let newQuantity = 1;
-              if (productIndex !== -1) {
-                newQuantity = loadedCart[productIndex].quantity + 1;
-              }
-
-              if (newQuantity < minQuantity) {
-                this.uiService.showError(
-                  `Minimum quantity for "${response.name}" is ${minQuantity}.`
-                );
-                return cartStatusAction({
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                  error: `Minimum quantity for "${response.name}" is ${minQuantity}.`,
-                });
-              }
-
-              if (maxQuantity !== null && newQuantity > maxQuantity) {
-                this.uiService.showError(
-                  `Maximum quantity for "${response.name}" is ${maxQuantity}.`
-                );
-                return cartStatusAction({
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                  error: `Maximum quantity for "${response.name}" is ${maxQuantity}.`,
-                });
-              }
-
-              if (newQuantity > stockQuantity) {
-                this.uiService.showError(
-                  `Cannot add more of "${response.name}" to the cart. Only ${stockQuantity} remaining in stock.`
-                );
-                return cartStatusAction({
-                  mainPageLoading: false,
-                  sideCartLoading: false,
-                  error: `Cannot add more of "${response.name}". Only ${stockQuantity} remaining in stock.`,
-                });
-              }
-
-              if (productIndex !== -1) {
-                loadedCart[productIndex].quantity = newQuantity;
-              } else {
-                loadedCart.push(selectedProduct);
-              }
-
-              localStorage.setItem(
-                'Cart',
-                JSON.stringify(loadedData.loadedCart)
+              this.uiService.showError(
+                error.error?.message
+                  ? error.error.message
+                  : `Failed to Add Product.`
               );
-
-              if (buyItNow) {
-                return fetchUserCartAction({
-                  isLoggedIn: false,
+              return of(
+                cartStatusAction({
                   mainPageLoading: false,
                   sideCartLoading: false,
-                  openSideCart: false,
-                  buyItNow,
-                });
-              }
-
-              return fetchUserCartAction({
-                isLoggedIn: false,
-                mainPageLoading: false,
-                sideCartLoading: false,
-                openSideCart: true,
-                buyItNow,
-              });
-            }
-          }),
-          catchError((error: any) => {
-            this.store.dispatch(
-              stopLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
-            );
-
-            console.log('Error in adding product to cart:', error);
-            this.uiService.showError(
-              error.error?.message
-                ? error.error.message
-                : `Failed to Add Product.`
-            );
-            return of(
-              cartStatusAction({
-                mainPageLoading: false,
-                sideCartLoading: false,
-                error: error.message || 'Failed to Add Product',
-              })
-            );
-          })
-        );
+                  error: error.message || 'Failed to Add Product',
+                })
+              );
+            })
+          );
+        }
       })
     )
   );
@@ -248,7 +201,7 @@ export class CartEffect {
             })
           );
           const apiUrl = `https://adventures-hub.com/wp-json/custom/v1/cart${
-            isLoggedIn ? '' : '/guest'
+            isLoggedIn ? '' : '/guest/load'
           }`;
 
           console.log(apiUrl);
@@ -267,11 +220,9 @@ export class CartEffect {
 
           if (!isLoggedIn) {
             const body = {
-              products: loadedData.loadedCart.items,
-              coupons: loadedData.loadedCart.coupons,
+              cart_id: loadedData.loadedCart,
             };
 
-            console.log(body);
             requestMethod = this.httpClient.post(apiUrl, body, {
               params: loadedData.params,
             });
@@ -279,30 +230,6 @@ export class CartEffect {
 
           return requestMethod.pipe(
             map((response: any) => {
-              if (response.errors.length > 0) {
-                const errorMessages = response.errors
-                  .filter((item: any) => item.code === 'out_of_stock')
-                  .map(
-                    (item: any) =>
-                      `${item.name} is out of stock and deleted from cart`
-                  )
-                  .join('\n');
-                this.uiService.showError(errorMessages);
-                const errorIds = response.errors.map(
-                  (err: any) => err.product_id
-                );
-
-                const updatedItems = loadedData.loadedCart.items.filter(
-                  (item: any) => !errorIds.includes(item.product_id)
-                );
-
-                const filteredCart = {
-                  ...loadedData.loadedCart,
-                  items: updatedItems,
-                };
-
-                localStorage.setItem('Cart', JSON.stringify(filteredCart));
-              }
               response.items = response.items.map((item: any) => {
                 return {
                   key: item.key,
@@ -352,8 +279,6 @@ export class CartEffect {
               return getUserCartAction({ userCart: response });
             }),
             catchError((error: any) => {
-              console.log(error);
-              console.log('Here Is Error');
               this.store.dispatch(
                 stopLoadingSpinnerAction({
                   buttonName: buyItNow ? 'buy' : 'add',
@@ -420,7 +345,6 @@ export class CartEffect {
               )
               .pipe(
                 map((response: any) => {
-                  console.log('Update Success In Online Cart:', response);
                   this.store.dispatch(
                     cartStatusAction({
                       mainPageLoading: false,
@@ -432,7 +356,6 @@ export class CartEffect {
                   return getUserCartAction({ userCart: response });
                 }),
                 catchError((error) => {
-                  console.log(error);
                   this.store.dispatch(
                     cartStatusAction({
                       mainPageLoading: false,
@@ -451,25 +374,54 @@ export class CartEffect {
                 })
               );
           } else {
-            loadedData.loadedCart.items = loadedData.loadedCart.items.map(
-              (product: any) =>
-                product.product_id === selectedProduct.id
-                  ? {
-                      ...product,
-                      quantity,
-                    }
-                  : product
-            );
-
-            localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
-
-            return of(
-              fetchUserCartAction({
-                isLoggedIn: false,
+            this.store.dispatch(
+              cartStatusAction({
                 mainPageLoading: false,
                 sideCartLoading: true,
+                error: null,
               })
             );
+            const body = {
+              cart_id: loadedData.loadedCart,
+              product_id: selectedProduct.id,
+              quantity: quantity,
+            };
+            return this.httpClient
+              .post(
+                'https://adventures-hub.com/wp-json/custom/v1/cart/guest/update',
+                body,
+                { headers: loadedData.headers }
+              )
+              .pipe(
+                map((response: any) => {
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
+                  );
+
+                  return getUserCartAction({ userCart: response });
+                }),
+                catchError((error) => {
+                  this.store.dispatch(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: null,
+                    })
+                  );
+                  this.uiService.showError('Failed to Update Product');
+                  return of(
+                    cartStatusAction({
+                      mainPageLoading: false,
+                      sideCartLoading: false,
+                      error: error.message || 'Failed to Update Product',
+                    })
+                  );
+                })
+              );
           }
         }
       )
@@ -479,7 +431,7 @@ export class CartEffect {
   deleteProductOfUserCart = createEffect(() =>
     this.actions$.pipe(
       ofType(deleteProductOfUserCarAction),
-      switchMap(({ product: selectedProduct, isLoggedIn }) => {
+      switchMap(({ product: selectedProduct, isLoggedIn, openSideCart }) => {
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
 
         if (isLoggedIn) {
@@ -503,8 +455,6 @@ export class CartEffect {
             )
             .pipe(
               map((response: any) => {
-                console.log('DELETED From Online Cart');
-
                 this.store.dispatch(
                   cartStatusAction({
                     mainPageLoading: false,
@@ -531,31 +481,51 @@ export class CartEffect {
               })
             );
         } else {
-          if (!loadedData.loadedCart.items) {
-            loadedData.loadedCart.items = [];
-          }
-
-          loadedData.loadedCart.items = loadedData.loadedCart.items.filter(
-            (product: any) => product.product_id !== selectedProduct.id
-          );
-
-          if (loadedData.loadedCart.items.length === 0) {
-            localStorage.removeItem('Cart');
-            this.store.dispatch(
-              getUserCartAction({
-                userCart: { items: [], coupons: {}, totals: {} },
-              })
-            );
-          } else {
-            localStorage.setItem('Cart', JSON.stringify(loadedData.loadedCart));
-          }
-          return of(
-            fetchUserCartAction({
+          this.store.dispatch(
+            cartStatusAction({
               mainPageLoading: false,
               sideCartLoading: true,
-              isLoggedIn: false,
+              error: null,
             })
           );
+
+          const body = {
+            cart_id: loadedData.loadedCart,
+            product_id: selectedProduct.id,
+          };
+
+          return this.httpClient
+            .post(
+              'https://adventures-hub.com/wp-json/custom/v1/cart/guest/remove',
+              body
+            )
+            .pipe(
+              map((response: any) => {
+                this.store.dispatch(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: null,
+                  })
+                );
+                return getUserCartAction({ userCart: response });
+              }),
+              catchError((error: any) => {
+                this.uiService.showError(
+                  error?.error?.message
+                    ? error.error.message
+                    : 'Failed to Delete Product'
+                );
+
+                return of(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: error?.error?.message || 'Failed to Delete Product',
+                  })
+                );
+              })
+            );
         }
       })
     )
@@ -576,9 +546,6 @@ export class CartEffect {
             )
             .pipe(
               map((res) => {
-                console.log('CART IS EMPTY');
-                console.log(res);
-
                 return fetchUserCartAction({
                   isLoggedIn: true,
                   mainPageLoading: true,
@@ -602,8 +569,7 @@ export class CartEffect {
               })
             );
         } else {
-          localStorage.removeItem('Cart');
-          console.log('CART IS EMPTY');
+          localStorage.removeItem('cartId');
 
           return of(
             fetchUserCartAction({

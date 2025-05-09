@@ -48,10 +48,8 @@ export class CartService {
 
       return { headers, params };
     } else {
-      let loadedCart: any = localStorage.getItem('Cart');
-      loadedCart = loadedCart
-        ? JSON.parse(loadedCart)
-        : { items: [], coupons: [] };
+      let loadedCart: any = localStorage.getItem('cartId');
+      loadedCart = loadedCart ? JSON.parse(loadedCart) : '';
 
       return { loadedCart, params };
     }
@@ -72,18 +70,23 @@ export class CartService {
         );
       } else {
         let loadedCart: any = localStorage.getItem('Cart');
-        loadedCart = loadedCart ? JSON.parse(loadedCart) : { items: [], coupons: [] };
+        loadedCart = loadedCart
+          ? JSON.parse(loadedCart)
+          : { items: [], coupons: [] };
         const coupons = loadedCart.coupons || {};
         const couponKeys = Object.keys(coupons);
 
-        const couponData = couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+        const couponData =
+          couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
 
         // If a coupon exists in local storage, apply it
         if (couponData) {
-          this.store.dispatch(fetchCouponsAction({
-            enteredCouponValue: couponData.code,
-            isLoggedIn: false,
-          }));
+          this.store.dispatch(
+            fetchCouponsAction({
+              enteredCouponValue: couponData.code,
+              isLoggedIn: false,
+            })
+          );
         }
 
         this.store.dispatch(
@@ -146,13 +149,14 @@ export class CartService {
     });
   }
 
-  deleteProductFromCart(selectedProduct: Product) {
+  deleteProductFromCart(selectedProduct: Product, openSideCart?: boolean) {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
       if (isLoggedIn) {
         this.store.dispatch(
           deleteProductOfUserCarAction({
             product: selectedProduct,
             isLoggedIn: true,
+            openSideCart: openSideCart ? true : false,
           })
         );
       } else {
@@ -160,6 +164,7 @@ export class CartService {
           deleteProductOfUserCarAction({
             product: selectedProduct,
             isLoggedIn: false,
+            openSideCart: openSideCart ? true : false,
           })
         );
       }
@@ -176,15 +181,10 @@ export class CartService {
 
         console.log(loadedCart);
 
-        if (loadedCart.items.length > 0) {
-          const cartItems = loadedCart.items.map((item: any) => {
-            return { product_id: item.id, quantity: item.quantity };
-          });
-
+        if (loadedCart) {
           this.store.dispatch(
             syncCartAction({
               authToken: authToken.value,
-              items: cartItems,
             })
           );
         } else {
