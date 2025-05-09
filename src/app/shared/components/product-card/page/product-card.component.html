@@ -1,47 +1,26 @@
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
-  <app-card-image-slider
-    [product]="modifiedProduct"
-    [isHovered]="isHovered"
-    [variations]="variations">
+  <app-card-image-slider [product]="modifiedProduct" [isHovered]="isHovered" [variations]="variations">
   </app-card-image-slider>
 
+  <!-- Wishlist Button -->
+  <app-wishlist-button [product]="product"></app-wishlist-button>
+
   <!-- Product details (title, price, etc) -->
-  <app-card-details
-    [product]="product"
-    [colorOptions]="colorOptions"
-    [uniqueSizes]="uniqueSizes"
-    [getBrandName]="getBrandName.bind(this)"
-    [getBrandSlug]="getBrandSlug.bind(this)"
-    [selectedVariation]="selectedVariation"
-  ></app-card-details>
+  <app-card-details [product]="product" [colorOptions]="colorOptions" [uniqueSizes]="uniqueSizes"
+    [getBrandName]="getBrandName.bind(this)" [getBrandSlug]="getBrandSlug.bind(this)"
+    [selectedVariation]="selectedVariation"></app-card-details>
 
   <!-- Color swatches (if available) -->
-  <app-color-swatches
-    [colorOptions]="colorOptions"
-    [visibleColors]="visibleColors"
-    [selectedColor]="selectedColor"
-    [colorScrollIndex]="colorScrollIndex"
-    [maxColorScrollIndex]="maxColorScrollIndex"
-    (selectColor)="selectColor($event.color, $event.image)"
-    (scrollColors)="scrollColors($event)"
-  ></app-color-swatches>
+  <app-color-swatches [colorOptions]="colorOptions" [visibleColors]="visibleColors" [selectedColor]="selectedColor"
+    [colorScrollIndex]="colorScrollIndex" [maxColorScrollIndex]="maxColorScrollIndex"
+    (selectColor)="selectColor($event.color, $event.image)" (scrollColors)="scrollColors($event)"></app-color-swatches>
 
   <!-- Add to cart with options panel -->
-  <app-mobile-quick-add
-    [product]="product"
-    [variations]="variations"
-    [uniqueSizes]="uniqueSizes"
-    [selectedSize]="selectedSize"
-    [colorOptions]="colorOptions"
-    [selectedColor]="selectedColor"
-    [visibleColors]="visibleColors"
-    [mobileQuickAddExpanded]="mobileQuickAddExpanded"
-    [isMobile]="isMobile"
-    [isHovered]="isHovered"
-    [selectedVariation]="selectedVariation"
-    (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
-    (selectSize)="onSelectSize($event)"
-    (selectColor)="selectColor($event.color, $event.image)"
+  <app-mobile-quick-add [product]="product" [variations]="variations" [uniqueSizes]="uniqueSizes"
+    [selectedSize]="selectedSize" [colorOptions]="colorOptions" [selectedColor]="selectedColor"
+    [visibleColors]="visibleColors" [mobileQuickAddExpanded]="mobileQuickAddExpanded" [isMobile]="isMobile"
+    [isHovered]="isHovered" [selectedVariation]="selectedVariation" (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
+    (selectSize)="onSelectSize($event)" (selectColor)="selectColor($event.color, $event.image)"
     (addToCart)="onAddToCartWithOptions($event)">
   </app-mobile-quick-add>
 </div>

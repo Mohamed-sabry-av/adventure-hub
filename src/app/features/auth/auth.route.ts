@@ -76,6 +76,14 @@ export const authroutes: Routes = [
     ],
   },
   {
+    path: 'wishlist',
+    loadComponent: () =>
+      import('./account-details/components/local-wishlist/local-wishlist.component').then(
+        (m) => m.LocalWishlistComponent
+      ),
+    data: { authRequired: false, animation: 'localWishlist' }
+  },
+  {
     path: '',
     redirectTo: 'myaccount',
     pathMatch: 'full',

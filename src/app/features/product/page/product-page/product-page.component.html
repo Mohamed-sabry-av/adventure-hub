@@ -1,15 +1,19 @@
 <main class="product-page-container">
+
+
   <app-container>
     @if (isLoading) {
     <!-- Skeleton loading state for product details -->
     <div class="animate-pulse py-4 px-3">
       <div class="max-w-screen-xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="flex flex-col md:flex-row gap-8">
           <!-- Skeleton for product image -->
-          <div class="aspect-square bg-gray-200 rounded-lg mb-4"></div>
+          <div class="md:w-1/2 lg:w-3/5 mobile-order-1">
+            <div class="aspect-square bg-gray-200 rounded-lg mb-4"></div>
+          </div>
 
           <!-- Skeleton for product info -->
-          <div>
+          <div class="md:w-1/2 lg:w-2/5 mobile-order-2">
             <div class="h-8 bg-gray-200 rounded mb-4 w-3/4"></div>
             <div class="h-6 bg-gray-200 rounded mb-4 w-1/2"></div>
             <div class="h-4 bg-gray-200 rounded mb-8 w-1/4"></div>
@@ -34,6 +38,14 @@
             </div>
           </div>
         </div>
+
+        <!-- Skeleton for description -->
+        <div class="space-y-4 mt-8 mobile-order-3">
+          <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+        </div>
       </div>
     </div>
     } @else if (productData) {
@@ -41,28 +53,53 @@
     <app-breadcrumb [paths]="productData.categories || []" [productName]="productData.name">
     </app-breadcrumb>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Product Images - Critical for viewing -->
-      <app-product-images [productImages]="productData.images" [selectedColor]="selectedColor">
-      </app-product-images>
+    <div class="mobile-flex-container">
+      <div class="flex flex-col md:flex-row gap-8 mb-8">
+        <!-- Left side: Images -->
+        <div class="md:w-1/2 lg:w-3/5 mobile-order-1">
+          <!-- Product Images - Critical for viewing -->
+          <app-product-images [productImages]="productData.images" [selectedColor]="selectedColor">
+          </app-product-images>
 
-      <!-- Product Info - Critical for purchase decisions -->
-      <app-product-info [productInfo]="productData" (selectedAttributeChange)="onSelectedColorChange($event)"
-        (variationSelected)="onVariationSelected($event)">
-      </app-product-info>
-    </div>
+          <!-- Desktop Description - Only visible on desktop -->
+          <div class="desktop-description">
+            @defer (on viewport) {
+            <app-product-desc [product]="productDataForDesc"></app-product-desc>
+            } @placeholder (minimum 200ms) {
+            <div class="animate-pulse mt-8">
+              <div class="h-7 bg-gray-200 rounded mb-4 w-1/4"></div>
+              <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
+              <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
+              <div class="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+            </div>
+            }
+          </div>
+        </div>
 
-    <!-- Product Description - Less critical, can be deferred -->
-    @defer (on viewport) {
-    <app-product-desc [product]="productDataForDesc"></app-product-desc>
-    } @placeholder (minimum 200ms) {
-    <div class="animate-pulse mt-8">
-      <div class="h-7 bg-gray-200 rounded mb-4 w-1/4"></div>
-      <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
-      <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
-      <div class="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+        <!-- Product Info - Critical for purchase decisions (Right side, sticky) -->
+        <div class="md:w-1/2 lg:w-2/5 sticky-wrapper mobile-order-2">
+          <div class="sticky-info">
+            <app-product-info [productInfo]="productData" (selectedAttributeChange)="onSelectedColorChange($event)"
+              (variationSelected)="onVariationSelected($event)">
+            </app-product-info>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Description - Only visible on mobile -->
+      <div class="mobile-description mobile-order-3 mt-6 mb-8">
+        @defer (on viewport) {
+        <app-product-desc [product]="productDataForDesc"></app-product-desc>
+        } @placeholder (minimum 200ms) {
+        <div class="animate-pulse">
+          <div class="h-7 bg-gray-200 rounded mb-4 w-1/4"></div>
+          <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
+          <div class="h-4 bg-gray-200 rounded mb-2 w-full"></div>
+          <div class="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+        </div>
+        }
+      </div>
     </div>
-    }
 
     <!-- Related Products - Lowest priority, load last -->
     @defer (on viewport; on idle) {

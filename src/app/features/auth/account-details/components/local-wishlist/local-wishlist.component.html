@@ -1,0 +1,81 @@
+<div class="wishlist-container">
+    <h2 class="text-2xl font-bold mb-6">My Wishlist</h2>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="error && !isLoading" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+        role="alert">
+        <p>{{ error }}</p>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="isEmpty && !isLoading && !error" class="text-center py-12">
+        <div class="empty-wishlist-icon mb-4">
+            <i class="pi pi-heart-fill text-gray-300 text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-medium mb-2">Your wishlist is empty</h3>
+        <p class="text-gray-500 mb-4">Browse our products and add items to your wishlist</p>
+        <a routerLink="/shop"
+            class="browse-btn px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+            Browse Products
+        </a>
+    </div>
+
+    <!-- Wishlist items -->
+    <div *ngIf="!isEmpty && !isLoading" class="wishlist-grid">
+        <div *ngFor="let item of wishlistItems; let i = index" class="wishlist-item">
+            <!-- Removing overlay -->
+            <div *ngIf="item.isRemoving" class="removing-overlay">
+                <div class="spinner"></div>
+                <p>Removing...</p>
+            </div>
+
+            <div class="product-card">
+                <!-- Product image -->
+                <div class="product-image mb-3">
+                    <img [src]="getProductImage(item)" [alt]="getProductName(item)"
+                        class="w-full h-44 object-cover rounded" loading="lazy" />
+                </div>
+
+                <!-- Product info -->
+                <div class="product-info">
+                    <h3 class="text-lg font-medium mb-2">{{ getProductName(item) }}</h3>
+                    <p class="price mb-3">{{ getProductPrice(item) }}</p>
+
+                    <!-- Added to cart notification -->
+                    <div *ngIf="item.addedToCart" class="text-green-600 text-sm mb-3">
+                        <i class="pi pi-check"></i> Added to cart
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <a [routerLink]="['/product', item.id || item.id]"
+                            class="view-btn flex-1 px-3 py-2 text-center bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                            <i class="pi pi-eye mr-1"></i> View
+                        </a>
+
+                        <button
+                            class="add-to-cart-btn flex-1 px-3 py-2 text-center bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
+                            (click)="addToCart(item, i)" [disabled]="item.isAddingToCart">
+                            <i class="pi" [ngClass]="{
+                'pi-shopping-cart mr-1': !item.isAddingToCart,
+                'pi-spinner pi-spin': item.isAddingToCart
+              }"></i>
+                            <span>Add to Cart</span>
+                        </button>
+                    </div>
+
+                    <!-- Remove button -->
+                    <button
+                        class="remove-btn mt-2 w-full px-3 py-2 text-center text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                        (click)="removeFromWishlist(item, i)" [disabled]="item.isRemoving">
+                        <i class="pi pi-trash mr-1"></i> Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

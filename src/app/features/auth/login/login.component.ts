@@ -11,6 +11,7 @@ import { AccountAuthService } from '../account-auth.service';
 import { FacebookAuthComponent } from '../Facebook-auth/facebook-auth.component';
 import { GoogleAuthComponent } from '../google-auth/google-auth.component';
 import { CartService } from '../../cart/service/cart.service';
+import { UnifiedWishlistService } from '../../../shared/services/unified-wishlist.service';
 
 @Component({
   selector: 'app-login',
@@ -32,7 +33,8 @@ export class LoginComponent {
     private fb: FormBuilder,
     private router: Router,
     private accountService: AccountAuthService,
-    private cartService: CartService
+    private cartService: CartService,
+    private wishlistService: UnifiedWishlistService
   ) {}
 
   ngOnInit() {
@@ -56,6 +58,16 @@ export class LoginComponent {
     this.accountService.login(credentials).subscribe({
       next: () => {
         this.cartService.syncUserCart();
+        
+        this.wishlistService.syncWishlistOnLogin().subscribe({
+          next: (result) => {
+            console.log('Wishlist sync result:', result);
+          },
+          error: (err) => {
+            console.error('Error syncing wishlist:', err);
+          }
+        });
+        
         this.loginError = '';
         this.router.navigate(['/']);
       },

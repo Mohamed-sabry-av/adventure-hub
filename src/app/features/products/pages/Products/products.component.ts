@@ -180,15 +180,27 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.currentCategory = categoryResponse;
         this.currentCategoryId = this.currentCategory?.id ?? null;
 
+        console.log('Category Response:', JSON.stringify(this.currentCategory, null, 2));
+
         // إذا كان معرف الفئة غير صالح، انتقل إلى صفحة 404
         if (!this.currentCategoryId) {
           this.router.navigate(['/page-not-found']);
           return;
         }
 
+        // استخدام Yoast SEO title إجباريًا
+        let pageTitle = 'All Products';
+        if (this.currentCategory?.yoast_head_json?.title) {
+          pageTitle = this.currentCategory.yoast_head_json.title;
+          console.log('Using Yoast SEO title:', pageTitle);
+        } else {
+          console.warn('Yoast SEO title not found, using category name:', this.currentCategory?.name);
+          pageTitle = this.currentCategory?.name || 'Products';
+        }
+        
         this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
-          title: this.currentCategory?.name,
-          description: this.currentCategory?.description,
+          title: pageTitle,
+          description: this.currentCategory?.description || '',
         });
       } else {
         this.currentCategory = null;
@@ -290,6 +302,10 @@ export class ProductsComponent implements OnInit, OnDestroy {
     return this.currentCategory?.name ?? '';
   }
 
+  getCategoryDescription(): string {
+    return this.currentCategory?.description ?? '';
+  }
+
   getCurrentPath(): string[] {
     return this.route.snapshot.url
       .map((segment) => segment.path)
@@ -334,9 +350,21 @@ export class ProductsComponent implements OnInit, OnDestroy {
         }
 
         this.currentCategory = categoryResponse;
+        console.log('Category Response (onCategoryIdChange):', JSON.stringify(this.currentCategory, null, 2));
+        
+        // استخدام Yoast SEO title إجباريًا
+        let pageTitle = 'All Products';
+        if (this.currentCategory?.yoast_head_json?.title) {
+          pageTitle = this.currentCategory.yoast_head_json.title;
+          console.log('Using Yoast SEO title (onCategoryIdChange):', pageTitle);
+        } else {
+          console.warn('Yoast SEO title not found (onCategoryIdChange), using category name:', this.currentCategory?.name);
+          pageTitle = this.currentCategory?.name || 'Products';
+        }
+        
         this.schemaData = this.seoService.applySeoTags(this.currentCategory, {
-          title: this.currentCategory?.name,
-          description: this.currentCategory?.description,
+          title: pageTitle,
+          description: this.currentCategory?.description || '',
         });
       } else {
         this.currentCategory = null;

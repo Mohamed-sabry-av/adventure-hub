@@ -6,7 +6,8 @@ import {
   inject,
   DestroyRef,
   TransferState,
-  makeStateKey
+  makeStateKey,
+  ChangeDetectorRef
 } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd, RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
@@ -23,7 +24,7 @@ import { RecentProductsMiniComponent } from '../../../products/components/recent
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
 import { RelatedProductsService } from '../../../../core/services/related-products.service';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { AttributeSelection } from '../../components/product-info/product-info.component';
 import { catchError } from 'rxjs/operators';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
@@ -49,10 +50,9 @@ declare var _learnq: any;
   ],
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent implements OnInit, OnDestroy {
-  schemaData: SafeHtml | null = null;
   productData: any;
   productDataForDesc: any;
   selectedColor: string | null = null;
@@ -67,11 +67,9 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private recentlyVisitedService = inject(RecentlyVisitedService);
   private relatedProductsService = inject(RelatedProductsService);
   private router = inject(Router);
-  private sanitizer = inject(DomSanitizer);
   private document = inject(DOCUMENT);
   private transferState = inject(TransferState);
-
-  private schemaScript: HTMLScriptElement | null = null;
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit() {
     // Listen for navigation events to reload product data
@@ -86,10 +84,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.schemaScript) {
-      this.schemaScript.remove();
-      this.schemaScript = null;
-    }
+    // SEO service handles schema cleanup
   }
 
   private loadProductData() {
@@ -97,8 +92,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productData = null;
     this.productDataForDesc = null;
-    this.schemaData = null;
-    this.removeSchemaScript();
 
     // Get slug from URL
     const slug = this.route.snapshot.paramMap.get('slug');
@@ -139,43 +132,27 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   }
 
   private processProductData(product: any) {
+    // Set product data for UI components
     this.productData = product;
-    this.productDataForDesc = product;
+    
+    // Set product description data (separate from SEO)
+    this.productDataForDesc = {
+      ...product,
+      description: product.description,
+      name: product.name
+    };
 
-    // Set up SEO
-    this.setupSeo(product);
-
-    // Add to recently visited products
+    this.cdr.detectChanges();
+    // Apply SEO tags using Yoast data
     if (product) {
+      // Use Yoast data for SEO (handled internally by seoService)
+      this.seoService.applySeoTags(product);
+      
+      // Add to recently visited products
       this.recentlyVisitedService.addProduct(product);
-    }
-
-    // Track product view in Klaviyo if available
-    this.trackProductView(product);
-  }
-
-  private setupSeo(product: any) {
-    // Apply comprehensive SEO tags
-    const schemaData = this.seoService.applySeoTags(product, {
-      title: product?.name,
-      description: this.stripHtml(product?.short_description || ''),
-      image: product?.images?.[0]?.src,
-      type: 'product'
-    });
-
-    // Add schema to <head>
-    if (schemaData) {
-      this.schemaScript = this.document.createElement('script');
-      this.schemaScript.type = 'application/ld+json';
-      this.schemaScript.text = schemaData.toString();
-      this.document.head.appendChild(this.schemaScript);
-    }
-  }
-
-  private removeSchemaScript() {
-    if (this.schemaScript && this.schemaScript.parentNode) {
-      this.schemaScript.parentNode.removeChild(this.schemaScript);
-      this.schemaScript = null;
+      
+      // Track product view in Klaviyo if available
+      this.trackProductView(product);
     }
   }
 
@@ -261,9 +238,5 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
-  }
-
-  private stripHtml(html: string): string {
-    return html.replace(/<\/?[^>]+(>|$)/g, '');
   }
 }

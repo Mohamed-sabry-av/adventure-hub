@@ -9,12 +9,15 @@ export interface Product {
   description: string;
   attributes?: Attribute[] | any;
   slug?: string;
+  addedToCart?:boolean;
+  isAddingToCart?:boolean;
   permalink?: string;
   date_created?: string;
   date_created_gmt?: string;
   date_modified?: string;
   date_modified_gmt?: string;
   type?: string;
+  isRemoving?:boolean;
   yoast_head?: string;
   status?: string;
   featured?: boolean;

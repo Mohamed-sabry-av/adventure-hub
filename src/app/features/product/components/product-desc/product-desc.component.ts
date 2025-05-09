@@ -159,12 +159,11 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   }
 
   private setSafeDescription(): void {
-    const description = this.productAdditionlInfo?.description || '';
+    const description = this.product?.description || '';
     if (!description) {
       this.safeDescription = null;
       return;
     }
-
     try {
       console.log('Raw description:', description);
       this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(description);

@@ -82,21 +82,28 @@ export class CategoriesService {
   /**
    * Fetches all categories page by page from the API.
    */
-private fetchAllCategories(): Observable<Category[]> {
-  const endpoint = 'custom/v1/nav-categories';
-  return this.WooAPI.getRequest<Category[]>(endpoint, {
-    params: new HttpParams().set('_fields', 'id,name,slug,parent,count')
-  }).pipe(
-    map((categories: Category[]) => {
-      console.log('Fetched categories:', categories);
-      return categories || [];
-    }),
-    catchError((error) => {
-      console.error('Error fetching categories from nav-categories endpoint:', error);
-      return this.handleErrorsService.handelError(error);
-    })
-  );
-}
+  private fetchAllCategories(page: number = 1, accumulatedCategories: Category[] = []): Observable<Category[]> {
+    return this.WooAPI.getRequest<Category[]>('products/categories', {
+      params: new HttpParams()
+        .set('_fields', 'id,name,slug,parent,description,display,image,menu_order,count,yoast_head,yoast_head_json')
+        .set('per_page', '100')
+        .set('page', page.toString()),
+    }).pipe(
+      switchMap((categories: Category[]) => {
+        const updatedCategories = accumulatedCategories.concat(categories);
+
+        if (categories.length < 100) {
+          return of(updatedCategories);
+        }
+
+        return this.fetchAllCategories(page + 1, updatedCategories);
+      }),
+      catchError((error) => {
+        console.error(`Error fetching categories at page ${page}:`, error);
+        return this.handleErrorsService.handelError(error);
+      })
+    );
+  }
 
 
   /**

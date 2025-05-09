@@ -20,6 +20,7 @@ import { CardImageSliderComponent } from '../components/card-image-slider/card-i
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
 import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
+import { WishlistButtonComponent } from '../components/wishlist-button/wishlist-button.component';
 
 @Component({
   selector: 'app-product-card',
@@ -30,6 +31,7 @@ import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn
     CardDetailsComponent,
     ColorSwatchesComponent,
     MobileQuickAddComponent,
+    WishlistButtonComponent,
   ],
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.css'],

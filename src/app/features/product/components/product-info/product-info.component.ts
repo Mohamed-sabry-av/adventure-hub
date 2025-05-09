@@ -23,6 +23,7 @@ import { TabbyPromoComponent } from '../TabbyPromoComponent/TabbyPromo.Component
 import { TabbyConfigService } from '../TabbyPromoComponent/Tabby.cofing.service';
 import { StickyFooterService } from '../../../../shared/services/sticky-footer.service';
 import { ProductInfoService } from '../../services/product-info.service';
+import { UnifiedWishlistService } from '../../../../shared/services/unified-wishlist.service';
 
 /**
  * Interface for product attribute options
@@ -82,7 +83,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   constructor(
     private cartService: CartService,
-    private wishlistService: WooCommerceAccountService,
+    private wishlistService: UnifiedWishlistService,
     private variationService: VariationService,
     private uiService: UIService,
     private checkoutService: CheckoutService,
@@ -386,41 +387,46 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.wishlistService.isLoggedIn()) {
-      this.showWishlistMessage('Please log in to add to wishlist', false);
-      return;
-    }
-
     this.isAddingToWishlist = true;
     this.wishlistMessage = null;
 
+    // Get the full product object
+    const product = this.productInfo();
+    if (!product) {
+      this.isAddingToWishlist = false;
+      this.showWishlistMessage('Failed to add to wishlist: Product not found', false);
+      return;
+    }
+    
     this.wishlistSubscription = this.wishlistService
-      .addToWishlist(productId)
+      .toggleWishlistItem(product)
       .subscribe({
         next: (response) => {
           this.isAddingToWishlist = false;
           if (response.success) {
-            this.isInWishlist = true;
-            this.showWishlistMessage('Product added to wishlist', true);
-            if (typeof _learnq !== 'undefined') {
+            this.isInWishlist = response.added;
+            this.showWishlistMessage(
+              response.added ? 'Product added to wishlist' : 'Product removed from wishlist', 
+              true
+            );
+            
+            // Track only when adding to wishlist
+            if (response.added && typeof _learnq !== 'undefined') {
               _learnq.push([
                 'track',
                 'Added to Wishlist',
                 {
                   ProductID: productId,
-                  ProductName: this.productInfo()?.name,
+                  ProductName: product?.name,
                   Price: this.getPriceInfo().price,
                   Brand: this.brandName,
-                  Categories:
-                    this.productInfo()?.categories?.map(
-                      (cat: any) => cat.name
-                    ) || [],
+                  Categories: product?.categories?.map((cat: any) => cat.name) || [],
                 },
               ]);
             }
           } else {
             this.showWishlistMessage(
-              response.message || 'Failed to add to wishlist',
+              response.message || 'Failed to update wishlist',
               false
             );
           }
@@ -428,7 +434,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.isAddingToWishlist = false;
           this.showWishlistMessage(
-            'Failed to add to wishlist: ' + (error.message || 'Unknown error'),
+            'Failed to update wishlist: ' + (error.message || 'Unknown error'),
             false
           );
         },
@@ -436,22 +442,16 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   }
 
   private checkWishlistStatus(productId: number) {
-    if (!productId || !this.wishlistService.isLoggedIn()) {
+    if (!productId) {
       this.isInWishlist = false;
       return;
     }
 
-    this.wishlistSubscription = this.wishlistService.getWishlist().subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.isInWishlist = response.data.some(
-            (item: any) => item.product_id === productId
-          );
-        } else {
-          this.isInWishlist = false;
-        }
+    this.wishlistSubscription = this.wishlistService.isInWishlist(productId).subscribe({
+      next: (isInWishlist) => {
+        this.isInWishlist = isInWishlist;
       },
-      error: (error) => {
+      error: () => {
         this.isInWishlist = false;
       },
     });

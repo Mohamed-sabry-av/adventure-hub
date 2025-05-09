@@ -27,6 +27,7 @@ import {
   trigger,
   AnimationEvent,
 } from '@angular/animations';
+import { WishlistIconComponent } from './wishlist-icon/wishlist-icon.component';
 
 @Component({
   selector: 'app-header',
@@ -38,6 +39,7 @@ import {
     NavbarContainerComponent,
     RouterLink,
     SearchBarComponent,
+    WishlistIconComponent,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],

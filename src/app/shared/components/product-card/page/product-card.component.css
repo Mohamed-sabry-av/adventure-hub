@@ -3,10 +3,10 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 300px; /* Fixed width for consistent sizing */
-  max-width: 100%; /* Ensures it doesn't overflow container */
+  width: 100%; /* Full width of grid cell */
   height: 450px; /* Fixed height */
   min-height: 450px;
+  max-height: 450px; /* Ensure max height is enforced */
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -29,9 +29,10 @@
 /* Responsive styles */
 @media (max-width: 767px) {
   .product-card {
-    width: 250px; /* Smaller fixed width on mobile */
+    width: 100%; /* Full width of grid cell on mobile */
     height: 380px; /* Smaller fixed height on mobile */
     min-height: 380px;
+    max-height: 380px; /* Ensure max height is enforced */
     font-size: 0.9rem;
   }
 
