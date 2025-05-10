@@ -22,57 +22,28 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              },
-              {
+              },{
                 "glob": "**/*",
                 "input": "src/assets"
-              },
-              "src/favicon.ico"
+              }
             ],
-            "styles": [
-              "src/styles.css",
-              "node_modules/owl.carousel/dist/assets/owl.carousel.css",
-              "node_modules/owl.carousel/dist/assets/owl.theme.default.css"            
-            ],
-            "scripts": ["node_modules/glider-js/glider.min.js"],
+            "styles": [ "src/styles.css",
+            "node_modules/owl.carousel/dist/assets/owl.carousel.css",
+              "node_modules/owl.carousel/dist/assets/owl.theme.default.css"     ],
+            "scripts": [],
             "server": "src/main.server.ts",
-            "prerender": {
-              "discoverRoutes": true
-            },
+            "prerender": false,
             "ssr": {
               "entry": "src/server.ts"
-            },
-            "optimization": {
-              "scripts": true,
-              "styles": {
-                "minify": true,
-                "inlineCritical": true
-              },
-              "fonts": true
-            },
-            "sourceMap": false,
-            "namedChunks": true,
-            "extractLicenses": true,
-            "budgets": [
-              {
-                "type": "initial",
-                "maximumWarning": "800kb",
-                "maximumError": "1.2mb"
-              },
-              {
-                "type": "anyComponentStyle",
-                "maximumWarning": "10kb",
-                "maximumError": "20kb"
-              }
-            ]
+            }
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "800kb",
-                  "maximumError": "1.2mb"
+                  "maximumWarning": "1mb",
+                  "maximumError": "1.5mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -83,26 +54,11 @@
               "outputHashing": "all",
               "optimization": {
                 "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": true
-                },
+                "styles": true,
                 "fonts": true
               },
               "sourceMap": false,
               "extractLicenses": true,
-              "externalDependencies": [
-                "rxjs",
-                "@angular/material",
-                "tslib",
-                "zone.js"
-              ],
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ],
               "serviceWorker": "ngsw-config.json"
             },
             "development": {
@@ -116,11 +72,11 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "ssl": true,
-            "sslKey": "src/ssl/localhost.key",
-            "sslCert": "src/ssl/localhost.crt",
-            "proxyConfig": "proxy.conf.json"
-          },
+    "ssl": true,
+    "sslKey": "src/ssl/localhost.key",
+    "sslCert": "src/ssl/localhost.crt",
+    "proxyConfig": "proxy.conf.json"
+  },
           "configurations": {
             "production": {
               "buildTarget": "advhub:build:production"

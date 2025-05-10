@@ -3,16 +3,16 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: '',
     pathMatch: 'full'
   },
   {
-    path: 'home',
+    path: '',
     loadComponent: () =>
       import('./features/home/page/home-page/home-page.component').then(
         (m) => m.HomePageComponent
       ),
-    data: { animation: 'home' },
+    data: { animation: '' },
     pathMatch: 'full',
   },
   {

@@ -30,6 +30,9 @@
   <link rel="preload" href="/assets/fonts/poppins-regular-webfont.woff2" as="font" type="font/woff2" crossorigin
     fetchpriority="high">
 
+  <!-- Zone.js -->
+  <script src="zone.min.js" type="module"></script>
+
   <!-- Critical CSS -->
   <style>
     @font-face {
@@ -100,11 +103,14 @@
     }
   </style>
 
-  <!-- Non-critical CSS - load asynchronously -->
-  <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'; this.onload=null;">
-  <noscript>
-    <link rel="stylesheet" href="/styles.css">
-  </noscript>
+  <!-- PrimeNG Theme -->
+  <link rel="stylesheet" href="node_modules/primeng/resources/themes/lara-light-blue/theme.css">
+  <link rel="stylesheet" href="node_modules/primeng/resources/primeng.min.css">
+  <link rel="stylesheet" href="node_modules/primeicons/primeicons.css">
+
+  <!-- Owl Carousel -->
+  <link rel="stylesheet" href="node_modules/owl.carousel/dist/assets/owl.carousel.css">
+  <link rel="stylesheet" href="node_modules/owl.carousel/dist/assets/owl.theme.default.css">
 </head>
 
 <body>

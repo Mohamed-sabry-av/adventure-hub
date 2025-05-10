@@ -90,7 +90,7 @@ export class FacebookAuthComponent implements AfterViewInit {
         next: (res) => {
           console.log('Facebook Login Success:', res);
           this.loginError = '';
-          this.router.navigate(['/home']);
+          this.router.navigate(['']);
         },
         error: (err) => {
           this.loginError = err.error?.message || 'Facebook login failed';

@@ -130,6 +130,23 @@ const cache = (duration: number) => {
 // Apply compression middleware to all responses
 app.use(compression({ level: 6, threshold: 0 }));
 
+// Serve static files with proper MIME types
+app.use(express.static(browserDistFolder, {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.woff2')) {
+      res.setHeader('Content-Type', 'font/woff2');
+    } else if (path.endsWith('.woff')) {
+      res.setHeader('Content-Type', 'font/woff');
+    } else if (path.endsWith('.ttf')) {
+      res.setHeader('Content-Type', 'font/ttf');
+    }
+  }
+}));
+
 // CORS setup
 app.use(cors({ origin: process.env['CLIENT_URL']!, credentials: true }));
 
@@ -362,66 +379,60 @@ app.get(
   }
 );
 
-// Define common SSR engine options
+// Add proper error handling for SSR
 const renderPage = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { protocol, originalUrl, baseUrl, headers } = req;
-    
+
+    // Skip SSR for static files and API requests
+    if (originalUrl.match(/\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|svg)$/) || 
+        originalUrl.startsWith('/api/')) {
+      return next();
+    }
+
     // Set performance and caching headers
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+
     const html = await commonEngine.render({
       bootstrap,
       documentFilePath: indexHtml,
       url: `${protocol}://${headers.host}${originalUrl}`,
-      publicPath: browserDistFolder,
-      providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
-      inlineCriticalCss: true,
+      providers: [
+        { provide: APP_BASE_HREF, useValue: baseUrl },
+        { provide: 'REQUEST', useValue: req },
+        { provide: 'RESPONSE', useValue: res }
+      ],
     });
-    
-    // Set Cache-Control header for SSR'd pages 
-    // Enable caching, but require revalidation
-    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-    
-    // Send the rendered HTML
-    return res.send(html);
-  } catch (error) {
-    console.error('SSR rendering error:', error);
-    next(error);
-    return undefined;
+
+    res.send(html);
+  } catch (err) {
+    console.error('SSR Error:', err);
+    next(err);
   }
 };
 
-// Routes that don't change frequently - apply longer caching
-app.get('/home', cache(60), renderPage); // Cache homepage for 1 minute
-app.get('/product/category/*', cache(300), renderPage); // Cache category pages for 5 minutes
+// Apply caching middleware for SSR responses
+app.use(cache(300)); // Cache for 5 minutes
 
-// Product pages - cache for 10 minutes
-app.get('/product/:slug', cache(600), (req, res, next) => {
-  // Add resource hints for product pages
-  res.setHeader('Link', [
-    '</assets/styles/product.css>; rel=preload; as=style',
-    '</assets/js/product.js>; rel=preload; as=script'
-  ].join(', '));
-  return renderPage(req, res, next);
+// Handle API routes first
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
 });
 
-// Brand pages - cache for 5 minutes
-app.get('/brand/:brandSlug', cache(300), renderPage);
+// Handle all other routes with SSR
+app.get('*', renderPage);
 
-// Search results - shorter cache time as they're more dynamic
-app.get('/search', cache(30), (req, res, next) => {
-  // Don't cache search results with user-specific parameters
-  if (req.query['user_id'] || req.query['session_id']) {
-    return renderPage(req, res, next);
-  }
-  return renderPage(req, res, next);
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Server Error:', err);
+  res.status(500).send('Internal Server Error');
 });
-
-// Render Angular application - no caching for dynamic pages
-app.get('**', renderPage);
 
 // Start the server
 if (isMainModule(import.meta.url)) {

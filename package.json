@@ -4,20 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "start:ssr": "node dist/advhub/server/server.mjs",
-    "dev": "ng serve",
-    "build": "ng build --configuration production",
-    "build:ssr": "ng build --configuration production && ng run advhub:server",
-    "build:analyze": "ng build --configuration production --stats-json && webpack-bundle-analyzer dist/advhub/browser/stats.json",
-    "build:optimize": "ng build --configuration production --aot --build-optimizer --vendor-chunk --named-chunks --output-hashing=all",
-    "prerender": "ng run advhub:prerender",
+    "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:advhub": "node dist/advhub/server/server.mjs",
-    "analyze": "ng build --configuration production --stats-json && webpack-bundle-analyzer dist/advhub/browser/stats.json",
-    "lint": "ng lint",
-    "e2e": "ng e2e",
-    "postinstall": "ngcc --properties es2023 browser module main"
+    "analyze": "ng build --prod --stats-json && webpack-bundle-analyzer dist/advhub/stats.json"
   },
   "private": true,
   "dependencies": {
@@ -45,7 +36,6 @@
     "esbuild": "^0.25.1",
     "express": "^4.18.2",
     "gapi-script": "^1.2.0",
-    "glider-js": "^1.7.9",
     "intersection-observer": "^0.12.2",
     "memory-cache": "^0.2.0",
     "ngx-owl-carousel-o": "^19.0.2",

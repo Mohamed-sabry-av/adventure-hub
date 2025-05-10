@@ -86,7 +86,7 @@ export class GoogleAuthComponent implements AfterViewInit {
         next: (res) => {
           console.log('Login Success:', res);
           this.loginError = '';
-          this.router.navigate(['/home']);
+          this.router.navigate(['']);
         },
         error: (err) => {
           this.loginError = err.error?.message || 'Google login failed';
