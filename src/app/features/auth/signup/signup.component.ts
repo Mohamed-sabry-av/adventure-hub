@@ -10,10 +10,18 @@ import { AccountAuthService } from '../account-auth.service';
 import { response } from 'express';
 import { CommonModule } from '@angular/common';
 import { RecapchaComponent } from './recapcha/recapcha.component';
+import { GoogleAuthComponent } from '../google-auth/google-auth.component';
+import { FacebookAuthComponent } from '../Facebook-auth/facebook-auth.component';
 
 @Component({
   selector: 'app-signup',
-  imports: [ReactiveFormsModule, CommonModule, RecapchaComponent],
+  imports: [
+    ReactiveFormsModule, 
+    CommonModule, 
+    RecapchaComponent,
+    GoogleAuthComponent,
+    FacebookAuthComponent
+  ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',
 })
@@ -48,7 +56,7 @@ export class SignupComponent {
 
   onSignupSubmit(): void {
     if (this.signupForm.invalid) {
-      this.signupError = 'somthing wrong';
+      this.signupError = 'Please fill in all required fields';
       return;
     }
 
@@ -59,10 +67,10 @@ export class SignupComponent {
     this.accountService.signup(userData).subscribe({
       next: (response) => {
         this.signupError = '';
-        this.signupSuccess = 'signdup Successfully';
+        this.signupSuccess = 'Account created successfully! You can now sign in.';
       },
       error: (err) => {
-        this.signupError = err.error?.message || 'please try again';
+        this.signupError = err.error?.message || 'Registration failed. Please try again.';
       },
     });
   }

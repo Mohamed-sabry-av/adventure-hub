@@ -15,6 +15,7 @@ import { UIService } from '../../../../shared/services/ui.service';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { CartStatus } from '../../../cart/model/cart.model';
+import { NewsletterSignupComponent } from '../../component/newsletter-signup/newsletter-signup.component';
 
 @Component({
   selector: 'app-checkout-page',
@@ -24,6 +25,7 @@ import { CartStatus } from '../../../cart/model/cart.model';
     AsyncPipe,
     DialogErrorComponent,
     SkeletonLoaderComponent,
+    NewsletterSignupComponent,
   ],
   templateUrl: './checkout-page.component.html',
   styleUrl: './checkout-page.component.css',

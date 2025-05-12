@@ -5,20 +5,20 @@
   .form-title {
     font-size: 28px;
     font-weight: 700;
-    color: #0c5460;
-    margin-bottom: 5px;
+    color: #2c3e50;
+    margin-bottom: 10px;
     text-align: center;
   }
   
   .form-subtitle {
     font-size: 16px;
-    color: #666;
+    color: #555;
     margin-bottom: 30px;
     text-align: center;
   }
   
   .auth-form {
-    max-width: 450px;
+    max-width: 500px;
     margin: 0 auto;
   }
   
@@ -29,9 +29,9 @@
   
   .form-group label {
     display: block;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    color: #4a4a4a;
+    color: #2c3e50;
     margin-bottom: 8px;
   }
   
@@ -40,6 +40,7 @@
   .form-group .icon-lock {
     display: inline-block;
     margin-right: 5px;
+    color: #3b6978;
   }
   
   .input-container {
@@ -49,27 +50,28 @@
   .input-container input {
     width: 100%;
     padding: 15px;
-    border: 1px solid #ddd;
+    border: 1px solid #d1d5db;
     border-radius: 6px;
     font-size: 16px;
-    background-color: #f9f9f9;
+    background-color: #f9fafb;
     transition: all 0.3s;
   }
   
   .input-container input:focus {
     outline: none;
-    border-color: #0c5460;
-    box-shadow: 0 0 0 3px rgba(12, 84, 96, 0.2);
+    border-color: #3b6978;
+    box-shadow: 0 0 0 3px rgba(59, 105, 120, 0.2);
+    background-color: #fff;
   }
   
   .input-container input.invalid {
-    border-color: #d9534f;
-    background-color: #fff8f8;
+    border-color: #ef4444;
+    background-color: #fef2f2;
   }
   
   .error-message {
-    color: #d9534f;
-    font-size: 12px;
+    color: #ef4444;
+    font-size: 14px;
     margin-top: 5px;
     display: flex;
     align-items: center;
@@ -90,32 +92,32 @@
     margin-right: 8px;
     width: 18px;
     height: 18px;
-    accent-color: #0c5460;
+    accent-color: #3b6978;
   }
   
   .terms-agreement {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     font-size: 14px;
-    color: #666;
+    color: #4b5563;
     text-align: center;
-    line-height: 1.5;
+    line-height: 1.6;
   }
   
   .terms-link {
-    color: #0c5460;
+    color: #3b6978;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
   }
   
   .terms-link:hover {
-    color: #0a4b66;
+    color: #204051;
     text-decoration: underline;
   }
   
   .submit-btn {
     width: 100%;
-    background-color: #0c5460;
+    background-color: #3b6978;
     color: white;
     border: none;
     border-radius: 6px;
@@ -144,7 +146,7 @@
   }
   
   .submit-btn:hover {
-    background-color: #0a4b66;
+    background-color: #204051;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
@@ -154,7 +156,7 @@
   }
   
   .submit-btn:disabled {
-    background-color: #889c9e;
+    background-color: #9cb3bc;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -164,25 +166,69 @@
     font-size: 18px;
   }
   
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    margin: 30px 0 20px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  
+  .auth-divider:before,
+  .auth-divider:after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #e5e7eb;
+  }
+  
+  .auth-divider span {
+    padding: 0 15px;
+  }
+  
+  .social-login {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
   .error-message-box {
-    color: #d9534f;
+    color: #ef4444;
     text-align: center;
     margin-top: 15px;
     font-size: 14px;
-    background-color: #fff8f8;
-    border: 1px solid #ffc8c8;
-    padding: 10px;
-    border-radius: 4px;
+    background-color: #fef2f2;
+    border: 1px solid #fee2e2;
+    padding: 12px;
+    border-radius: 6px;
   }
   
   .success-message-box {
-    color: #3c763d;
+    color: #10b981;
     text-align: center;
     margin-top: 15px;
     font-size: 14px;
-    background-color: #dff0d8;
-    border: 1px solid #d6e9c6;
-    padding: 10px;
-    border-radius: 4px;
+    background-color: #ecfdf5;
+    border: 1px solid #d1fae5;
+    padding: 12px;
+    border-radius: 6px;
+  }
+  
+  @media (min-width: 640px) {
+    .social-login {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    
+    .social-login > * {
+      flex: 1;
+    }
+  }
+  
+  @media (max-width: 639px) {
+    .social-login {
+      gap: 10px;
+    }
   }
   

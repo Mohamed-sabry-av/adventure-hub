@@ -2,157 +2,133 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  HostListener,
+  ChangeDetectorRef,
+  inject,
   ChangeDetectionStrategy,
+  ViewChild,
   ElementRef,
+  AfterViewInit,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Subscription, interval } from 'rxjs';
+import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
+import { Subscription } from 'rxjs';
+import { HomeService } from '../../service/home.service';
 
-interface Slide {
-  id: number;
-  imageSrc: string;
-  imageAlt: string;
-  title: string;
-  subtitle: string;
-  buttonText: string;
-  buttonLink: string;
-  backgroundColor: string;
+interface BannerImage {
+  large: string;
+  small: string;
 }
 
 @Component({
   selector: 'app-slider',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, CarouselModule],
   templateUrl: './slider.component.html',
   styleUrls: ['./slider.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SliderComponent implements OnInit, OnDestroy {
-  slides: Slide[] = [
-    {
-      id: 1,
-      imageSrc:
-        'https://images.stockcake.com/public/7/d/8/7d85a1a1-4976-468a-abe8-7ed32d870f1b_large/hiking-mountain-trail-stockcake.jpg',
-      imageAlt: 'Hikers on a mountain trail with beautiful view',
-      title: 'EXPLORE NEW ADVENTURES',
-      subtitle: 'Best outdoor gear for your mountain journeys',
-      buttonText: 'Shop Now',
-      buttonLink: '/products',
-      backgroundColor: '#c9ff00',
+export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
+  private homeService = inject(HomeService);
+  private cdr = inject(ChangeDetectorRef);
+  
+  @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
+  
+  bannerImages: BannerImage[] = [];
+  loading: boolean = true;
+  error: string | null = null;
+  isMobile: boolean = false;
+  
+  carouselOptions: OwlOptions = {
+    loop: true,
+    mouseDrag: true,
+    touchDrag: true,
+    pullDrag: false,
+    dots: true,
+    navSpeed: 700,
+    navText: ['', ''],
+    autoplay: true,
+    autoplayTimeout: 5000,
+    autoplayHoverPause: true,
+    responsive: {
+      0: {
+        items: 1,
+        nav: false
+      },
+      768: {
+        items: 1,
+        nav: false // We'll use custom navigation
+      }
     },
-    {
-      id: 2,
-      imageSrc:
-        'https://thumbs.dreamstime.com/b/man-hiking-mountains-mountain-landscape-trail-hiker-backpack-beautiful-view-nature-scene-adventure-tourism-outdoor-345401597.jpg',
-      imageAlt: 'Hiker with a beautiful mountain view',
-      title: 'MOUNTAIN HIKING ESSENTIALS',
-      subtitle: 'Premium gear for your mountain adventures',
-      buttonText: 'Discover',
-      buttonLink: '/category/hiking',
-      backgroundColor: '#006350',
-    },
-    {
-      id: 3,
-      imageSrc:
-        'https://media.self.com/photos/6238bbdfd226c69aaec6d069/4:3/w_2560%2Cc_limit/GettyImages-926586802.jpg',
-      imageAlt: 'Camping gear and tent in nature',
-      title: 'CAMPING SEASON DEALS',
-      subtitle: 'Get up to 30% off on select outdoor items',
-      buttonText: 'View Deals',
-      buttonLink: '/sale',
-      backgroundColor: '#ff6c00',
-    },
-  ];
+    nav: false // Disable default navigation
+  };
 
-  currentSlide = 0;
-  autoSlideSubscription: Subscription | null = null;
-  autoSlideInterval = 5000; // 5 seconds
-  isMobile = false;
-
-  // متغيرات للتحكم في التمرير باللمس
-  touchStartX = 0;
-  touchEndX = 0;
-  minSwipeDistance = 50; // الحد الأدنى للمسافة المطلوبة لاعتبارها تمريرة
-
-  @HostListener('window:resize', ['$event'])
-  onResize() {
-    this.checkScreenSize();
-  }
-
-  constructor(private elementRef: ElementRef) {}
+  private subscriptions: Subscription = new Subscription();
 
   ngOnInit(): void {
     this.checkScreenSize();
-    this.startAutoSlide();
+    this.loadBannerImages();
+  }
+  
+  ngAfterViewInit(): void {
+    this.setupCustomNavigation();
   }
 
   ngOnDestroy(): void {
-    this.stopAutoSlide();
+    this.subscriptions.unsubscribe();
   }
-
+  
+  @HostListener('window:resize')
+  onResize(): void {
+    this.checkScreenSize();
+    this.cdr.markForCheck();
+  }
+  
   checkScreenSize(): void {
     this.isMobile = window.innerWidth < 768;
   }
 
-  prevSlide(): void {
-    this.stopAutoSlide();
-    this.currentSlide =
-      this.currentSlide === 0 ? this.slides.length - 1 : this.currentSlide - 1;
-    this.startAutoSlide();
+  loadBannerImages(): void {
+    this.loading = true;
+    const subscription = this.homeService.getBannerImages()
+      .subscribe({
+        next: (bannerImages) => {
+          this.bannerImages = bannerImages;
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error loading banner images:', err);
+          this.error = 'Failed to load banner images';
+          this.loading = false;
+          this.cdr.markForCheck();
+        }
+      });
+    
+    this.subscriptions.add(subscription);
   }
-
-  nextSlide(): void {
-    this.stopAutoSlide();
-    this.currentSlide = (this.currentSlide + 1) % this.slides.length;
-    this.startAutoSlide();
-  }
-
-  goToSlide(index: number): void {
-    this.stopAutoSlide();
-    this.currentSlide = index;
-    this.startAutoSlide();
-  }
-
-  startAutoSlide(): void {
-    this.autoSlideSubscription = interval(this.autoSlideInterval).subscribe(
-      () => {
-        this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+  
+  setupCustomNavigation(): void {
+    setTimeout(() => {
+      const prevBtn = document.querySelector('.slider-container .prev-btn') as HTMLElement;
+      const nextBtn = document.querySelector('.slider-container .next-btn') as HTMLElement;
+      
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          if (this.owlCarousel) {
+            this.owlCarousel.prev();
+          }
+        });
       }
-    );
-  }
-
-  stopAutoSlide(): void {
-    if (this.autoSlideSubscription) {
-      this.autoSlideSubscription.unsubscribe();
-      this.autoSlideSubscription = null;
-    }
-  }
-
-  // التعامل مع بداية اللمس
-  handleTouchStart(event: TouchEvent): void {
-    this.touchStartX = event.touches[0].clientX;
-  }
-
-  // التعامل مع نهاية اللمس
-  handleTouchEnd(event: TouchEvent): void {
-    this.touchEndX = event.changedTouches[0].clientX;
-    this.handleSwipe();
-  }
-
-  // معالجة حركة التمرير
-  handleSwipe(): void {
-    const swipeDistance = this.touchEndX - this.touchStartX;
-
-    // التحقق من أن المسافة كافية لاعتبارها تمريرة
-    if (Math.abs(swipeDistance) >= this.minSwipeDistance) {
-      if (swipeDistance > 0) {
-        // تمرير لليمين
-        this.prevSlide();
-      } else {
-        // تمرير لليسار
-        this.nextSlide();
+      
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          if (this.owlCarousel) {
+            this.owlCarousel.next();
+          }
+        });
       }
-    }
+    }, 500); // Short delay to ensure DOM is ready
   }
 }

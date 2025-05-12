@@ -1,65 +1,52 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { AboutusService } from '../../service/aboutus.service';
-import { DecodeHtmlPipe } from '../../../../shared/pipes/decode-html.pipe';
+import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ContentPagesService } from '../../service/content-pages.service';
 import { SeoService } from '../../../../core/services/seo.service';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { BaseContentPageComponent } from '../page-skeleton/base-content-page.component';
+import { ContentPageComponent } from '../page-skeleton/content-page.component';
+import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-refund-policy',
+  selector: 'app-return-policy',
   standalone: true,
-  imports: [CommonModule, DecodeHtmlPipe],
+  imports: [ContentPageComponent],
   template: `
+    <!-- SEO Schema Data -->
     <ng-container *ngIf="schemaData">
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
-    <!-- / Yoast SEO Premium plugin. -->
-
-    <div class="refund-policy-container">
-      @if (pageData) {
-        <div>
-          <h1>{{ pageData.title?.rendered | decodeHtml }}</h1>
-          <div [innerHTML]="safeContent"></div>
-        </div>
-      } @else {
-        <p>Loading Refund Policy...</p>
-      }
-    </div>
+    
+    <app-content-page
+      [pageData]="pageData"
+      [schemaData]="schemaData"
+      [isLoading]="isLoading"
+      pageClass="return-policy-page"
+    ></app-content-page>
   `,
-  styleUrls: ['./refund-policy.component.css'],
+  providers: [
+    {
+      provide: BaseContentPageComponent,
+      useExisting: RefundPolicyComponent
+    }
+  ]
 })
-export class RefundPolicyComponent implements OnInit {
-  pageData: any;
-  schemaData: any;
-  safeContent?: SafeHtml; // جعل safeContent اختيارية باستخدام ?
-
+export class RefundPolicyComponent extends BaseContentPageComponent {
   constructor(
-    private aboutUsService: AboutusService,
-    private seoService: SeoService,
-    private sanitizer: DomSanitizer
-  ) {}
-
-  ngOnInit(): void {
-    this.fetchRefundPolicy();
+    protected override contentPagesService: ContentPagesService,
+    protected override seoService: SeoService,
+    protected override router: Router
+  ) {
+    super(contentPagesService, seoService, router);
   }
 
-  fetchRefundPolicy(): void {
-    this.aboutUsService.getPageById(78500).subscribe({
-      next: (data) => {
-        this.pageData = data;
-        this.safeContent = this.sanitizer.bypassSecurityTrustHtml(data.content.rendered);
-        // Apply SEO tags using yoast_head_json
-        this.schemaData = this.seoService.applySeoTags(this.pageData, {
-          title: this.pageData?.title?.rendered,
-          description: this.pageData?.excerpt?.rendered || 'Refund Policy - Adventures HUB Sports Shop',
-        });
-      },
-      error: (error) => {
-        // Fallback SEO tags in case of error
-        this.schemaData = this.seoService.applySeoTags(null, {
-          title: 'Refund Policy - Adventures HUB Sports Shop',
-        });
-      },
-    });
+  protected override getPageContent(): Observable<any> {
+    return this.contentPagesService.getReturnPolicy();
+  }
+
+  protected override getDefaultSeoData(): { title: string; description: string } {
+    return {
+      title: 'Return & Refund Policy - Adventures HUB Sports Shop',
+      description: 'Learn about the Adventures HUB return and refund policies, including eligibility criteria, timeframes, and how to request a return or refund.'
+    };
   }
 }

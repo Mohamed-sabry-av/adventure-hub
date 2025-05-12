@@ -1,66 +1,52 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { AboutusService } from '../../service/aboutus.service';
-import { DecodeHtmlPipe } from '../../../../shared/pipes/decode-html.pipe';
+import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ContentPagesService } from '../../service/content-pages.service';
 import { SeoService } from '../../../../core/services/seo.service';
+import { BaseContentPageComponent } from '../page-skeleton/base-content-page.component';
+import { ContentPageComponent } from '../page-skeleton/content-page.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-about-us',
   standalone: true,
-  imports: [CommonModule, DecodeHtmlPipe],
-
+  imports: [ContentPageComponent],
   template: `
+    <!-- SEO Schema Data -->
     <ng-container *ngIf="schemaData">
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
-    <!-- / Yoast SEO Premium plugin. -->
-
-    <div class="about-us-container">
-      @if (aboutUsData) {
-      <div>
-        <h1>{{ aboutUsData.title?.rendered | decodeHtml }}</h1>
-        <div [innerHTML]="aboutUsData.content?.rendered"></div>
-      </div>
-      } @else {
-      <p>Loading About Us...</p>
-      }
-    </div>
+    
+    <app-content-page
+      [pageData]="pageData"
+      [schemaData]="schemaData"
+      [isLoading]="isLoading"
+      pageClass="about-us-page"
+    ></app-content-page>
   `,
-  styleUrls: ['./about-us.component.css'],
+  providers: [
+    {
+      provide: BaseContentPageComponent,
+      useExisting: AboutUsComponent
+    }
+  ]
 })
-export class AboutUsComponent implements OnInit {
-  aboutUsData: any;
-  schemaData: any;
-
+export class AboutUsComponent extends BaseContentPageComponent {
   constructor(
-    private aboutUsService: AboutusService,
-    private seoService: SeoService
-  ) {}
-
-  ngOnInit(): void {
-    this.fetchAboutUs();
+    protected override contentPagesService: ContentPagesService,
+    protected override seoService: SeoService,
+    protected override router: Router
+  ) {
+    super(contentPagesService, seoService, router);
   }
 
-  fetchAboutUs(): void {
-    this.aboutUsService.getAboutUs().subscribe({
-      next: (data) => {
-        this.aboutUsData = data;
-        // Apply SEO tags using yoast_head_json
-        this.schemaData = this.seoService.applySeoTags(this.aboutUsData, {
-          title: this.aboutUsData?.title?.rendered,
-          description:
-            this.aboutUsData?.excerpt?.rendered ||
-            'About Us - Adventures HUB Sports Shop',
-        });
-        console.log('About Us Data:', this.aboutUsData);
-      },
-      error: (error) => {
-        console.error('Error fetching About Us:', error);
-        // Fallback SEO tags in case of error
-        this.schemaData = this.seoService.applySeoTags(null, {
-          title: 'About Us - Adventures HUB Sports Shop',
-        });
-      },
-    });
+  protected override getPageContent(): Observable<any> {
+    return this.contentPagesService.getAboutUs();
+  }
+
+  protected override getDefaultSeoData(): { title: string; description: string } {
+    return {
+      title: 'About Us - Adventures HUB Sports Shop',
+      description: 'Learn about Adventures HUB Sports Shop, our mission, vision, values and how we serve the outdoor and adventure sports community.'
+    };
   }
 }

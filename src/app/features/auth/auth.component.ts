@@ -33,27 +33,27 @@ export class AuthComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // تقليل وقت التحميل إلى 1 ثانية كحد أقصى
+    // Set maximum loading time to 1 second
     setTimeout(() => {
       if (this.isLoading) {
         this.isLoading = false;
       }
     }, 1000);
 
-    // أولا، تحقق من حالة تسجيل الدخول باستخدام المعلومات المخزنة محليًا
+    // First, check login status using locally stored information
     if (this.accountService.getToken()) {
-      // تحقق من صحة الجلسة باستخدام التوكن
+      // Verify session using token
       this.accountService.isLoggedIn$.pipe(
         take(1),
         filter(isLoggedIn => isLoggedIn)
       ).subscribe(() => {
-        // المستخدم مسجل الدخول بالفعل، قم بالتوجيه إلى صفحة حساب المستخدم
+        // User is already logged in, redirect to user account page
         this.redirectToUserAccount();
       });
 
-      // محاولة التحقق من صحة التوكن عبر الخادم
+      // Try to verify token validity through server
       this.accountService.verifyToken(true).pipe(
-        timeout(1500) // زمن انتهاء المهلة 1.5 ثانية لتحسين سرعة التحميل
+        timeout(1500) // Timeout of 1.5 seconds to improve loading speed
       ).subscribe({
         next: (response) => {
           if (response && response.valid === false) {
@@ -69,7 +69,7 @@ export class AuthComponent implements OnInit {
         }
       });
     } else {
-      // لا يوجد توكن، عرض صفحة تسجيل الدخول
+      // No token, show login page
       this.isLoading = false;
       this.loadAuthPage();
     }
@@ -78,7 +78,7 @@ export class AuthComponent implements OnInit {
   private redirectToUserAccount(): void {
     if (!this.redirectInProgress) {
       this.redirectInProgress = true;
-      this.router.navigate(['/user/Useraccount']);
+      this.router.navigate(['/auth/Useraccount']);
     }
   }
 
@@ -88,7 +88,7 @@ export class AuthComponent implements OnInit {
         this.activeTab = 'signup';
       }
     });
-    this.titleService.setTitle('Login - Adventures HUB Sports Shop');
+    this.titleService.setTitle('Login - Adventures HUB | Outdoor Adventure Gear');
     this.metaService.updateTag({
       name: 'robots',
       content: 'noindex, nofollow',

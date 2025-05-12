@@ -12,7 +12,15 @@ declare var google: any;
   imports: [CommonModule],
   template: `
     <div class="google-signin-container">
-      <div id="googleSignInButton"></div>
+      <!-- Custom Google button that visually matches Facebook -->
+      <button class="google-custom-btn" *ngIf="!useGoogleButton" (click)="handleCustomButtonClick()">
+        <span class="google-icon"></span>
+        Continue with Google
+      </button>
+      
+      <!-- Default Google button (hidden unless there's an issue with the custom button) -->
+      <div id="googleSignInButton" [style.display]="useGoogleButton ? 'block' : 'none'"></div>
+      
       <p class="error" *ngIf="loginError">{{ loginError }}</p>
     </div>
   `,
@@ -20,6 +28,8 @@ declare var google: any;
 })
 export class GoogleAuthComponent implements AfterViewInit {
   loginError: string = '';
+  useGoogleButton: boolean = false;
+  private googleInitialized: boolean = false;
 
   constructor(
     private router: Router,
@@ -36,6 +46,8 @@ export class GoogleAuthComponent implements AfterViewInit {
         .catch(err => {
           console.error('Failed to load Google script:', err);
           this.loginError = 'Failed to load Google Sign-In';
+          // Fall back to default button if there's an error
+          this.useGoogleButton = true;
         });
     }
   }
@@ -62,19 +74,36 @@ export class GoogleAuthComponent implements AfterViewInit {
       callback: (response: any) => this.handleCredentialResponse(response),
     });
 
+    // Still initialize the default button in case we need it
     google.accounts.id.renderButton(
       document.getElementById('googleSignInButton'),
       {
-        theme: 'filled_black',
+        type: 'standard',
+        theme: 'outline',
         size: 'large',
-        shape: 'pill',
+        shape: 'rectangular',
         text: 'continue_with',
-        width: 300,
+        width: '100%',
         logo_alignment: 'left',
       }
     );
 
-    google.accounts.id.prompt(); // يظهر الـ One Tap لو متاح
+    this.googleInitialized = true;
+  }
+
+  handleCustomButtonClick() {
+    if (!this.googleInitialized) {
+      this.loginError = 'Google authentication is not ready yet';
+      return;
+    }
+
+    // Trigger Google's sign-in programmatically
+    google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Fall back to default button if there's an issue
+        this.useGoogleButton = true;
+      }
+    });
   }
 
   handleCredentialResponse(response: any) {
@@ -95,6 +124,7 @@ export class GoogleAuthComponent implements AfterViewInit {
       });
     } else {
       console.log('No credential in response');
+      this.loginError = 'Failed to get credentials from Google';
     }
   }
 }

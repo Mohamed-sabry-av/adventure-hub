@@ -5,10 +5,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
+  ViewChild,
+  AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CarouselModule, OwlOptions } from 'ngx-owl-carousel-o';
+import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
 import { HomeService } from '../../service/home.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
 
@@ -20,9 +22,11 @@ import { ProductCardComponent } from '../../../../shared/components/product-card
   styleUrls: ['./sale-products.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SaleProductsComponent implements OnInit {
+export class SaleProductsComponent implements OnInit, AfterViewInit {
   private homeService = inject(HomeService);
   private cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
 
   products: any[] = [];
   loading: boolean = true;
@@ -36,7 +40,9 @@ export class SaleProductsComponent implements OnInit {
     pullDrag: false,
     dots: true,
     navSpeed: 700,
-    navText: ['<i class="fas fa-chevron-left"></i>', '<i class="fas fa-chevron-right"></i>'],
+    navText: ['', ''],
+    autoWidth: false,
+    items: 4,
     responsive: {
       0: {
         items: 2
@@ -51,7 +57,7 @@ export class SaleProductsComponent implements OnInit {
         items: 4
       }
     },
-    nav: true
+    nav: false // Disable default navigation
   };
 
   ngOnInit(): void {
@@ -59,9 +65,49 @@ export class SaleProductsComponent implements OnInit {
     this.screenWidth = window.innerWidth;
   }
 
+  ngAfterViewInit(): void {
+    this.setupCustomNavigation();
+  }
+
+  setupCustomNavigation(): void {
+    setTimeout(() => {
+      const prevBtn = document.querySelector('.sale-products .prev-btn') as HTMLElement;
+      const nextBtn = document.querySelector('.sale-products .next-btn') as HTMLElement;
+      
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          if (this.owlCarousel) {
+            this.owlCarousel.prev();
+          }
+        });
+      }
+      
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          if (this.owlCarousel) {
+            this.owlCarousel.next();
+          }
+        });
+      }
+    }, 500); // Short delay to ensure DOM is ready
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.screenWidth = window.innerWidth;
+    // Force refresh carousel on resize
+    if (this.owlCarousel) {
+      setTimeout(() => {
+        // Force rerender of carousel
+        this.cdr.detectChanges();
+        this.cdr.markForCheck();
+      }, 200);
+    }
+  }
+
   loadSaleProducts(): void {
     this.loading = true;
-    this.homeService.getSaleProducts(1, 10).subscribe({
+    this.homeService.getSaleProducts(1, 12).subscribe({
       next: (data: any) => {
         this.products = data;
         this.loading = false;
@@ -73,11 +119,5 @@ export class SaleProductsComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
-  }
-
-  @HostListener('window:resize')
-  onResize() {
-    this.screenWidth = window.innerWidth;
-    this.cdr.markForCheck();
   }
 }

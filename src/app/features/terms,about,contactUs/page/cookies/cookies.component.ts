@@ -1,62 +1,52 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { AboutusService } from '../../service/aboutus.service';
-import { DecodeHtmlPipe } from '../../../../shared/pipes/decode-html.pipe';
+import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ContentPagesService } from '../../service/content-pages.service';
 import { SeoService } from '../../../../core/services/seo.service';
+import { BaseContentPageComponent } from '../page-skeleton/base-content-page.component';
+import { ContentPageComponent } from '../page-skeleton/content-page.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-cookies-policy',
   standalone: true,
-  imports: [CommonModule, DecodeHtmlPipe],
+  imports: [ContentPageComponent],
   template: `
+    <!-- SEO Schema Data -->
     <ng-container *ngIf="schemaData">
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
-    <!-- / Yoast SEO Premium plugin. -->
-
-    <div class="cookies-policy-container">
-      @if (pageData) {
-        <div>
-          <h1>{{ pageData.title?.rendered | decodeHtml }}</h1>
-          <div [innerHTML]="pageData.content?.rendered"></div>
-        </div>
-      } @else {
-        <p>Loading Cookies Policy...</p>
-      }
-    </div>
+    
+    <app-content-page
+      [pageData]="pageData"
+      [schemaData]="schemaData"
+      [isLoading]="isLoading"
+      pageClass="cookies-policy-page"
+    ></app-content-page>
   `,
-  styleUrls: ['./cookies-policy.component.css'],
+  providers: [
+    {
+      provide: BaseContentPageComponent,
+      useExisting: CookiesPolicyComponent
+    }
+  ]
 })
-export class CookiesPolicyComponent implements OnInit {
-  pageData: any;
-  schemaData: any;
-
+export class CookiesPolicyComponent extends BaseContentPageComponent {
   constructor(
-    private aboutUsService: AboutusService,
-    private seoService: SeoService
-  ) {}
-
-  ngOnInit(): void {
-    this.fetchCookiesPolicy();
+    protected override contentPagesService: ContentPagesService,
+    protected override seoService: SeoService,
+    protected override router: Router
+  ) {
+    super(contentPagesService, seoService, router);
   }
 
-  fetchCookiesPolicy(): void {
-    this.aboutUsService.getPageById(78519).subscribe({
-      next: (data) => {
-        this.pageData = data;
-        // Apply SEO tags using yoast_head_json
-        this.schemaData = this.seoService.applySeoTags(this.pageData, {
-          title: this.pageData?.title?.rendered,
-          description: this.pageData?.excerpt?.rendered || 'Cookies Policy - Adventures HUB Sports Shop',
-        });
-      },
-      error: (error) => {
-        console.error('Error fetching Cookies Policy:', error);
-        // Fallback SEO tags in case of error
-        this.schemaData = this.seoService.applySeoTags(null, {
-          title: 'Cookies Policy - Adventures HUB Sports Shop',
-        });
-      },
-    });
+  protected override getPageContent(): Observable<any> {
+    return this.contentPagesService.getCookiesPolicy();
+  }
+
+  protected override getDefaultSeoData(): { title: string; description: string } {
+    return {
+      title: 'Cookies Policy - Adventures HUB Sports Shop',
+      description: 'Learn about how Adventures HUB Sports Shop uses cookies and similar technologies to enhance your browsing experience.'
+    };
   }
 }

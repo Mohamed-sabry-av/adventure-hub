@@ -1,7 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef, inject, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject, HostListener, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CarouselModule, OwlOptions } from 'ngx-owl-carousel-o';
+import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
 import { HomeService } from '../../service/home.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { RelatedProductsService } from '../../../../core/services/related-products.service';
@@ -14,11 +14,13 @@ import { ProductCardComponent } from '../../../../shared/components/product-card
   templateUrl: './recommended-products.component.html',
   styleUrls: ['./recommended-products.component.css'],
 })
-export class RecommendedProductsComponent implements OnInit {
+export class RecommendedProductsComponent implements OnInit, AfterViewInit {
   private homeService = inject(HomeService);
   private productService = inject(ProductService);
   private relatedProductsService = inject(RelatedProductsService);
   private cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
 
   products: any[] = [];
   loading: boolean = true;
@@ -32,7 +34,9 @@ export class RecommendedProductsComponent implements OnInit {
     pullDrag: false,
     dots: true,
     navSpeed: 700,
-    navText: ['<', '>'],
+    navText: ['', ''],
+    autoWidth: false,
+    items: 4,
     responsive: {
       0: {
         items: 2
@@ -47,11 +51,51 @@ export class RecommendedProductsComponent implements OnInit {
         items: 4
       }
     },
-    nav: true
+    nav: false // Disable default navigation
   };
 
   ngOnInit(): void {
     this.loadRecommendedProducts();
+  }
+
+  ngAfterViewInit(): void {
+    this.setupCustomNavigation();
+  }
+
+  setupCustomNavigation(): void {
+    setTimeout(() => {
+      const prevBtn = document.querySelector('.recommended-products .prev-btn') as HTMLElement;
+      const nextBtn = document.querySelector('.recommended-products .next-btn') as HTMLElement;
+      
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          if (this.owlCarousel) {
+            this.owlCarousel.prev();
+          }
+        });
+      }
+      
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          if (this.owlCarousel) {
+            this.owlCarousel.next();
+          }
+        });
+      }
+    }, 500); // Short delay to ensure DOM is ready
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.screenWidth = window.innerWidth;
+    // Force refresh carousel on resize
+    if (this.owlCarousel) {
+      setTimeout(() => {
+        // Force rerender of carousel
+        this.cdr.detectChanges();
+        this.cdr.markForCheck();
+      }, 200);
+    }
   }
 
   loadRecommendedProducts(): void {
@@ -133,11 +177,5 @@ export class RecommendedProductsComponent implements OnInit {
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
-  }
-
-  @HostListener('window:resize')
-  onResize() {
-    this.screenWidth = window.innerWidth;
-    this.cdr.markForCheck();
   }
 }

@@ -6,7 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AccountAuthService } from '../account-auth.service';
 import { FacebookAuthComponent } from '../Facebook-auth/facebook-auth.component';
 import { GoogleAuthComponent } from '../google-auth/google-auth.component';
@@ -18,6 +18,7 @@ import { UnifiedWishlistService } from '../../../shared/services/unified-wishlis
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
     GoogleAuthComponent,
     FacebookAuthComponent,
   ],

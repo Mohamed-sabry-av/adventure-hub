@@ -1,114 +1,49 @@
 <div class="slider-container w-full relative overflow-hidden">
-  <div class="slides-wrapper relative w-full h-[450px] md:h-[500px] touch-none">
-    <!-- Slides -->
-    @for (slide of slides; track slide.id; let i = $index) {
-    <div
-      class="slide absolute top-0 left-0 w-full h-full flex items-center justify-between transition-opacity duration-500 ease-in-out"
-      [style.opacity]="currentSlide === i ? 1 : 0"
-      [style.z-index]="currentSlide === i ? 10 : 0"
-      [style.background-color]="slide.backgroundColor"
-    >
-      <!-- Content -->
-      <div
-        class="slide-content z-10 flex flex-col justify-center px-4 md:px-10 lg:px-20 w-full md:w-1/2"
-      >
-        <h2 class="text-2xl md:text-4xl font-bold mb-2 md:mb-4">
-          {{ slide.title }}
-        </h2>
-        <p class="text-lg md:text-xl mb-4 md:mb-6">{{ slide.subtitle }}</p>
-        <a
-          [routerLink]="slide.buttonLink"
-          class="bg-black text-white py-2 px-6 rounded-md font-medium hover:bg-opacity-80 transition inline-block w-max"
-        >
-          {{ slide.buttonText }}
-        </a>
-      </div>
-
-      <!-- Image -->
-      <div class="slide-image h-full hidden md:block md:w-1/2">
-        <img
-          [src]="slide.imageSrc"
-          [alt]="slide.imageAlt"
-          class="object-cover h-full w-full"
-          loading="lazy"
-        />
-      </div>
-
-      <!-- Mobile Image (Full Background) -->
-      <div class="absolute top-0 left-0 w-full h-full md:hidden">
-        <img
-          [src]="slide.imageSrc"
-          [alt]="slide.imageAlt"
-          class="object-cover h-full w-full opacity-10"
-          loading="lazy"
-        />
-      </div>
-    </div>
-    }
-
-    <!-- Dots -->
-    <div
-      class="dots-container absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-20"
-    >
-      @for (slide of slides; track slide.id; let i = $index) {
-      <button
-        class="w-4 h-4 rounded-full focus:outline-none transition-colors duration-300 border border-white"
-        [class.bg-white]="currentSlide === i"
-        [class.bg-transparent]="currentSlide !== i"
-        (click)="goToSlide(i)"
-      ></button>
-      }
-    </div>
-
-    <!-- Arrow Navigation (Hidden on Mobile) -->
-    <div class="hidden md:block">
-      <button
-        class="absolute top-1/2 left-4 z-20 transform -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full p-3 focus:outline-none shadow-md transition-all duration-300"
-        (click)="prevSlide()"
-        aria-label="Previous slide"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-      </button>
-
-      <button
-        class="absolute top-1/2 right-4 z-20 transform -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full p-3 focus:outline-none shadow-md transition-all duration-300"
-        (click)="nextSlide()"
-        aria-label="Next slide"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Mobile Touch Controls - Only horizontal swipe -->
-    <div class="touch-slider md:hidden absolute top-0 left-0 w-full h-full z-15"
-         (touchstart)="handleTouchStart($event)"
-         (touchend)="handleTouchEnd($event)">
-    </div>
+  @if (loading) {
+  <div class="flex justify-center items-center h-[450px] bg-gray-100">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
   </div>
+  } @else if (error) {
+  <div class="flex justify-center items-center h-[450px] bg-gray-100">
+    <p class="text-red-500">{{ error }}</p>
+  </div>
+  } @else if (bannerImages.length === 0) {
+  <div class="flex justify-center items-center h-[450px] bg-gray-100">
+    <p class="text-gray-500">No banner images available</p>
+  </div>
+  } @else {
+  <owl-carousel-o #owlCarousel [options]="carouselOptions" class="w-full">
+    @for (banner of bannerImages; track $index) {
+    <ng-template carouselSlide>
+      <div class="slide-item h-[450px] md:h-[500px] relative">
+        @if (isMobile) {
+        <img [src]="banner.small || 'assets/images/placeholder-banner-mobile.jpg'" alt="Banner image"
+          class="w-full h-full object-cover" loading="lazy"
+          onerror="this.src='assets/images/placeholder-banner-mobile.jpg'; this.onerror=null;" />
+        } @else {
+        <img [src]="banner.large || 'assets/images/placeholder-banner.jpg'" alt="Banner image"
+          class="w-full h-full object-cover" loading="lazy"
+          onerror="this.src='assets/images/placeholder-banner.jpg'; this.onerror=null;" />
+        }
+      </div>
+    </ng-template>
+    }
+  </owl-carousel-o>
+
+  <!-- Custom Navigation Arrows -->
+  <div class="custom-navigation hidden md:block">
+    <button class="nav-btn prev-btn" aria-label="Previous slide">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"></path>
+      </svg>
+    </button>
+    <button class="nav-btn next-btn" aria-label="Next slide">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18l6-6-6-6"></path>
+      </svg>
+    </button>
+  </div>
+  }
 </div>

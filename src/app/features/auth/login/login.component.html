@@ -1,73 +1,62 @@
 <div class="login-content">
-    <h2 class="form-title">Welcome Back, Explorer!</h2>
-    <p class="form-subtitle">Sign in to continue your outdoor adventures</p>
-  
-    <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="auth-form">
-      <div class="form-group">
-        <label for="username">
-          <i class="icon-user"></i>
-          Username or Email
-        </label>
-        <div class="input-container">
-          <input
-            type="text"
-            id="username"
-            formControlName="username"
-            [class.invalid]="loginForm.get('username')?.touched && loginForm.get('username')?.invalid"
-            required
-          />
-        </div>
-        @if(loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')){
-          <div class="error-message">
-            <i class="icon-error"></i> Username or Email is required
-          </div>
-        }
+  <h2 class="form-title">Welcome Back, Explorer!</h2>
+  <p class="form-subtitle">Sign in to continue your outdoor adventures</p>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="auth-form">
+    <div class="form-group">
+      <label for="username">
+        <i class="icon-user"></i>
+        Username or Email
+      </label>
+      <div class="input-container">
+        <input type="text" id="username" formControlName="username"
+          [class.invalid]="loginForm.get('username')?.touched && loginForm.get('username')?.invalid" required />
       </div>
-  
-      <div class="form-group">
-        <label for="password">
-          <i class="icon-lock"></i>
-          Password
-        </label>
-        <div class="input-container">
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            [class.invalid]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
-            required
-          />
-        </div>
-        @if(loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')){
-          <div class="error-message">
-            <i class="icon-error"></i> Password is required
-          </div>
-        }
+      @if(loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')){
+      <div class="error-message">
+        <i class="icon-error"></i> Username or Email is required
       </div>
-  
-      <div class="form-options">
-        <div class="remember-me">
-          <input type="checkbox" id="remember" class="custom-checkbox">
-          <label for="remember">Remember me</label>
-        </div>
-        <a href="#" class="forgot-password">Forgot Password?</a>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="password">
+        <i class="icon-lock"></i>
+        Password
+      </label>
+      <div class="input-container">
+        <input type="password" id="password" formControlName="password"
+          [class.invalid]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" required />
       </div>
-  
-      <button type="submit" class="submit-btn" [disabled]="loginForm.invalid">
-        <span>Sign In</span>
-        <i class="icon-arrow-right"></i>
-      </button>
-  
-      <div class="auth-divider">
-        <span>or continue with</span>
+      @if(loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')){
+      <div class="error-message">
+        <i class="icon-error"></i> Password is required
       </div>
-  
-      <div class="social-login">
-        <app-google-auth></app-google-auth>
-        <app-facebook-auth></app-facebook-auth>
+      }
+    </div>
+
+    <div class="form-options">
+      <div class="remember-me">
+        <input type="checkbox" id="remember" class="custom-checkbox">
+        <label for="remember">Remember me</label>
       </div>
-  
+      <a routerLink="/auth/forgot-password" class="forgot-password">Forgot Password?</a>
       <p class="error" *ngIf="loginError">{{ loginError }}</p>
-    </form>
-  </div>
-  
+    </div>
+
+    <button type="submit" class="submit-btn" [disabled]="loginForm.invalid">
+      <span>Sign In</span>
+      <i class="icon-arrow-right"></i>
+    </button>
+
+    <div class="auth-divider">
+      <span>or continue with</span>
+    </div>
+
+    <div class="social-login">
+      <app-google-auth></app-google-auth>
+      <app-facebook-auth></app-facebook-auth>
+    </div>
+
+  </form>
+</div>

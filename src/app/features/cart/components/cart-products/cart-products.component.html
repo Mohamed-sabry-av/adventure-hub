@@ -1,8 +1,6 @@
 <div class="w-full">
   <!-- Title -->
-  <h1
-    class="text-[#4d4f3a] text-2xl md:text-3xl xl:text-4xl font-bold mb-8 text-center"
-  >
+  <h1 class="text-[#4d4f3a] text-2xl md:text-3xl xl:text-4xl font-bold mb-8 text-center">
     Your Cart
   </h1>
 
@@ -22,33 +20,23 @@
     </p>
 
     <div class="h-2 rounded-lg w-full bg-gray-200 overflow-hidden">
-      <div
-        class="h-full bg-[#4d4f3a] transition-all duration-500"
-        [style.width.%]="progressValue"
-      ></div>
+      <div class="h-full bg-[#4d4f3a] transition-all duration-500" [style.width.%]="progressValue"></div>
     </div>
   </div>
 
-  <div
-    class="p-2"
-    [class]="{
+  <div class="p-2" [class]="{
       'h-[800px]': (loadedCart$ | async)?.userCart?.items?.length > 4,
       'overflow-auto': (loadedCart$ | async)?.userCart?.items?.length > 4,
       'bg-gray-200': ((cartStatus$ | async)?.sideCartLoading),
       'animate-pulse': ((cartStatus$ | async)?.sideCartLoading),
-    }"
-  >
+    }">
     @for (item of (loadedCart$ | async)?.userCart.items; track $index) {
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
       <a [routerLink]="[`/product/${item.slug}`]">
-        <img
-          loading="lazy"
-          [src]="item.image.thumbnail"
-          [alt]="item.image.alt"
-          class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer"
-        />
+        <img loading="lazy" [src]="item.image.thumbnail" [alt]="item.image.alt"
+          class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer" />
       </a>
 
       <div class="flex-1">
@@ -58,22 +46,13 @@
               {{ item.name.split(" ")[0] }}
             </p>
             <a [routerLink]="[`/product/${item.slug}`]">
-              <p
-                class="text-base cursor-pointer hover:underline"
-                [innerHTML]="item.name"
-              ></p>
+              <p class="text-base cursor-pointer hover:underline" [innerHTML]="item.name"></p>
             </a>
             <div>
-              <p
-                class="text-base"
-                [innerHTML]="item.prices.price | currencySvg"
-              ></p>
+              <p class="text-base" [innerHTML]="item.prices.price | currencySvg"></p>
               @if (item.prices.regular_price !== item.prices.price &&
               item.prices.sale_price !== null) {
-              <del
-                class="ml-1 text-gray-400 font-light text-sm"
-                [innerHTML]="item.prices.regular_price"
-              ></del>
+              <del class="ml-1 text-gray-400 font-light text-sm" [innerHTML]="item.prices.regular_price"></del>
               }
             </div>
 
@@ -85,49 +64,26 @@
             </p>
             } }
             <div class="flex mt-4 items-center gap-x-4">
-              <div
-                class="flex border-2 border-gray-400 rounded-lg w-fit items-center"
-              >
-                <button
-                  type="button"
-                  class="w-10 h-8"
-                  (click)="onUpdateProductQuantity(item, 'decrease')"
-                  [disabled]="item.quantity === 1"
-                  [class]="{
+              <div class="flex border-2 border-gray-400 rounded-lg w-fit items-center">
+                <button type="button" class="w-10 h-8" (click)="onUpdateProductQuantity(item, 'decrease')"
+                  [disabled]="item.quantity === 1" [class]="{
                     'text-gray-400': item.quantity === 1
-                  }"
-                >
-                  <span class="text-base inline-block transform scale-x-[3]"
-                    >-</span
-                  >
+                  }">
+                  <span class="text-base inline-block transform scale-x-[3]">-</span>
                 </button>
 
-                <input
-                  type="number"
-                  [value]="item.quantity"
-                  class="text-center text-gray-700 rounded-r-none w-6 h-fit outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                />
+                <input type="number" [value]="item.quantity"
+                  class="text-center text-gray-700 rounded-r-none w-6 h-fit outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
 
-                <button
-                  type="button"
-                  class="w-10 h-8"
-                  (click)="onUpdateProductQuantity(item, 'increase')"
-                  [disabled]="item.quantity === item.quantity_limits?.maximum"
-                  [class]="{
+                <button type="button" class="w-10 h-8" (click)="onUpdateProductQuantity(item, 'increase')"
+                  [disabled]="item.quantity === item.quantity_limits?.maximum" [class]="{
                     'text-gray-400':
                       item.quantity === item.quantity_limits?.maximum
-                  }"
-                >
-                  <span
-                    class="text-base inline-block font-thin transform scale-150"
-                    >+</span
-                  >
+                  }">
+                  <span class="text-base inline-block font-thin transform scale-150">+</span>
                 </button>
               </div>
-              <i
-                class="pi pi-trash text-red-600 text-lg cursor-pointer"
-                (click)="onDeleteProduct(item)"
-              ></i>
+              <i class="pi pi-trash text-red-600 text-lg cursor-pointer" (click)="onDeleteProduct(item)"></i>
             </div>
           </div>
 
@@ -135,10 +91,7 @@
           <div class="md:text-center pt-4 md:pt-0">
             <p class="mb-2 text-[#4d4f3a] md:hidden block">Subtotal</p>
 
-            <p
-              class="text-base font-semibold"
-              [innerHTML]="item.totals.line_total | currencySvg"
-            ></p>
+            <p class="text-base font-semibold" [innerHTML]="item.totals.line_total | currencySvg"></p>
           </div>
         </div>
       </div>

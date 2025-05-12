@@ -9,6 +9,14 @@ export const authroutes: Routes = [
     data: { authRequired: false, animation: 'authLogin' }
   },
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+    data: { authRequired: false, animation: 'forgotPassword' }
+  },
+  {
     path: 'Useraccount',
     loadComponent: () =>
       import('./account-details/account-details.component').then(
@@ -72,6 +80,14 @@ export const authroutes: Routes = [
             (m) => m.WishlistComponent
           ),
         data: { animation: 'userWishlist' }
+      },
+      {
+        path: 'newsletter',
+        loadComponent: () =>
+          import('./account-details/newsletter-preferences/newsletter-preferences.component').then(
+            (m) => m.NewsletterPreferencesComponent
+          ),
+        data: { animation: 'userNewsletter' }
       },
     ],
   },

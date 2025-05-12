@@ -16,6 +16,7 @@ declare var FB: any;
       <span class="facebook-icon"></span>
       Continue with Facebook
     </button>
+    <p class="error" *ngIf="loginError">{{ loginError }}</p>
   </div>
   `,
   styleUrls: ['./facebook-auth.component.css'],
@@ -31,33 +32,76 @@ export class FacebookAuthComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.checkFacebookSDK();
+      this.initFacebookSDK();
     }
   }
 
-  checkFacebookSDK() {
+  initFacebookSDK() {
+    // Check if FB SDK is already loaded
     if (typeof FB !== 'undefined') {
-      FB.getLoginStatus((response: any) => {
-        this.statusChangeCallback(response);
-      });
+      this.checkLoginStatus();
     } else {
-      console.error('Facebook SDK not loaded yet');
-      this.loginError = 'Facebook SDK not loaded';
-      setTimeout(() => this.checkFacebookSDK(), 1000);
+      // Load the Facebook SDK asynchronously
+      this.loadFacebookScript()
+        .then(() => {
+          this.initFB();
+        })
+        .catch(err => {
+          console.error('Failed to load Facebook SDK:', err);
+          this.loginError = 'Failed to load Facebook login';
+        });
     }
   }
 
-  // دالة معالجة حالة تسجيل الدخول (زي statusChangeCallback بتاع Facebook)
+  private loadFacebookScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Add the Facebook SDK script only if it's not already added
+      if (document.getElementById('facebook-jssdk')) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = 'facebook-jssdk';
+      script.src = 'https://connect.facebook.net/en_US/sdk.js';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Facebook SDK failed to load'));
+      
+      document.head.appendChild(script);
+    });
+  }
+
+  initFB() {
+    // Initialize the Facebook SDK with your app ID
+    FB.init({
+      appId: '834825131701175',
+      cookie: true,
+      xfbml: true,
+      version: 'v17.0'
+    });
+
+    this.checkLoginStatus();
+  }
+
+  checkLoginStatus() {
+    FB.getLoginStatus((response: any) => {
+      this.statusChangeCallback(response);
+    });
+  }
+
+  // Handle login status change
   statusChangeCallback(response: any) {
-    console.log('Login Status:', response);
+    console.log('Facebook Login Status:', response);
     if (response.status === 'connected') {
-      // المستخدم مسجّل بالفعل
+      // User is already logged in
       this.handleFacebookCredentialResponse(response);
     } else if (response.status === 'not_authorized') {
-      // المستخدم مسجّل في Facebook بس مش عندك
+      // User is logged in to Facebook but not authorized for this app
       this.loginError = 'Please authorize this app to log in';
     } else {
-      // المستخدم مش مسجّل خالص
+      // User is not logged in
       this.loginError = 'Please log in with Facebook';
     }
   }
@@ -66,20 +110,13 @@ export class FacebookAuthComponent implements AfterViewInit {
     if (typeof FB !== 'undefined') {
       FB.login(
         (response: any) => {
-          this.statusChangeCallback(response); // نستخدم نفس الـ callback بعد تسجيل الدخول
+          this.statusChangeCallback(response);
         },
         { scope: 'public_profile,email' }
       );
     } else {
       this.loginError = 'Facebook SDK not loaded';
     }
-  }
-
-  // الـ callback للزر الرسمي (لو عايز تستخدمه)
-  checkLoginState() {
-    FB.getLoginStatus((response: any) => {
-      this.statusChangeCallback(response);
-    });
   }
 
   handleFacebookCredentialResponse(response: any) {
@@ -99,16 +136,4 @@ export class FacebookAuthComponent implements AfterViewInit {
       });
     }
   }
-}
-
-// نضيف الـ checkLoginState كدالة عامة لو عايز تستخدم الزر الرسمي
-if (typeof window !== 'undefined') {
-  (window as any).checkLoginState = () => {
-    FB.getLoginStatus((response: any) => {
-      const fbComponent = document.querySelector('app-facebook-auth') as any;
-      if (fbComponent) {
-        fbComponent.__proto__.constructor.prototype.checkLoginState.call(fbComponent);
-      }
-    });
-  };
 }

@@ -1,64 +1,52 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core'; // أضفت OnInit
-import { CommonModule } from '@angular/common';
-import { PrivcyTermsService } from '../../service/privcy-terms.service';
-import { DecodeHtmlPipe } from '../../../../shared/pipes/decode-html.pipe';
+import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ContentPagesService } from '../../service/content-pages.service';
 import { SeoService } from '../../../../core/services/seo.service';
+import { BaseContentPageComponent } from '../page-skeleton/base-content-page.component';
+import { ContentPageComponent } from '../page-skeleton/content-page.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-terms',
   standalone: true,
-  imports: [CommonModule, DecodeHtmlPipe],
-
+  imports: [ContentPageComponent],
   template: `
+    <!-- SEO Schema Data -->
     <ng-container *ngIf="schemaData">
       <script type="application/ld+json" [innerHTML]="schemaData"></script>
     </ng-container>
-    <div class="terms-container">
-      @if (termsData) {
-      <div>
-        <h1>{{ termsData.title?.rendered | decodeHtml }}</h1>
-        <div [innerHTML]="termsData.content?.rendered"></div>
-      </div>
-      } @else {
-      <p>Loading terms...</p>
-      }
-    </div>
+    
+    <app-content-page
+      [pageData]="pageData"
+      [schemaData]="schemaData"
+      [isLoading]="isLoading"
+      pageClass="terms-page"
+    ></app-content-page>
   `,
-  styleUrls: ['./terms.component.css'],
+  providers: [
+    {
+      provide: BaseContentPageComponent,
+      useExisting: TermsComponent
+    }
+  ]
 })
-export class TermsComponent implements OnInit {
-  termsData: any;
-  schemaData: any;
-
+export class TermsComponent extends BaseContentPageComponent {
   constructor(
-    private privcyTermsService: PrivcyTermsService,
-    private seoService: SeoService
-  ) {}
-
-  ngOnInit(): void {
-    this.fetchTerms();
+    protected override contentPagesService: ContentPagesService,
+    protected override seoService: SeoService,
+    protected override router: Router
+  ) {
+    super(contentPagesService, seoService, router);
   }
 
-  fetchTerms(): void {
-    this.privcyTermsService.getTerms().subscribe({
-      next: (data) => {
-        this.termsData = data;
-        // Apply SEO tags using yoast_head_json
-        this.schemaData = this.seoService.applySeoTags(this.termsData, {
-          title: this.termsData?.title?.rendered,
-          description:
-            this.termsData?.excerpt?.rendered ||
-            'Terms and Conditions - Adventures HUB Sports Shop',
-        });
-        console.log('Terms Data:', this.termsData);
-      },
-      error: (error) => {
-        console.error('Error fetching terms:', error);
-        // Fallback SEO tags in case of error
-        this.schemaData = this.seoService.applySeoTags(null, {
-          title: 'Terms and Conditions - Adventures HUB Sports Shop',
-        });
-      },
-    });
+  protected override getPageContent(): Observable<any> {
+    return this.contentPagesService.getTerms();
+  }
+
+  protected override getDefaultSeoData(): { title: string; description: string } {
+    return {
+      title: 'Terms and Conditions - Adventures HUB Sports Shop',
+      description: 'Terms and conditions for Adventure HUB Sports Shop. Details about our services, policies, and user agreements.'
+    };
   }
 }

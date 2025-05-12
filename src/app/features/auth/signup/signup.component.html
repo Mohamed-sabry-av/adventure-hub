@@ -9,24 +9,18 @@
         Username
       </label>
       <div class="input-container">
-        <input
-          type="text"
-          id="signupUsername"
-          formControlName="username"
-          placeholder="Choose a username"
-          [class.invalid]="signupForm.get('username')?.touched && signupForm.get('username')?.invalid"
-          required
-        />
+        <input type="text" id="signupUsername" formControlName="username" placeholder="Choose a username"
+          [class.invalid]="signupForm.get('username')?.touched && signupForm.get('username')?.invalid" required />
       </div>
       @if(signupForm.get('username')?.touched && signupForm.get('username')?.hasError('required')){
-        <div class="error-message">
-          <i class="icon-error"></i> Username is required
-        </div>
+      <div class="error-message">
+        <i class="icon-error"></i> Username is required
+      </div>
       }
       @if(signupForm.get('username')?.touched && signupForm.get('username')?.hasError('minlength')){
-        <div class="error-message">
-          <i class="icon-error"></i> Username must be at least 3 characters
-        </div>
+      <div class="error-message">
+        <i class="icon-error"></i> Username must be at least 3 characters
+      </div>
       }
     </div>
 
@@ -36,24 +30,18 @@
         Email Address
       </label>
       <div class="input-container">
-        <input
-          type="email"
-          id="signupEmail"
-          formControlName="email"
-          placeholder="Your email address"
-          [class.invalid]="signupForm.get('email')?.touched && signupForm.get('email')?.invalid"
-          required
-        />
+        <input type="email" id="signupEmail" formControlName="email" placeholder="Your email address"
+          [class.invalid]="signupForm.get('email')?.touched && signupForm.get('email')?.invalid" required />
       </div>
       @if(signupForm.get('email')?.touched && signupForm.get('email')?.hasError('required')){
-        <div class="error-message">
-          <i class="icon-error"></i> Email is required
-        </div>
+      <div class="error-message">
+        <i class="icon-error"></i> Email is required
+      </div>
       }
       @if(signupForm.get('email')?.touched && signupForm.get('email')?.hasError('email')){
-        <div class="error-message">
-          <i class="icon-error"></i> Please enter a valid email
-        </div>
+      <div class="error-message">
+        <i class="icon-error"></i> Please enter a valid email
+      </div>
       }
     </div>
 
@@ -63,24 +51,18 @@
         Password
       </label>
       <div class="input-container">
-        <input
-          type="password"
-          id="signupPassword"
-          formControlName="password"
-          placeholder="Create a secure password"
-          [class.invalid]="signupForm.get('password')?.touched && signupForm.get('password')?.invalid"
-          required
-        />
+        <input type="password" id="signupPassword" formControlName="password" placeholder="Create a secure password"
+          [class.invalid]="signupForm.get('password')?.touched && signupForm.get('password')?.invalid" required />
       </div>
       @if(signupForm.get('password')?.touched && signupForm.get('password')?.hasError('required')){
-        <div class="error-message">
-          <i class="icon-error"></i> Password is required
-        </div>
+      <div class="error-message">
+        <i class="icon-error"></i> Password is required
+      </div>
       }
       @if(signupForm.get('password')?.touched && signupForm.get('password')?.hasError('minlength')){
-        <div class="error-message">
-          <i class="icon-error"></i> Password must be at least 6 characters
-        </div>
+      <div class="error-message">
+        <i class="icon-error"></i> Password must be at least 6 characters
+      </div>
       }
     </div>
 
@@ -106,11 +88,20 @@
       <i class="icon-arrow-right"></i>
     </button>
 
+    <div class="auth-divider">
+      <span>or sign up with</span>
+    </div>
+
+    <div class="social-login">
+      <app-google-auth></app-google-auth>
+      <app-facebook-auth></app-facebook-auth>
+    </div>
+
     @if(signupError) {
-      <div class="error-message-box">{{ signupError }}</div>
+    <div class="error-message-box">{{ signupError }}</div>
     }
     @if(signupSuccess) {
-      <div class="success-message-box">{{ signupSuccess }}</div>
+    <div class="success-message-box">{{ signupSuccess }}</div>
     }
   </form>
 </div>

@@ -3,12 +3,19 @@ import { Injectable } from '@angular/core';
 import { Observable, map, catchError, of, shareReplay } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { CacheService } from '../../../core/services/cashing.service';
+import { environment } from '../../../../environments/environment';
+
+interface BannerImage {
+  large: string;
+  small: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class HomeService {
   constructor(
     private wooApi: ApiService,
-    private cachingService: CacheService
+    private cachingService: CacheService,
+    private http: HttpClient
   ) {}
 
   getNewArrivalsProducts(page: number = 1, perPage: number = 30): any {
@@ -197,6 +204,52 @@ export class HomeService {
         catchError((error) => {
           console.error(`Error fetching brand with ID ${termId}:`, error);
           return of(null);
+        }),
+        shareReplay(1)
+      );
+  }
+
+  getBannerImages(): Observable<BannerImage[]> {
+    const cacheKey = 'banner_images';
+    const cachedData = this.cachingService.get(cacheKey);
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
+    // Use the API service for the external request
+    const url = 'https://adventures-hub.com/wp-json/custom/v1/banners';
+    
+    return this.http.get<{banner_images: BannerImage[]}>(url)
+      .pipe(
+        map(response => {
+          // Validate response structure
+          if (response && response.banner_images && Array.isArray(response.banner_images)) {
+            // Validate each banner image has required properties
+            const validBannerImages = response.banner_images.filter((banner: any) => 
+              banner && typeof banner === 'object' && 
+              typeof banner.large === 'string' && 
+              typeof banner.small === 'string'
+            );
+            
+            this.cachingService.set(cacheKey, validBannerImages, 3600); // Cache for 1 hour
+            return validBannerImages;
+          } else if (response && Array.isArray(response)) {
+            // Handle case where response is an array directly
+            const validBannerImages = response.filter((banner: any) => 
+              banner && typeof banner === 'object' && 
+              typeof banner.large === 'string' && 
+              typeof banner.small === 'string'
+            );
+            
+            this.cachingService.set(cacheKey, validBannerImages, 3600);
+            return validBannerImages;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('Error fetching banner images:', error);
+          return of([]);
         }),
         shareReplay(1)
       );

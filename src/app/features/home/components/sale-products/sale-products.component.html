@@ -5,41 +5,59 @@
       <a routerLink="/sale" class="text-blue-600 hover:text-blue-800 flex items-center">
         View all
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+          <path fill-rule="evenodd"
+            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+            clip-rule="evenodd" />
         </svg>
       </a>
     </div>
 
     @if (loading) {
-      <div class="flex justify-center py-8">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
+    <div class="flex justify-center py-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+    </div>
     }
 
     @if (error) {
-      <div class="bg-red-100 text-red-700 p-4 mb-4 rounded">
-        {{ error }}
-      </div>
+    <div class="bg-red-100 text-red-700 p-4 mb-4 rounded">
+      {{ error }}
+    </div>
     }
 
     @if (!loading && !error && products.length > 0) {
-      <div class="products-carousel overflow-hidden">
-        <owl-carousel-o [options]="carouselOptions">
-          @for (product of products; track product.id) {
-            <ng-template carouselSlide [id]="product.id">
-              <div class="px-2">
-                <app-product-card [product]="product"></app-product-card>
-              </div>
-            </ng-template>
-          }
-        </owl-carousel-o>
+    <div class="products-carousel overflow-hidden relative">
+      <owl-carousel-o #owlCarousel [options]="carouselOptions">
+        @for (product of products; track product.id) {
+        <ng-template carouselSlide [id]="product.id">
+          <div class="px-2">
+            <app-product-card [product]="product"></app-product-card>
+          </div>
+        </ng-template>
+        }
+      </owl-carousel-o>
+
+      <!-- Custom Navigation Arrows -->
+      <div class="custom-navigation hidden md:block">
+        <button class="nav-btn prev-btn" aria-label="Previous slide">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+        </button>
+        <button class="nav-btn next-btn" aria-label="Next slide">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"></path>
+          </svg>
+        </button>
       </div>
+    </div>
     }
 
     @if (!loading && !error && products.length === 0) {
-      <div class="text-center py-8 bg-gray-100 rounded-lg">
-        <p class="text-gray-600">No sale products available at the moment.</p>
-      </div>
+    <div class="text-center py-8 bg-gray-100 rounded-lg">
+      <p class="text-gray-600">No sale products available at the moment.</p>
+    </div>
     }
   </div>
 </section>

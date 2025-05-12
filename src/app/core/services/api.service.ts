@@ -229,17 +229,16 @@ export class ApiService {
       withCredentials?: boolean;
     } = {}
   ): Observable<T> {
-    if (isPlatformServer(this.platformId)) {
-      return of(null as any);
-    }
-
     const cacheKey = `${fullUrl}_${options.params?.toString() || ''}`;
     const cached = this.cache.get(cacheKey);
+    
+    const cacheDuration = 1800000;
+    
     if (cached && cached.expiry > Date.now()) {
       if (!cached.data || (Array.isArray(cached.data) && cached.data.length === 0)) {
         this.cache.delete(cacheKey);
       } else {
-        return of(cached.data);
+        return of(cached.data).pipe(shareReplay(1));
       }
     }
 
@@ -252,7 +251,11 @@ export class ApiService {
         retry(2),
         map((data) => {
           if (data && !(Array.isArray(data) && data.length === 0)) {
-            this.cache.set(cacheKey, { data, expiry: Date.now() + 300000 });
+            this.cache.set(cacheKey, { data, expiry: Date.now() + cacheDuration });
+            
+            if (isPlatformServer(this.platformId)) {
+              ApiService.serverCache.set(cacheKey, data);
+            }
           }
           return data;
         }),
