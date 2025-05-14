@@ -8,6 +8,7 @@ import {
   OnInit,
   Inject,
   PLATFORM_ID,
+  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -19,6 +20,8 @@ import { Product, Variation } from '../../../../../interfaces/product';
 import { SideOptionsService } from '../../../../../core/services/side-options.service';
 import { CartService } from '../../../../../features/cart/service/cart.service';
 import { VariationService } from '../../../../../core/services/variation.service';
+import { UIService } from '../../../../../shared/services/ui.service';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-mobile-quick-add',
@@ -36,7 +39,7 @@ import { VariationService } from '../../../../../core/services/variation.service
     ]),
   ],
 })
-export class MobileQuickAddComponent implements OnInit {
+export class MobileQuickAddComponent implements OnInit, OnDestroy {
   @Input() uniqueSizes: { size: string; inStock: boolean }[] = [];
   @Input() selectedSize: string | null = null;
   @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
@@ -58,6 +61,9 @@ export class MobileQuickAddComponent implements OnInit {
   quantityValue: number = 1;
   addSuccess: boolean = false;
   showOutOfStockVariations: boolean = true;
+  isLoading: boolean = false;
+  loadingMap$: Observable<{ [key: string]: boolean }>;
+  private loadingSubscription: Subscription | null = null;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -66,11 +72,35 @@ export class MobileQuickAddComponent implements OnInit {
     private productService: ProductService,
     private sideOptionsService: SideOptionsService,
     private variationService: VariationService,
-    private cartService: CartService
-  ) {}
+    private cartService: CartService,
+    private uiService: UIService
+  ) {
+    this.loadingMap$ = this.uiService.loadingMap$;
+  }
 
   ngOnInit() {
     this.quantityValue = this.quantity || 1;
+    
+    // Subscribe to loading state changes
+    this.loadingSubscription = this.loadingMap$.subscribe(loadingMap => {
+      if (loadingMap && !loadingMap['add']) {
+        // When loading finishes, show success indicator
+        if (this.isLoading) {
+          this.isLoading = false;
+          this.addSuccess = true;
+          setTimeout(() => {
+            this.addSuccess = false;
+            this.cdr.markForCheck();
+          }, 2000);
+        }
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.loadingSubscription) {
+      this.loadingSubscription.unsubscribe();
+    }
   }
 
   onAddToCart() {
@@ -84,6 +114,8 @@ export class MobileQuickAddComponent implements OnInit {
       return;
     }
 
+    this.isLoading = true;
+    
     const cartProduct = this.variationService.prepareProductForCart(
       this.product,
       this.selectedVariation,
@@ -91,29 +123,51 @@ export class MobileQuickAddComponent implements OnInit {
     );
 
     this.cartService.addProductToCart(cartProduct);
-
-    this.addSuccess = true;
-    setTimeout(() => {
-      this.addSuccess = false;
-      this.cdr.markForCheck();
-    }, 2000);
-
     this.addToCart.emit({ quantity: this.quantityValue });
   }
 
   onToggleOptionsPanel() {
-    console.log('options Start Open');
-    this.sideOptionsService.openSideOptions({
-      product: this.product,
-      variations: this.variations,
-      selectedVariation: this.selectedVariation,
-      uniqueSizes: this.uniqueSizes,
-      selectedSize: this.selectedSize,
-      colorOptions: this.colorOptions,
-      selectedColor: this.selectedColor,
-      visibleColors: this.visibleColors,
-      isMobile: this.isMobile,
-    });
+    if (!this.product) {
+      console.error('No product provided');
+      return;
+    }
+
+    // If it's a simple product, add directly to cart
+    if (this.product.type === 'simple') {
+      // Check if the product is in stock before adding
+      if (this.product.stock_status === 'outofstock' || !this.product.purchasable) {
+        // If out of stock, show a message using UIService
+        this.uiService.showError('This product is currently out of stock');
+        return;
+      }
+      
+      this.isLoading = true;
+      
+      const cartProduct = this.variationService.prepareProductForCart(
+        this.product,
+        null,
+        1 // Default quantity 1 for quick add
+      );
+
+      // The cart will open automatically from the effect
+      this.cartService.addProductToCart(cartProduct);
+      
+      this.addToCart.emit({ quantity: 1 });
+    } 
+    // If it has variations, open the side options panel
+    else {
+      this.sideOptionsService.openSideOptions({
+        product: this.product,
+        variations: this.variations,
+        selectedVariation: this.selectedVariation,
+        uniqueSizes: this.uniqueSizes,
+        selectedSize: this.selectedSize,
+        colorOptions: this.colorOptions,
+        selectedColor: this.selectedColor,
+        visibleColors: this.visibleColors,
+        isMobile: this.isMobile,
+      });
+    }
   }
 
   incrementQuantity() {

@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { VariationService } from '../../../core/services/variation.service';
 import { ProductAttributeOption } from '../components/product-info/product-info.component';
+import { ProductService } from '../../../core/services/product.service';
+import { switchMap } from 'rxjs/operators';
 
 export interface AttributeSelection {
   name: string;
@@ -15,7 +17,10 @@ export class ProductInfoService {
   private selectedAttributes: { [key: string]: string | null } = {};
   private showOutOfStockVariations = true;
 
-  constructor(private variationService: VariationService) {}
+  constructor(
+    private variationService: VariationService, 
+    private productService: ProductService
+  ) {}
 
   /**
    * Set default attributes for a product
@@ -363,5 +368,25 @@ export class ProductInfoService {
       quantity,
       type: 'variation',
     };
+  }
+
+  /**
+   * Get full variation data including all images by fetching from API
+   * @param product The product object
+   * @param selectedAttributes Currently selected attributes
+   * @returns Observable of the complete variation data
+   */
+  getFullVariationData(product: any, selectedAttributes: { [key: string]: string | null }): Observable<any> {
+    if (!product || product.type !== 'variable' || !this.allVariationAttributesSelected(product, selectedAttributes)) {
+      return of(null);
+    }
+
+    const variation = this.getSelectedVariation(product, selectedAttributes);
+    if (!variation) {
+      return of(null);
+    }
+
+    // Fetch the full variation data from the API to get all images
+    return this.productService.getVariationById(product.id, variation.id);
   }
 }

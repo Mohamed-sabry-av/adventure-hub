@@ -234,9 +234,15 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.isFetching = true;
     this.isLoading = isInitialLoad || this.isCategorySwitching;
     this.isLoadingMore = !isInitialLoad && !this.isCategorySwitching;
-    this.isInitialLoadComplete = false;
-    this.showSkeleton = isInitialLoad || this.isCategorySwitching || this.products.length === 0;
-    this.showEmptyState = false; // إخفاء الحالة الفارغة أثناء التحميل
+    
+    // Clear products array when loading initial data (not when loading more)
+    if (isInitialLoad || this.isCategorySwitching) {
+      this.products = [];
+      this.isInitialLoadComplete = false;
+      this.showSkeleton = true;
+    }
+    
+    this.showEmptyState = false;
     this.cdr.markForCheck();
 
     const currentItemsPerPage = isInitialLoad ? this.initialLoadItemsPerPage : this.loadMoreItemsPerPage;
@@ -270,7 +276,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           : [...this.products, ...products];
         if (isInitialLoad) this.currentPage = 1;
         this.showSkeleton = this.products.length === 0;
-        this.showEmptyState = this.products.length === 0; // تحديث الحالة الفارغة بعد تحميل المنتجات
+        this.showEmptyState = this.products.length === 0;
         this.transferState.set(PRODUCTS_KEY, this.products);
         this.cdr.markForCheck();
       });
@@ -317,11 +323,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.isInitialLoadComplete = false;
     this.currentCategoryId = categoryId;
     this.currentPage = 1;
-    this.products = [];
+    this.products = []; // Clear products immediately
     this.isCategorySwitching = true;
-    this.showSkeleton = true; // إظهار الـ skeleton عند تغيير الفئة
-    this.showEmptyState = false; // إخفاء الحالة الفارغة صراحة
-    this.cdr.markForCheck();
+    this.showSkeleton = true; // Show skeleton when changing category
+    this.showEmptyState = false;
+    // Force change detection to immediately show the skeleton and hide old products
+    this.cdr.detectChanges();
 
     if (this.filterSidebar) {
       this.filterSidebar.selectedFilters = {};
@@ -389,8 +396,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.isCategorySwitching = false;
       this.isInitialLoadComplete = true;
-      this.showSkeleton = this.products.length === 0; // إخفاء الـ skeleton إذا كانت هناك منتجات
-      this.showEmptyState = this.products.length === 0; // تحديث الحالة الفارغة
+      this.showSkeleton = this.products.length === 0;
+      this.showEmptyState = this.products.length === 0;
       this.cdr.markForCheck();
     }
   }

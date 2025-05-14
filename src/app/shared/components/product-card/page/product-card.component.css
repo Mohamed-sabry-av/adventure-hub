@@ -30,9 +30,9 @@
 @media (max-width: 767px) {
   .product-card {
     width: 100%; /* Full width of grid cell on mobile */
-    height: 380px; /* Smaller fixed height on mobile */
+    height: 480px; /* Smaller fixed height on mobile */
     min-height: 380px;
-    max-height: 380px; /* Ensure max height is enforced */
+    max-height: 440px; /* Ensure max height is enforced */
     font-size: 0.9rem;
   }
 

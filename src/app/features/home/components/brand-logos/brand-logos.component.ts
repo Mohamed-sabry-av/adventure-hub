@@ -31,7 +31,17 @@ interface Brand {
   template: `
 <div class="brand-logos py-2 px-2 bg-white">
   <div class="container mx-auto">
-    @if (brands.length > 0) {
+    @if (loading) {
+      <div class="brand-skeleton-container">
+        <div class="brand-carousel-skeleton flex items-center">
+          @for (item of [1,2,3,4,5]; track item) {
+            <div class="brand-skeleton animate-pulse mx-2 p-2 flex items-center justify-center">
+              <div class="h-8 w-24 bg-gray-200 rounded"></div>
+            </div>
+          }
+        </div>
+      </div>
+    } @else if (brands.length > 0) {
       <div class="brands-carousel relative">
         <owl-carousel-o [options]="carouselOptions">
           @for (brand of brands; track brand.id) {
@@ -54,9 +64,7 @@ interface Brand {
           }
         </owl-carousel-o>
       </div>
-    } @else {
-      <div class="text-center text-gray-500">No brands available at the moment.</div>
-    }
+    } 
   </div>
 </div>
   `,
@@ -96,6 +104,26 @@ interface Brand {
   justify-content: center;
   height: 48px;
 }
+
+/* Brand skeleton styles */
+.brand-carousel-skeleton {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding: 10px 0;
+}
+
+.brand-carousel-skeleton::-webkit-scrollbar {
+  display: none;
+}
+
+.brand-skeleton {
+  min-width: 120px;
+  height: 48px;
+  border-radius: 8px;
+}
     `,
   ],
   // changeDetection: ChangeDetectionStrategy.OnPush
@@ -104,9 +132,10 @@ export class BrandLogosComponent implements OnInit {
   private homeService = inject(HomeService);
   private cdr = inject(ChangeDetectorRef);
 
-  private readonly allowedBrandIds = [550, 5126, 1126, 2461, 1441, 989, 877, 971, 3537];
+  private readonly allowedBrandIds = [550, 5126, 1126, 2461, 1441, 989, 877, 971, 3537,4582,311,5276,396,415,3102,2743,3537,3546];
 
   brands: Brand[] = [];
+  loading: boolean = true;
 
   carouselOptions: OwlOptions = {
     loop: true,
@@ -140,6 +169,7 @@ export class BrandLogosComponent implements OnInit {
   }
 
   loadBrands(): void {
+    this.loading = true;
     const brandObservables = this.allowedBrandIds.map(id =>
       this.homeService.getBrandById(id).pipe(
         catchError(error => {
@@ -151,10 +181,12 @@ export class BrandLogosComponent implements OnInit {
     forkJoin(brandObservables).subscribe({
       next: (brands: Brand[]) => {
         this.brands = brands.filter(brand => brand !== null);
+        this.loading = false;
         this.cdr.markForCheck();
       },
       error: (error) => {
         this.brands = [];
+        this.loading = false;
         this.cdr.markForCheck();
       },
     });

@@ -1,3 +1,26 @@
+/* Add the new navigation styles at the top of the file */
+.product-navigation {
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 12px;
+  margin-top: -8px;
+}
+
+.product-navigation button {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.product-navigation button:hover {
+  color: var(--primary-color, #4f46e5);
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+  .product-navigation span.truncate {
+    max-width: 120px;
+  }
+}
 
 /* Sticky Product Info */
 .sticky-wrapper {

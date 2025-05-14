@@ -9,6 +9,8 @@ import {
   ChangeDetectionStrategy,
   effect,
   ChangeDetectorRef,
+  signal,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -36,12 +38,20 @@ export class ProductImagesComponent implements OnInit {
   selectedImageIndex: number = 0;
 
   isZoomed: boolean = false;
+  isFullscreen = signal(false);
+  fullscreenZoomLevel = signal(1);
+  fullscreenPosition = signal({ x: 50, y: 50 });
 
   // Track image loading state
   isImageLoading: boolean = true;
+  isGalleryLoading = signal(false);
+  
+  // Track current product ID to detect changes
+  private currentProductId: number | null = null;
 
   // Reference to the main image container for zoom functionality
   @ViewChild('zoomContainer') zoomContainer!: ElementRef;
+  @ViewChild('fullscreenContainer') fullscreenContainer!: ElementRef;
 
   // Default images if no data is provided
   defaultImages: string[] = [
@@ -57,11 +67,44 @@ export class ProductImagesComponent implements OnInit {
     effect(() => {
       const variation = this.selectedVariation();
       if (variation) {
+        // Set loading state when variation changes
+        this.isGalleryLoading.set(true);
         this.selectedImageIndex = 0; // Reset to first image
         this.isImageLoading = true; // Trigger loading state
         this.cdr.detectChanges(); // Force UI update
+        
+        // Turn off loading after a small delay to ensure new images are loaded
+        setTimeout(() => {
+          this.isGalleryLoading.set(false);
+          this.cdr.detectChanges();
+        }, 500);
       }
     });
+    
+    // Effect to detect product changes
+    effect(() => {
+      const images = this.productImages();
+      if (images && Array.isArray(images) && images.length > 0) {
+        const productId = this.getProductIdFromImages(images);
+        
+        // If product ID changed, reset gallery
+        if (productId !== this.currentProductId) {
+          this.currentProductId = productId;
+          this.selectedImageIndex = 0;
+          this.isImageLoading = true;
+          // Reset internal state but don't modify the input signal
+          this.cdr.detectChanges();
+        }
+      }
+    });
+  }
+  
+  // Helper to extract product ID from images
+  private getProductIdFromImages(images: any[]): number | null {
+    if (images && images.length > 0 && images[0].id) {
+      return images[0].id;
+    }
+    return null;
   }
 
   ngOnInit() {
@@ -85,28 +128,123 @@ export class ProductImagesComponent implements OnInit {
     }
   }
 
+  // Open fullscreen image view
+  openFullscreen(index?: number): void {
+    if (index !== undefined) {
+      this.selectedImageIndex = index;
+    }
+    document.body.classList.add('overflow-hidden');
+    this.isFullscreen.set(true);
+    this.fullscreenZoomLevel.set(1);
+    this.fullscreenPosition.set({ x: 50, y: 50 });
+    this.cdr.detectChanges();
+  }
+
+  // Close fullscreen image view
+  closeFullscreen(): void {
+    document.body.classList.remove('overflow-hidden');
+    this.isFullscreen.set(false);
+    this.cdr.detectChanges();
+  }
+
+  // Zoom functionality for fullscreen view
+  zoomFullscreen(event: MouseEvent | TouchEvent): void {
+    if (this.fullscreenZoomLevel() === 1) return;
+
+    let clientX, clientY;
+
+    if (event instanceof MouseEvent) {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    } else {
+      // Touch event
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    }
+
+    if (this.fullscreenContainer) {
+      const container = this.fullscreenContainer.nativeElement;
+      const rect = container.getBoundingClientRect();
+      
+      // Calculate position as percentage of container size
+      const x = ((clientX - rect.left) / rect.width) * 100;
+      const y = ((clientY - rect.top) / rect.height) * 100;
+      
+      this.fullscreenPosition.set({ x, y });
+    }
+  }
+
+  // Toggle zoom level in fullscreen view
+  toggleFullscreenZoom(): void {
+    this.fullscreenZoomLevel.set(this.fullscreenZoomLevel() === 1 ? 2.5 : 1);
+    if (this.fullscreenZoomLevel() === 1) {
+      this.fullscreenPosition.set({ x: 50, y: 50 });
+    }
+  }
+
+  // Reset fullscreen zoom
+  resetFullscreenZoom(): void {
+    if (this.fullscreenZoomLevel() > 1) {
+      this.fullscreenZoomLevel.set(1);
+      this.fullscreenPosition.set({ x: 50, y: 50 });
+    }
+  }
+
+  // Handle keyboard navigation in fullscreen mode
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    if (!this.isFullscreen()) return;
+
+    switch (event.key) {
+      case 'Escape':
+        this.closeFullscreen();
+        break;
+      case 'ArrowLeft':
+        this.prevImage();
+        break;
+      case 'ArrowRight':
+        this.nextImage();
+        break;
+      case ' ':
+        this.toggleFullscreenZoom();
+        event.preventDefault();
+        break;
+    }
+  }
+
   // Function to get images for the gallery based on selected color
   getGalleryImages(): { src: string; alt: string }[] {
     let imagesArray: { src: string; alt: string }[] = [];
 
     if (this.selectedVariation()) {
-      // لو فيه variation مختارة، استخدم صورها
-      const mainImage = this.selectedVariation().image?.src
-        ? [{ src: this.selectedVariation().image.src, alt: 'Product Image' }]
+      const variation = this.selectedVariation();
+      console.log('Selected variation in images component:', variation);
+      
+      // Add the main variation image if available
+      const mainImage = variation.image?.src
+        ? [{ src: variation.image.src, alt: 'Product Image' }]
         : [];
-      const additionalImages =
-        this.selectedVariation().additional_images?.map((url: string) => ({
+      
+      // Add additional images if available
+      let additionalImages: { src: string; alt: string }[] = [];
+      
+      if (variation.additional_images && Array.isArray(variation.additional_images)) {
+        additionalImages = variation.additional_images.map((url: string) => ({
           src: url,
           alt: 'Product Image',
-        })) || [];
+        }));
+      }
+      
+      // Combine main image with additional images
       imagesArray = [...mainImage, ...additionalImages];
+      console.log('Variation Images Array:', imagesArray);
     } else {
-      // لو مفيش variation، استخدم صور المنتج الافتراضية
+      // If no variation selected, use product's default images
       const images = this.productImages() || this.defaultImages;
       imagesArray = Array.isArray(images)
         ? images.map((img: any) => ({
             src: img.src || img,
-            alt: img.alt || 'صورة المنتج',
+            alt: img.alt || 'Product Image',
           }))
         : [];
     }
@@ -136,6 +274,7 @@ export class ProductImagesComponent implements OnInit {
     const images = this.getGalleryImages();
     this.selectedImageIndex = (this.selectedImageIndex + 1) % images.length;
     this.isImageLoading = true;
+    this.resetFullscreenZoom();
     this.cdr.detectChanges();
   }
 
@@ -145,6 +284,7 @@ export class ProductImagesComponent implements OnInit {
     this.selectedImageIndex =
       (this.selectedImageIndex - 1 + images.length) % images.length;
     this.isImageLoading = true;
+    this.resetFullscreenZoom();
     this.cdr.detectChanges();
   }
 

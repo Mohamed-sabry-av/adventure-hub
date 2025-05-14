@@ -11,12 +11,12 @@ declare var FB: any;
   standalone: true,
   imports: [CommonModule],
   template: `
-   <div class="social-signin-container">
+   <div class="facebook-signin-container">
     <button class="facebook-btn" (click)="signInWithFacebook()">
       <span class="facebook-icon"></span>
       Continue with Facebook
     </button>
-    <p class="error" *ngIf="loginError">{{ loginError }}</p>
+    <!-- <p class="error" *ngIf="loginError">{{ loginError }}</p> -->
   </div>
   `,
   styleUrls: ['./facebook-auth.component.css'],
@@ -99,10 +99,10 @@ export class FacebookAuthComponent implements AfterViewInit {
       this.handleFacebookCredentialResponse(response);
     } else if (response.status === 'not_authorized') {
       // User is logged in to Facebook but not authorized for this app
-      this.loginError = 'Please authorize this app to log in';
+      this.loginError = '';
     } else {
       // User is not logged in
-      this.loginError = 'Please log in with Facebook';
+      this.loginError = '';
     }
   }
 

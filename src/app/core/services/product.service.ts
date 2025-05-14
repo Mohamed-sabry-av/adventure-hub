@@ -103,10 +103,7 @@ export class ProductService {
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('category', categoryId.toString())
-          .set(
-            '_fields',
-            'default_attributes,id,slug,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
-          )
+          .set('_fields', 'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type')
           .set('per_page', perPage.toString())
           .set('page', page.toString())
           .set('stock_status', 'instock')

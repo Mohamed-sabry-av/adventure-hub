@@ -6,6 +6,8 @@ import {
   OnInit,
   OnDestroy,
   inject,
+  effect,
+  runInInjectionContext,
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -24,6 +26,7 @@ import { TabbyConfigService } from '../TabbyPromoComponent/Tabby.cofing.service'
 import { StickyFooterService } from '../../../../shared/services/sticky-footer.service';
 import { ProductInfoService } from '../../services/product-info.service';
 import { UnifiedWishlistService } from '../../../../shared/services/unified-wishlist.service';
+import { ProductTagsService } from '../../../../shared/services/product-tags.service';
 
 /**
  * Interface for product attribute options
@@ -75,6 +78,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   private stickyFooterService = inject(StickyFooterService);
   private productInfoService = inject(ProductInfoService);
+  private productTagsService = inject(ProductTagsService);
   isFooterVisible$ = this.stickyFooterService.isFooterVisible$;
   private scrollHandler!: () => void;
 
@@ -92,11 +96,23 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
     this.tabbyConfig = this.tabbyConfigService.getConfig();
+    
+    // Track product changes using effect (within injection context)
+    effect(() => {
+      const newProduct = this.productInfo();
+      if (newProduct && newProduct.id) {
+        // Reset attributes when product changes
+        this.selectedAttributes = this.productInfoService.setDefaultAttributes(newProduct);
+        this.updateMaxLength();
+        this.checkWishlistStatus(newProduct.id);
+      }
+    });
   }
 
   ngOnInit() {
     const product = this.productInfo();
     if (product) {
+      // Reset state
       this.quantity = 1;
       this.selectedAttributes = this.productInfoService.setDefaultAttributes(product);
       this.updateMaxLength();
@@ -222,14 +238,32 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     }
 
     if (this.allVariationAttributesSelected) {
+      const product = this.productInfo();
+      
+      // First, get the basic variation from the product data
       const selectedVariation = this.productInfoService.getSelectedVariation(
-        this.productInfo(),
+        product,
         this.selectedAttributes
       );
+      
       if (selectedVariation) {
+        // Set the selected variation immediately (for quick UI feedback)
         this.variationService.setSelectedVariation(selectedVariation);
-        this.variationSelected.emit(selectedVariation);
-
+        
+        // Then fetch the full variation data with all images
+        this.productInfoService.getFullVariationData(product, this.selectedAttributes)
+          .subscribe(fullVariation => {
+            if (fullVariation) {
+              // Update with complete variation data once it's available
+              console.log('Full Variation Data:', fullVariation);
+              this.variationService.setSelectedVariation(fullVariation);
+              this.variationSelected.emit(fullVariation);
+            } else {
+              // Fallback to the basic variation if full data couldn't be fetched
+              this.variationSelected.emit(selectedVariation);
+            }
+          });
+        
         this.addFeedbackAnimation();
       }
     }
@@ -483,5 +517,128 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   formatColorName(colorName: string): string {
     return this.variationService.formatColorName(colorName);
+  }
+
+  /**
+   * Get product tags for display
+   */
+  getProductTags(): string[] {
+    const product = this.productInfo();
+    if (!product) {
+      return [];
+    }
+    // For variable products, we pass variations if available
+    const variations = product.variations || [];
+    return this.productTagsService.getProductTags(product, variations);
+  }
+
+  /**
+   * Get CSS class for a specific tag
+   */
+  getTagClass(tag: string): string {
+    return this.productTagsService.getTagClass(tag);
+  }
+
+  /**
+   * Get warranty information from product metadata
+   * @returns Warranty information string or null if not available
+   */
+  getWarrantyInfo(): string | null {
+    const product = this.productInfo();
+    if (!product) {
+      return null;
+    }
+
+    // Debug output to console (remove in production)
+    console.log('Product meta_data:', product.meta_data);
+    console.log('Product attributes:', product.attributes);
+
+    // Check warranty in meta_data
+    if (product.meta_data && Array.isArray(product.meta_data)) {
+      // Common warranty meta keys
+      const warrantyKeys = ['_warranty', 'warranty', '_warranty_info', 'guarantee', 'warranty_period'];
+      
+      for (const key of warrantyKeys) {
+        const warrantyMeta = product.meta_data.find((meta: any) => meta.key === key);
+        if (warrantyMeta) {
+          console.log(`Found warranty meta with key ${key}:`, warrantyMeta);
+          
+          if (!warrantyMeta.value) {
+            continue;
+          }
+          
+          // Handle different data types
+          if (typeof warrantyMeta.value === 'string') {
+            return warrantyMeta.value;
+          } else if (typeof warrantyMeta.value === 'number') {
+            return `${warrantyMeta.value} months`;
+          } else if (typeof warrantyMeta.value === 'boolean' && warrantyMeta.value) {
+            return 'Available';
+          } else if (typeof warrantyMeta.value === 'object') {
+            // Try to extract value from common object properties
+            const objValue = warrantyMeta.value;
+            const possibleProps = ['text', 'value', 'description', 'duration', 'period', 'info'];
+            
+            for (const prop of possibleProps) {
+              if (objValue[prop] && typeof objValue[prop] === 'string') {
+                return objValue[prop];
+              }
+            }
+            
+            // If we reach here, try to JSON stringify (remove in production)
+            try {
+              const jsonStr = JSON.stringify(objValue);
+              if (jsonStr && jsonStr !== '{}' && jsonStr !== '[]') {
+                console.log('Warranty value as JSON:', jsonStr);
+                return jsonStr !== '[object Object]' ? jsonStr : '1 Year';
+              }
+            } catch (e) {
+              console.error('Error stringifying warranty object:', e);
+            }
+            
+            return '1 Year'; // Default fallback
+          }
+        }
+      }
+    }
+
+    // Check warranty in product attributes
+    if (product.attributes && Array.isArray(product.attributes)) {
+      // Try to find warranty attribute
+      const warrantyAttributes = product.attributes.filter(
+        (attr: any) => 
+          attr.name && 
+          (attr.name.toLowerCase().includes('warranty') || 
+           attr.name.toLowerCase().includes('guarantee'))
+      );
+      
+      for (const warrantyAttr of warrantyAttributes) {
+        console.log('Found warranty attribute:', warrantyAttr);
+        
+        if (warrantyAttr.options && warrantyAttr.options.length > 0) {
+          const option = warrantyAttr.options[0];
+          
+          if (typeof option === 'string') {
+            return option;
+          } else if (typeof option === 'number') {
+            return `${option} months`;
+          } else if (typeof option === 'object') {
+            return option.name || option.text || option.value || '1 Year';
+          }
+        }
+      }
+    }
+
+    // Last resort: check if there's any property that suggests warranty
+    if (product.warranty) {
+      return typeof product.warranty === 'string' ? product.warranty : '1 Year';
+    }
+    
+    if (product.guarantee) {
+      return typeof product.guarantee === 'string' ? product.guarantee : '1 Year';
+    }
+
+    // If no warranty info found
+    return null;
   }
 }

@@ -14,6 +14,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Product, Variation } from '../../../../../interfaces/product';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { ProductTagsService } from '../../../../../shared/services/product-tags.service';
 
 @Component({
   selector: 'app-card-image-slider',
@@ -42,7 +43,8 @@ export class CardImageSliderComponent implements OnInit {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private productTagsService: ProductTagsService
   ) {}
 
   ngOnInit() {
@@ -136,144 +138,24 @@ export class CardImageSliderComponent implements OnInit {
       : `${image.src} ${maxWidth}w`;
   }
 
+  /**
+   * Get all product tags to display
+   */
   getProductTags(): string[] {
-    if (!this.product) {
-      console.warn('No product provided to getProductTags');
-      return [];
-    }
-
-    const tags: string[] = [];
-
-    // NEW! tag
-    if (this.product.date_created) {
-      const createdDate = new Date(this.product.date_created);
-      const now = new Date();
-      const daysDiff = Math.floor(
-        (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      if (daysDiff <= 14) {
-        tags.push('NEW!');
-      }
-    }
-
-    // Sale tag
-    if (this.product.on_sale) {
-      const salePercentage = this.getSalePercentage();
-      if (salePercentage > 0) {
-        tags.push(`-${salePercentage}%`);
-      }
-    }
-
-    // HUB tag
-    if (this.product.tags && this.product.tags.length > 0) {
-      const hubTag = this.product.tags.find(
-        (tag) =>
-          tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
-      );
-      if (hubTag) {
-        tags.push('HUB');
-      }
-    }
-
-    // Stock status for variable products
-    if (this.product.type === 'variable' && this.variations.length > 0) {
-      const anyVariationInStock = this.variations.some(
-        (v: any) =>
-          v.stock_status === 'instock' &&
-          (v.manage_stock ? v.stock_quantity > 0 : true)
-      );
-      if (!anyVariationInStock) {
-        tags.push('SOLD OUT');
-      }
-    } else if (this.product.type === 'simple') {
-      const isInStock =
-        this.product.stock_status === 'instock' &&
-        (this.product.manage_stock
-          ? (this.product.stock_quantity ?? 0) > 0
-          : true);
-      if (!isInStock) {
-        tags.push('SOLD OUT');
-      }
-    }
-
-    // Best Seller tag
-    const isBestSeller =
-      (this.product.rating_count && this.product.rating_count > 20) ||
-      (this.product.meta_data &&
-        this.product.meta_data.some(
-          (meta) => meta.key === '_best_seller' && meta.value === 'yes'
-        ));
-    if (isBestSeller) {
-      tags.push('BESTSELLER');
-    }
-
-    // Featured tag
-    if (this.product.featured) {
-      tags.push('FEATURED');
-    }
-
-    const bottomTags = tags.filter((tag) => tag !== 'HUB');
-    const priorityOrder = [
-      bottomTags.find((tag) => tag === 'SOLD OUT'),
-      bottomTags.find((tag) => tag === 'NEW!'),
-      bottomTags.find((tag) => tag.includes('%')),
-      bottomTags.find((tag) => tag === 'FEATURED'),
-      bottomTags.find((tag) => tag === 'BESTSELLER'),
-    ].filter(Boolean) as string[];
-
-    const finalBottomTags = priorityOrder.slice(0, 2);
-    return [...finalBottomTags, ...(tags.includes('HUB') ? ['HUB'] : [])];
+    return this.productTagsService.getProductTags(this.product, this.variations);
   }
 
+  /**
+   * Gets optimized image URL using the service
+   */
   getOptimizedImageUrl(originalUrl: string): string {
-    if (!originalUrl) return '';
-
-    if (originalUrl.includes('?')) {
-      return originalUrl;
-    }
-
-    const screenWidth = isPlatformBrowser(this.platformId)
-      ? window.innerWidth
-      : 1024;
-    let imageWidth = 400;
-
-    if (screenWidth < 768) {
-      imageWidth = 300;
-    } else if (screenWidth < 1024) {
-      imageWidth = 350;
-    }
-
-    return `${originalUrl}?width=${imageWidth}&quality=80`;
+    return this.productTagsService.getOptimizedImageUrl(originalUrl);
   }
 
-  getSalePercentage(): number {
-    if (
-      !this.product ||
-      !this.product.regular_price ||
-      !this.product.sale_price
-    ) {
-      return 0;
-    }
-
-    const regularPrice = parseFloat(this.product.regular_price);
-    const salePrice = parseFloat(this.product.sale_price);
-
-    if (isNaN(regularPrice) || isNaN(salePrice) || regularPrice === 0) {
-      return 0;
-    }
-
-    return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
-  }
-
+  /**
+   * Gets the CSS class for a specific tag using the service
+   */
   getTagClass(tag: string): string {
-    const tagLower = tag.toLowerCase();
-    if (tagLower.includes('new')) return 'tag-new';
-    if (tagLower.includes('%')) return 'tag-sale';
-    if (tagLower === 'hub') return 'tag-hub';
-    if (tagLower === 'featured') return 'tag-featured';
-    if (tagLower === 'limited') return 'tag-limited';
-    if (tagLower === 'sold out') return 'tag-sold-out';
-    if (tagLower === 'bestseller') return 'tag-bestseller';
-    return 'tag-default';
+    return this.productTagsService.getTagClass(tag);
   }
 }

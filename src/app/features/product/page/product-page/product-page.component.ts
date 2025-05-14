@@ -59,6 +59,8 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   selectedVariation: any | null = null;
   isLoading: boolean = true;
   selectedColorVariation: any | null = null;
+  nextProduct: any = null;
+  previousProduct: any = null;
 
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
@@ -81,6 +83,9 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     });
 
     this.loadProductData();
+
+    console.log('productData',this.productData)
+    console.log('selectedVariation',this.selectedVariation)
   }
 
   ngOnDestroy() {
@@ -92,6 +97,8 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productData = null;
     this.productDataForDesc = null;
+    this.selectedVariation = null; // Reset selected variation
+    this.selectedColor = null; // Reset selected color
 
     // Get slug from URL
     const slug = this.route.snapshot.paramMap.get('slug');
@@ -141,6 +148,10 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       description: product.description,
       name: product.name
     };
+    
+    // Set next and previous product data if available
+    this.nextProduct = product.next_product || null;
+    this.previousProduct = product.previous_product || null;
 
     this.cdr.detectChanges();
     // Apply SEO tags using Yoast data
@@ -201,6 +212,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
 
   onVariationSelected(variation: any) {
     this.selectedVariation = variation;
+    console.log('Received Variation in ProductPageComponent:', variation);
 
     // Track variation selection in Klaviyo if available
     this.trackVariationSelection(variation);
@@ -238,5 +250,12 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
+  }
+
+  // Navigate to another product by slug
+  navigateToProduct(slug: string) {
+    if (slug) {
+      this.router.navigate(['/product', slug]);
+    }
   }
 }

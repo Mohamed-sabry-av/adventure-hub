@@ -51,6 +51,7 @@ export class WalletPaymentComponent implements AfterViewInit {
     try {
       let total: number;
       let currency: string;
+      let paymentLabel: string = 'Your purchase';
 
       if (this.product) {
         // Direct purchase: Use product price
@@ -62,6 +63,13 @@ export class WalletPaymentComponent implements AfterViewInit {
         }
         total = this.normalizePrice(this.product.price) * this.product.quantity;
         currency = 'aed'; // Adjust based on your store's currency
+        
+        // Ensure we have a valid product name for the label
+        if (this.product.name) {
+          paymentLabel = this.product.name;
+        } else if (this.product.parent_name) {
+          paymentLabel = this.product.parent_name;
+        }
       } else {
         // Cart-based purchase
         const cartTotal = await this.checkoutService.getCartTotalPrice().pipe(take(1)).toPromise();
@@ -70,6 +78,7 @@ export class WalletPaymentComponent implements AfterViewInit {
         }
         total = cartTotal.total;
         currency = cartTotal.currency.toLowerCase();
+        paymentLabel = 'Cart Total';
       }
 
       if (total <= 0) {
@@ -82,7 +91,7 @@ export class WalletPaymentComponent implements AfterViewInit {
         country: 'AE',
         currency: currency,
         total: {
-          label: this.product ? this.product.name : 'Order total',
+          label: paymentLabel,
           amount: amountInFils,
         },
         requestPayerName: true,

@@ -64,6 +64,12 @@ export class ProductsGridComponent implements OnChanges {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
+    // Clear displayedProducts when showSkeleton becomes true (category switching)
+    if (changes['showSkeleton'] && changes['showSkeleton'].currentValue === true) {
+      this.displayedProducts = [];
+      this.cdr.markForCheck();
+    }
+    
     // Only update displayed products when we have new products and aren't loading more
     if (changes['products'] && !this.isLoadingMore) {
       this.displayedProducts = [...this.products];

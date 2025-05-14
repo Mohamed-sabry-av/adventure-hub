@@ -1,26 +1,33 @@
 <!-- Quick Add Container -->
-<div class="add-button-container"><button
-  *ngIf="!addSuccess"
-  class="circular-add-button"
-  [class.disabled]="selectedVariation && selectedVariation.stock_status !== 'instock'"
-  (click)="onToggleOptionsPanel()"
-  aria-label="Open product options">
-  <svg *ngIf="!(selectedVariation && selectedVariation.stock_status !== 'instock')" class="plus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-  <span *ngIf="selectedVariation && selectedVariation.stock_status !== 'instock'" class="out-of-stock-text">Out of Stock</span>
-</button>
+<div class="add-button-container">
+  <!-- Normal state button -->
+  <button *ngIf="!addSuccess && !(isLoading && (loadingMap$ | async)?.['add'])" class="circular-add-button"
+    [class.disabled]="selectedVariation && selectedVariation.stock_status !== 'instock'"
+    (click)="onToggleOptionsPanel()"
+    [attr.aria-label]="product?.type === 'simple' ? 'Add to cart' : 'Open product options'"
+    [title]="product?.type === 'simple' ? 'Add to cart' : 'Choose options'">
+    <svg *ngIf="!(selectedVariation && selectedVariation.stock_status !== 'instock')" class="plus-icon"
+      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+      stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+    <span *ngIf="selectedVariation && selectedVariation.stock_status !== 'instock'" class="out-of-stock-text">Out of
+      Stock</span>
+  </button>
 
-<!-- Success confirmation -->
-<button
-  *ngIf="addSuccess"
-  class="circular-add-button add-success"
-  disabled>
-  <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="20 6 9 17 4 12"></polyline>
-  </svg>
-</button>
+  <!-- Loading state -->
+  <button *ngIf="isLoading && (loadingMap$ | async)?.['add']" class="circular-add-button loading" disabled>
+    <div class="spinner"></div>
+  </button>
+
+  <!-- Success confirmation -->
+  <button *ngIf="addSuccess" class="circular-add-button add-success" disabled>
+    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </button>
 </div>
 
 <!-- Optional Quick View Button - can be uncommented if needed -->

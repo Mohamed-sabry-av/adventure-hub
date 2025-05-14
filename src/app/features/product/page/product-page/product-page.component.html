@@ -53,12 +53,46 @@
     <app-breadcrumb [paths]="productData.categories || []" [productName]="productData.name">
     </app-breadcrumb>
 
+    <!-- Product Navigation -->
+    @if (previousProduct || nextProduct) {
+    <div class="product-navigation flex justify-between items-center my-4">
+      @if (previousProduct) {
+      <button (click)="navigateToProduct(previousProduct.slug)"
+        class="flex items-center text-gray-700 hover:text-primary-600 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="hidden sm:inline">Previous:</span>
+        <span class="ml-1 font-medium truncate max-w-[150px] inline-block">{{previousProduct.title}}</span>
+      </button>
+      } @else {
+      <div></div> <!-- Empty div for spacing -->
+      }
+
+      @if (nextProduct) {
+      <button (click)="navigateToProduct(nextProduct.slug)"
+        class="flex items-center text-gray-700 hover:text-primary-600 transition-colors">
+        <span class="hidden sm:inline">Next:</span>
+        <span class="mx-1 font-medium truncate max-w-[150px] inline-block">{{nextProduct.title}}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      } @else {
+      <div></div> <!-- Empty div for spacing -->
+      }
+    </div>
+    }
+
     <div class="mobile-flex-container">
       <div class="flex flex-col md:flex-row gap-8 mb-8">
         <!-- Left side: Images -->
         <div class="md:w-1/2 lg:w-3/5 mobile-order-1">
           <!-- Product Images - Critical for viewing -->
-          <app-product-images [productImages]="productData.images" [selectedColor]="selectedColor">
+          <app-product-images [productImages]="productData.images" [selectedColor]="selectedColor"
+            [selectedVariation]="selectedVariation">
           </app-product-images>
 
           <!-- Desktop Description - Only visible on desktop -->

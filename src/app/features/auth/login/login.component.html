@@ -35,13 +35,13 @@
       }
     </div>
 
+    <p class="error" *ngIf="loginError">{{ loginError }}</p>
     <div class="form-options">
       <div class="remember-me">
         <input type="checkbox" id="remember" class="custom-checkbox">
         <label for="remember">Remember me</label>
       </div>
-      <a routerLink="/auth/forgot-password" class="forgot-password">Forgot Password?</a>
-      <p class="error" *ngIf="loginError">{{ loginError }}</p>
+      <a routerLink="/user/forgot-password" class="forgot-password">Forgot Password?</a>
     </div>
 
     <button type="submit" class="submit-btn" [disabled]="loginForm.invalid">

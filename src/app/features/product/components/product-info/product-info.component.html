@@ -1,7 +1,21 @@
 <div class="product-info">
-  <h1 class="text-3xl font-medium text-olive mb-4">
+  <!-- Product Tags -->
+  <div class="product-tags flex flex-wrap gap-2 mb-4" *ngIf="getProductTags().length > 0">
+    <span *ngFor="let tag of getProductTags()" [ngClass]="getTagClass(tag)"
+      class="inline-block px-2 py-1 text-xs font-medium rounded-md">
+      {{ tag }}
+    </span>
+  </div>
+
+  <h1 class="text-3xl font-medium text-olive mb-2">
     {{ productInfo()?.name }}
   </h1>
+
+  <!-- Warranty Information -->
+  <div class="warranty-info mb-4" *ngIf="getWarrantyInfo()">
+    <i class="pi pi-shield"></i>
+    <span class="font-medium">{{ getWarrantyInfo() }}</span>
+  </div>
 
   <div class="flex items-baseline mb-4 gap-2">
     <span class="text-2xl font-bold" [innerHtml]="getPriceInfo().price | currencySvg"></span>
@@ -11,14 +25,32 @@
     </ng-container>
   </div>
 
+
   <div class="product-brand" *ngIf="brandName !== 'brand'">
     <span class="brand-label"></span>
     <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
   </div>
 
-  <!-- Stock Status Message for Completely Out of Stock -->
-  <div class="stock-status" *ngIf="isCompletelyOutOfStock">
-    <span class="text-red-500 font-medium">Out of Stock</span>
+  <!-- Stock Status Message -->
+  <div class="stock-status mt-2 mb-3">
+    <ng-container *ngIf="isCompletelyOutOfStock">
+      <span class="text-red-500 font-medium flex items-center">
+        <i class="pi pi-times-circle mr-1"></i> Out of Stock
+      </span>
+    </ng-container>
+    <ng-container
+      *ngIf="!isCompletelyOutOfStock && isProductInStock && (allVariationAttributesSelected || productInfo()?.type === 'simple')">
+      <ng-container *ngIf="maxLength <= 5 && maxLength > 0">
+        <span class="text-red-500 font-medium flex items-center">
+          <i class="pi pi-exclamation-circle mr-1"></i> Low Stock: Only {{ maxLength }} left
+        </span>
+      </ng-container>
+      <ng-container *ngIf="maxLength > 5">
+        <span class="text-green-600 font-medium flex items-center">
+          <i class="pi pi-check-circle mr-1"></i> In Stock
+        </span>
+      </ng-container>
+    </ng-container>
   </div>
 
   <!-- Variation Selection -->
@@ -120,10 +152,6 @@
     <app-tabby-promo [price]="getPriceInfo().price" currency="AED" lang="en" source="product"
       [publicKey]="tabbyConfig.publicKey" [merchantCode]="tabbyConfig.merchantCode"
       [shouldInheritBg]="true"></app-tabby-promo>
-
-    <span class="text-sm text-gray-500 mb-4 block" *ngIf="maxLength > 0" aria-live="polite" aria-atomic="true">
-      {{ maxLength }} items available
-    </span>
   </div>
 
   <!-- Out of Stock for Selected Variation -->
@@ -132,7 +160,9 @@
       !isProductInStock &&
       !isCompletelyOutOfStock
     ">
-    <span class="text-red-500 font-medium">This variation is out of stock</span>
+    <span class="text-red-500 font-medium flex items-center">
+      <i class="pi pi-times-circle mr-1"></i> This variation is out of stock
+    </span>
   </div>
 
   <!-- Wishlist message -->
