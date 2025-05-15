@@ -21,6 +21,7 @@ import { CardDetailsComponent } from '../components/card-details/card-details.co
 import { ColorSwatchesComponent } from '../components/color-swatches/color-swatches.component';
 import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
 import { WishlistButtonComponent } from '../components/wishlist-button/wishlist-button.component';
+import { VariationService } from '../../../../core/services/variation.service';
 
 @Component({
   selector: 'app-product-card',
@@ -93,7 +94,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private cartService: CartService,
     private cdr: ChangeDetectorRef,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private variationService: VariationService
   ) {
     this.modifiedProduct = {} as Product;
   }
@@ -460,6 +462,13 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   toggleMobileQuickAdd(): void {
     this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
+    
+    // If we're closing the panel and the user has selected a variation, 
+    // make sure we find and set the selected variation
+    if (!this.mobileQuickAddExpanded && this.selectedColor && this.selectedSize) {
+      this.findAndSetSelectedVariation();
+    }
+    
     this.cdr.markForCheck();
   }
 
@@ -470,19 +479,14 @@ export class ProductCardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const productToAdd = {
-      id: this.selectedVariation ? this.selectedVariation.id : this.product.id,
-      name: this.product.name,
-      quantity: options.quantity,
-      price: this.selectedVariation
-        ? this.selectedVariation.price
-        : this.product.price,
-      image:
-        this.selectedVariation?.image?.src ?? this.product.images?.[0]?.src,
-    };
+    const productToAdd = this.variationService.prepareProductForCart(
+      this.product,
+      this.selectedVariation,
+      options.quantity
+    );
 
     this.cartService.addProductToCart(productToAdd);
-    this.cartService.cartMode(true);
+    // Don't open cart immediately - will be handled by the service
   }
 
   hasColors(): boolean {

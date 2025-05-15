@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { UIService } from '../../../../../shared/services/ui.service';
 
 @Component({
   selector: 'app-wishlist',
@@ -27,6 +28,10 @@ export class WishlistComponent implements OnInit, OnDestroy {
 
   private accountService = inject(WooCommerceAccountService);
   private cdr = inject(ChangeDetectorRef);
+
+  constructor(
+    public uiService: UIService
+  ) { }
 
   ngOnInit(): void {
     this.loadWishlist();
@@ -114,12 +119,17 @@ export class WishlistComponent implements OnInit, OnDestroy {
 
   addToCart(productId: number, index: number): void {
     this.wishlistItems[index].isAddingToCart = true;
+    // Set the spinner loading state to true before adding to cart
+    this.uiService.setSpinnerLoading(true);
 
     this.accountService.addToCart(productId, 1)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           this.wishlistItems[index].isAddingToCart = false;
+          // Turn off the spinner loading after successful response
+          this.uiService.setSpinnerLoading(false);
+          
           if (response.success !== false) {
             // يمكن استخدام نظام إشعارات أفضل بدلاً من alert
             this.wishlistItems[index].addedToCart = true;
@@ -134,6 +144,9 @@ export class WishlistComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.wishlistItems[index].isAddingToCart = false;
+          // Turn off the spinner loading on error
+          this.uiService.setSpinnerLoading(false);
+          
           this.error =
             err.error?.message ||
             'Failed to add product to cart. Please try again.';

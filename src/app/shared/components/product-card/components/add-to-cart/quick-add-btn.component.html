@@ -2,17 +2,20 @@
 <div class="add-button-container">
   <!-- Normal state button -->
   <button *ngIf="!addSuccess && !(isLoading && (loadingMap$ | async)?.['add'])" class="circular-add-button"
-    [class.disabled]="selectedVariation && selectedVariation.stock_status !== 'instock'"
-    (click)="onToggleOptionsPanel()"
-    [attr.aria-label]="product?.type === 'simple' ? 'Add to cart' : 'Open product options'"
-    [title]="product?.type === 'simple' ? 'Add to cart' : 'Choose options'">
-    <svg *ngIf="!(selectedVariation && selectedVariation.stock_status !== 'instock')" class="plus-icon"
+    [class.disabled]="(product?.type === 'variable' && selectedVariation?.stock_status !== 'instock') || 
+                     (product?.type === 'simple' && product?.stock_status !== 'instock')"
+    [class.ready-to-add]="isReadyToAddToCart() && optionsVisible" (click)="onToggleOptionsPanel()"
+    [attr.aria-label]="product?.type === 'simple' ? 'Add to cart' : (optionsVisible && selectedVariation ? 'Add to cart' : 'Choose options')"
+    [title]="product?.type === 'simple' ? 'Add to cart' : (optionsVisible && selectedVariation ? 'Add to cart' : 'Choose options')">
+    <svg *ngIf="!(selectedVariation && selectedVariation.stock_status !== 'instock') && 
+               !(product?.type === 'simple' && product?.stock_status !== 'instock')" class="plus-icon"
       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
       stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
-    <span *ngIf="selectedVariation && selectedVariation.stock_status !== 'instock'" class="out-of-stock-text">Out of
+    <span *ngIf="(selectedVariation && selectedVariation.stock_status !== 'instock') || 
+                (product?.type === 'simple' && product?.stock_status !== 'instock')" class="out-of-stock-text">Out of
       Stock</span>
   </button>
 
@@ -28,6 +31,57 @@
       <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
   </button>
+</div>
+
+<!-- Options panel that appears below the product card -->
+<div *ngIf="optionsVisible && product?.type === 'variable'" [@slideUpDown] class="options-panel">
+  <!-- Close button -->
+  <button class="close-options-btn" (click)="toggleOptions()">
+    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+      stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
+  <!-- Color options if available -->
+  <div *ngIf="colorOptions && colorOptions.length > 0" class="color-options-container">
+    <h4 class="options-title">Color</h4>
+    <div class="color-swatches">
+      <div *ngFor="let color of colorOptions" class="color-swatch" [class.selected]="selectedColor === color.color"
+        [class.out-of-stock]="!color.inStock" (click)="setColorAndSize(color.color)">
+        <!-- Use either background color or image as background -->
+        <div class="swatch-inner" [style.background-color]="getColorValue(color.color)"
+          [style.background-image]="color.image ? 'url(' + color.image + ')' : ''" [style.background-size]="'contain'"
+          [style.background-position]="'center'" [style.background-repeat]="'no-repeat'">
+        </div>
+        <div *ngIf="selectedColor === color.color" class="color-check-mark">✓</div>
+        <!-- Show color name on hover -->
+        <div class="color-tooltip">{{formatColorName(color.color)}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Size options if available -->
+  <div *ngIf="uniqueSizes && uniqueSizes.length > 0" class="size-options-container">
+    <h4 class="options-title">Size</h4>
+    <div class="size-options">
+      <button *ngFor="let sizeObj of uniqueSizes" class="size-btn" [class.selected]="selectedSize === sizeObj.size"
+        [class.out-of-stock]="!sizeObj.inStock" [disabled]="!sizeObj.inStock" (click)="selectSize.emit(sizeObj.size)">
+        {{ sizeObj.size }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Quantity selector -->
+  <div class="quantity-container">
+    <h4 class="options-title">Quantity</h4>
+    <div class="quantity-control">
+      <button class="quantity-btn" (click)="decrementQuantity()" [disabled]="quantityValue <= 1">-</button>
+      <input type="number" class="quantity-input" [(ngModel)]="quantityValue" min="1" max="10">
+      <button class="quantity-btn" (click)="incrementQuantity()">+</button>
+    </div>
+  </div>
 </div>
 
 <!-- Optional Quick View Button - can be uncommented if needed -->

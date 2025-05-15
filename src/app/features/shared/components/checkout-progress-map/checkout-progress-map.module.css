@@ -1,0 +1,83 @@
+.progressMapContainer {
+  width: 100%;
+  margin: 2rem 0;
+  padding: 0 1rem;
+}
+
+.progressBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+}
+
+.stepContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.stepCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 8px;
+  border: 2px solid #e0e0e0;
+}
+
+.active {
+  background-color: #ffffff;
+  color: #22c55e;
+  border: 2px solid #22c55e;
+}
+
+.completed {
+  background-color: #22c55e;
+  color: white;
+  border: 2px solid #22c55e;
+}
+
+.stepLabel {
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+  max-width: 120px;
+}
+
+.activeLabel {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.connector {
+  flex: 1;
+  height: 2px;
+  background-color: #e0e0e0;
+  z-index: 1;
+  min-width: 50px;
+  flex-grow: 1;
+}
+
+.completedConnector {
+  background-color: #22c55e;
+}
+
+@media (max-width: 640px) {
+  .stepLabel {
+    font-size: 0.75rem;
+    max-width: 80px;
+  }
+  
+  .stepCircle {
+    width: 28px;
+    height: 28px;
+  }
+} 

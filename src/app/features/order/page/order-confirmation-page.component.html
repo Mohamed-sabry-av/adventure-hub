@@ -1,3 +1,8 @@
+<!-- Always show checkout progress map in a centered container -->
+<div class="w-full py-6 bg-gray-50 border-b">
+  <app-checkout-progress-map [currentStep]="'confirmation'"></app-checkout-progress-map>
+</div>
+
 <!-- Loading Spinner or Skeleton -->
 @if (isLoading$ | async) {
 <!-- Skeleton loader for order confirmation page -->

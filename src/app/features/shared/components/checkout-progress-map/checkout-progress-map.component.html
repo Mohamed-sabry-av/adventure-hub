@@ -1,0 +1,27 @@
+<div class="progress-map-container">
+    <div class="progress-bar">
+        @for (step of steps; track step.id; let i = $index) {
+        <div class="step-container">
+            <div class="step-circle" [class.active]="step.id === currentStep"
+                [class.completed]="getStepStatus(step.id) === 'completed'">
+                @if (getStepStatus(step.id) === 'completed') {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                } @else {
+                <span>{{ i + 1 }}</span>
+                }
+            </div>
+            <div class="step-label" [class.active-label]="step.id === currentStep">
+                {{ step.label }}
+            </div>
+        </div>
+
+        @if (i < steps.length - 1) { <div class="connector"
+            [class.completed-connector]="getStepStatus(step.id) === 'completed'">
+    </div>
+    }
+    }
+</div>
+</div>

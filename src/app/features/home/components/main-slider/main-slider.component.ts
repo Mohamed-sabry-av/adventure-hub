@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CustomCarouselComponent } from '../custom-carousel/custom-carousel.component';
 
 @Component({
   selector: 'app-main-slider',
   standalone: true,
-  imports: [CommonModule, CustomCarouselComponent],
+  imports: [CommonModule],
   templateUrl: './main-slider.component.html',
   styleUrls: ['./main-slider.component.css'],
 })

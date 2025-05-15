@@ -16,6 +16,7 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
 import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { CartStatus } from '../../../cart/model/cart.model';
 import { NewsletterSignupComponent } from '../../component/newsletter-signup/newsletter-signup.component';
+import { CheckoutProgressMapComponent } from '../../../shared/components/checkout-progress-map/checkout-progress-map.component';
 
 @Component({
   selector: 'app-checkout-page',
@@ -26,6 +27,7 @@ import { NewsletterSignupComponent } from '../../component/newsletter-signup/new
     DialogErrorComponent,
     SkeletonLoaderComponent,
     NewsletterSignupComponent,
+    CheckoutProgressMapComponent,
   ],
   templateUrl: './checkout-page.component.html',
   styleUrl: './checkout-page.component.css',

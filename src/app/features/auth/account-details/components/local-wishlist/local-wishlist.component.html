@@ -1,26 +1,39 @@
 <div class="wishlist-container">
     <h2 class="text-2xl font-bold mb-6">My Wishlist</h2>
 
+    <!-- Cart Loading State -->
+    <div *ngIf="uiService.cartStatus$ | async as cartStatus">
+        <div *ngIf="cartStatus.sideCartLoading"
+            class="cart-loading fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div class="bg-white p-4 rounded shadow-lg text-center">
+                <div class="spinner mx-auto mb-2"></div>
+                <p>Loading cart...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading state -->
-    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
-        <div class="spinner"></div>
+    <div *ngIf="isLoading" class="loading p-4 text-center">
+        <p>Loading your wishlist...</p>
+        <div class="mt-2 flex justify-center">
+            <div class="spinner"></div>
+        </div>
     </div>
 
     <!-- Error state -->
-    <div *ngIf="error && !isLoading" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
-        role="alert">
+    <div *ngIf="error && !isLoading" class="error-message p-4 bg-red-50 text-red-600 rounded mb-6">
         <p>{{ error }}</p>
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="isEmpty && !isLoading && !error" class="text-center py-12">
-        <div class="empty-wishlist-icon mb-4">
-            <i class="pi pi-heart-fill text-gray-300 text-6xl"></i>
+    <div *ngIf="isEmpty && !isLoading && !error" class="no-wishlist-items text-center py-8">
+        <div class="mb-4">
+            <i class="pi pi-heart-fill text-4xl text-gray-300"></i>
         </div>
         <h3 class="text-xl font-medium mb-2">Your wishlist is empty</h3>
-        <p class="text-gray-500 mb-4">Browse our products and add items to your wishlist</p>
+        <p class="text-gray-600 mb-4">Browse our products and add items to your wishlist</p>
         <a routerLink="/shop"
-            class="browse-btn px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+            class="shop-button inline-block mt-4 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
             Browse Products
         </a>
     </div>
@@ -37,8 +50,8 @@
             <div class="product-card">
                 <!-- Product image -->
                 <div class="product-image mb-3">
-                    <img [src]="getProductImage(item)" [alt]="getProductName(item)"
-                        class="w-full h-44 object-cover rounded" loading="lazy" />
+                    <img [src]="getProductImage(item)" [alt]="getProductName(item)" class="w-full h-full"
+                        loading="lazy" />
                 </div>
 
                 <!-- Product info -->
@@ -52,26 +65,22 @@
                     </div>
 
                     <div class="flex space-x-2">
-                        <a [routerLink]="['/product', item.id || item.id]"
-                            class="view-btn flex-1 px-3 py-2 text-center bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                        <a [routerLink]="['/product', item.id || item.id]" class="view-btn">
                             <i class="pi pi-eye mr-1"></i> View
                         </a>
 
-                        <button
-                            class="add-to-cart-btn flex-1 px-3 py-2 text-center bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
-                            (click)="addToCart(item, i)" [disabled]="item.isAddingToCart">
+                        <button class="add-to-cart-btn" (click)="addToCart(item, i)"
+                            [disabled]="(uiService.spinnerLoading$ | async) || item.isAddingToCart">
                             <i class="pi" [ngClass]="{
-                'pi-shopping-cart mr-1': !item.isAddingToCart,
-                'pi-spinner pi-spin': item.isAddingToCart
-              }"></i>
+                                'pi-shopping-cart mr-1': !(uiService.spinnerLoading$ | async) && !item.isAddingToCart,
+                                'pi-spinner pi-spin': (uiService.spinnerLoading$ | async) || item.isAddingToCart
+                            }"></i>
                             <span>Add to Cart</span>
                         </button>
                     </div>
 
                     <!-- Remove button -->
-                    <button
-                        class="remove-btn mt-2 w-full px-3 py-2 text-center text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                        (click)="removeFromWishlist(item, i)" [disabled]="item.isRemoving">
+                    <button class="remove-btn mt-2" (click)="removeFromWishlist(item, i)" [disabled]="item.isRemoving">
                         <i class="pi pi-trash mr-1"></i> Remove
                     </button>
                 </div>

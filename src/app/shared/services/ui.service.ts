@@ -35,6 +35,14 @@ export class UIService {
   isSpinnerLoading$: Observable<boolean> =
     this.store.select(spinnerOfUiSelector);
 
+  // Add spinner control
+  private spinnerLoadingState = new BehaviorSubject<boolean>(false);
+  spinnerLoading$ = this.spinnerLoadingState.asObservable();
+
+  setSpinnerLoading(isLoading: boolean) {
+    this.spinnerLoadingState.next(isLoading);
+  }
+
   loadingMap$: Observable<{ [key: string]: boolean }> =
     this.store.select(loadingMapSelector);
   // ------------------------------------------------------

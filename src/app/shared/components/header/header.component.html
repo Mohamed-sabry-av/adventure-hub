@@ -1,6 +1,8 @@
-<!-- <div *ngIf="lastScrollY() !== 0" [style.height.px]="headerHeight()"></div> -->
-<header class="w-full" [class]="{
-    'is-scroll': lastScrollY() !== 0 && !isProductPage,
+<!-- Header spacer for fixed positioning - invisible but maintains layout -->
+<div class="header-spacer" [style.height.px]="headerHeight()"></div>
+
+<header class="w-full header-container" [ngClass]="{
+    'is-scroll': lastScrollY() > 0 && !isProductPage,
     'non-sticky': isProductPage
   }" #headerEl>
   @if (currentPage === 'checkout') {
@@ -10,66 +12,76 @@
         class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" loading="lazy" />
     </a>
 
-    <i class="pi pi-shopping-bag bag-checkout" [routerLink]="['cart']"></i>
+    <a routerLink="/cart" class="bag-checkout-container">
+      <i class="pi pi-shopping-bag bag-checkout"></i>
+      <span *ngIf="cartCount > 0" class="count-badge checkout-badge">{{ cartCount }}</span>
+    </a>
   </div>
   } @else if(currentPage !== 'checkout') {
-  <!-- Secondary Info -->
-
-  @if (showNavbar() && lastScrollY()===0) {
-  <div
-    class="relative mt-1 lg:mt-2 border-b md:border-0 px-4 text-white flex items-center overflow-hidden h-6 transform duration-150 translate-y-1"
-    @navbarAnimation>
-    <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
-      <strong>Free Delivery</strong> for orders over AED 100
-    </p>
-    <p class="absolute top-0 w-full text-center text-sm animate-slide-second">
-      Buy Now & Pay Later with <strong>Tabby</strong>
-    </p>
-  </div>
-  }
-
-  <!-- Main Info -->
-  <app-container>
-    <div class="py-3 flex items-center justify-between">
-      <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
-
-      <!-- Logo -->
-      <a class="block">
-        <img loading="lazy" src="header/White logo-01.webp" alt="Adventures hub logo" routerLink=""
-          class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" />
-      </a>
-
-      <!-- Search -->
-      <div class="flex-1 md:block hidden">
-        <app-search-bar />
-      </div>
-
-      <!-- Icons -->
-      <div class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3">
-        <i class="pi pi-times md:hidden block" (click)="onShowSearchbar()" *ngIf="showSearchbar()"></i>
-
-        <i class="pi pi-search md:hidden block" (click)="onShowSearchbar()" *ngIf="!showSearchbar()"></i>
-
-        <a routerLink="/user">
-          <i class="pi pi-user"></i>
-        </a>
-        <app-wishlist-icon></app-wishlist-icon>
-        <a routerLink="/cart">
-          <i class="pi pi-shopping-bag"></i>
-        </a>
+  <!-- Header content wrapper to maintain stable height -->
+  <div class="header-content-wrapper">
+    <!-- Layer 1: Top Info Banner - Only visible at the top of the page -->
+    <div class="header-top-layer" [class.header-layer-hidden]="lastScrollY() > 10" @layerAnimation>
+      <div class="top-info-banner">
+        <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
+          <strong>Free Delivery</strong> for orders over AED 100
+        </p>
+        <p class="absolute top-0 w-full text-center text-sm animate-slide-second">
+          Buy Now & Pay Later with <strong>Tabby</strong>
+        </p>
       </div>
     </div>
-    @if (showSearchbar()) {
-    <div class="w-full -mt-[10px] md:hidden block z-10 pb-2" @navbarAnimation>
-      <app-search-bar />
-    </div>
-    }
-  </app-container>
 
-  <div>
-    @defer (on idle) {
-    <app-navbar-container [mainCategories]="mainCategories" [allCategories]="allCategories" />
-    }
+    <!-- Layer 2: Middle - Logo, Search, Icons (always visible) -->
+    <div class="header-middle-layer" [class.header-middle-compact]="lastScrollY() > 10">
+      <app-container>
+        <div class="py-2 flex items-center justify-between">
+          <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
+
+          <!-- Logo -->
+          <a class="block">
+            <img loading="lazy" src="header/White logo-01.webp" alt="Adventures hub logo" routerLink=""
+              class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" />
+          </a>
+
+          <!-- Search -->
+          <div class="flex-1 md:block hidden">
+            <app-search-bar />
+          </div>
+
+          <!-- Icons -->
+          <div class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3">
+            <i class="pi pi-times md:hidden block" (click)="onShowSearchbar()" *ngIf="showSearchbar()"></i>
+
+            <i class="pi pi-search md:hidden block" (click)="onShowSearchbar()" *ngIf="!showSearchbar()"></i>
+
+            <a routerLink="/user" class="icon-container">
+              <i class="pi pi-user"></i>
+            </a>
+
+            <app-wishlist-icon></app-wishlist-icon>
+
+            <a routerLink="/cart" class="icon-container">
+              <i class="pi pi-shopping-bag"></i>
+              <span *ngIf="cartCount > 0" class="count-badge">{{ cartCount }}</span>
+            </a>
+          </div>
+        </div>
+        @if (showSearchbar()) {
+        <div class="w-full -mt-[5px] md:hidden block z-10 pb-2" @layerAnimation>
+          <app-search-bar />
+        </div>
+        }
+      </app-container>
+    </div>
+
+    <!-- Layer 3: Bottom - Navbar (visible only at top or during scroll up) -->
+    <div class="header-bottom-layer"
+      [class.header-layer-hidden]="showNavbarLayer() === 'minimal' && !forceNavbarVisible" @layerAnimation>
+      @defer (on idle) {
+      <app-navbar-container [mainCategories]="mainCategories" [allCategories]="allCategories" />
+      }
+    </div>
   </div>
   }
 </header>

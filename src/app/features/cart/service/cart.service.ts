@@ -6,6 +6,7 @@ import {
   map,
   Observable,
   shareReplay,
+  of,
 } from 'rxjs';
 import {
   addProductToUserCartAction,
@@ -27,6 +28,33 @@ export class CartService {
   private accountAuthService = inject(AccountAuthService);
   private store = inject(Store);
   cartIsVisible$ = new BehaviorSubject<boolean>(false);
+  // New empty cart structure for quicker UI rendering
+  private emptyCartStructure = {
+    cartIsLoaded: true,
+    userCart: {
+      items: [],
+      totals: {
+        sub_total: 0,
+        total_price: 0
+      },
+      items_count: 0
+    }
+  };
+  
+  // Combine saved cart with initial structure for faster loading
+  savedUserCart$: Observable<any> = combineLatest([
+    this.store.select(savedUserCartSelector),
+    of(this.emptyCartStructure)
+  ]).pipe(
+    map(([storeCart, emptyStructure]) => {
+      // If cart is loading, return empty structure for faster UI rendering
+      if (!storeCart?.cartIsLoaded && !storeCart?.userCart) {
+        return { ...emptyStructure, cartIsLoaded: false };
+      }
+      return storeCart;
+    }),
+    shareReplay(1)
+  );
 
   cartMode(isVisible: boolean) {
     this.cartIsVisible$.next(isVisible);
@@ -99,8 +127,6 @@ export class CartService {
       }
     });
   }
-
-  savedUserCart$: Observable<any> = this.store.select(savedUserCartSelector);
 
   updateQuantityOfProductInCart(
     selectedProductQuantity: number,

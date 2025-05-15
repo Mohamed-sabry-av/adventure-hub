@@ -74,7 +74,9 @@ export class CartEffect {
       ofType(addProductToUserCartAction),
       switchMap(({ product, isLoggedIn, buyItNow }) => {
         this.store.dispatch(
-          startLoadingSpinnerAction({ buttonName: buyItNow ? 'buy' : 'add' })
+          startLoadingSpinnerAction({
+            buttonName: buyItNow ? 'buy' : 'add',
+          })
         );
 
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
@@ -104,7 +106,9 @@ export class CartEffect {
                   this.router.navigateByUrl('/checkout', { replaceUrl: true });
                   return getUserCartAction({ userCart: response });
                 } else {
-                  this.cartService.cartMode(true);
+                  setTimeout(() => {
+                    this.cartService.cartMode(true);
+                  }, 100);
                   return getUserCartAction({ userCart: response });
                 }
               }),
@@ -152,7 +156,9 @@ export class CartEffect {
                 this.router.navigateByUrl('/checkout', { replaceUrl: true });
                 return getUserCartAction({ userCart: response });
               } else {
-                this.cartService.cartMode(true);
+                setTimeout(() => {
+                  this.cartService.cartMode(true);
+                }, 100);
                 return getUserCartAction({ userCart: response });
               }
             }),

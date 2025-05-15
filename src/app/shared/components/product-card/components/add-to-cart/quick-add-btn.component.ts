@@ -37,6 +37,15 @@ import { Observable, Subscription } from 'rxjs';
       ]),
       transition(':leave', [animate('300ms ease-out', style({ opacity: 0 }))]),
     ]),
+    trigger('slideUpDown', [
+      transition(':enter', [
+        style({ transform: 'translateY(20px)', opacity: 0 }),
+        animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 })),
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ transform: 'translateY(20px)', opacity: 0 })),
+      ]),
+    ]),
   ],
 })
 export class MobileQuickAddComponent implements OnInit, OnDestroy {
@@ -63,7 +72,9 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
   showOutOfStockVariations: boolean = true;
   isLoading: boolean = false;
   loadingMap$: Observable<{ [key: string]: boolean }>;
+  optionsVisible: boolean = false;
   private loadingSubscription: Subscription | null = null;
+  private cartOpenSubscription: Subscription | null = null;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -80,6 +91,18 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.quantityValue = this.quantity || 1;
+    
+    // Debug - log product stock status
+    if (this.product) {
+      console.log('Product type:', this.product.type);
+      console.log('Product stock status:', this.product.stock_status);
+      console.log('Product purchasable:', this.product.purchasable);
+    }
+    
+    // Debug - log color options
+    if (this.colorOptions && this.colorOptions.length > 0) {
+      console.log('Color options:', this.colorOptions);
+    }
     
     // Subscribe to loading state changes
     this.loadingSubscription = this.loadingMap$.subscribe(loadingMap => {
@@ -101,6 +124,9 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
     if (this.loadingSubscription) {
       this.loadingSubscription.unsubscribe();
     }
+    if (this.cartOpenSubscription) {
+      this.cartOpenSubscription.unsubscribe();
+    }
   }
 
   onAddToCart() {
@@ -109,8 +135,15 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // For simple products, just add directly
+    if (this.product.type === 'simple') {
+      this.addSimpleProductToCart();
+      return;
+    }
+
+    // For variable products, require both color and size selection if applicable
     if (this.product.type === 'variable' && !this.selectedVariation) {
-      console.error('No variation selected for variable product');
+      this.toggleOptions();
       return;
     }
 
@@ -124,6 +157,39 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
 
     this.cartService.addProductToCart(cartProduct);
     this.addToCart.emit({ quantity: this.quantityValue });
+    this.optionsVisible = false;
+  }
+
+  /**
+   * Handle adding a simple product to cart
+   */
+  addSimpleProductToCart() {
+    if (!this.product) return;
+
+    // Double check product is in stock and purchasable
+    if (this.product.stock_status !== 'instock' || this.product.purchasable === false) {
+      this.uiService.showError('This product is currently out of stock');
+      return;
+    }
+    
+    this.isLoading = true;
+    
+    const cartProduct = this.variationService.prepareProductForCart(
+      this.product,
+      null,
+      1 // Default quantity 1 for quick add
+    );
+
+    this.cartService.addProductToCart(cartProduct);
+    this.addToCart.emit({ quantity: 1 });
+  }
+
+  /**
+   * Toggle options panel for variable products
+   */
+  toggleOptions() {
+    this.optionsVisible = !this.optionsVisible;
+    this.toggleMobileQuickAdd.emit();
   }
 
   onToggleOptionsPanel() {
@@ -134,40 +200,30 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
 
     // If it's a simple product, add directly to cart
     if (this.product.type === 'simple') {
-      // Check if the product is in stock before adding
-      if (this.product.stock_status === 'outofstock' || !this.product.purchasable) {
-        // If out of stock, show a message using UIService
-        this.uiService.showError('This product is currently out of stock');
-        return;
-      }
-      
-      this.isLoading = true;
-      
-      const cartProduct = this.variationService.prepareProductForCart(
-        this.product,
-        null,
-        1 // Default quantity 1 for quick add
-      );
-
-      // The cart will open automatically from the effect
-      this.cartService.addProductToCart(cartProduct);
-      
-      this.addToCart.emit({ quantity: 1 });
+      this.addSimpleProductToCart();
+      return;
     } 
-    // If it has variations, open the side options panel
-    else {
-      this.sideOptionsService.openSideOptions({
-        product: this.product,
-        variations: this.variations,
-        selectedVariation: this.selectedVariation,
-        uniqueSizes: this.uniqueSizes,
-        selectedSize: this.selectedSize,
-        colorOptions: this.colorOptions,
-        selectedColor: this.selectedColor,
-        visibleColors: this.visibleColors,
-        isMobile: this.isMobile,
-      });
+    
+    // If variable product and options are visible and a variation is selected, add to cart
+    if (this.product.type === 'variable' && this.optionsVisible && this.selectedVariation) {
+      this.onAddToCart();
+      return;
     }
+    
+    // Otherwise, toggle the options
+    this.toggleOptions();
+  }
+
+  isReadyToAddToCart(): boolean {
+    if (!this.product) return false;
+    
+    // Simple products are always ready if in stock and purchasable
+    if (this.product.type === 'simple') {
+      return this.product.stock_status === 'instock' && this.product.purchasable !== false;
+    }
+    
+    // Variable products need a selected variation that's in stock
+    return !!this.selectedVariation && this.selectedVariation.stock_status === 'instock';
   }
 
   incrementQuantity() {
@@ -208,5 +264,40 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
   private getImageForColor(color: string): string {
     const colorOption = this.colorOptions.find(opt => opt.color === color);
     return colorOption?.image || '';
+  }
+
+  /**
+   * Convert color names to valid CSS color values
+   */
+  getColorValue(colorName: string): string {
+    // Handle common color names that may come as text
+    const colorMap: {[key: string]: string} = {
+      'black': '#000000',
+      'white': '#FFFFFF',
+      'red': '#FF0000',
+      'blue': '#0000FF',
+      'green': '#008000',
+      'yellow': '#FFFF00',
+      'purple': '#800080',
+      'pink': '#FFC0CB',
+      'orange': '#FFA500',
+      'brown': '#A52A2A',
+      'gray': '#808080',
+      'grey': '#808080',
+    };
+    
+    // If it's already a hex code or rgb value, return as is
+    if (colorName.startsWith('#') || colorName.startsWith('rgb')) {
+      return colorName;
+    }
+    
+    // Check if we have a mapping for this color name
+    const lowerColor = colorName.toLowerCase();
+    if (colorMap[lowerColor]) {
+      return colorMap[lowerColor];
+    }
+    
+    // Otherwise, it might be a CSS color name
+    return lowerColor;
   }
 }

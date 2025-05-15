@@ -1,34 +1,43 @@
-@if ((cartStatus$ | async)?.mainPageLoading ) {
-<app-skeleton-loader [showCheckoutSection]="false"></app-skeleton-loader>
-}@else if ((cartStatus$ | async)?.error && !((loadedCart$ | async).cartIsLoaded)
-) {
+@if ((cartStatus$ | async)?.error && !((loadedCart$ | async).cartIsLoaded)) {
 <p class="w-full sm:text-xl text-center my-20 p-4">
   Something went wrong fetching the available data. Please try again later.
 </p>
+} @else {
+<!-- Show checkout progress map immediately in a centered container -->
+<div class="w-full py-6 bg-gray-50 border-b">
+  <app-checkout-progress-map [currentStep]="'cart'"></app-checkout-progress-map>
+</div>
 
-} @else if ( (loadedCart$ | async).cartIsLoaded) { @if ( (loadedCart$ |
-async).userCart?.items?.length === 0 || (loadedCart$ | async).userCart?.length
-=== 0 ) {
 <app-container>
+  @if ((loadedCart$ | async).cartIsLoaded && ((loadedCart$ | async).userCart?.items?.length === 0 || (loadedCart$ |
+  async).userCart?.length === 0)) {
+  <!-- Empty cart message -->
   <div class="w-full flex flex-col gap-y-5 justify-center items-center lg:pt-[200px] pt-[100px] pb-[200px] text-center">
     <i class="pi pi-shopping-cart text-[100px] md:text-[150px] text-gray-300 font-thin"></i>
     <p class="text-3xl md:text-5xl font-semibold">
       Your cart is currently empty.
     </p>
-    <a class="block rounded-lg bg-green-500 font-semibold px-5 py-3 text-lg text-white transition duration-150 hover:bg-green-600 cursor-pointer"
+    <a class="block rounded-lg bg-[#3bb54a] font-semibold px-5 py-3 text-lg text-white transition duration-150 hover:bg-[#2a9e39] cursor-pointer"
       routerLink="/">Return to shop</a>
   </div>
-</app-container>
-} @else {
-<app-container>
+  } @else {
+  <!-- Show cart layout immediately -->
   <div class="flex flex-col lg:flex-row gap-y-10 w-full mt-10">
     <div class="w-full lg:w-[50%]">
+      @if ((cartStatus$ | async)?.mainPageLoading) {
+      <!-- Only show loading indicator for products -->
+      <div class="p-4 flex justify-center items-center">
+        <i class="pi pi-spin pi-spinner text-[#3bb54a] text-4xl"></i>
+      </div>
+      } @else {
       <app-cart-products />
+      }
     </div>
     <div class="w-full lg:w-[50%]">
       <app-cart-checkout />
     </div>
   </div>
+  }
 </app-container>
 <app-service-highlights />
-} } <app-dialog-error />
+} <app-dialog-error />

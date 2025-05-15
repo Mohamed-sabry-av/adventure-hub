@@ -16,6 +16,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Stripe, StripeElements, StripeCardNumberElement, StripeCardExpiryElement, StripeCardCvcElement } from '@stripe/stripe-js';
 import { WalletPaymentComponent } from '../googlePay-button/google-pay-button.component';
 import { CartService } from '../../../cart/service/cart.service';
+import { KlaviyoService } from '../../services/klaviyo.service';
 
 interface CartItem {
   product_id: number;
@@ -70,6 +71,7 @@ export class CheckoutFormComponent {
   private router = inject(Router);
   private stripeService = inject(StripeService);
   private cartService = inject(CartService);
+  private klaviyoService = inject(KlaviyoService);
 
   billingForm!: FormGroup;
   shippingForm!: FormGroup;
@@ -188,6 +190,19 @@ export class CheckoutFormComponent {
 
     this.isPaying = true;
     this.isLoading = true;
+
+    // Check if user wants to subscribe to newsletter
+    const subscribeNewsletter = this.billingForm.get('subscribeNewsletter')?.value;
+    if (subscribeNewsletter) {
+      const email = this.billingForm.get('email')?.value;
+      if (email) {
+        this.klaviyoService.subscribeToNewsletter(email).subscribe({
+          next: () => console.log('Newsletter subscription successful'),
+          error: (error) => console.error('Newsletter subscription failed', error)
+        });
+      }
+    }
+    
     try {
       const [cartItems, cartTotal] = await Promise.all([
         this.checkoutService.getCartItems().pipe(take(1)).toPromise(),
@@ -239,7 +254,7 @@ export class CheckoutFormComponent {
         console.error('Payment failed:', error.message);
         this.uiService.showError('Payment failed: ' + error.message);
         this.currentPaymentIntentId = null;
-        this.isLoading = false
+        this.isLoading = false;
         this.isPaying = false;
             } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         console.log('Payment succeeded:', paymentIntent.id);
@@ -270,7 +285,19 @@ export class CheckoutFormComponent {
     }
 
     this.isPaying = true;
-    this.isLoading = true
+    this.isLoading = true;
+
+    // Check if user wants to subscribe to newsletter
+    const subscribeNewsletter = this.billingForm.get('subscribeNewsletter')?.value;
+    if (subscribeNewsletter) {
+      const email = this.billingForm.get('email')?.value;
+      if (email) {
+        this.klaviyoService.subscribeToNewsletter(email).subscribe({
+          next: () => console.log('Newsletter subscription successful'),
+          error: (error) => console.error('Newsletter subscription failed', error)
+        });
+      }
+    }
 
     const paymentMethod = this.billingForm.get('paymentMethod')?.value;
     if (paymentMethod === 'cod') {
@@ -289,7 +316,7 @@ export class CheckoutFormComponent {
             if (response && response.id) {
               this.router.navigate(['/order-received', response.id]);
               this.cartService.clearUserCart();
-              this.isLoading = false
+              this.isLoading = false;
             }
           },
           error: (error) => {
@@ -297,7 +324,7 @@ export class CheckoutFormComponent {
             const errorMessage = error.message || 'Please try again later';
             this.uiService.showError(`Error creating order: ${errorMessage}`);
             this.isPaying = false;
-            this.isLoading = false
+            this.isLoading = false;
                     },
           complete: () => {
             // No need to reset isPaying here as we're navigating away
@@ -384,6 +411,7 @@ export class CheckoutFormComponent {
       formControls['email'] = new FormControl('', [Validators.email, Validators.required]);
       formControls['phone'] = new FormControl('', [Validators.maxLength(30), Validators.required]);
       formControls['postCode'] = new FormControl('', [Validators.maxLength(30), Validators.required]);
+      formControls['subscribeNewsletter'] = new FormControl(false);
     }
 
     return new FormGroup(formControls);
@@ -403,6 +431,7 @@ export class CheckoutFormComponent {
       email: '',
       phone: '',
       postCode: '',
+      subscribeNewsletter: false,
     });
 
     this.shippingForm.reset({

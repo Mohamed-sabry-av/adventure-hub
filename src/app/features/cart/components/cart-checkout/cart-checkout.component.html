@@ -1,6 +1,4 @@
-<div
-  class="lg:ml-24 xl:ml-36 p-8 text-[#4d4f3a] lg:max-w-[550px] flex flex-col gap-y-5 border"
->
+<div class="lg:ml-24 xl:ml-36 p-8 text-[#4d4f3a] lg:max-w-[550px] flex flex-col gap-y-5 border">
   <h2 class="font-semibold text-xl">Order summary</h2>
   <hr />
 
@@ -12,30 +10,32 @@
       Shipping options will be updated during checkout.
     </p>
   </div>
+
+  @if (!(loadedCart$ | async)?.cartIsLoaded) {
+  <!-- Loading state for total -->
   <div class="flex justify-between font-semibold">
     <p class="text-lg">Total:</p>
-    <p
-      [innerHTML]="
-        (loadedCart$ | async)?.userCart?.totals?.sub_total | currencySvg
-      "
-      class="text-black"
-    ></p>
+    <div class="w-24 h-6 bg-gray-200 animate-pulse rounded"></div>
   </div>
+  } @else {
+  <div class="flex justify-between font-semibold">
+    <p class="text-lg">Total:</p>
+    <p [innerHTML]="
+        (loadedCart$ | async)?.userCart?.totals?.sub_total | currencySvg
+        " class="text-black"></p>
+  </div>
+  }
 
   <div>
     <a routerLink="/checkout">
       <button
-        class="bg-[#4d4f3a] hover:bg-[#323516] transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full"
-      >
+        class="bg-[#3bb54a] hover:bg-[#2a9e39] transition-colors duration-300 font-semibold text-white p-3 rounded-md w-full">
         <i class="pi pi-shopping-bag mr-2"></i>
         <span>Checkout</span>
       </button>
     </a>
 
-    <a
-      [routerLink]="['']"
-      class="cursor-pointer block mt-4 text-center text-orange-600 text-sm underline"
-      >Continue Shopping</a
-    >
+    <a [routerLink]="['']" class="cursor-pointer block mt-4 text-center text-orange-600 text-sm underline">Continue
+      Shopping</a>
   </div>
 </div>

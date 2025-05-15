@@ -16,6 +16,7 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
 import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { CartStatus } from '../../model/cart.model';
 import { RouterLink } from '@angular/router';
+import { CheckoutProgressMapComponent } from '../../../shared/components/checkout-progress-map/checkout-progress-map.component';
 
 @Component({
   selector: 'app-cart-page',
@@ -28,6 +29,7 @@ import { RouterLink } from '@angular/router';
     DialogErrorComponent,
     SkeletonLoaderComponent,
     RouterLink,
+    CheckoutProgressMapComponent,
   ],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.css',

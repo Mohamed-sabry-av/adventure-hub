@@ -11,6 +11,7 @@ import { AppContainerComponent } from '../../../shared/components/app-container/
 import { OrderConfirmationSkeletonComponent } from '../components/order-confirmation-skeleton/order-confirmation-skeleton.component';
 import { UIService } from '../../../shared/services/ui.service';
 import { OrderConfirmationService } from '../services/order-confirmation.service';
+import { CheckoutProgressMapComponent } from '../../shared/components/checkout-progress-map/checkout-progress-map.component';
 
 @Component({
   selector: 'app-order-confirmation-page',
@@ -23,7 +24,8 @@ import { OrderConfirmationService } from '../services/order-confirmation.service
     AppContainerComponent,
     ServiceHighlightsComponent,
     DialogErrorComponent,
-    OrderConfirmationSkeletonComponent
+    OrderConfirmationSkeletonComponent,
+    CheckoutProgressMapComponent
   ],
   templateUrl: './order-confirmation-page.component.html',
   styleUrl: './order-confirmation-page.component.css',

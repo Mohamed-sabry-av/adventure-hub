@@ -1,3 +1,8 @@
+<!-- Show checkout progress map immediately in a centered container -->
+<div class="w-full py-6 bg-gray-50 border-b">
+  <app-checkout-progress-map [currentStep]="'checkout'"></app-checkout-progress-map>
+</div>
+
 @if ((cartStatus$ | async)?.mainPageLoading ) {
 <app-skeleton-loader [showCheckoutSection]="false"></app-skeleton-loader>
 } @else if ((cartStatus$ | async)?.error && !((loadedCart$ |
@@ -17,7 +22,7 @@ async).userCart?.items?.length === 0 || (loadedCart$ | async).userCart?.length
   </p>
 
   <a [routerLink]="['']"
-    class="block rounded-lg bg-green-500 font-semibold px-5 py-3 text-lg text-white transition duration-150 hover:bg-green-600 cursor-pointer">Return
+    class="block rounded-lg bg-[#3bb54a] font-semibold px-5 py-3 text-lg text-white transition duration-150 hover:bg-[#2a9e39] cursor-pointer">Return
     to shop</a>
 </div>
 }@else {
@@ -39,11 +44,6 @@ async).userCart?.items?.length === 0 || (loadedCart$ | async).userCart?.length
     }
 
     <app-checkout-form />
-
-    <!-- Add newsletter signup component -->
-    <div class="mt-6">
-      <app-newsletter-signup></app-newsletter-signup>
-    </div>
   </div>
 </div>
 } }

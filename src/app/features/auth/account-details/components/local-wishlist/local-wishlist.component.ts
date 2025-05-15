@@ -12,6 +12,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { UnifiedWishlistService } from '../../../../../shared/services/unified-wishlist.service';
 import { CartService } from '../../../../../features/cart/service/cart.service';
 import { Product } from '../../../../../interfaces/product';
+import { UIService } from '../../../../../shared/services/ui.service';
 
 @Component({
   selector: 'app-local-wishlist',
@@ -32,6 +33,7 @@ export class LocalWishlistComponent implements OnInit, OnDestroy {
   private wishlistService = inject(UnifiedWishlistService);
   private cartService = inject(CartService);
   private cdr = inject(ChangeDetectorRef);
+  public uiService = inject(UIService);
 
   ngOnInit(): void {
     this.loadWishlist();
@@ -95,6 +97,8 @@ export class LocalWishlistComponent implements OnInit, OnDestroy {
 
   addToCart(product: Product, index: number): void {
     this.wishlistItems[index].isAddingToCart = true;
+    // Set spinner loading state to true
+    this.uiService.setSpinnerLoading(true);
     
     const productToAdd = {
       id: product.id,
@@ -107,6 +111,11 @@ export class LocalWishlistComponent implements OnInit, OnDestroy {
     this.cartService.addProductToCart(productToAdd);
     this.wishlistItems[index].addedToCart = true;
     this.wishlistItems[index].isAddingToCart = false;
+    
+    // Wait a bit before turning off spinner to ensure cart is properly updated
+    setTimeout(() => {
+      this.uiService.setSpinnerLoading(false);
+    }, 1000);
     
     setTimeout(() => {
       this.wishlistItems[index].addedToCart = false;

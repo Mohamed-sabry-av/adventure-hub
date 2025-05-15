@@ -21,8 +21,8 @@ import { Subscription } from 'rxjs';
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      width: 24px;
-      height: 24px;
+      width: 36px;
+      height: 36px;
       color: #ffffff;
     }
     
@@ -43,9 +43,9 @@ import { Subscription } from 'rxjs';
       background-color: #f4663c;
       color: white;
       border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      font-size: 0.65rem;
+      width: 18px;
+      height: 18px;
+      font-size: 0.7rem;
       display: flex;
       align-items: center;
       justify-content: center;
