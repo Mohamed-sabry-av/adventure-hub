@@ -7,10 +7,15 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Category } from '../../../interfaces/category.model';
 import { NavbarMainCategoriesComponent } from '../navbar-main-categories/navbar-main-categories.component';
 import { NavbarSubCategoriesComponent } from '../navbar-sub-categories/navbar-sub-categories.component';
+import { CurrencySelectorComponent } from '../currency-selector/currency-selector.component';
 
 @Component({
   selector: 'app-navbar-container',
-  imports: [NavbarMainCategoriesComponent, NavbarSubCategoriesComponent],
+  imports: [
+    NavbarMainCategoriesComponent, 
+    NavbarSubCategoriesComponent,
+    CurrencySelectorComponent
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './navbar-container.component.html',
   styleUrl: './navbar-container.component.css',

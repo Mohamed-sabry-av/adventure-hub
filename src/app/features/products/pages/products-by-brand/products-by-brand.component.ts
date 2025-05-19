@@ -14,7 +14,6 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FilterSidebarComponent } from '../../components/filter-sidebar/filter-sidebar.component';
-import { BreadcrumbComponent } from '../../components/breadcrumb/breadcrumb.component';
 import { FilterDrawerComponent } from '../../components/filter-drawer/filter-drawer.component';
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
@@ -23,7 +22,6 @@ import { SeoService } from '../../../../core/services/seo.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, of, throwError } from 'rxjs';
 import { debounceTime, finalize } from 'rxjs/operators';
-import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 
 const BRAND_PRODUCTS_KEY = makeStateKey<any[]>('brand_products');
 const BRAND_INFO_KEY = makeStateKey<any>('brand_info');
@@ -34,11 +32,9 @@ const BRAND_INFO_KEY = makeStateKey<any>('brand_info');
   imports: [
     CommonModule,
     FilterSidebarComponent,
-    BreadcrumbComponent,
     FilterDrawerComponent,
     SortMenuComponent,
-    ProductsGridComponent,
-    DialogErrorComponent
+    ProductsGridComponent
   ],
   templateUrl: './products-by-brand.component.html',
   styleUrls: ['./products-by-brand.component.css'],

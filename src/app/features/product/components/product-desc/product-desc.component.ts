@@ -10,7 +10,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { SafeHtmlPipe } from '../../../../shared/pipes/safeHtml.pipe';
 
 interface SpecItem {
@@ -50,10 +50,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit() {
-    if (!this.productAdditionlInfo) {
-      console.error('productAdditionlInfo is undefined');
-      this.productAdditionlInfo = {};
-    }
+    this.productAdditionlInfo = this.productAdditionlInfo || {};
     console.log('Product Additional Info:', this.productAdditionlInfo);
 
     this.setSafeDescription();
@@ -166,7 +163,16 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     }
     try {
       console.log('Raw description:', description);
-      this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(description);
+      
+      let processedDescription = description;
+      
+      processedDescription = processedDescription.replace(/data-src="(.*?)"/g, 'src="$1"');
+      
+      processedDescription = processedDescription.replace(/src="data:image\/gif;base64,.*?"/g, '');
+      
+      processedDescription = processedDescription.replace(/class="lazyload"/g, '');
+      
+      this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(processedDescription);
     } catch (error) {
       console.error('Error sanitizing product description:', error);
       const sanitizedText = this.sanitizer.sanitize(SecurityContext.HTML, description) || '';
@@ -197,6 +203,22 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
         el.style.maxWidth = '100%';
         el.style.width = 'auto';
         el.style.overflowX = 'auto';
+      });
+      
+      const iframes = descriptionContent.querySelectorAll('iframe');
+      iframes.forEach((iframe: HTMLElement) => {
+        iframe.style.maxWidth = '100%';
+        iframe.style.width = '100%';
+        iframe.style.height = 'auto';
+        iframe.style.minHeight = '315px';
+        
+        iframe.style.display = 'block';
+        
+        const parentP = iframe.closest('p');
+        if (parentP) {
+          parentP.style.maxWidth = '100%';
+          parentP.style.width = '100%';
+        }
       });
     }
   }
@@ -240,6 +262,18 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
             this.calculateSectionPositions();
             this.fixWideContent();
           };
+        }
+      }
+    });
+    
+    const iframes = document.querySelectorAll('iframe[data-src]');
+    iframes.forEach((iframe) => {
+      if (iframe instanceof HTMLIFrameElement) {
+        const src = iframe.getAttribute('data-src');
+        if (src) {
+          iframe.src = src;
+          iframe.removeAttribute('data-src');
+          iframe.classList.remove('lazyload');
         }
       }
     });

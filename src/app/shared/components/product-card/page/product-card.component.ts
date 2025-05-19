@@ -393,21 +393,23 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  updateVisibleColors(): void {
+  private updateVisibleColors(): void {
     if (!this.colorOptions || this.colorOptions.length === 0) {
       this.visibleColors = [];
       return;
     }
 
-    const startIndex = this.colorScrollIndex;
-    const endIndex = Math.min(
-      startIndex + this.colorsPerPage,
+    const start = this.colorScrollIndex * this.colorsPerPage;
+    const end = Math.min(
+      start + this.colorsPerPage,
       this.colorOptions.length
     );
-    this.visibleColors = this.colorOptions.slice(startIndex, endIndex);
+    this.visibleColors = this.colorOptions.slice(start, end);
+
+    // Calculate the maximum index for color scrolling
     this.maxColorScrollIndex = Math.max(
       0,
-      this.colorOptions.length - this.colorsPerPage
+      Math.ceil(this.colorOptions.length / this.colorsPerPage) - 1
     );
   }
 

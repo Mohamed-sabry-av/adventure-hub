@@ -1,0 +1,30 @@
+/* Make sure the navbar components align properly */
+.navbar-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Style the top part of the navbar */
+.navbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* Ensure the currency selector aligns properly on mobile */
+@media (max-width: 768px) {
+  .navbar-top {
+    justify-content: flex-end;
+  }
+  
+  app-currency-selector {
+    margin-left: auto;
+  }
+  
+  .desktop-only {
+    display: none;
+  }
+}

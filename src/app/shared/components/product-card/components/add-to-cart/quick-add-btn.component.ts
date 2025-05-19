@@ -29,6 +29,7 @@ import { Observable, Subscription } from 'rxjs';
   imports: [CommonModule, FormsModule],
   templateUrl: './quick-add-btn.component.html',
   styleUrls: ['./quick-add-btn.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -73,8 +74,7 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   loadingMap$: Observable<{ [key: string]: boolean }>;
   optionsVisible: boolean = false;
-  private loadingSubscription: Subscription | null = null;
-  private cartOpenSubscription: Subscription | null = null;
+  private subscriptions: Subscription = new Subscription();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -105,28 +105,35 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
     }
     
     // Subscribe to loading state changes
-    this.loadingSubscription = this.loadingMap$.subscribe(loadingMap => {
-      if (loadingMap && !loadingMap['add']) {
-        // When loading finishes, show success indicator
-        if (this.isLoading) {
-          this.isLoading = false;
-          this.addSuccess = true;
-          setTimeout(() => {
-            this.addSuccess = false;
-            this.cdr.markForCheck();
-          }, 2000);
+    this.subscriptions.add(
+      this.loadingMap$.subscribe(loadingMap => {
+        if (loadingMap && !loadingMap['add']) {
+          // When loading finishes, show success indicator
+          if (this.isLoading) {
+            this.isLoading = false;
+            this.addSuccess = true;
+            setTimeout(() => {
+              this.addSuccess = false;
+              this.cdr.markForCheck();
+            }, 2000);
+          }
         }
-      }
-    });
+      })
+    );
   }
 
   ngOnDestroy() {
-    if (this.loadingSubscription) {
-      this.loadingSubscription.unsubscribe();
+    // Clean up all subscriptions to prevent memory leaks
+    this.subscriptions.unsubscribe();
+  }
+
+  onToggleOptionsPanel() {
+    if (this.product?.type === 'simple') {
+      this.onAddToCart();
+      return;
     }
-    if (this.cartOpenSubscription) {
-      this.cartOpenSubscription.unsubscribe();
-    }
+
+    this.toggleOptions();
   }
 
   onAddToCart() {
@@ -190,28 +197,6 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
   toggleOptions() {
     this.optionsVisible = !this.optionsVisible;
     this.toggleMobileQuickAdd.emit();
-  }
-
-  onToggleOptionsPanel() {
-    if (!this.product) {
-      console.error('No product provided');
-      return;
-    }
-
-    // If it's a simple product, add directly to cart
-    if (this.product.type === 'simple') {
-      this.addSimpleProductToCart();
-      return;
-    } 
-    
-    // If variable product and options are visible and a variation is selected, add to cart
-    if (this.product.type === 'variable' && this.optionsVisible && this.selectedVariation) {
-      this.onAddToCart();
-      return;
-    }
-    
-    // Otherwise, toggle the options
-    this.toggleOptions();
   }
 
   isReadyToAddToCart(): boolean {

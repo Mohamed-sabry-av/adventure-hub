@@ -27,6 +27,7 @@ import { AccountAuthService } from '../../auth/account-auth.service';
 import { UIService } from '../../../shared/services/ui.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { GeoLocationService } from '../../../shared/services/geo-location.service';
 
 export interface PaymentIntentRequest {
   amount: number;
@@ -60,6 +61,7 @@ export class CheckoutService {
   private accountAuthService = inject(AccountAuthService);
   private uiService = inject(UIService);
   private httpClient = inject(HttpClient);
+  private geoLocationService = inject(GeoLocationService);
 
   private readonly BACKEND_URL = environment.apiUrl;
 
@@ -74,6 +76,7 @@ export class CheckoutService {
   productsOutStock$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
   appliedCouponStatus$: Observable<any> = this.store.select(copuponStatusSelector);
   appliedCouponValue$: Observable<any> = this.store.select(copuponDataSelector);
+  walletPaymentAvailable$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   private billingForm: FormGroup | null = null;
 
@@ -99,11 +102,77 @@ export class CheckoutService {
       .get('https://adventures-hub.com/wp-json/custom/v1/shipping-countries-with-states')
       .pipe(
         map((response: any) => response),
+        switchMap((countries: any[]) => {
+          // First check if we have a detected country from localStorage
+          const savedLocation = localStorage.getItem('user_location');
+          if (savedLocation) {
+            try {
+              const location = JSON.parse(savedLocation);
+              if (location && location.country_code) {
+                // Find the detected country in the list
+                const detectedCountry = countries.find(c => c.code === location.country_code);
+                
+                if (detectedCountry) {
+                  // Create a copy of the countries array without the detected country
+                  const otherCountries = countries.filter(c => c.code !== location.country_code);
+                  
+                  // Return the detected country first, followed by all other countries
+                  return of([
+                    { ...detectedCountry, name: `${detectedCountry.name} (Detected)` }, // Mark as detected
+                    ...otherCountries
+                  ]);
+                } else {
+                  // If the detected country is not in the list, add it to the list
+                  // This handles the case of countries not included in the WooCommerce allowed list
+                  console.log('Detected country not in allowed list. Adding:', location.country_code);
+                  
+                  // Get country name from separate API or use country code as name
+                  return this.getCountryNameForCode(location.country_code).pipe(
+                    map(countryName => {
+                      const newCountry = {
+                        code: location.country_code,
+                        name: countryName || location.country_name || location.country_code,
+                        states: [],
+                        payment_methods: []
+                      };
+                      
+                      // Add to the beginning of the list with (Detected) label
+                      return [
+                        { ...newCountry, name: `${newCountry.name} (Detected)` },
+                        ...countries
+                      ];
+                    })
+                  );
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing saved location:', e);
+            }
+          }
+          
+          // If no detected country or error, return the original list
+          return of(countries);
+        }),
         catchError((error: any) => {
           console.error('Error fetching countries:', error);
           return throwError(() => new Error(error.error?.message || 'Failed to fetch countries'));
         })
       );
+  }
+  
+  // Helper method to get country name for a country code
+  private getCountryNameForCode(countryCode: string): Observable<string | null> {
+    // Try to fetch from the full list of world countries, not just allowed ones
+    return this.httpClient.get('https://adventures-hub.com/wp-json/wc/v3/data/countries').pipe(
+      map((countries: any) => {
+        const country = countries.find((c: any) => c.code === countryCode);
+        return country ? country.name : null;
+      }),
+      catchError(error => {
+        console.error('Error fetching world countries:', error);
+        return of(null);
+      })
+    );
   }
 
   avaliableCountries$ = this.getAvaliableCountries();
@@ -126,6 +195,17 @@ export class CheckoutService {
 
   getSelectedBillingCountry(country: string) {
     this.selectedBillingCountry$.next(country);
+  }
+
+  getCountryNameByCode(code: string): string {
+    let countryName = '';
+    this.avaliableCountries$.pipe(take(1)).subscribe(countries => {
+      const country = countries.find((c: any) => c.code === code);
+      if (country) {
+        countryName = country.name;
+      }
+    });
+    return countryName || code;
   }
 
   private getPaymentMethodTitle(paymentMethod: string): string {
@@ -416,6 +496,44 @@ export class CheckoutService {
           })
         );
       })
+    );
+  }
+
+  setDefaultCountryBasedOnGeolocation() {
+    // First check if we already have location data saved
+    const savedLocation = localStorage.getItem('user_location');
+    if (savedLocation) {
+      try {
+        const location = JSON.parse(savedLocation);
+        if (location && location.country_code) {
+          this.selectedBillingCountry$.next(location.country_code);
+          this.selectedShippingCountry$.next(location.country_code);
+          console.log('Set default country from saved location:', location.country_code);
+          return; // No need to fetch again
+        }
+      } catch (e) {
+        console.error('Error parsing saved location:', e);
+      }
+    }
+
+    // If no saved location, fetch from API
+    this.geoLocationService.getUserLocation().subscribe(
+      (location) => {
+        if (location) {
+          const countryCode = location.country_code;
+          if (countryCode) {
+            this.selectedBillingCountry$.next(countryCode);
+            this.selectedShippingCountry$.next(countryCode);
+            console.log('Set default country to:', countryCode);
+            
+            // Save location for future visits
+            this.geoLocationService.saveUserLocation(location);
+          }
+        }
+      },
+      (error) => {
+        console.error('Error getting geolocation:', error);
+      }
     );
   }
 }

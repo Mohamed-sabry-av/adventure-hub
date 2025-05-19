@@ -3,6 +3,13 @@
   width: 100%;
 }
 
+.product-card-wrapper {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 1rem;
+}
+
 .product-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   will-change: transform;
@@ -92,11 +99,21 @@
   .products-grid-container {
     padding: 0 0.5rem;
   }
+  
+  .product-skeleton {
+    height: auto;
+    min-height: 350px;
+  }
 }
 
 @media (max-width: 767px) {
   .product-skeleton {
-    height: 380px;
+    height: auto;
+    min-height: 350px;
+  }
+  
+  .product-card-wrapper {
+    margin-bottom: 1rem;
   }
 }
 

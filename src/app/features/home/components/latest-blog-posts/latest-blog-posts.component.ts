@@ -22,7 +22,7 @@ import { Observable, of } from 'rxjs';
               <a [routerLink]="['/blog/', post.slug]" class="block">
                 <div class="relative overflow-hidden h-48">
                   <img
-                    [src]="post.yoast_head_json?.og_image?.[0]?.url || 'https://via.placeholder.com/400x300'"
+                    [src]="getPostImageUrl(post)"
                     [alt]="post.title.rendered"
                     class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                     loading="lazy"
@@ -77,6 +77,14 @@ export class LatestBlogPostsComponent implements OnInit {
 
   ngOnInit(): void {
     this.latestPosts$ = this.blogService.getLatestPosts(4);
+  }
+
+  // Get image URL from post
+  getPostImageUrl(post: BlogPost): string {
+    if (post.yoast_head_json && post.yoast_head_json.og_image && post.yoast_head_json.og_image[0]) {
+      return post.yoast_head_json.og_image[0].url;
+    }
+    return 'https://via.placeholder.com/400x300';
   }
 
   // استخراج النص الصافي من HTML

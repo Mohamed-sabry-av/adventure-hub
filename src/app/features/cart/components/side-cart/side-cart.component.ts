@@ -9,6 +9,7 @@ import {
   Input,
   PLATFORM_ID,
   viewChild,
+  OnInit
 } from '@angular/core';
 import { CartService } from '../../service/cart.service';
 import { filter, Observable } from 'rxjs';
@@ -29,12 +30,13 @@ import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 
   host: { ngSkipHydration: '' },
 })
-export class SideCartComponent {
+export class SideCartComponent implements OnInit {
   private cartService = inject(CartService);
   private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
+  private platformId = inject(PLATFORM_ID);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor() {}
 
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
@@ -54,13 +56,8 @@ export class SideCartComponent {
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {
       if (isPlatformBrowser(this.platformId)) {
-        if (visible) {
-          document.body.style.overflow = 'hidden';
-        } else {
-          document.body.style.overflow = 'auto';
-        }
+        document.body.style.overflow = visible ? 'hidden' : 'auto';
       }
-      document.body.style.overflow = visible ? 'hidden' : 'auto';
     });
 
     this.destroyRef.onDestroy(() => {

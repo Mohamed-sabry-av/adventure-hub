@@ -1,27 +1,22 @@
 <!-- Header spacer for fixed positioning - invisible but maintains layout -->
-<div class="header-spacer" [style.height.px]="headerHeight()"></div>
+<div class="header-spacer" [style.height.px]="headerHeight()" [ngClass]="{'hidden': currentPage === 'checkout'}"></div>
 
 <header class="w-full header-container" [ngClass]="{
     'is-scroll': lastScrollY() > 0 && !isProductPage,
-    'non-sticky': isProductPage
+    'non-sticky': isProductPage || currentPage === 'checkout'
   }" #headerEl>
   @if (currentPage === 'checkout') {
-  <div class="h-[135px] w-full bg-white border-b relative flex items-center justify-center">
+  <div class="h-[135px] w-full bg-[#2E2E2E] flex items-center justify-center">
     <a class="block" [routerLink]="''">
-      <img src="header/adv-hub-logo-n.png" alt="Adventures hub logo" routerLink=""
+      <img src="header/White logo-01.webp" alt="Adventures hub logo" routerLink=""
         class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" loading="lazy" />
-    </a>
-
-    <a routerLink="/cart" class="bag-checkout-container">
-      <i class="pi pi-shopping-bag bag-checkout"></i>
-      <span *ngIf="cartCount > 0" class="count-badge checkout-badge">{{ cartCount }}</span>
     </a>
   </div>
   } @else if(currentPage !== 'checkout') {
   <!-- Header content wrapper to maintain stable height -->
   <div class="header-content-wrapper">
     <!-- Layer 1: Top Info Banner - Only visible at the top of the page -->
-    <div class="header-top-layer" [class.header-layer-hidden]="lastScrollY() > 10" @layerAnimation>
+    <div class="header-top-layer" [class.header-layer-hidden]="lastScrollY() > 0" @layerAnimation>
       <div class="top-info-banner">
         <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
           <strong>Free Delivery</strong> for orders over AED 100
@@ -77,7 +72,8 @@
 
     <!-- Layer 3: Bottom - Navbar (visible only at top or during scroll up) -->
     <div class="header-bottom-layer"
-      [class.header-layer-hidden]="showNavbarLayer() === 'minimal' && !forceNavbarVisible" @layerAnimation>
+      [class.header-layer-hidden]="scrollDirection() === 'down' && lastScrollY() > 100 && !forceNavbarVisible"
+      @layerAnimation>
       @defer (on idle) {
       <app-navbar-container [mainCategories]="mainCategories" [allCategories]="allCategories" />
       }

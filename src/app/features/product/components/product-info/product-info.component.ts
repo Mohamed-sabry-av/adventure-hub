@@ -15,7 +15,6 @@ import { CommonModule } from '@angular/common';
 import { CartService } from '../../../cart/service/cart.service';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
 import { Subscription, Observable, interval } from 'rxjs';
-import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 import { VariationService } from '../../../../core/services/variation.service';
 import { UIService } from '../../../../shared/services/ui.service';
 import { CheckoutService } from '../../../checkout/services/checkout.service';
@@ -27,6 +26,8 @@ import { StickyFooterService } from '../../../../shared/services/sticky-footer.s
 import { ProductInfoService } from '../../services/product-info.service';
 import { UnifiedWishlistService } from '../../../../shared/services/unified-wishlist.service';
 import { ProductTagsService } from '../../../../shared/services/product-tags.service';
+import { CurrencyPriceDirective } from '../../../../shared/directives/currency-price.directive';
+import { DeliveryEstimateComponent } from '../delivery-estimate/delivery-estimate.component';
 
 /**
  * Interface for product attribute options
@@ -53,9 +54,10 @@ declare var _learnq: any;
     CommonModule,
     RouterLink,
     ReactiveFormsModule,
-    CurrencySvgPipe,
     WalletPaymentComponent,
     TabbyPromoComponent,
+    CurrencyPriceDirective,
+    DeliveryEstimateComponent,
   ],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
@@ -75,6 +77,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   tabbyConfig: { publicKey: string; merchantCode: string };
   loadingMap$: Observable<{ [key: string]: boolean }>;
   linkCopied: boolean = false;
+  isHubProduct: boolean = false;
 
   private stickyFooterService = inject(StickyFooterService);
   private productInfoService = inject(ProductInfoService);
@@ -105,6 +108,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
         this.selectedAttributes = this.productInfoService.setDefaultAttributes(newProduct);
         this.updateMaxLength();
         this.checkWishlistStatus(newProduct.id);
+        this.checkIfHubProduct(newProduct);
       }
     });
   }
@@ -117,12 +121,71 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       this.selectedAttributes = this.productInfoService.setDefaultAttributes(product);
       this.updateMaxLength();
       this.checkWishlistStatus(product.id);
+      this.checkIfHubProduct(product);
     }
     this.scrollHandler = this.stickyFooterService.initScrollHandler();
   }
+  
+  /**
+   * Check if the product is a HUB product based on tags, categories or attributes
+   */
+  checkIfHubProduct(product: any): void {
+    if (!product) {
+      this.isHubProduct = false;
+      return;
+    }
+    
+    // Check in tags
+    if (product.tags && Array.isArray(product.tags)) {
+      if (product.tags.some((tag: any) => 
+          tag.name?.toLowerCase() === 'hub' || 
+          tag.slug?.toLowerCase() === 'hub')) {
+        this.isHubProduct = true;
+        return;
+      }
+    }
+    
+    // Check in attributes
+    if (product.attributes && Array.isArray(product.attributes)) {
+      const hubAttribute = product.attributes.find((attr: any) => 
+        attr.name === 'Shipping' || attr.name === 'Delivery' || attr.name === 'Hub'
+      );
+      
+      if (hubAttribute && hubAttribute.options) {
+        const hubOptions = hubAttribute.options;
+        if (Array.isArray(hubOptions)) {
+          const hasHub = hubOptions.some((option: any) => {
+            const optionValue = typeof option === 'string' ? option.toLowerCase() : 
+                               (option.name ? option.name.toLowerCase() : '');
+            return optionValue.includes('hub');
+          });
+          
+          if (hasHub) {
+            this.isHubProduct = true;
+            return;
+          }
+        }
+      }
+    }
+    
+    // Check in meta_data
+    if (product.meta_data && Array.isArray(product.meta_data)) {
+      const hubMeta = product.meta_data.find((meta: any) => 
+        meta.key?.includes('hub') || 
+        (typeof meta.value === 'string' && meta.value.toLowerCase().includes('hub'))
+      );
+      
+      if (hubMeta) {
+        this.isHubProduct = true;
+        return;
+      }
+    }
+    
+    // Default to false
+    this.isHubProduct = false;
+  }
 
   handleAttributeClick(event: Event, name: string, value: string): void {
-    console.log(`Click event on ${name} = ${value}`);
     this.selectAttribute(name, value);
   }
 
@@ -209,7 +272,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
    * This modified function ensures better responsiveness and user experience
    */
   selectAttribute(name: string, value: string): void {
-    console.log(`Selecting attribute: ${name} = ${value}`);
 
     this.selectedAttributes = {
       ...this.selectedAttributes,
@@ -255,7 +317,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
           .subscribe(fullVariation => {
             if (fullVariation) {
               // Update with complete variation data once it's available
-              console.log('Full Variation Data:', fullVariation);
               this.variationService.setSelectedVariation(fullVariation);
               this.variationSelected.emit(fullVariation);
             } else {
@@ -384,7 +445,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
         takeWhile((response) => !(response.success && response.orderId), true),
         tap((response) => {
           if (response.success && response.orderId) {
-            console.log('Wallet order created successfully:', response.orderId);
             this.router.navigate(['/order-received', response.orderId]);
           }
         })
@@ -501,14 +561,45 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   copyProductLink(event: Event): void {
     event.preventDefault();
-    const productUrl = this.getCurrentProductUrl();
+    event.stopPropagation();
+    const url = this.getCurrentProductUrl();
+    
+    navigator.clipboard.writeText(url).then(
+      () => {
+        this.linkCopied = true;
+        this.uiService.showSuccess('Link copied to clipboard!');
+        setTimeout(() => {
+          this.linkCopied = false;
+        }, 2000);
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+        this.uiService.showError('Failed to copy link');
+      }
+    );
+  }
 
-    navigator.clipboard.writeText(productUrl).then(() => {
-      this.linkCopied = true;
-      setTimeout(() => {
-        this.linkCopied = false;
-      }, 2000);
-    });
+  shareProduct(): void {
+    const productUrl = this.getCurrentProductUrl();
+    const productName = this.productInfo()?.name || 'Check out this product';
+    
+    // Check if Web Share API is available (mainly mobile devices)
+    if (navigator.share) {
+      navigator.share({
+        title: productName,
+        text: `Check out ${productName} on Adventures Hub`,
+        url: productUrl,
+      })
+      .then(() => console.log('Product shared successfully'))
+      .catch((error) => {
+        console.error('Error sharing product:', error);
+        // Fallback to copy link if sharing fails
+        this.copyProductLink(new Event('fallback'));
+      });
+    } else {
+      // Fallback for desktop or browsers without Web Share API
+      this.copyProductLink(new Event('fallback'));
+    }
   }
 
   private getCurrentProductUrl(): string {
@@ -549,10 +640,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    // Debug output to console (remove in production)
-    console.log('Product meta_data:', product.meta_data);
-    console.log('Product attributes:', product.attributes);
-
+  
     // Check warranty in meta_data
     if (product.meta_data && Array.isArray(product.meta_data)) {
       // Common warranty meta keys
@@ -561,7 +649,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       for (const key of warrantyKeys) {
         const warrantyMeta = product.meta_data.find((meta: any) => meta.key === key);
         if (warrantyMeta) {
-          console.log(`Found warranty meta with key ${key}:`, warrantyMeta);
           
           if (!warrantyMeta.value) {
             continue;
@@ -589,7 +676,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
             try {
               const jsonStr = JSON.stringify(objValue);
               if (jsonStr && jsonStr !== '{}' && jsonStr !== '[]') {
-                console.log('Warranty value as JSON:', jsonStr);
                 return jsonStr !== '[object Object]' ? jsonStr : '1 Year';
               }
             } catch (e) {
@@ -613,7 +699,6 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       );
       
       for (const warrantyAttr of warrantyAttributes) {
-        console.log('Found warranty attribute:', warrantyAttr);
         
         if (warrantyAttr.options && warrantyAttr.options.length > 0) {
           const option = warrantyAttr.options[0];
@@ -640,5 +725,17 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
     // If no warranty info found
     return null;
+  }
+
+  /**
+   * Convert price from string to number for the currency directive
+   */
+  getNumericPrice(price: string): number {
+    if (!price || price === 'Unavailable') return 0;
+    
+    // Remove any non-numeric characters except decimal point
+    const numericString = price.toString().replace(/[^0-9.]/g, '');
+    const numeric = parseFloat(numericString);
+    return isNaN(numeric) ? 0 : numeric;
   }
 }

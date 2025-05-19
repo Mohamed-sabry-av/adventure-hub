@@ -11,12 +11,18 @@ import {
 import { HandleErrorsService } from './handel-errors.service';
 import { AuthService } from './auth.service';
 
+interface CachedResponse {
+  data: any;
+  expiry: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
   private baseUrl = 'https://adventures-hub.com/wp-json/wc/v3/';
-  private cache = new Map<string, { data: any; expiry: number }>();
+  private cache = new Map<string, CachedResponse>();
+  private pendingRequests = new Map<string, Observable<any>>();
   private static serverCache = new Map<string, any>();
   constructor(
     private http: HttpClient,
@@ -87,11 +93,20 @@ export class ApiService {
     const cacheKey = `${endpoint}_${options.params?.toString() || ''}_${
       options.observe || 'body'
     }`;
+    
+    // Check if this request is already in progress
+    if (this.pendingRequests.has(cacheKey)) {
+      console.log(`Return pending request for: ${endpoint}`);
+      return this.pendingRequests.get(cacheKey) as Observable<T | HttpResponse<T>>;
+    }
+    
+    // Check cache
     const cached = this.cache.get(cacheKey);
     if (cached && cached.expiry > Date.now()) {
       if (!cached.data || (Array.isArray(cached.data.body) && cached.data.body.length === 0)) {
         this.cache.delete(cacheKey);
       } else {
+        console.log(`Cache hit for: ${endpoint}`);
         return of(cached.data);
       }
     }
@@ -102,21 +117,32 @@ export class ApiService {
       observe: options.observe || 'body',
     };
 
-    return this.http
+    // Create the request, share its response, and store it in pendingRequests
+    const request = this.http
       .get<T>(`${this.baseUrl}${endpoint}`, httpOptions as Object)
       .pipe(
         retry(2),
         map((data:any) => {
           if (data && !(options.observe === 'response' && Array.isArray(data.body) && data.body.length === 0)) {
+            // Cache the response for 5 minutes (300000 ms)
             this.cache.set(cacheKey, { data, expiry: Date.now() + 300000 });
           }
+          // Remove from pending requests once complete
+          this.pendingRequests.delete(cacheKey);
           return data;
         }),
-        shareReplay(1),
-        catchError((error: HttpErrorResponse) =>
-          this.handelErrorsService.handelError(error)
-        )
+        catchError((error: HttpErrorResponse) => {
+          // Remove from pending requests on error
+          this.pendingRequests.delete(cacheKey);
+          return this.handelErrorsService.handelError(error);
+        }),
+        shareReplay(1)
       );
+    
+    // Store the pending request
+    this.pendingRequests.set(cacheKey, request);
+    
+    return request;
   }
 
   postRequest<T>(endpoint: string, body: any): Observable<T> {

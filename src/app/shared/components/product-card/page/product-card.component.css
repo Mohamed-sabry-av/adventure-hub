@@ -4,9 +4,9 @@
   display: flex;
   flex-direction: column;
   width: 100%; /* Full width of grid cell */
-  height: 450px; /* Fixed height */
-  min-height: 450px;
-  max-height: 450px; /* Ensure max height is enforced */
+  height: 400px; /* Adjusted height to match mumzworld */
+  min-height: 400px;
+  max-height: 400px; /* Ensure max height is enforced */
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -25,20 +25,40 @@
   margin-top: auto;
 }
 
+/* Ensure consistent spacing regardless of color options */
+.product-card app-card-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  padding-bottom: 40px; /* Make room for color swatches */
+}
+
+.product-card app-color-swatches {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}
 
 /* Responsive styles */
 @media (max-width: 767px) {
   .product-card {
     width: 100%; /* Full width of grid cell on mobile */
-    height: 480px; /* Smaller fixed height on mobile */
-    min-height: 380px;
-    max-height: 440px; /* Ensure max height is enforced */
+    height: 380px; /* Fixed height on mobile to match mumzworld */
+    min-height: 380px; 
+    max-height: 380px; /* Set fixed height constraint */
     font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Ensure positioning context for options */
   }
 
-  /* Smaller images on mobile */
+  /* Make images maintain aspect ratio but take up proper space */
   .product-card img {
-    max-height: 180px;
+    height: 200px; /* Fixed height for product images */
+    width: 100%;
     object-fit: contain;
   }
 
@@ -62,8 +82,8 @@
   }
 
   .product-card .color-swatch {
-    width: 12px;
-    height: 12px;
+    width: 24px;
+    height: 24px;
     margin-right: 4px;
   }
 
@@ -71,6 +91,29 @@
     padding: 2px 5px;
     font-size: 0.7rem;
     margin-right: 3px;
+  }
+
+  /* Keep desktop-style layout in mobile */
+  .product-card app-card-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-card app-color-swatches {
+    margin-top: auto; /* Push to bottom of details section */
+    order: unset; /* Keep original order */
+  }
+
+  .product-card app-mobile-quick-add {
+    order: unset; /* Keep original order */
+  }
+
+  /* Ensure options panel appears inside the card properly */
+  .product-card .options-panel {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   }
 }
 

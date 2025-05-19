@@ -43,7 +43,7 @@ import { Router, RouterModule } from '@angular/router';
         </div>
         
         <div class="back-link">
-          <a routerLink="/auth/login">Back to Login</a>
+          <a routerLink="/user/login">Back to Login</a>
         </div>
       </form>
     </div>

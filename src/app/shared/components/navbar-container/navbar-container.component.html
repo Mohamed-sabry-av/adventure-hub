@@ -1,19 +1,16 @@
 <nav class="relative">
-  <div
-    class="navbar-wrapper"
-    (mouseenter)="onMouseEnter()"
-    (mouseleave)="onMouseLeave()"
-  >
-    <app-navbar-main-categories
-      [categories]="mainCategories"
-      [allCategories]="allCategories"
-      (select)="getSubCategories($event)"
-    />
+  <div class="navbar-wrapper" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+    <div class="navbar-top">
+      <!-- Main Categories -->
+      <app-navbar-main-categories [categories]="mainCategories" [allCategories]="allCategories"
+        (select)="getSubCategories($event)" />
+
+      <!-- Currency Selector - only show on desktop -->
+      <app-currency-selector class="ml-auto desktop-only" />
+    </div>
+
     <div class="absolute top-full left-0 w-full shadow-lg z-50">
-      <app-navbar-sub-categories
-        [subCategories$]="filterdCategories$"
-        [allCategoriesData]="allCategories"
-      />
+      <app-navbar-sub-categories [subCategories$]="filterdCategories$" [allCategoriesData]="allCategories" />
     </div>
   </div>
 </nav>

@@ -64,17 +64,18 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
         <span class="hidden sm:inline">Previous:</span>
-        <span class="ml-1 font-medium truncate max-w-[150px] inline-block">{{previousProduct.title}}</span>
+        <span class="ml-1 font-medium truncate max-w-[150px] inline-block" [innerHTML]="previousProduct.title"></span>
       </button>
       } @else {
       <div></div> <!-- Empty div for spacing -->
       }
 
+
       @if (nextProduct) {
       <button (click)="navigateToProduct(nextProduct.slug)"
         class="flex items-center text-gray-700 hover:text-primary-600 transition-colors">
         <span class="hidden sm:inline">Next:</span>
-        <span class="mx-1 font-medium truncate max-w-[150px] inline-block">{{nextProduct.title}}</span>
+        <span class="mx-1 font-medium truncate max-w-[150px] inline-block" [innerHTML]="nextProduct.title"></span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24"
           stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -137,7 +138,8 @@
 
     <!-- Related Products - Lowest priority, load last -->
     @defer (on viewport; on idle) {
-    <app-product-related [productId]="productData.id"></app-product-related>
+    <app-product-related [productId]="productData.id"
+      [relatedIds]="productData.related_ids || []"></app-product-related>
     } @placeholder (minimum 200ms) {
     <div class="mt-12">
       <h2 class="text-xl font-semibold mb-6">You May Also Like</h2>
@@ -154,15 +156,23 @@
     }
 
     <!-- Recently Viewed Products - Only load on idle -->
-    @defer (on idle) {
-    <app-recent-products-mini></app-recent-products-mini>
+    @defer (on viewport; on idle) {
+      <app-recent-products-mini></app-recent-products-mini>
+    } @placeholder {
+      <div class="mt-12">
+        <h2 class="text-xl font-semibold mb-6">Recently Viewed Products</h2>
+        <div class="animate-pulse grid grid-cols-2 md:grid-cols-4 gap-4">
+          @for (i of [0, 1, 2, 3]; track i) {
+          <div>
+            <div class="bg-gray-200 h-40 rounded-lg mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+          }
+        </div>
+      </div>
     }
-    } @else {
-    <div class="py-12 text-center">
-      <h2 class="text-xl font-semibold mb-4">Product Not Found</h2>
-      <p class="mb-4">Sorry, we couldn't find the product you're looking for.</p>
-      <a routerLink="" class="text-blue-600 hover:underline">Return to Homepage</a>
-    </div>
+
     }
   </app-container>
 

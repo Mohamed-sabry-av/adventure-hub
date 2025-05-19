@@ -15,7 +15,6 @@ import { UIService } from '../../../../shared/services/ui.service';
 import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { CartStatus } from '../../../cart/model/cart.model';
-import { NewsletterSignupComponent } from '../../component/newsletter-signup/newsletter-signup.component';
 import { CheckoutProgressMapComponent } from '../../../shared/components/checkout-progress-map/checkout-progress-map.component';
 
 @Component({
@@ -26,7 +25,6 @@ import { CheckoutProgressMapComponent } from '../../../shared/components/checkou
     AsyncPipe,
     DialogErrorComponent,
     SkeletonLoaderComponent,
-    NewsletterSignupComponent,
     CheckoutProgressMapComponent,
   ],
   templateUrl: './checkout-page.component.html',

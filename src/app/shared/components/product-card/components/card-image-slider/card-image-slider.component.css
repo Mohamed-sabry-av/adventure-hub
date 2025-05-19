@@ -207,12 +207,113 @@
   background-color: #64748b;
 }
 
-/* Responsive adjustments */
+/* Mobile navigation arrows */
+.mobile-navigation-arrows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none; /* Allow clicks to pass through to underlying elements */
+}
+
+/* Mobile-specific styles */
 @media (max-width: 767px) {
   .slider-container {
     aspect-ratio: 1 / 1;
+    height: 0;
+    padding-bottom: 100%; /* Maintain square aspect ratio */
+  }
+  
+  .slide img {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
   }
 
+  /* Enhance mobile navigation */
+  .nav-arrow {
+    width: 30px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 10px;
+    pointer-events: auto;
+    cursor: pointer;
+    border: none;
+  }
+
+  .image-indicators {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 5;
+  }
+
+  .indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    margin: 0 4px;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .indicator-dot.active {
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Add support for product tags on mobile */
+.product-tags {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.product-tags-bottom-left {
+  bottom: 10px;
+  left: 10px;
+}
+
+.tag {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.tag-sale {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.tag-new {
+  background-color: #3182ce;
+  color: white;
+}
+
+.tag-limited {
+  background-color: #6b46c1;
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
   .tag {
     font-size: 9px;
     padding: 3px 6px;

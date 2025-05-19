@@ -17,6 +17,7 @@ import { Stripe, StripeElements, StripeCardNumberElement, StripeCardExpiryElemen
 import { WalletPaymentComponent } from '../googlePay-button/google-pay-button.component';
 import { CartService } from '../../../cart/service/cart.service';
 import { KlaviyoService } from '../../services/klaviyo.service';
+import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
 
 interface CartItem {
   product_id: number;
@@ -72,6 +73,7 @@ export class CheckoutFormComponent {
   private stripeService = inject(StripeService);
   private cartService = inject(CartService);
   private klaviyoService = inject(KlaviyoService);
+  private wooCommerceAccountService = inject(WooCommerceAccountService);
 
   billingForm!: FormGroup;
   shippingForm!: FormGroup;
@@ -101,6 +103,15 @@ export class CheckoutFormComponent {
     this.billingForm = this.createAddressForm(true);
     this.shippingForm = this.createAddressForm(false);
     this.resetFormState();
+    
+    // Check if cart has items before proceeding
+    this.validateCart();
+    
+    // Load user details if available
+    this.loadUserDetails();
+    
+    // Detect user's country by IP and set it as default
+    this.setCountryFromGeolocation();
 
     const subscribtion3 = this.billingForm.get('shippingMethod')?.valueChanges.subscribe((method) => {
       if (method === 'different') {
@@ -147,6 +158,36 @@ export class CheckoutFormComponent {
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.initStripe();
+      this.detectWalletPaymentAvailability();
+    }
+  }
+
+  async detectWalletPaymentAvailability() {
+    // Wait for Stripe to be initialized
+    this.stripe = await this.stripeService.getStripe();
+    if (!this.stripe) {
+      this.checkoutService.walletPaymentAvailable$.next(false);
+      return;
+    }
+
+    try {
+      const paymentRequest = this.stripe.paymentRequest({
+        country: 'AE',
+        currency: 'aed',
+        total: {
+          label: 'Checkout Payment',
+          amount: 1000, // 10 AED in fils (just for testing availability)
+        },
+        requestPayerName: true,
+        requestPayerEmail: true,
+      });
+
+      const result = await paymentRequest.canMakePayment();
+      // If Apple Pay or Google Pay is available, set to true
+      this.checkoutService.walletPaymentAvailable$.next(!!result);
+    } catch (error) {
+      console.error('Error detecting wallet payment availability:', error);
+      this.checkoutService.walletPaymentAvailable$.next(false);
     }
   }
 
@@ -185,6 +226,21 @@ export class CheckoutFormComponent {
 
     if (!this.isFormValid()) {
       this.uiService.showError('Please fill in all required fields correctly.');
+      return;
+    }
+
+    // Double check cart is not empty
+    try {
+      const cartItems = await this.checkoutService.getCartItems().pipe(take(1)).toPromise();
+      if (!cartItems || cartItems.length === 0) {
+        // this.uiService.showWarning('Your cart is empty. Please add products before checkout.');
+        this.router.navigate(['/cart']);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking cart items:', error);
+      this.uiService.showError('Unable to access your cart. Please try again.');
+      this.router.navigate(['/cart']);
       return;
     }
 
@@ -274,13 +330,28 @@ export class CheckoutFormComponent {
     this.pollOrderStatus(paymentIntentId);
   }
 
-  onSubmit(paymentToken?: string) {
+  async onSubmit(paymentToken?: string) {
     if (this.isPaying) {
       return;
     }
 
     if (!this.isFormValid()) {
       this.uiService.showError('Please fill in all required fields correctly.');
+      return;
+    }
+    
+    // Verify cart is not empty before proceeding
+    try {
+      const cartItems = await this.checkoutService.getCartItems().pipe(take(1)).toPromise();
+      if (!cartItems || cartItems.length === 0) {
+        // this.uiService.showWarning('Your cart is empty. Please add products before checkout.');
+        this.router.navigate(['/cart']);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking cart items:', error);
+      this.uiService.showError('Unable to access your cart. Please try again.');
+      this.router.navigate(['/cart']);
       return;
     }
 
@@ -542,5 +613,143 @@ export class CheckoutFormComponent {
 
   get paymentMethodIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'paymentMethod');
+  }
+
+  // Load user details from account service to pre-fill the form
+  private loadUserDetails() {
+    if (this.wooCommerceAccountService.isLoggedIn()) {
+      const userId = this.wooCommerceAccountService.getCustomerId();
+      if (userId) {
+        this.wooCommerceAccountService.getCustomerDetails(userId).subscribe({
+          next: (userDetails) => {
+            console.log('Retrieved user details:', userDetails);
+            this.populateFormWithUserDetails(userDetails);
+          },
+          error: (error) => {
+            console.error('Error retrieving user details:', error);
+            // Still use basic info from localStorage if available
+            this.populateBasicUserDetails();
+          }
+        });
+      } else {
+        // Fallback to basic info from localStorage
+        this.populateBasicUserDetails();
+      }
+    } else {
+      // Not logged in but we might have email from localStorage
+      this.populateBasicUserDetails();
+    }
+  }
+
+  // Fill form with user details from API
+  private populateFormWithUserDetails(userDetails: any) {
+    if (!userDetails) return;
+    
+    // Set billing details
+    const billing = userDetails.billing || {};
+    const patchValues: any = {
+      email: userDetails.email || this.emailFieldValue,
+      firstName: billing.first_name || userDetails.first_name || '',
+      lastName: billing.last_name || userDetails.last_name || '',
+      phone: billing.phone || '',
+      address: billing.address_1 || '',
+      apartment: billing.address_2 || '',
+      city: billing.city || '',
+      state: billing.state || '',
+    };
+    
+    // Only set country if not already set by geolocation
+    if (billing.country && !this.billingForm.get('countrySelect')?.value) {
+      patchValues.countrySelect = billing.country;
+      this.checkoutService.getSelectedBillingCountry(billing.country);
+    }
+    
+    this.billingForm.patchValue(patchValues);
+    
+    // Set shipping details if different
+    if (this.isShippingDifferent && userDetails.shipping) {
+      const shipping = userDetails.shipping;
+      this.shippingForm.patchValue({
+        firstName: shipping.first_name || userDetails.first_name || '',
+        lastName: shipping.last_name || userDetails.last_name || '',
+        address: shipping.address_1 || '',
+        apartment: shipping.address_2 || '',
+        city: shipping.city || '',
+        state: shipping.state || '',
+        countrySelect: shipping.country || this.billingForm.get('countrySelect')?.value || '',
+      });
+      
+      if (shipping.country) {
+        this.checkoutService.getSelectedShippingCountry(shipping.country);
+      }
+    }
+  }
+
+  // Fill form with basic details from localStorage
+  private populateBasicUserDetails() {
+    const emailValue = this.emailFieldValue;
+    if (emailValue) {
+      this.billingForm.get('email')?.setValue(emailValue);
+    }
+  }
+
+  // Set country based on geolocation
+  private setCountryFromGeolocation() {
+    // Check if user location is available in localStorage
+    const savedLocation = localStorage.getItem('user_location');
+    if (savedLocation) {
+      try {
+        const location = JSON.parse(savedLocation);
+        if (location && location.country_code) {
+          // Set the country code in form and notify the service
+          this.billingForm.get('countrySelect')?.setValue(location.country_code);
+          this.checkoutService.getSelectedBillingCountry(location.country_code);
+          
+          // Also update shipping form if using same address
+          if (!this.isShippingDifferent) {
+            this.shippingForm.get('countrySelect')?.setValue(location.country_code);
+            this.checkoutService.getSelectedShippingCountry(location.country_code);
+          }
+          
+          console.log('Set form country from localStorage geolocation:', location.country_code);
+        } else {
+          // If no saved location, try to detect it
+          this.checkoutService.setDefaultCountryBasedOnGeolocation();
+        }
+      } catch (e) {
+        console.error('Error parsing saved location:', e);
+        this.checkoutService.setDefaultCountryBasedOnGeolocation();
+      }
+    } else {
+      // No saved location, detect it
+      this.checkoutService.setDefaultCountryBasedOnGeolocation();
+    }
+  }
+
+  /**
+   * Validates if the cart has items before allowing checkout
+   * Redirects to cart page with a message if cart is empty
+   */
+  private validateCart(): void {
+    this.checkoutService.getCartItems().pipe(take(1)).subscribe({
+      next: (cartItems) => {
+        if (!cartItems || cartItems.length === 0) {
+          // Cart is empty - redirect to cart page with message
+          // this.uiService.showWarning('Your cart is empty. Please add products before proceeding to checkout.');
+          this.router.navigate(['/cart']);
+        }
+      },
+      error: (error) => {
+        console.error('Error validating cart:', error);
+        if (error.status === 404 || error.error?.message?.includes('Valid cart id')) {
+          // Cart not found or invalid cart ID (guest user without cart)
+          // this.uiService.showWarning('Your cart is empty. Please add products before proceeding to checkout.');
+          this.router.navigate(['/cart']);
+        } else {
+          this.uiService.showError('Error loading cart. Please try again later.');
+          this.router.navigate(['/']);
+        }
+      }
+    });
   }
 }

@@ -1,0 +1,24 @@
+<div class="delivery-estimate-container">
+    <div class="delivery-countdown" (click)="toggleEmirateSelector()">
+        <div class="delivery-info">
+            <span class="order-within">Order within {{estimate.orderWithinHours}}h, {{estimate.orderWithinMinutes}}m,
+                Get it <strong>{{estimate.estimatedDelivery}}</strong>:</span>
+        </div>
+        <div class="location"> <span class="emirate">{{selectedEmirate}} <i class="pi pi-chevron-down"></i></span> <span
+                class="yalla-tag"
+                *ngIf="estimate.estimatedDelivery === 'Tomorrow' && selectedEmirate === 'Dubai'">Yalla</span> </div>
+    </div>
+
+    <div class="emirate-selector" *ngIf="showEmirateSelector">
+        <div class="emirate-header">
+            <h4>Select your emirate</h4>
+            <button class="close-btn" (click)="toggleEmirateSelector()">✕</button>
+        </div>
+        <div class="emirate-list">
+            <div *ngFor="let emirate of emirates" class="emirate-option" [class.selected]="emirate === selectedEmirate"
+                (click)="selectEmirate(emirate)">
+                {{emirate}}
+            </div>
+        </div>
+    </div>
+</div>

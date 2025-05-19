@@ -7,12 +7,17 @@ import {
   inject,
   ViewChild,
   AfterViewInit,
+  ElementRef,
+  OnDestroy,
+  NgZone
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
 import { HomeService } from '../../service/home.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
+import { timer } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-sale-products',
@@ -22,16 +27,22 @@ import { ProductCardComponent } from '../../../../shared/components/product-card
   styleUrls: ['./sale-products.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SaleProductsComponent implements OnInit, AfterViewInit {
+export class SaleProductsComponent implements OnInit, AfterViewInit, OnDestroy {
   private homeService = inject(HomeService);
   private cdr = inject(ChangeDetectorRef);
+  private zone = inject(NgZone);
 
   @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
+  @ViewChild('prevBtn') prevBtn?: ElementRef<HTMLButtonElement>;
+  @ViewChild('nextBtn') nextBtn?: ElementRef<HTMLButtonElement>;
 
   products: any[] = [];
   loading: boolean = true;
   error: string | null = null;
   screenWidth: number = window.innerWidth;
+  
+  private prevClickListener?: (e: Event) => void;
+  private nextClickListener?: (e: Event) => void;
 
   carouselOptions: OwlOptions = {
     loop: true,
@@ -39,10 +50,11 @@ export class SaleProductsComponent implements OnInit, AfterViewInit {
     touchDrag: true,
     pullDrag: false,
     dots: true,
-    navSpeed: 700,
+    navSpeed: 300,
     navText: ['', ''],
     autoWidth: false,
     items: 4,
+    lazyLoad: true,
     responsive: {
       0: {
         items: 2
@@ -57,7 +69,7 @@ export class SaleProductsComponent implements OnInit, AfterViewInit {
         items: 4
       }
     },
-    nav: false // Disable default navigation
+    nav: false
   };
 
   ngOnInit(): void {
@@ -66,42 +78,84 @@ export class SaleProductsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.setupCustomNavigation();
+    setTimeout(() => {
+      this.setupCustomNavigation();
+    }, 100);
+  }
+  
+  ngOnDestroy(): void {
+    this.removeNavigationListeners();
+  }
+  
+  private removeNavigationListeners(): void {
+    if (this.prevBtn?.nativeElement && this.prevClickListener) {
+      this.prevBtn.nativeElement.removeEventListener('click', this.prevClickListener);
+    }
+    
+    if (this.nextBtn?.nativeElement && this.nextClickListener) {
+      this.nextBtn.nativeElement.removeEventListener('click', this.nextClickListener);
+    }
   }
 
   setupCustomNavigation(): void {
-    setTimeout(() => {
+    if (this.prevBtn?.nativeElement && this.nextBtn?.nativeElement && this.owlCarousel) {
+      this.prevClickListener = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.owlCarousel) {
+          this.owlCarousel.prev();
+          this.cdr.markForCheck();
+        }
+      };
+      
+      this.nextClickListener = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.owlCarousel) {
+          this.owlCarousel.next();
+          this.cdr.markForCheck();
+        }
+      };
+      
+      this.prevBtn.nativeElement.addEventListener('click', this.prevClickListener);
+      this.nextBtn.nativeElement.addEventListener('click', this.nextClickListener);
+    } else {
       const prevBtn = document.querySelector('.sale-products .prev-btn') as HTMLElement;
       const nextBtn = document.querySelector('.sale-products .next-btn') as HTMLElement;
       
-      if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
+      if (prevBtn && nextBtn && this.owlCarousel) {
+        this.prevClickListener = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
           if (this.owlCarousel) {
             this.owlCarousel.prev();
+            this.cdr.markForCheck();
           }
-        });
-      }
-      
-      if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
+        };
+        
+        this.nextClickListener = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
           if (this.owlCarousel) {
             this.owlCarousel.next();
+            this.cdr.markForCheck();
           }
-        });
+        };
+        
+        prevBtn.addEventListener('click', this.prevClickListener);
+        nextBtn.addEventListener('click', this.nextClickListener);
       }
-    }, 500); // Short delay to ensure DOM is ready
+    }
   }
 
   @HostListener('window:resize')
   onResize() {
     this.screenWidth = window.innerWidth;
-    // Force refresh carousel on resize
     if (this.owlCarousel) {
       setTimeout(() => {
-        // Force rerender of carousel
         this.cdr.detectChanges();
-        this.cdr.markForCheck();
-      }, 200);
+        this.setupCustomNavigation();
+      }, 100);
     }
   }
 

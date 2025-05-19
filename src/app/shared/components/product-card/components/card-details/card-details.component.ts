@@ -2,14 +2,16 @@ import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { Product } from '../../../../../interfaces/product';
 import { RouterLink } from '@angular/router';
-import { CurrencySvgPipe } from '../../../../pipes/currency.pipe';
 import { CategoriesService } from '../../../../../core/services/categories.service';
 import { Observable, firstValueFrom, from, map, of } from 'rxjs';
+import { VariationService } from '../../../../../core/services/variation.service';
+import { Variation } from '../../../../../interfaces/product';
+import { CurrencyPriceDirective } from '../../../../directives/currency-price.directive';
 
 @Component({
   selector: 'app-card-details',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencySvgPipe],
+  imports: [CommonModule, RouterLink, CurrencyPriceDirective],
 
   templateUrl: './card-details.component.html',
   styleUrls: ['./card-details.component.css'],
@@ -20,9 +22,11 @@ export class CardDetailsComponent {
   @Input() uniqueSizes: { size: string; inStock: boolean }[] = [];
   @Input() getBrandName!: () => string | null;
   @Input() getBrandSlug!: () => string | null;
-  @Input() selectedVariation: any;
+  @Input() selectedVariation: Variation | null = null;
+  @Input() isVariationSelected = false;
 
   private categoriesService = inject(CategoriesService);
+  private variationService = inject(VariationService);
   private categoryPathArray: string[] | null = null;
 
   /**
@@ -87,6 +91,17 @@ export class CardDetailsComponent {
       console.error('Error getting category path:', error);
       return [this.product.categories[0].slug];
     }
+  }
+
+  /**
+   * Convert price string to numeric value for currency directive
+   */
+  getNumericPrice(price: string | null): number {
+    if (!price || price === 'Unavailable') return 0;
+    // Remove any non-numeric characters except decimal point
+    const numericString = price.toString().replace(/[^0-9.]/g, '');
+    const numeric = parseFloat(numericString);
+    return isNaN(numeric) ? 0 : numeric;
   }
 
   get displayPrice(): string {

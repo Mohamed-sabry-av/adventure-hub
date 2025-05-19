@@ -5,17 +5,7 @@
   <!-- Wishlist Button -->
   <app-wishlist-button [product]="product"></app-wishlist-button>
 
-  <!-- Product details (title, price, etc) -->
-  <app-card-details [product]="product" [colorOptions]="colorOptions" [uniqueSizes]="uniqueSizes"
-    [getBrandName]="getBrandName.bind(this)" [getBrandSlug]="getBrandSlug.bind(this)"
-    [selectedVariation]="selectedVariation"></app-card-details>
-
-  <!-- Color swatches (if available) -->
-  <app-color-swatches [colorOptions]="colorOptions" [visibleColors]="visibleColors" [selectedColor]="selectedColor"
-    [colorScrollIndex]="colorScrollIndex" [maxColorScrollIndex]="maxColorScrollIndex"
-    (selectColor)="selectColor($event.color, $event.image)" (scrollColors)="scrollColors($event)"></app-color-swatches>
-
-  <!-- Add to cart with options panel -->
+  <!-- Quick Add Button positioned at top-right corner -->
   <app-mobile-quick-add [product]="product" [variations]="variations" [uniqueSizes]="uniqueSizes"
     [selectedSize]="selectedSize" [colorOptions]="colorOptions" [selectedColor]="selectedColor"
     [visibleColors]="visibleColors" [mobileQuickAddExpanded]="mobileQuickAddExpanded" [isMobile]="isMobile"
@@ -23,4 +13,14 @@
     (selectSize)="onSelectSize($event)" (selectColor)="selectColor($event.color, $event.image)"
     (addToCart)="onAddToCartWithOptions($event)">
   </app-mobile-quick-add>
+
+  <!-- Product details (title, price, etc) -->
+  <app-card-details [product]="product" [colorOptions]="colorOptions" [uniqueSizes]="uniqueSizes"
+    [getBrandName]="getBrandName.bind(this)" [getBrandSlug]="getBrandSlug.bind(this)"
+    [selectedVariation]="selectedVariation"></app-card-details>
+
+  <!-- Color swatches (if available) -->
+  <app-color-swatches [colorOptions]="colorOptions" [visibleColors]="visibleColors" [selectedColor]="selectedColor"
+    [colorScrollIndex]="colorScrollIndex" [maxColorScrollIndex]="maxColorScrollIndex" [showColorPlaceholder]="true"
+    (selectColor)="selectColor($event.color, $event.image)" (scrollColors)="scrollColors($event)"></app-color-swatches>
 </div>

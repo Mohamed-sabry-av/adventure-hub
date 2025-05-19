@@ -3,30 +3,70 @@ import { Stripe, StripeElements, StripePaymentRequestButtonElement } from '@stri
 import { CheckoutService } from '../../services/checkout.service';
 import { StripeService } from '../../services/stripe.service';
 import { take } from 'rxjs/operators';
+import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
+import { AccountAuthService } from '../../../auth/account-auth.service';
+
+interface ShippingOption {
+  id: string;
+  label: string;
+  amount: number;
+  detail: string;
+}
 
 @Component({
   selector: 'app-wallet-payment',
   template: `
-    <div #googlePayButtonElement class="mb-4 md:w-[465px] mx-auto"></div>
+    <div #googlePayButtonElement class="mb-4 md:w-[490px] mx-auto"></div>
   `,
   styles: []
 })
 export class WalletPaymentComponent implements AfterViewInit {
   private checkoutService = inject(CheckoutService);
   private stripeService = inject(StripeService);
+  private accountService = inject(WooCommerceAccountService);
+  private authService = inject(AccountAuthService);
   private stripe: Stripe | null = null;
   private elements: StripeElements | null = null;
   private paymentRequest: any;
   private prButton: StripePaymentRequestButtonElement | null = null;
   public googlePaySupported = false;
   public applePaySupported = false;
+  
+  // User details for pre-filling
+  private userDetails: any = null;
 
   @Input() product: any; // Optional: Single product for direct purchase
+  @Input() shippingOptions: ShippingOption[] = [];
   @ViewChild('googlePayButtonElement') googlePayButtonRef!: ElementRef;
   @Output() paymentSucceeded = new EventEmitter<string>();
 
+  constructor() {
+    // Set wallet payment availability to false by default
+    this.checkoutService.walletPaymentAvailable$.next(false);
+  }
+
   async ngAfterViewInit() {
+    // Try to load user details if user is logged in
+    this.loadUserDetails();
     await this.initStripe();
+  }
+  
+  private async loadUserDetails() {
+    // Check if user is logged in
+    if (this.accountService.isLoggedIn()) {
+      const userId = this.accountService.getCustomerId();
+      if (userId) {
+        try {
+          this.userDetails = await this.accountService.getCustomerDetails(userId)
+            .pipe(take(1))
+            .toPromise();
+            
+          console.log('Loaded user details for wallet payment:', this.userDetails);
+        } catch (error) {
+          console.error('Failed to load user details:', error);
+        }
+      }
+    }
   }
 
   private async initStripe() {
@@ -45,6 +85,7 @@ export class WalletPaymentComponent implements AfterViewInit {
   private async initWalletPayments() {
     if (!this.stripe || !this.elements || !this.googlePayButtonRef) {
       console.error('Stripe, elements, or googlePayButtonRef is not available');
+      this.checkoutService.walletPaymentAvailable$.next(false);
       return;
     }
 
@@ -87,7 +128,19 @@ export class WalletPaymentComponent implements AfterViewInit {
 
       const amountInFils = Math.round(total * 100);
 
-      this.paymentRequest = this.stripe.paymentRequest({
+      // Use provided shipping options or default
+      const shippingOptionsToUse = this.shippingOptions && this.shippingOptions.length > 0
+        ? this.shippingOptions
+        : [
+            {
+              id: 'standard',
+              label: 'Standard Shipping',
+              amount: 0,
+              detail: 'Delivery within 3-5 business days',
+            },
+          ];
+
+      const paymentRequestConfig: any = {
         country: 'AE',
         currency: currency,
         total: {
@@ -98,15 +151,40 @@ export class WalletPaymentComponent implements AfterViewInit {
         requestPayerEmail: true,
         requestPayerPhone: true,
         requestShipping: true,
-        shippingOptions: [
-          {
-            id: 'standard',
-            label: 'Standard Shipping',
-            amount: 0,
-            detail: 'Delivery within 3-5 business days',
-          },
-        ],
-      });
+        shippingOptions: shippingOptionsToUse,
+      };
+
+      // Add pre-filled data if user details are available
+      if (this.userDetails) {
+        // Add email from user details if available
+        if (this.userDetails.email) {
+          paymentRequestConfig.emailRequired = true;
+          paymentRequestConfig.email = this.userDetails.email;
+        }
+
+        // Add shipping address if available
+        if (this.userDetails.shipping && 
+            this.userDetails.shipping.address_1 && 
+            this.userDetails.shipping.country) {
+          const shipping = this.userDetails.shipping;
+          
+          paymentRequestConfig.shippingAddressRequired = true;
+          paymentRequestConfig.shippingAddress = {
+            addressLine: [shipping.address_1, shipping.address_2].filter(Boolean),
+            city: shipping.city || '',
+            country: shipping.country || 'AE',
+            postalCode: shipping.postcode || '',
+            recipient: `${shipping.first_name || ''} ${shipping.last_name || ''}`.trim(),
+            region: shipping.state || '',
+            sortingCode: '',
+            dependentLocality: '',
+            organization: '',
+            phone: this.userDetails.billing?.phone || '',
+          };
+        }
+      }
+
+      this.paymentRequest = this.stripe.paymentRequest(paymentRequestConfig);
 
       const result = await this.paymentRequest.canMakePayment();
       if (result) {
@@ -116,6 +194,9 @@ export class WalletPaymentComponent implements AfterViewInit {
         if (result.googlePay) {
           this.googlePaySupported = true;
         }
+
+        // Set wallet payment availability status in the CheckoutService
+        this.checkoutService.walletPaymentAvailable$.next(true);
 
         this.prButton = this.elements.create('paymentRequestButton', {
           paymentRequest: this.paymentRequest,
@@ -173,17 +254,64 @@ export class WalletPaymentComponent implements AfterViewInit {
         });
 
         this.paymentRequest.on('shippingaddresschange', (event: any) => {
+          try {
+            // Extract address details
+            const shippingAddress = event.shippingAddress || {};
+            const countryCode = shippingAddress.country || 'AE';
+            
+            // Log the address for debugging
+            console.log('Shipping address from wallet:', shippingAddress);
+            
+            // International shipping
+            if (countryCode !== 'AE') {
+              event.updateWith({
+                status: 'success',
+                shippingOptions: [{
+                  id: 'international',
+                  label: 'International Shipping',
+                  amount: 0,
+                  detail: 'Our team will contact you for shipping details'
+                }]
+              });
+            } else {
+              // Check if order qualifies for free shipping
+              const freeShippingThreshold = 10000; // AED 100 in fils
+              
+              if (amountInFils >= freeShippingThreshold) {
+                event.updateWith({
+                  status: 'success',
+                  shippingOptions: [{
+                    id: 'free',
+                    label: 'Free Shipping',
+                    amount: 0,
+                    detail: 'Delivery within 3-5 business days'
+                  }]
+                });
+              } else {
+                event.updateWith({
+                  status: 'success',
+                  shippingOptions: [{
+                    id: 'standard',
+                    label: 'Standard Shipping',
+                    amount: 2000, // AED 20 in fils
+                    detail: 'Delivery within 3-5 business days'
+                  }]
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error handling shipping address change:', error);
+            // Provide default shipping options on error
           event.updateWith({
             status: 'success',
-            shippingOptions: [
-              {
+              shippingOptions: [{
                 id: 'standard',
                 label: 'Standard Shipping',
-                amount: 0,
-                detail: 'Delivery within 3-5 business days',
-              },
-            ],
+                amount: 2000,
+                detail: 'Delivery within 3-5 business days'
+              }]
           });
+          }
         });
       } else {
         console.log('No supported wallet payment methods found');
@@ -194,28 +322,77 @@ export class WalletPaymentComponent implements AfterViewInit {
   }
 
   private prepareOrderData(billingDetails: any, shippingAddress: any) {
-    const billing = {
-      first_name: billingDetails.name?.split(' ')[0] || 'Customer',
-      last_name: billingDetails.name?.split(' ')[1] || '',
-      address_1: billingDetails.address?.line1 || '',
-      city: billingDetails.address?.city || '',
-      state: billingDetails.address?.state || '',
-      postcode: billingDetails.address?.postal_code || '',
-      country: billingDetails.address?.country || 'AE',
-      email: billingDetails.email || '',
-      phone: billingDetails.phone || '',
+    console.log('Preparing order data with billing:', billingDetails, 'shipping:', shippingAddress);
+    
+    let billing: any = {};
+    let shipping: any = {};
+    
+    // First try to use logged-in user details if available
+    if (this.userDetails) {
+      // Use billing from account if available
+      if (this.userDetails.billing) {
+        billing = {
+          ...this.userDetails.billing,
+          email: this.userDetails.email || billingDetails?.email || '',
+          phone: this.userDetails.billing.phone || billingDetails?.phone || '',
+        };
+      }
+      
+      // Use shipping from account if available
+      if (this.userDetails.shipping) {
+        shipping = { ...this.userDetails.shipping };
+      }
+    }
+    
+    // Safely extract name parts from wallet
+    let firstName = 'Customer';
+    let lastName = '';
+    
+    if (billingDetails?.name) {
+      const nameParts = billingDetails.name.split(' ');
+      if (nameParts.length > 0) {
+        firstName = nameParts[0] || 'Customer';
+        lastName = nameParts.slice(1).join(' ') || '';
+      }
+    }
+    
+    // Extract shipping name parts from wallet
+    let shippingFirstName = firstName;
+    let shippingLastName = lastName;
+    
+    if (shippingAddress?.name) {
+      const shipNameParts = shippingAddress.name.split(' ');
+      if (shipNameParts.length > 0) {
+        shippingFirstName = shipNameParts[0] || firstName;
+        shippingLastName = shipNameParts.slice(1).join(' ') || lastName;
+      }
+    }
+    
+    // Fill in missing billing details from wallet data or default values
+    billing = {
+      first_name: billing.first_name || firstName,
+      last_name: billing.last_name || lastName,
+      address_1: billing.address_1 || billingDetails?.address?.line1 || shippingAddress?.addressLine?.[0] || '',
+      city: billing.city || billingDetails?.address?.city || shippingAddress?.city || '',
+      state: billing.state || billingDetails?.address?.state || shippingAddress?.region || '',
+      postcode: billing.postcode || billingDetails?.address?.postal_code || shippingAddress?.postalCode || '',
+      country: billing.country || billingDetails?.address?.country || shippingAddress?.country || 'AE',
+      email: billing.email || billingDetails?.email || this.userDetails?.email || '',
+      phone: billing.phone || billingDetails?.phone || this.userDetails?.billing?.phone || '',
     };
   
-    const shipping = {
-      first_name: shippingAddress.name?.split(' ')[0] || 'Customer',
-      last_name: shippingAddress.name?.split(' ')[1] || '',
-      address_1: shippingAddress.addressLine?.[0] || '',
-      city: shippingAddress.city || '',
-      state: shippingAddress.region || '',
-      postcode: shippingAddress.postalCode || '',
-      country: shippingAddress.country || 'AE',
+    // Fill in missing shipping details
+    shipping = {
+      first_name: shipping.first_name || shippingFirstName,
+      last_name: shipping.last_name || shippingLastName,
+      address_1: shipping.address_1 || shippingAddress?.addressLine?.[0] || billingDetails?.address?.line1 || '',
+      city: shipping.city || shippingAddress?.city || billingDetails?.address?.city || '',
+      state: shipping.state || shippingAddress?.region || billingDetails?.address?.state || '',
+      postcode: shipping.postcode || shippingAddress?.postalCode || billingDetails?.address?.postal_code || '',
+      country: shipping.country || shippingAddress?.country || billingDetails?.address?.country || 'AE',
     };
   
+    // Prepare line items
     let line_items: any[] = [];
     if (this.product) {
       const item: any = {
@@ -230,10 +407,18 @@ export class WalletPaymentComponent implements AfterViewInit {
       }
       line_items = [item];
     } else {
-      // إذا مفيش منتج محدد، استخدم الكارت (مش هيحصل في حالتك)
+      // For cart-based checkout, line_items will be handled by the backend
       line_items = [];
     }
   
-    return { billing, shipping, line_items };
+    // Add user ID if logged in
+    const userId = this.accountService.getCustomerId();
+    const orderData: any = { billing, shipping, line_items };
+    
+    if (userId) {
+      orderData.customer_id = userId;
+    }
+
+    return orderData;
   }
 }

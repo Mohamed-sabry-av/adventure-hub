@@ -23,6 +23,8 @@ import { CheckoutEffect } from './Store/effects/checkout.effect';
 import { reducers } from './Store/store';
 import { performanceInterceptor } from './core/interceptors/performance.interceptor';
 import { LocationStrategy, PathLocationStrategy } from '@angular/common'; // أضف ده
+import { CurrencyService } from './shared/services/currency.service';
+import { GeoLocationService } from './shared/services/geo-location.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -67,5 +69,8 @@ export const appConfig: ApplicationConfig = {
     }),
     provideStore(reducers),
     provideEffects([CartEffect, CheckoutEffect]),
+    // إضافة خدمات العملات والموقع الجغرافي
+    CurrencyService,
+    GeoLocationService,
   ],
 };

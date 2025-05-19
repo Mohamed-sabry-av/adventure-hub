@@ -33,7 +33,7 @@
   </button>
 </div>
 
-<!-- Options panel that appears below the product card -->
+<!-- Options panel that appears within the product card -->
 <div *ngIf="optionsVisible && product?.type === 'variable'" [@slideUpDown] class="options-panel">
   <!-- Close button -->
   <button class="close-options-btn" (click)="toggleOptions()">
@@ -73,8 +73,8 @@
     </div>
   </div>
 
-  <!-- Quantity selector -->
-  <div class="quantity-container">
+  <!-- Quantity selector - only visible on desktop -->
+  <div *ngIf="!isMobile" class="quantity-container">
     <h4 class="options-title">Quantity</h4>
     <div class="quantity-control">
       <button class="quantity-btn" (click)="decrementQuantity()" [disabled]="quantityValue <= 1">-</button>
@@ -82,6 +82,11 @@
       <button class="quantity-btn" (click)="incrementQuantity()">+</button>
     </div>
   </div>
+
+  <!-- Add to cart button within options panel -->
+  <button *ngIf="selectedVariation" class="add-to-cart-btn" [disabled]="!isReadyToAddToCart()" (click)="onAddToCart()">
+    Add to Cart
+  </button>
 </div>
 
 <!-- Optional Quick View Button - can be uncommented if needed -->

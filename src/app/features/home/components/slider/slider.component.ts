@@ -8,12 +8,14 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
-  HostListener
+  HostListener,
+  NgZone
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
-import { Subscription } from 'rxjs';
+import { Subscription, timer } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { HomeService } from '../../service/home.service';
 
 interface BannerImage {
@@ -32,8 +34,11 @@ interface BannerImage {
 export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
   private homeService = inject(HomeService);
   private cdr = inject(ChangeDetectorRef);
+  private zone = inject(NgZone);
   
   @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
+  @ViewChild('prevBtn') prevBtn?: ElementRef<HTMLButtonElement>;
+  @ViewChild('nextBtn') nextBtn?: ElementRef<HTMLButtonElement>;
   
   bannerImages: BannerImage[] = [];
   loading: boolean = true;
@@ -58,13 +63,15 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       768: {
         items: 1,
-        nav: false // We'll use custom navigation
+        nav: false
       }
     },
-    nav: false // Disable default navigation
+    nav: false
   };
 
   private subscriptions: Subscription = new Subscription();
+  private prevClickListener?: (e: Event) => void;
+  private nextClickListener?: (e: Event) => void;
 
   ngOnInit(): void {
     this.checkScreenSize();
@@ -72,11 +79,17 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   ngAfterViewInit(): void {
-    this.setupCustomNavigation();
+    // استخدام زمن مناسب للتأكد من تهيئة العناصر
+    timer(100, 300)
+      .pipe(take(5))
+      .subscribe(() => {
+        this.setupCustomNavigation();
+      });
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    this.removeNavigationListeners();
   }
   
   @HostListener('window:resize')
@@ -97,6 +110,13 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
           this.bannerImages = bannerImages;
           this.loading = false;
           this.cdr.markForCheck();
+          
+          // إعادة محاولة إعداد الأزرار بعد تحميل الصور
+          this.zone.runOutsideAngular(() => {
+            setTimeout(() => {
+              this.setupCustomNavigation();
+            }, 300);
+          });
         },
         error: (err) => {
           console.error('Error loading banner images:', err);
@@ -109,26 +129,81 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.add(subscription);
   }
   
+  // إزالة المستمعين السابقين لتجنب التكرار
+  private removeNavigationListeners(): void {
+    if (this.prevBtn?.nativeElement && this.prevClickListener) {
+      this.prevBtn.nativeElement.removeEventListener('click', this.prevClickListener);
+    }
+    
+    if (this.nextBtn?.nativeElement && this.nextClickListener) {
+      this.nextBtn.nativeElement.removeEventListener('click', this.nextClickListener);
+    }
+  }
+  
   setupCustomNavigation(): void {
-    setTimeout(() => {
-      const prevBtn = document.querySelector('.slider-container .prev-btn') as HTMLElement;
-      const nextBtn = document.querySelector('.slider-container .next-btn') as HTMLElement;
+    this.zone.runOutsideAngular(() => {
+      // إزالة المستمعين السابقين
+      this.removeNavigationListeners();
       
-      if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
+      // إنشاء مستمعين جدد
+      if (this.prevBtn?.nativeElement && this.nextBtn?.nativeElement && this.owlCarousel) {
+        // استخدام addEventListener بدلاً من onclick لأداء أفضل
+        this.prevClickListener = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
           if (this.owlCarousel) {
             this.owlCarousel.prev();
+            this.zone.run(() => {
+              this.cdr.markForCheck();
+            });
           }
-        });
-      }
-      
-      if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
+        };
+        
+        this.nextClickListener = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
           if (this.owlCarousel) {
             this.owlCarousel.next();
+            this.zone.run(() => {
+              this.cdr.markForCheck();
+            });
           }
-        });
+        };
+        
+        this.prevBtn.nativeElement.addEventListener('click', this.prevClickListener);
+        this.nextBtn.nativeElement.addEventListener('click', this.nextClickListener);
+      } else {
+        // محاولة استخدام المحددات في حالة عدم توفر ViewChild
+        const prevBtn = document.querySelector('.slider-container .prev-btn') as HTMLElement;
+        const nextBtn = document.querySelector('.slider-container .next-btn') as HTMLElement;
+        
+        if (prevBtn && nextBtn && this.owlCarousel) {
+          this.prevClickListener = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.owlCarousel) {
+              this.owlCarousel.prev();
+              this.zone.run(() => {
+                this.cdr.markForCheck();
+              });
+            }
+          };
+          
+          this.nextClickListener = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.owlCarousel) {
+              this.owlCarousel.next();
+              this.zone.run(() => {
+                this.cdr.markForCheck();
+              });
+            }
+          };
+          
+          prevBtn.addEventListener('click', this.prevClickListener);
+          nextBtn.addEventListener('click', this.nextClickListener);
+        }
       }
-    }, 500); // Short delay to ensure DOM is ready
+    });
   }
 }

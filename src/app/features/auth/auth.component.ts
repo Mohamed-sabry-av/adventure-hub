@@ -78,7 +78,7 @@ export class AuthComponent implements OnInit {
   private redirectToUserAccount(): void {
     if (!this.redirectInProgress) {
       this.redirectInProgress = true;
-      this.router.navigate(['/auth/Useraccount']);
+      this.router.navigate(['/user/Useraccount']);
     }
   }
 

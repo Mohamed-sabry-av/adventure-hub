@@ -42,3 +42,32 @@ svg {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* Country Select Styling */
+::ng-deep .country-select {
+  @apply rounded-lg;
+}
+
+::ng-deep .country-select .p-select-label {
+  @apply flex items-center gap-2 py-2 px-1;
+}
+
+::ng-deep .country-select .p-select-trigger {
+  @apply bg-white rounded-lg border border-gray-300;
+}
+
+::ng-deep .country-select .p-select-items {
+  @apply py-1 rounded-lg shadow-lg max-h-60 overflow-y-auto;
+}
+
+::ng-deep .country-select .p-select-item {
+  @apply hover:bg-gray-100 cursor-pointer transition-colors duration-200 py-1.5 px-3;
+}
+
+::ng-deep .country-select .p-select-header {
+  @apply px-3 py-2 border-b;
+}
+
+::ng-deep .country-select .p-select-header input {
+  @apply w-full py-1.5 px-2 border rounded-md text-sm;
+}

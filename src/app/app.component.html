@@ -9,5 +9,8 @@
     <router-outlet />
   </div>
 
+  <!-- Service Highlights Banner - Above Footer -->
+  <app-service-highlights *ngIf="!isCheckoutPage && !isProductsPage" class="bg-white w-full"></app-service-highlights>
+
   <app-footer *ngIf="!isCheckoutPage" />
 </div>

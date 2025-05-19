@@ -1,3 +1,21 @@
+/* Ensure consistency between main categories and currency selector */
+.links-name a,
+::ng-deep app-currency-selector .selected-currency {
+  @apply text-white text-base font-semibold;
+  position: relative;
+  padding-bottom: 3px;
+}
+
+.links-name a::after,
+::ng-deep app-currency-selector .selected-currency::after {
+  @apply content-[''] absolute bottom-0 left-0 w-full h-[2px] bg-white scale-x-0 origin-left transition-transform duration-300;
+}
+
+.links-name:hover a::after,
+::ng-deep app-currency-selector:hover .selected-currency::after {
+  @apply scale-x-100;
+}
+
 .links-parent {
   @apply block bg-[#2E2E2E];
 }
@@ -182,4 +200,17 @@
   overflow: hidden;
   animation-duration: 0.3s;
   animation-fill-mode: both;
+}
+
+.drawer-section {
+  padding: 16px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.drawer-section-title {
+  padding: 0 16px;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #333;
 }

@@ -1,5 +1,6 @@
 :host ::ng-deep {
-  --p-drawer-background: white !important;
+  --p-drawer-background: #e3f2fd !important;
+  z-index: 1022;
 }
 
 .scrollbar-thin {

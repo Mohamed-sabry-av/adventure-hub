@@ -4,6 +4,8 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  OnChanges,
+  SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -15,15 +17,28 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./color-swatches.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ColorSwatchesComponent {
+export class ColorSwatchesComponent implements OnChanges {
   @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
   @Input() visibleColors: { color: string; image: string; inStock: boolean }[] = [];
   @Input() selectedColor: string | null = null;
   @Input() colorScrollIndex: number = 0;
   @Input() maxColorScrollIndex: number = 0;
+  @Input() showColorPlaceholder: boolean = true; // Whether to show placeholder when no colors
 
   @Output() selectColor = new EventEmitter<{ color: string; image: string }>();
   @Output() scrollColors = new EventEmitter<number>();
+
+  // Whether to show the container at all (true if colorOptions exist or placeholder enabled)
+  get showContainer(): boolean {
+    return this.colorOptions.length > 0 || this.showColorPlaceholder;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // If colorOptions change and are empty, we may need to update visibility
+    if (changes['colorOptions']) {
+      // Implementation remains the same
+    }
+  }
 
   onSelectColor(color: string, image: string, inStock: boolean): void {
     if (inStock) {

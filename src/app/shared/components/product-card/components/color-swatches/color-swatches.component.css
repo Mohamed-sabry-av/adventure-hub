@@ -1,17 +1,23 @@
 /* Color Swatches Container */
 .color-swatches-container {
-  padding: 0.5rem 0.75rem;
+  padding: 0.25rem 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
+  min-height: 35px; /* Reduced height to match mumzworld layout */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
 }
 
 /* Color Swatches Wrapper */
 .color-swatches-wrapper {
   display: flex;
   width: 100%;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   position: relative;
 }
@@ -24,6 +30,19 @@
   flex-wrap: nowrap;
   padding: 0 6px;
   max-width: calc(100% - 50px);
+  min-height: 28px; /* Maintain consistent height */
+}
+
+/* Empty placeholder when no colors */
+.no-colors-placeholder {
+  height: 28px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  opacity: 0.7;
 }
 
 /* Swatch */
@@ -36,17 +55,19 @@
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
+  flex-shrink: 0; /* Prevent shrinking */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .swatch:hover:not(.out-of-stock) {
   transform: scale(1.1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
 }
 
 .swatch.selected {
   border-color: #16a34a; /* Match green color with buttons */
   transform: scale(1.1);
-  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.2);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
 }
 
 .swatch.out-of-stock {
@@ -100,6 +121,7 @@
   height: 100%;
   background-size: cover;
   background-position: center;
+  border-radius: 50%; /* Ensure inner content is also round */
 }
 
 /* Color Tooltip */
@@ -143,6 +165,7 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .color-nav-btn.left {
@@ -168,6 +191,7 @@
   display: flex;
   gap: 3px;
   margin-top: 2px;
+  height: 6px; /* Fixed height to maintain consistency */
 }
 
 .pagination-dot {
@@ -193,12 +217,54 @@
 
 /* Mobile Optimizations */
 @media (max-width: 767px) {
+  .color-swatches-container {
+    padding: 0.15rem 0.5rem; /* Reduce padding further */
+    min-height: 30px; /* Even smaller height */
+    margin-top: 0; /* Override the auto margin */
+    margin-bottom: 0; /* Reset bottom margin */
+    z-index: 5; /* Make sure it's above most elements but below the options panel */
+  }
+  
+  .color-swatches-wrapper {
+    justify-content: flex-start; /* Align colors to the left on mobile */
+  }
+  
+  .color-swatches {
+    justify-content: flex-start; /* Align colors to the left for better UX */
+    gap: 5px; /* Smaller gap */
+    min-height: 20px; /* Smaller height */
+    padding-left: 0; /* No left padding needed */
+  }
+  
   .swatch {
-    width: 24px;
-    height: 24px;
+    width: 20px; /* Smaller swatches */
+    height: 20px;
+    border-width: 1px; /* Thinner border on mobile */
   }
   
   .swatch.out-of-stock::after {
-    font-size: 12px;
+    font-size: 10px; /* Smaller X */
+  }
+  
+  .color-tooltip {
+    display: none; /* Hide tooltips on mobile to save space */
+  }
+  
+  .color-nav-btn {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .color-nav-btn.left {
+    left: 0;
+  }
+  
+  .color-nav-btn.right {
+    right: 0;
+  }
+  
+  /* Hide pagination dots on mobile to save space */
+  .pagination-dots {
+    display: none;
   }
 }

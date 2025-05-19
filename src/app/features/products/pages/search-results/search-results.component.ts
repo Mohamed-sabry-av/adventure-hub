@@ -228,6 +228,9 @@ export class SearchResultsComponent implements OnInit {
 
       this.products = products || [];
       
+      // Set totalProducts to 0 when no results are found to prevent infinite loading
+      this.totalProducts = this.products.length > 0 ? this.totalProducts : 0;
+      
       // Cache the results in transfer state
       const cacheKey = `${SEARCH_RESULTS_KEY.toString()}_${this.searchQuery}`;
       this.transferState.set(makeStateKey<any>(cacheKey), this.products);
@@ -237,6 +240,7 @@ export class SearchResultsComponent implements OnInit {
       console.error('Error loading search results:', error);
       this.products = [];
       this.showEmptyState = true;
+      this.totalProducts = 0; // Ensure totalProducts is 0 on error
     } finally {
       this.isFetching = false;
       this.isLoading = false;
@@ -249,6 +253,9 @@ export class SearchResultsComponent implements OnInit {
   async loadSearchResultsWithFilters(filters: { [key: string]: string[] }): Promise<void> {
     this.isFetching = true;
     this.isLoading = true;
+    this.showSkeleton = true; // Show skeleton while filters are being applied
+    this.currentPage = 1; // Reset to first page when applying filters
+    this.products = []; // Clear products
     this.cdr.markForCheck();
 
     this.filterService
@@ -277,6 +284,9 @@ export class SearchResultsComponent implements OnInit {
       .subscribe((products) => {
         this.products = products || [];
         this.showEmptyState = this.products.length === 0;
+        
+        // Set totalProducts to 0 when no results are found to prevent infinite loading
+        this.totalProducts = this.products.length > 0 ? this.totalProducts : 0;
 
         this.router.navigate([], {
           relativeTo: this.route,

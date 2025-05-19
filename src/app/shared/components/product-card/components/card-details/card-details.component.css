@@ -1,37 +1,49 @@
 /* Card Details Container */
-.p-3 {
+.card-details-container {
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
-/* Category */
+/* Category - Now first for prominence */
 .category {
   font-size: 0.75rem;
   text-transform: uppercase;
   color: #6b7280;
   margin-bottom: 0.25rem;
   letter-spacing: 0.025em;
+  order: 1; /* Appears first */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.hover\:underline:hover {
+.category a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.category a:hover {
   text-decoration: underline;
   color: #16a34a; /* Match green color */
 }
 
-/* Product Name */
+/* Product Name - Now second */
 .product-name {
   font-size: 0.875rem;
   line-height: 1.25rem;
   font-weight: 500;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* Limit to 2 lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   transition: color 0.2s ease;
+  max-height: 2.5rem; /* Approximately 2 lines of text */
+  order: 2; /* Ensure it appears second */
 }
 
 .product-name a {
@@ -48,59 +60,67 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-top: 0.25rem;
+  order: 3; /* Appears after category */
 }
 
-.text-red-600 {
-  color: #dc2626; /* Red for sale prices */
-  font-weight: 600;
-}
-
-.text-gray-900 {
-  color: #111827;
-  font-weight: 600;
-}
-
-.text-xs {
-  font-size: 0.75rem;
-}
-
-.text-sm {
+.current-price {
   font-size: 0.875rem;
+  font-weight: 600;
 }
 
-.text-gray-500 {
+.sale-price {
+  color: #dc2626; /* Red for sale prices */
+}
+
+.regular-price {
+  color: #111827;
+}
+
+.old-price {
+  font-size: 0.75rem;
   color: #6b7280;
-}
-
-.line-through {
   text-decoration: line-through;
+  margin-left: 0.5rem;
 }
 
-.ml-2 {
-  margin-left: 0.5rem;
+/* Flex spacer to push content to top and colors to bottom */
+.flex-grow {
+  flex-grow: 1;
 }
 
 /* Responsive adjustments */
 @media (max-width: 767px) {
-  .p-3 {
+  .card-details-container {
     padding: 0.5rem;
+  }
+  
+  .product-name {
+    font-size: 0.85rem;
+    line-height: 1.2;
+    -webkit-line-clamp: 2;
+    max-height: 2.2rem;
+    margin-bottom: 0.2rem;
   }
   
   .category {
     font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
   }
   
-  .product-name {
-    font-size: 0.8rem;
-    line-height: 1.2rem;
-    margin-bottom: 0.25rem;
+  .price {
+    margin-top: 0.1rem;
   }
   
-  .text-sm {
-    font-size: 0.8rem;
+  .current-price {
+    font-size: 0.85rem;
   }
   
-  .text-xs {
+  .old-price {
     font-size: 0.7rem;
   }
 }

@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, PLATFORM_ID, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AppContainerComponent } from '../app-container/app-container.component';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-footer',
@@ -27,17 +28,20 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ]),
   ],
 })
-export class FooterComponent {
+export class FooterComponent implements OnInit {
+  private platformId = inject(PLATFORM_ID);
   currentYear: number = new Date().getFullYear();
 
   supportVisible = signal(false);
 
-  isSmallScreen = signal(window.innerWidth < 768);
+  isSmallScreen = signal(isPlatformBrowser(this.platformId) ? window.innerWidth < 768 : false);
 
   ngOnInit() {
-    window.addEventListener('resize', () => {
-      this.isSmallScreen.set(window.innerWidth < 768);
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      window.addEventListener('resize', () => {
+        this.isSmallScreen.set(window.innerWidth < 768);
+      });
+    }
   }
 
   showSupportSection() {

@@ -1,0 +1,17 @@
+@if ((successState$ | async)?.isVisible) {
+<div @dialogAnimation class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-xl w-full">
+        <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-800">Success</h3>
+        </div>
+        <p class="mt-2 text-gray-600" [innerHTML]="(successState$ | async)?.message"></p>
+        <button (click)="closeDialog()"
+            class="mt-4 w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition-colors">
+            Close
+        </button>
+    </div>
+</div>
+}

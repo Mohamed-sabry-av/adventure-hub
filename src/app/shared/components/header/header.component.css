@@ -15,34 +15,6 @@
   transform: scale(1.1);
 }
 
-.bag-checkout {
-  @apply text-orange-500 absolute right-4 lg:right-8 xl:right-32  top-1/2 -translate-y-1/2;
-}
-
-.bag-checkout-container {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-@media (min-width: 1024px) {
-  .bag-checkout-container {
-    right: 2rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .bag-checkout-container {
-    right: 8rem;
-  }
-}
-
-.checkout-badge {
-  top: -8px;
-  right: -10px;
-}
-
 .icon-container {
   position: relative;
   display: inline-flex;
@@ -122,7 +94,7 @@ body {
 
 /* Header layers */
 .header-top-layer {
-  transition: opacity 0.4s ease, max-height 0.4s ease;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
   overflow: hidden;
   z-index: 1;
   margin-bottom: -1px;
@@ -136,9 +108,11 @@ body {
 }
 
 .header-bottom-layer {
-  transition: opacity 0.4s ease, max-height 0.4s ease;
+  transition: opacity 0.4s ease, max-height 0.4s ease, transform 0.4s ease;
   z-index: 1;
   transform-origin: top;
+  will-change: transform, opacity, max-height;
+  position: relative;
 }
 
 .header-layer-hidden {
@@ -146,6 +120,7 @@ body {
   max-height: 0;
   visibility: hidden;
   overflow: hidden;
+  transform: translateY(-20px);
 }
 
 .header-middle-compact {
@@ -240,4 +215,16 @@ body {
   display: block;
   width: 100%;
   visibility: hidden;
+}
+
+.header-spacer.hidden {
+  display: none;
+}
+
+/* Additional styling for the checkout header to ensure it's fully non-sticky */
+.non-sticky {
+  position: relative !important;
+  top: auto !important;
+  transform: none !important;
+  box-shadow: none !important;
 }

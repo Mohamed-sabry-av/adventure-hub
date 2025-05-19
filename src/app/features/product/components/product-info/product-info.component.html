@@ -7,8 +7,13 @@
     </span>
   </div>
 
-  <h1 class="text-3xl font-medium text-olive mb-2">
+  <h1 class="text-3xl font-medium text-olive mb-2 flex items-start justify-between">
     {{ productInfo()?.name }}
+    <button
+      class="share-button ml-2 flex items-center justify-center text-gray-600 hover:text-orange-500 transition-colors"
+      (click)="shareProduct()" aria-label="Share product">
+      <i class="pi pi-share-alt text-xl"></i>
+    </button>
   </h1>
 
   <!-- Warranty Information -->
@@ -17,14 +22,14 @@
     <span class="font-medium">{{ getWarrantyInfo() }}</span>
   </div>
 
+  <!-- Price -->
   <div class="flex items-baseline mb-4 gap-2">
-    <span class="text-2xl font-bold" [innerHtml]="getPriceInfo().price | currencySvg"></span>
+    <span class="text-2xl font-bold" [appCurrencyPrice]="getNumericPrice(getPriceInfo().price)"></span>
     <ng-container *ngIf="getPriceInfo().isOnSale">
-      <span class="text-gray-500 line-through text-lg ml-2" [innerHtml]="getPriceInfo().regularPrice"></span>
-      <span class="text-green-600 text-sm font-medium ml-2">(On Sale!)</span>
+      <span class="text-gray-500 line-through text-lg ml-2"
+        [appCurrencyPrice]="getNumericPrice(getPriceInfo().regularPrice)"></span>
     </ng-container>
   </div>
-
 
   <div class="product-brand" *ngIf="brandName !== 'brand'">
     <span class="brand-label"></span>
@@ -47,11 +52,14 @@
       </ng-container>
       <ng-container *ngIf="maxLength > 5">
         <span class="text-green-600 font-medium flex items-center">
-          <i class="pi pi-check-circle mr-1"></i> In Stock
+          <i class="pi pi-check-circle mr-1"></i> In Stock: {{ maxLength }} available
         </span>
       </ng-container>
     </ng-container>
   </div>
+
+  <!-- Delivery Estimation -->
+  <app-delivery-estimate [isHubProduct]="isHubProduct"></app-delivery-estimate>
 
   <!-- Variation Selection -->
   <div *ngIf="productInfo()?.type === 'variable' && !isCompletelyOutOfStock">
@@ -181,8 +189,13 @@
       returns.
     </p>
     <p class="text-sm">
-      <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Delivery
-      within 1-2 working days.
+      <span><i class="pi pi-check-circle text-sm mr-1"></i></span>
+      <ng-container *ngIf="isHubProduct">
+        Next day delivery in Dubai (order before 11 AM).
+      </ng-container>
+      <ng-container *ngIf="!isHubProduct">
+        Delivery in 1-2 working days.
+      </ng-container>
     </p>
     <p class="text-sm">
       <span><i class="pi pi-check-circle text-sm mr-1"></i></span> World wide
@@ -201,6 +214,9 @@
     [disabled]="!isProductInStock || !allVariationAttributesSelected">
     Add to Cart
   </button>
+  <button class="share-btn" (click)="shareProduct()" aria-label="Share product">
+    <i class="pi pi-share-alt"></i>
+  </button>
 </div>
 
 <div class="sticky-add-to-cart" *ngIf="isFooterVisible$ | async">
@@ -208,11 +224,10 @@
     <div class="product-info">
       <div class="product-title">{{ productInfo().name }}</div>
       <div class="product-price">
-        <span [class.sale-price]="getPriceInfo().isOnSale">
-          {{ getPriceInfo().price | currencySvg }}
+        <span [class.sale-price]="getPriceInfo().isOnSale" [appCurrencyPrice]="getNumericPrice(getPriceInfo().price)">
         </span>
-        <span class="regular-price" *ngIf="getPriceInfo().isOnSale">
-          {{ getPriceInfo().regularPrice | currencySvg }}
+        <span class="regular-price" *ngIf="getPriceInfo().isOnSale"
+          [appCurrencyPrice]="getNumericPrice(getPriceInfo().regularPrice)">
         </span>
       </div>
     </div>

@@ -5,7 +5,9 @@
       <div class="tab-item" [class.active]="activeSection === 'description'" (click)="scrollToSection('description')">
         Description
       </div>
-      <div class="tab-item" [class.active]="activeSection === 'additional-info'" (click)="scrollToSection('additional-info')">
+      <div class="tab-item"
+        *ngIf="productAdditionlInfo.brand || getAdditionalInfoFromVariations().colors?.length || getAdditionalInfoFromVariations().sizes?.length"
+        [class.active]="activeSection === 'additional-info'" (click)="scrollToSection('additional-info')">
         Additional Information
       </div>
       <div class="tab-item" [class.active]="activeSection === 'reviews'" (click)="scrollToSection('reviews')">
@@ -28,7 +30,8 @@
     </div>
 
     <!-- Additional Information Section -->
-    <div id="additional-info" class="content-section">
+    <div id="additional-info" class="content-section"
+      *ngIf="productAdditionlInfo.brand || getAdditionalInfoFromVariations().colors?.length || getAdditionalInfoFromVariations().sizes?.length">
       <h2 class="section-header">Additional Information</h2>
       <div class="additional-info-content">
         <table class="info-table">
@@ -62,13 +65,7 @@
         </table>
       </div>
 
-      <!-- If no additional information available -->
-      <div *ngIf="!productAdditionlInfo.brand &&
-                 !getAdditionalInfoFromVariations().colors?.length &&
-                 !getAdditionalInfoFromVariations().sizes?.length"
-        class="no-info">
-        <p>No additional information available for this product.</p>
-      </div>
+            <!-- Removed empty additional information message -->
     </div>
 
     <!-- Reviews Section -->

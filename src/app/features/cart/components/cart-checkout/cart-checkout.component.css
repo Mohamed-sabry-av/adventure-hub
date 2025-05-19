@@ -1,0 +1,12 @@
+/* Sticky summary for desktop */
+.sticky-summary {
+  position: static;
+}
+
+@media (min-width: 1024px) {
+  .sticky-summary {
+    position: sticky;
+    top: 32px;
+    z-index: 10;
+  }
+}

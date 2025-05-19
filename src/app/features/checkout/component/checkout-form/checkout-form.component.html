@@ -5,6 +5,8 @@
         <!-- Contact -->
         <section>
           <div class="flex flex-col items-center">
+            <!-- Only show Express checkout if wallet payment is available -->
+            @if (checkoutService.walletPaymentAvailable$ | async) {
             <p class="text-gray-400 text-sm text-center">Express checkout</p>
 
             <!-- GPay & Apple Pay -->
@@ -17,6 +19,7 @@
                 <span class="flex-grow h-px bg-gray-400"></span>
               </div>
             </div>
+            }
 
             <!-- Contact with Email -->
             <div class="w-full flex items-center justify-between">
@@ -50,8 +53,16 @@
           <!-- Country Select -->
           <div>
             <p-select [options]="avaliableCountries$ | async" optionLabel="name" optionValue="code"
-              placeholder="Select a Country" class="bg-white w-full py-[6px] px-3 rounded-lg"
-              formControlName="countrySelect" />
+              placeholder="Select a Country" styleClass="country-select" class="w-full" formControlName="countrySelect"
+              [autoDisplayFirst]="false">
+              <ng-template let-country pTemplate="item">
+                <div class="flex items-center gap-2 py-1">
+                  <img [src]="'https://flagcdn.com/' + country.code.toLowerCase() + '.svg'" width="20" height="15"
+                    class="rounded-sm" />
+                  <span>{{country.name}}</span>
+                </div>
+              </ng-template>
+            </p-select>
           </div>
 
           <!-- First and Last Name -->
@@ -102,16 +113,6 @@
               <p class="absolute text-sm text-red-500 w-full mt-1 left-0">Enter a state</p>
               }
             </div>
-          </div>
-
-          <!-- Postcode -->
-          <div>
-            <input type="number"
-              class="bg-white border w-full py-[14px] px-3 rounded-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&]:moz-appearance-textfield"
-              placeholder="Postcode / Zip" formControlName="postCode" [class.border-red-500]="postCodeIsInvalid" />
-            @if (postCodeIsInvalid) {
-            <p class="text-sm text-red-500 w-full mt-[6px]">Enter a Postcode</p>
-            }
           </div>
 
           <!-- Phone -->
@@ -295,8 +296,16 @@
             <!-- Country Select -->
             <div>
               <p-select [options]="avaliableCountries$ | async" optionLabel="name" optionValue="code"
-                placeholder="Select a Country" class="bg-white w-full py-[6px] px-3 rounded-lg"
-                formControlName="countrySelect" />
+                placeholder="Select a Country" styleClass="country-select" class="w-full"
+                formControlName="countrySelect" [autoDisplayFirst]="false">
+                <ng-template let-country pTemplate="item">
+                  <div class="flex items-center gap-2 py-1">
+                    <img [src]="'https://flagcdn.com/' + country.code.toLowerCase() + '.svg'" width="20" height="15"
+                      class="rounded-sm" />
+                    <span>{{country.name}}</span>
+                  </div>
+                </ng-template>
+              </p-select>
             </div>
 
             <!-- Address -->
@@ -323,25 +332,7 @@
           </form>
           }
 
-          <!-- Pay Button -->
-          <div class="mt-6 mb-12 lg:block hidden">
-            <button [disabled]="!isFormValid() || isLoading"
-              (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
-              class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
-              [ngClass]="!isFormValid() || isLoading ? 'bg-gray-500 hover:bg-gray-500 cursor-default' : 'bg-[#3bb54a] hover:bg-[#2a9e39] cursor-pointer'">
-              @if (paymentRadiosValue === 'cod') {
-              <span>Complete order</span>
-              } @else {
-              <span>Pay now</span>
-              }
-
-              @if (isLoading) {
-              <span class="inline-block ml-2 align-middle">
-                <div class="inline-block animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></div>
-              </span>
-              }
-            </button>
-          </div>
+          <!-- Pay Button removed from left side as it's now on the right -->
           <hr />
 
           <!-- Policies -->
@@ -369,11 +360,12 @@
     <div class="lg:w-[45%]">
       <div class="lg:sticky lg:top-4">
         <app-checkout-summary [isVisible$]="summaryIsVisible$!">
-          <div class="mt-6 mb-12 lg:hidden block">
+          <!-- Pay Button moved to the right side below the summary -->
+          <div class="mt-6 mb-12 block">
             <button [disabled]="!isFormValid() || isLoading"
               (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
               class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
-              [ngClass]="!isFormValid() || isLoading ? 'bg-gray-500 hover:bg-gray-500 cursor-default' : 'bg-[#3bb54a] hover:bg-[#2a9e39] cursor-pointer'">
+              [ngClass]="!isFormValid() || isLoading ? 'bg-gray-500 hover:bg-gray-500 cursor-default' : 'bg-[#3BB45A] hover:bg-[#2a9e39] cursor-pointer'">
               @if (paymentRadiosValue === 'cod') {
               <span>Complete order</span>
               } @else {

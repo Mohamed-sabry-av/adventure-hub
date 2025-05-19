@@ -6,28 +6,38 @@ import {
   ChangeDetectorRef,
   OnChanges,
   SimpleChanges,
+  ViewChild,
+  AfterViewInit,
+  ElementRef,
+  OnDestroy,
+  NgZone
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { RelatedProductsService } from '../../../../core/services/related-products.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
-import { CarouselModule, OwlOptions } from 'ngx-owl-carousel-o'; // استبدال CustomCarouselComponent
+import { forkJoin, Observable, of, timer } from 'rxjs';
+import { catchError, finalize, map, take } from 'rxjs/operators';
+import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
 
 @Component({
   selector: 'app-product-related',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, CarouselModule], // استبدال CustomCarouselComponent بـ CarouselModule
+  imports: [CommonModule, ProductCardComponent, CarouselModule],
   templateUrl: './product-related.component.html',
   styleUrls: ['./product-related.component.css'],
 })
-export class ProductRelatedComponent implements OnInit, OnChanges {
+export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   private productService = inject(ProductService);
   private relatedProductsService = inject(RelatedProductsService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private zone = inject(NgZone);
+
+  @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
+  @ViewChild('prevBtn') prevBtn?: ElementRef<HTMLButtonElement>;
+  @ViewChild('nextBtn') nextBtn?: ElementRef<HTMLButtonElement>;
 
   @Input() relatedIds: number[] = [];
   @Input() productId: number | any = null;
@@ -36,7 +46,10 @@ export class ProductRelatedComponent implements OnInit, OnChanges {
   isLoading: boolean = true;
   maxProductsToShow: number = 25;
 
-  // إعدادات الـ Carousel
+  private prevClickListener?: (e: Event) => void;
+  private nextClickListener?: (e: Event) => void;
+
+  // Carousel options
   carouselOptions: OwlOptions = {
     loop: true,
     mouseDrag: true,
@@ -44,29 +57,115 @@ export class ProductRelatedComponent implements OnInit, OnChanges {
     pullDrag: false,
     dots: true,
     navSpeed: 700,
-    navText: ['<i class="fas fa-chevron-left"></i>', '<i class="fas fa-chevron-right"></i>'],
+    navText: ['', ''],
+    autoWidth: false,
+    items: 4,
     responsive: {
       0: {
-        items: 2,
+        items: 2
       },
-      480: {
-        items: 2,
+      576: {
+        items: 2
       },
       768: {
-        items: 2,
+        items: 3
       },
-      1024: {
-        items: 4,
-      },
-      1400: {
-        items: 4,
-      },
+      992: {
+        items: 4
+      }
     },
-    nav: true,
+    nav: false
   };
 
   ngOnInit() {
     this.loadRelatedProducts();
+  }
+
+  ngAfterViewInit() {
+    timer(100, 300)
+      .pipe(take(5))
+      .subscribe(() => {
+        this.setupCustomNavigation();
+      });
+  }
+
+  ngOnDestroy() {
+    this.removeNavigationListeners();
+  }
+
+  private removeNavigationListeners(): void {
+    if (this.prevBtn?.nativeElement && this.prevClickListener) {
+      this.prevBtn.nativeElement.removeEventListener('click', this.prevClickListener);
+    }
+    
+    if (this.nextBtn?.nativeElement && this.nextClickListener) {
+      this.nextBtn.nativeElement.removeEventListener('click', this.nextClickListener);
+    }
+  }
+
+  setupCustomNavigation(): void {
+    this.zone.runOutsideAngular(() => {
+      // إزالة المستمعين السابقين
+      this.removeNavigationListeners();
+
+      if (this.prevBtn?.nativeElement && this.nextBtn?.nativeElement && this.owlCarousel) {
+        this.prevClickListener = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.owlCarousel) {
+            this.owlCarousel.prev();
+            this.zone.run(() => {
+              this.cdr.markForCheck();
+            });
+          }
+        };
+        
+        this.nextClickListener = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.owlCarousel) {
+            this.owlCarousel.next();
+            this.zone.run(() => {
+              this.cdr.markForCheck();
+            });
+          }
+        };
+        
+        this.prevBtn.nativeElement.addEventListener('click', this.prevClickListener);
+        this.nextBtn.nativeElement.addEventListener('click', this.nextClickListener);
+      } else {
+        // استخدام محددات DOM كخطة بديلة
+        const prevBtn = document.querySelector('.products-carousel .prev-btn') as HTMLElement;
+        const nextBtn = document.querySelector('.products-carousel .next-btn') as HTMLElement;
+        
+        if (prevBtn && nextBtn && this.owlCarousel) {
+          this.prevClickListener = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.owlCarousel) {
+              this.owlCarousel.prev();
+              this.zone.run(() => {
+                this.cdr.markForCheck();
+              });
+            }
+          };
+          
+          this.nextClickListener = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.owlCarousel) {
+              this.owlCarousel.next();
+              this.zone.run(() => {
+                this.cdr.markForCheck();
+              });
+            }
+          };
+          
+          prevBtn.addEventListener('click', this.prevClickListener);
+          nextBtn.addEventListener('click', this.nextClickListener);
+        }
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {

@@ -4,12 +4,13 @@ import { ContentPagesService } from '../../service/content-pages.service';
 import { SeoService } from '../../../../core/services/seo.service';
 import { BaseContentPageComponent } from '../page-skeleton/base-content-page.component';
 import { ContentPageComponent } from '../page-skeleton/content-page.component';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-terms',
   standalone: true,
-  imports: [ContentPageComponent],
+  imports: [CommonModule, ContentPageComponent],
   template: `
     <!-- SEO Schema Data -->
     <ng-container *ngIf="schemaData">

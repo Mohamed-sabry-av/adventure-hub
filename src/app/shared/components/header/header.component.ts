@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -7,8 +7,10 @@ import {
   ElementRef,
   inject,
   OnInit,
+  PLATFORM_ID,
   signal,
   ViewChild,
+  Inject
 } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../interfaces/category.model';
@@ -47,17 +49,17 @@ import { CartService } from '../../../features/cart/service/cart.service';
   animations: [
     trigger('layerAnimation', [
       transition(':enter', [
-        style({ opacity: 0, maxHeight: 0, visibility: 'hidden' }),
+        style({ opacity: 0, maxHeight: 0, visibility: 'hidden', transform: 'translateY(-20px)' }),
         animate(
-          '400ms cubic-bezier(0.33, 1, 0.68, 1)',
-          style({ opacity: 1, maxHeight: '100px', visibility: 'visible' })
+          '350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          style({ opacity: 1, maxHeight: '200px', visibility: 'visible', transform: 'translateY(0)' })
         ),
       ]),
       transition(':leave', [
-        style({ opacity: 1, maxHeight: '100px', visibility: 'visible' }),
+        style({ opacity: 1, maxHeight: '200px', visibility: 'visible', transform: 'translateY(0)' }),
         animate(
-          '400ms cubic-bezier(0.33, 1, 0.68, 1)',
-          style({ opacity: 0, maxHeight: 0, visibility: 'hidden' })
+          '350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          style({ opacity: 0, maxHeight: 0, visibility: 'hidden', transform: 'translateY(-20px)' })
         ),
       ]),
     ]),
@@ -71,6 +73,7 @@ export class HeaderComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
   private cartService = inject(CartService);
+  private platformId = inject(PLATFORM_ID);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
   cartCount: number = 0;
@@ -91,9 +94,10 @@ export class HeaderComponent implements OnInit {
   scrollDirection = signal<'up' | 'down' | 'none'>('none');
   
   // Thresholds for showing/hiding layers
-  readonly SCROLL_THRESHOLD = 200; // قيمة متوسطة للتمرير لأسفل
-  readonly NAVBAR_SHOW_THRESHOLD = 30; // قيمة صغيرة للتمرير لأعلى لإظهار شريط التنقل
-  readonly SCROLL_SENSITIVITY = 30; // حساسية متوسطة لتحديد اتجاه التمرير
+  readonly SCROLL_THRESHOLD = 300; // Increased threshold for better stability
+  readonly NAVBAR_SHOW_THRESHOLD = 50; // Increased threshold for showing navbar
+  readonly SCROLL_SENSITIVITY = 50; // Increased sensitivity threshold
+  readonly SCROLL_DEBOUNCE_TIME = 100; // Increased debounce time for smoother behavior
 
   // Timer for hiding navigation bar
   private _hideNavTimeout: any = null;
@@ -104,7 +108,10 @@ export class HeaderComponent implements OnInit {
   // Flag to track if we're actively scrolling
   private _isActivelyScrolling = false;
   // Time to maintain scroll up state
-  readonly UP_SCROLL_MAINTAIN_TIME = 3000; // 3 seconds
+  readonly UP_SCROLL_MAINTAIN_TIME = 5000; // Increased to 5 seconds
+  // Minimum time between navbar state changes
+  readonly MIN_STATE_CHANGE_DELAY = 500; // 500ms minimum delay between state changes
+  private _lastStateChangeTime = 0;
 
   // Getter للاستخدام في القالب
   get forceNavbarVisible(): boolean {
@@ -116,10 +123,12 @@ export class HeaderComponent implements OnInit {
       const isVisible = this.navbarService.sideNavIsVisible();
       this.sidenavIsVisible.set(isVisible);
 
-      if (isVisible) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = 'auto';
+      if (isPlatformBrowser(this.platformId)) {
+        if (isVisible) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = 'auto';
+        }
       }
     });
   }
@@ -142,9 +151,45 @@ export class HeaderComponent implements OnInit {
         }, 10);
       });
 
-    const subscription2 = fromEvent(window, 'scroll')
-      .pipe(debounceTime(5)) // Reduced debounce time for smoother animations
-      .subscribe(() => this.handleScroll());
+    if (isPlatformBrowser(this.platformId)) {
+      const subscription2 = fromEvent(window, 'scroll')
+        .pipe(debounceTime(5)) // Reduced debounce time for smoother animations
+        .subscribe(() => this.handleScroll());
+        
+      // Set initial header height for body padding
+      setTimeout(() => {
+        this.onSetHeaderHeight();
+      }, 100);
+
+      // Update header height on window resize
+      const resizeSubscription = fromEvent(window, 'resize')
+        .pipe(debounceTime(100))
+        .subscribe(() => {
+          this.onSetHeaderHeight();
+          this.cdr.detectChanges();
+        });
+        
+      this.destroyRef.onDestroy(() => {
+        subscription.unsubscribe();
+        subscription2.unsubscribe();
+        resizeSubscription.unsubscribe();
+        
+        // تنظيف المؤقتات
+        if (this._hideNavTimeout) {
+          clearTimeout(this._hideNavTimeout);
+          this._hideNavTimeout = null;
+        }
+        
+        if (this._upScrollTimeout) {
+          clearTimeout(this._upScrollTimeout);
+          this._upScrollTimeout = null;
+        }
+      });
+    } else {
+      this.destroyRef.onDestroy(() => {
+        subscription.unsubscribe();
+      });
+    }
 
     // Subscribe to cart updates to show cart count
     const cartSubscription = this.cartService.savedUserCart$.subscribe((response: any) => {
@@ -157,36 +202,9 @@ export class HeaderComponent implements OnInit {
       }
       this.cdr.detectChanges();
     });
-
-    // Set initial header height for body padding
-    setTimeout(() => {
-      this.onSetHeaderHeight();
-    }, 100);
-
-    // Update header height on window resize
-    const resizeSubscription = fromEvent(window, 'resize')
-      .pipe(debounceTime(100))
-      .subscribe(() => {
-        this.onSetHeaderHeight();
-        this.cdr.detectChanges();
-      });
-
+    
     this.destroyRef.onDestroy(() => {
-      subscription.unsubscribe();
-      subscription2.unsubscribe();
       cartSubscription.unsubscribe();
-      resizeSubscription.unsubscribe();
-      
-      // تنظيف المؤقتات
-      if (this._hideNavTimeout) {
-        clearTimeout(this._hideNavTimeout);
-        this._hideNavTimeout = null;
-      }
-      
-      if (this._upScrollTimeout) {
-        clearTimeout(this._upScrollTimeout);
-        this._upScrollTimeout = null;
-      }
     });
   }
 
@@ -202,73 +220,61 @@ export class HeaderComponent implements OnInit {
 
   handleScroll() {
     if (this.isProductPage) {
-      // Skip header behavior on product page
       this.updateHeaderState();
       return;
     }
 
-    // تعليم أننا في حالة تمرير نشط
-    this._isActivelyScrolling = true;
-
+    if (!isPlatformBrowser(this.platformId)) return;
+    
     const currentScrollY = window.scrollY;
     const scrollDelta = currentScrollY - this.lastScrollY();
     
-    // تحديد اتجاه التمرير
-    if (Math.abs(scrollDelta) > this.SCROLL_SENSITIVITY) {
-      // تمرير لأعلى بقيمة معقولة
-      if (scrollDelta < -35) {
+    // More sensitive scroll detection for upward movement
+    if (scrollDelta < -10) { // Reduced threshold to make it more sensitive to upward scrolling
+      // Scrolling up - show navbar immediately
         this.scrollDirection.set('up');
         this._forceNavbarVisible = true;
         
-        // إلغاء مؤقت الإخفاء
         if (this._hideNavTimeout) {
           clearTimeout(this._hideNavTimeout);
           this._hideNavTimeout = null;
         }
         
-        // إعادة تعيين مؤقت ظهور شريط التنقل
         if (this._upScrollTimeout) {
           clearTimeout(this._upScrollTimeout);
         }
         
-        // الاحتفاظ بشريط التنقل ظاهراً لفترة محدودة فقط
+      // Longer timeout for keeping navbar visible after scrolling up
         this._upScrollTimeout = setTimeout(() => {
+        if (this.lastScrollY() > 0) {  // Only hide if not at the top
           this._forceNavbarVisible = false;
+        }
           this._isActivelyScrolling = false;
           this.cdr.detectChanges();
         }, this.UP_SCROLL_MAINTAIN_TIME);
       } 
-      // تمرير لأسفل واضح
-      else if (scrollDelta > 40 && currentScrollY > this.SCROLL_THRESHOLD) {
-        // إلغاء فرض ظهور شريط التنقل بعد تأخير قصير
+      else if (scrollDelta > this.SCROLL_SENSITIVITY && currentScrollY > this.SCROLL_THRESHOLD) {
+      // Scrolling down - hide navbar after delay
         if (this._forceNavbarVisible) {
           setTimeout(() => {
+          if (this.lastScrollY() > 0) {  // Only hide if not at the top
             this._forceNavbarVisible = false;
+          }
             this.scrollDirection.set('down');
             this._isActivelyScrolling = false;
             this.updateHeaderState();
-          }, 200);
+        }, 300);
         } else {
           this.scrollDirection.set('down');
-        }
       }
     }
     
-    // تحديث آخر موضع تمرير
     this.lastScrollY.set(currentScrollY);
-    
-    // تحديث حالة الهيدر
     this.updateHeaderState();
-    
-    // بعد 200 مللي ثانية نعتبر التمرير انتهى إذا لم يحدث تمرير جديد
-    setTimeout(() => {
-      this._isActivelyScrolling = false;
-    }, 200);
   }
 
   private updateHeaderState() {
-    if (this.isProductPage) {
-      // صفحة المنتج: عرض كل الطبقات دائمًا
+    if (this.isProductPage || this.currentPage === 'checkout') {
       this.showNavbar.set(true);
       this.showNavbarLayer.set('full');
       this.navbarService.showNavbar(true);
@@ -279,50 +285,52 @@ export class HeaderComponent implements OnInit {
     const currentScrollY = this.lastScrollY();
     const direction = this.scrollDirection();
     
-    // في قمة الصفحة: عرض كل الطبقات
-    if (currentScrollY <= 20) {
+    // Always show full header at the top of the page
+    if (currentScrollY <= 0) {
       this.showNavbar.set(true);
       this.showNavbarLayer.set('full');
       this.navbarService.showNavbar(true);
+      this._lastStateChangeTime = Date.now();
+      this._forceNavbarVisible = true;
       
-      // تحديث الارتفاع
       setTimeout(() => {
         this.onSetHeaderHeight();
         this.cdr.detectChanges();
       }, 10);
     } 
-    // عند التمرير لأعلى أو فرض ظهور شريط التنقل: عرض الطبقة الثانية والثالثة
+    // Show partial header when scrolling up or when forced visible
     else if (direction === 'up' || this._forceNavbarVisible) {
       this.showNavbar.set(true);
       this.showNavbarLayer.set('partial');
       this.navbarService.showNavbar(true);
+      this._lastStateChangeTime = Date.now();
       this.onSetHeaderHeight();
       this.cdr.detectChanges();
     } 
-    // عند التمرير لأسفل بعد تجاوز الحد المطلوب وليس في حالة فرض ظهور شريط التنقل: إخفاء الطبقة الثالثة
+    // Hide navbar when scrolling down after passing threshold
     else if (direction === 'down' && currentScrollY > this.SCROLL_THRESHOLD && !this._forceNavbarVisible) {
-      // تأخير معقول قبل إخفاء شريط التنقل
       if (!this._hideNavTimeout && !this._isActivelyScrolling) {
         this._hideNavTimeout = setTimeout(() => {
-          // تحقق مرة أخرى لضمان عدم تغير الحالة
-          if (this.scrollDirection() === 'down' && !this._forceNavbarVisible) {
+          if (this.scrollDirection() === 'down' && !this._forceNavbarVisible && this.lastScrollY() > 0) {
             this.showNavbar.set(false);
             this.showNavbarLayer.set('minimal');
             this.navbarService.showNavbar(false);
+            this._lastStateChangeTime = Date.now();
             this.onSetHeaderHeight();
             this.cdr.detectChanges();
           }
           this._hideNavTimeout = null;
-        }, 400); // تأخير معقول
+        }, 400); // Slightly faster response for hiding
       }
     }
     
-    // تحديث ارتفاع الهيدر دائمًا
     this.onSetHeaderHeight();
     this.cdr.detectChanges();
   }
 
   onSetHeaderHeight() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    
     if (this.headerElement) {
       const height = this.headerElement.nativeElement.offsetHeight;
       this.headerHeight.set(height);
@@ -331,10 +339,13 @@ export class HeaderComponent implements OnInit {
       // Set CSS variable for dynamic spacing
       document.documentElement.style.setProperty('--header-height', `${height}px`);
       
-      // Only apply specific styling if not on product page
-      if (this.isProductPage) {
+      // Only apply specific styling if not on product page or checkout page
+      if (this.isProductPage || this.currentPage === 'checkout') {
         document.body.style.paddingTop = '0';
-        document.querySelector('.header-spacer')?.setAttribute('style', 'display: none');
+        const spacer = document.querySelector('.header-spacer');
+        if (spacer) {
+          spacer.setAttribute('style', 'display: none');
+        }
       } else {
         // Ensure the spacer has the correct height
         const spacer = document.querySelector('.header-spacer');
@@ -352,12 +363,14 @@ export class HeaderComponent implements OnInit {
 
   ngAfterViewInit() {
     // After the view is initialized, set the header height again to ensure proper spacing
-    setTimeout(() => {
-      this.onSetHeaderHeight();
-      
-      // Force a reflow to ensure proper content positioning
-      window.dispatchEvent(new Event('scroll'));
-    }, 150);
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        this.onSetHeaderHeight();
+        
+        // Force a reflow to ensure proper content positioning
+        window.dispatchEvent(new Event('scroll'));
+      }, 150);
+    }
   }
 
   onSiwtchSideNav(visible: boolean) {

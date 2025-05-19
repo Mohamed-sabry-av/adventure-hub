@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Product } from '../../interfaces/product';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,10 @@ export class RecentlyVisitedService {
   private readonly MAX_PRODUCTS = 20; // Maximum number of products to store
 
   private recentlyVisitedProductsSubject = new BehaviorSubject<Product[]>([]);
+  private platformId = inject(PLATFORM_ID);
 
   constructor() {
+    console.log('RecentlyVisitedService - Initializing');
     this.loadFromLocalStorage();
   }
 
@@ -19,8 +22,15 @@ export class RecentlyVisitedService {
     return this.recentlyVisitedProductsSubject.asObservable();
   }
 
+  // Get the current value without subscribing
+  get currentProducts(): Product[] {
+    return this.recentlyVisitedProductsSubject.value;
+  }
+
   addProduct(product: Product): void {
-    if (!product) return;
+    if (!product) {
+      return;
+    }
 
     const currentProducts = this.recentlyVisitedProductsSubject.value;
 
@@ -37,7 +47,9 @@ export class RecentlyVisitedService {
 
   clearHistory(): void {
     this.recentlyVisitedProductsSubject.next([]);
-    localStorage.removeItem(this.STORAGE_KEY);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(this.STORAGE_KEY);
+    }
   }
 
   removeProduct(productId: number): void {
@@ -46,27 +58,40 @@ export class RecentlyVisitedService {
 
     this.recentlyVisitedProductsSubject.next(updatedProducts);
     this.saveToLocalStorage(updatedProducts);
+    console.log('RecentlyVisitedService - Product removed:', productId);
   }
 
+
+
   private loadFromLocalStorage(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      console.log('RecentlyVisitedService - Not in browser environment, skipping localStorage loading');
+      return;
+    }
+    
     try {
       const storedProducts = localStorage.getItem(this.STORAGE_KEY);
       if (storedProducts) {
         const products = JSON.parse(storedProducts) as Product[];
         this.recentlyVisitedProductsSubject.next(products);
+      } else {
+
       }
     } catch (error) {
-      console.error('Error loading recently visited products from localStorage:', error);
       // If there's an error, reset the storage
       localStorage.removeItem(this.STORAGE_KEY);
     }
   }
 
   private saveToLocalStorage(products: Product[]): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(products));
     } catch (error) {
-      console.error('Error saving recently visited products to localStorage:', error);
+      console.error('RecentlyVisitedService - Error saving to localStorage:', error);
     }
   }
 }

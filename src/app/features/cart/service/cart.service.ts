@@ -22,11 +22,14 @@ import { Product } from '../../../interfaces/product';
 import { AccountAuthService } from '../../auth/account-auth.service';
 import { fetchCouponsAction } from '../../../Store/actions/checkout.action';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
+import { PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private accountAuthService = inject(AccountAuthService);
   private store = inject(Store);
+  private platformId = inject(PLATFORM_ID);
   cartIsVisible$ = new BehaviorSubject<boolean>(false);
   // New empty cart structure for quicker UI rendering
   private emptyCartStructure = {
@@ -67,8 +70,12 @@ export class CartService {
     );
 
     if (isLoggedIn) {
-      let authToken: any = localStorage.getItem('auth_token');
-      authToken = authToken ? JSON.parse(authToken) : '';
+      let authToken: any = '';
+      
+      if (isPlatformBrowser(this.platformId)) {
+        authToken = localStorage.getItem('auth_token');
+        authToken = authToken ? JSON.parse(authToken) : '';
+      }
 
       const headers = new HttpHeaders({
         Authorization: `Bearer ${authToken?.value}`,
@@ -76,8 +83,12 @@ export class CartService {
 
       return { headers, params };
     } else {
-      let loadedCart: any = localStorage.getItem('cartId');
-      loadedCart = loadedCart ? JSON.parse(loadedCart) : '';
+      let loadedCart: any = '';
+      
+      if (isPlatformBrowser(this.platformId)) {
+        loadedCart = localStorage.getItem('cartId');
+        loadedCart = loadedCart ? JSON.parse(loadedCart) : '';
+      }
 
       return { loadedCart, params };
     }
@@ -97,10 +108,13 @@ export class CartService {
           })
         );
       } else {
-        let loadedCart: any = localStorage.getItem('Cart');
-        loadedCart = loadedCart
-          ? JSON.parse(loadedCart)
-          : { items: [], coupons: [] };
+        let loadedCart: any = { items: [], coupons: [] };
+        
+        if (isPlatformBrowser(this.platformId)) {
+          const storedCart = localStorage.getItem('Cart');
+          loadedCart = storedCart ? JSON.parse(storedCart) : { items: [], coupons: [] };
+        }
+        
         const coupons = loadedCart.coupons || {};
         const couponKeys = Object.keys(coupons);
 
@@ -199,7 +213,7 @@ export class CartService {
 
   syncUserCart() {
     this.accountAuthService.isLoggedIn$.subscribe((isLoggedIn: boolean) => {
-      if (isLoggedIn) {
+      if (isLoggedIn && isPlatformBrowser(this.platformId)) {
         const loadedCart = this.loadedDataFromLS(false).loadedCart;
 
         let authToken: any = localStorage.getItem('auth_token');

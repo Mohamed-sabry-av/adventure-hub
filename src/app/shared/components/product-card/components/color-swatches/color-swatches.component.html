@@ -1,43 +1,43 @@
-<div class="color-swatches-container">
+<div class="color-swatches-container" *ngIf="showContainer">
   <div class="color-swatches-wrapper">
     <!-- Left scroll button -->
-    <button *ngIf="colorOptions.length > 5"
-            class="color-nav-btn left"
-            [disabled]="colorScrollIndex === 0"
-            (click)="onScrollColors(-1)">
+    <button *ngIf="colorOptions.length > 5" class="color-nav-btn left" [disabled]="colorScrollIndex === 0"
+      (click)="onScrollColors(-1)">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-        <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+        <path fill-rule="evenodd"
+          d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+          clip-rule="evenodd" />
       </svg>
     </button>
 
     <!-- Color swatches -->
     <div class="color-swatches">
-      <div *ngFor="let option of visibleColors"
-           class="swatch"
-           [class.selected]="selectedColor === option.color"
-           [class.out-of-stock]="!option.inStock"
-           [attr.title]="formatColorName(option.color) + (option.inStock ? '' : ' (Out of Stock)')"
-           (click)="onSelectColor(option.color, option.image, option.inStock)">
+      <div *ngIf="visibleColors.length === 0 && showColorPlaceholder" class="no-colors-placeholder">
+        <!-- Empty placeholder when no colors are available -->
+      </div>
+      <div *ngFor="let option of visibleColors" class="swatch" [class.selected]="selectedColor === option.color"
+        [class.out-of-stock]="!option.inStock"
+        [attr.title]="formatColorName(option.color) + (option.inStock ? '' : ' (Out of Stock)')"
+        (click)="onSelectColor(option.color, option.image, option.inStock)">
         <div class="swatch-inner" [style.background-image]="'url(' + option.image + ')'"></div>
         <span class="color-tooltip">{{ formatColorName(getShortColorName(option.color)) }}</span>
       </div>
     </div>
 
     <!-- Right scroll button -->
-    <button *ngIf="colorOptions.length > 5"
-            class="color-nav-btn right"
-            [disabled]="colorScrollIndex >= maxColorScrollIndex"
-            (click)="onScrollColors(1)">
+    <button *ngIf="colorOptions.length > 5" class="color-nav-btn right"
+      [disabled]="colorScrollIndex >= maxColorScrollIndex" (click)="onScrollColors(1)">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+        <path fill-rule="evenodd"
+          d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+          clip-rule="evenodd" />
       </svg>
     </button>
   </div>
 
   <!-- Pagination indicator -->
   <div *ngIf="maxColorScrollIndex > 0" class="pagination-dots">
-    <span *ngFor="let i of [].constructor(maxColorScrollIndex + 1); let idx = index"
-          class="pagination-dot"
-          [class.active]="idx === colorScrollIndex"></span>
+    <span *ngFor="let i of [].constructor(maxColorScrollIndex + 1); let idx = index" class="pagination-dot"
+      [class.active]="idx === colorScrollIndex"></span>
   </div>
 </div>

@@ -2,14 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, Event
 import { RouterLink } from '@angular/router';
 import { Category } from '../../../interfaces/category.model';
 import { NavbarService } from '../../services/navbar.service';
-import { AsyncPipe } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { CurrencySelectorComponent } from '../currency-selector/currency-selector.component';
 
 @Component({
   selector: 'app-navbar-main-categories',
   standalone: true,
-  imports: [RouterLink, AsyncPipe, DrawerModule],
+  imports: [RouterLink, DrawerModule, CurrencySelectorComponent],
   templateUrl: './navbar-main-categories.component.html',
   styleUrl: './navbar-main-categories.component.css',
   animations: [

@@ -7,6 +7,7 @@ import { SideOptionsComponent } from './shared/components/side-options/side-opti
 import { isPlatformBrowser, NgIf, DOCUMENT } from '@angular/common';
 import { filter, first } from 'rxjs/operators';
 import { CartService } from './features/cart/service/cart.service';
+import { ServiceHighlightsComponent } from './shared/components/service-highlights/service-highlights.component';
 
 declare global {
   interface Window {
@@ -40,6 +41,7 @@ interface PerformanceNavigationTiming extends PerformanceEntry {
     SideCartComponent,
     SideOptionsComponent,
     NgIf,
+    ServiceHighlightsComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -53,6 +55,7 @@ export class AppComponent {
   private document = inject(DOCUMENT);
   
   isCheckoutPage = false;
+  isProductsPage = false;
   private previousUrl: string | null = null;
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
@@ -72,6 +75,10 @@ export class AppComponent {
 
     const subscription = navEndEvents.subscribe((event: NavigationEnd) => {
       this.isCheckoutPage = event.urlAfterRedirects.includes('/checkout');
+      
+      // Check if current page is a products category page
+      this.isProductsPage = event.urlAfterRedirects.includes('/products/category');
+      
       this.cdr.markForCheck();
 
       // Extract path without fragment

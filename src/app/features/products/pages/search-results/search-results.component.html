@@ -4,50 +4,35 @@
 
   <div class="mb-8">
     <h1 class="text-2xl font-bold">Search Results for "{{ searchQuery }}"</h1>
-
-    <p *ngIf="!isLoading && showEmptyState" class="text-gray-600">
-      No results found for "{{ searchQuery }}"
-    </p>
   </div>
 
-  <!-- Initial Loading State -->
-  <div *ngIf="showSkeleton" class="flex justify-center py-12">
+  <!-- Initial Loading State - Full Page -->
+  <div *ngIf="showSkeleton && !isInitialLoadComplete" class="flex justify-center py-12">
     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
   </div>
 
-  <!-- No results -->
-  <div *ngIf="showEmptyState && isInitialLoadComplete" class="py-12 text-center">
-    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100">
-      <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </div>
-    <p class="mt-4 text-xl text-gray-700">No results found matching "{{ searchQuery }}"</p>
-    <p class="text-gray-500 mt-2">Try using different keywords or browse our categories</p>
-    <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition" routerLink="/">
-      Go to Homepage
-    </button>
-  </div>
-
-  <!-- Search Results Content -->
-  <div *ngIf="products.length > 0 && isInitialLoadComplete" class="flex flex-col md:flex-row gap-6">
-    <!-- Filters for desktop -->
+  <!-- Content section - with filters always visible -->
+  <div *ngIf="isInitialLoadComplete" class="flex flex-col md:flex-row gap-6">
+    <!-- Filters for desktop - Always shown and sticky -->
     <div class="hidden md:block w-64 flex-shrink-0">
-      <app-filter-sidebar [categoryId]="null" [originalAttributes]="attributes" [selectedFilters]="selectedFilters"
-        (filtersChanges)="loadSearchResultsWithFilters($event)"></app-filter-sidebar>
+      <div class="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto pb-4">
+        <app-filter-sidebar [categoryId]="null" [originalAttributes]="attributes" [selectedFilters]="selectedFilters"
+          (filtersChanges)="loadSearchResultsWithFilters($event)"></app-filter-sidebar>
+      </div>
     </div>
+
     <div class="flex-1">
       <!-- Mobile Filter and Sort Menu -->
       <div class="flex justify-between items-center mb-6">
         <div class="md:hidden">
           <button (click)="openFilterDrawer()"
-            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
-            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.586a1 1 0 01-.293.707l-2 2a1 1 0 01-1.414 0l-4-4a1 1 0 01-.293-.707V7.293a1 1 0 00-.293-.707L3.293 4.293A1 1 0 013 3.586V4z" />
+            class="flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none">
+            <span>Filter & Sort</span>
+            <svg class="ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z">
+              </path>
             </svg>
-            Filter
           </button>
           <app-filter-drawer [isOpen]="filterDrawerOpen" [categoryId]="null" [attributes]="attributes"
             [selectedFilters]="selectedFilters" (closed)="closeFilterDrawer()"
@@ -59,8 +44,23 @@
         </div>
       </div>
 
-      <!-- Products Section -->
-      <div>
+      <!-- No results message -->
+      <div *ngIf="showEmptyState" class="py-12 text-center">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100">
+          <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <p class="mt-4 text-xl text-gray-700">No results found matching "{{ searchQuery }}"</p>
+        <p class="text-gray-500 mt-2">Try using different keywords or browse our categories</p>
+        <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition" routerLink="/">
+          Go to Homepage
+        </button>
+      </div>
+
+      <!-- Products Section - Only shown when we have products -->
+      <div *ngIf="products.length > 0">
         <h2 class="text-lg font-semibold mb-4 border-b pb-2">
           Products ({{ products.length }})
         </h2>

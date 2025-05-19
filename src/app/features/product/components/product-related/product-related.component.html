@@ -1,33 +1,57 @@
-<div class="related-products-section full-width-container">
-  <div class="max-w-screen-xl mx-auto px-4">
-    <h2 class="section-title text-2xl font-bold mb-6">You May Also Like</h2>
-  </div>
-
-  <!-- حالة التحميل -->
-  <div class="loading-container flex justify-center py-8" *ngIf="isLoading">
-    <div class="loading-spinner">
-      <svg class="animate-spin h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
+<div class="related-products-section py-8 px-4">
+  <div class="container mx-auto">
+    <div class="section-header flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">You May Also Like</h2>
     </div>
-  </div>
 
-  <!-- المنتجات ذات الصلة -->
-  <div class="related-products-slider" *ngIf="!isLoading && relatedProducts.length > 0">
-    <owl-carousel-o [options]="carouselOptions">
-      @for (product of relatedProducts; track product.id) {
+    <!-- Loading state -->
+    @if (isLoading) {
+    <div class="products-carousel-skeleton grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      @for (item of [1,2,3,4]; track item) {
+      <div class="product-card-skeleton animate-pulse bg-white rounded-lg shadow-md p-4">
+        <div class="h-40 bg-gray-200 rounded-md mb-4"></div>
+        <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+        <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+        <div class="h-6 bg-gray-200 rounded w-1/3"></div>
+      </div>
+      }
+    </div>
+    }
+
+    @if (!isLoading && relatedProducts.length > 0) {
+    <div class="products-carousel overflow-hidden relative">
+      <owl-carousel-o #owlCarousel [options]="carouselOptions">
+        @for (product of relatedProducts; track product.id) {
         <ng-template carouselSlide [id]="product.id">
-          <div class="product-item p-2" (click)="onProductClick(product.slug)">
+          <div class="px-2" (click)="onProductClick(product.slug)">
             <app-product-card [product]="product"></app-product-card>
           </div>
         </ng-template>
-      }
-    </owl-carousel-o>
-  </div>
+        }
+      </owl-carousel-o>
 
-  <!-- رسالة في حالة عدم وجود منتجات -->
-  <div class="no-products flex justify-center py-8" *ngIf="!isLoading && relatedProducts.length === 0">
-    <p>No related products available</p>
+      <!-- Custom Navigation Arrows -->
+      <div class="custom-navigation hidden md:block">
+        <button #prevBtn class="nav-btn prev-btn" aria-label="Previous slide">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+        </button>
+        <button #nextBtn class="nav-btn next-btn" aria-label="Next slide">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    }
+
+    @if (!isLoading && relatedProducts.length === 0) {
+    <div class="text-center py-8 bg-gray-100 rounded-lg">
+      <p class="text-gray-600">No related products available at the moment.</p>
+    </div>
+    }
   </div>
 </div>
