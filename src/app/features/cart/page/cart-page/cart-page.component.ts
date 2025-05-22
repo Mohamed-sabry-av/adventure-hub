@@ -53,6 +53,9 @@ export class CartPageComponent implements OnInit, OnDestroy {
   isLoading = true;
 
   ngOnInit() {
+    // Clean up any potentially problematic cart IDs in localStorage
+    this.cleanupInvalidCartIds();
+    
     this.subscription.add(
       this.loadedCart$.pipe(
         catchError(error => {
@@ -89,18 +92,46 @@ export class CartPageComponent implements OnInit, OnDestroy {
   }
   
   private handleCartError(error: any) {
+    // Extract error message from the error object, wherever it might be
+    let errorMsg = '';
+    
+    if (typeof error === 'string') {
+      errorMsg = error;
+    } else if (error?.error?.message) {
+      errorMsg = error.error.message;
+    } else if (error?.message) {
+      errorMsg = error.message;
+    }
+    
+    // Check if error message is related to invalid cart id
+    const isInvalidCartError = errorMsg && (
+      errorMsg.includes('invalid cart id') || 
+      errorMsg.includes('Invalid cart') || 
+      errorMsg.includes('expired cart') ||
+      errorMsg.includes('Invalid or expired cart ID')
+    );
+    
+    // Handle invalid cart errors by showing empty cart
+    if (isInvalidCartError) {
+      console.log('Handling invalid cart error in component:', errorMsg);
+      this.hasError = false;
+      this.isLoading = false;
+      
+      // Use the cart service method to handle empty guest cart
+      this.cartService.handleEmptyGuestCart();
+      return;
+    }
+    
+    // Handle other errors normally
     this.hasError = true;
     this.isLoading = false;
     
-    let errorMessage = 'An error occurred while loading your cart.';
-    
-    if (typeof error === 'string') {
-      errorMessage = error;
-    } else if (error?.message) {
-      errorMessage = error.message;
+    let displayErrorMessage = 'An error occurred while loading your cart.';
+    if (errorMsg) {
+      displayErrorMessage = errorMsg;
     }
     
-    this.uiService.showError(errorMessage);
+    this.uiService.showError(displayErrorMessage);
     console.error('Cart error:', error);
   }
 
@@ -114,5 +145,30 @@ export class CartPageComponent implements OnInit, OnDestroy {
       mainPageLoading: true,
       sideCartLoading: false,
     });
+  }
+
+  /**
+   * Cleanup potentially invalid cart IDs that might cause errors
+   */
+  private cleanupInvalidCartIds() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const cartId = localStorage.getItem('cartId');
+        
+        // Check if cartId exists but is suspicious (empty, malformed, etc.)
+        if (cartId !== null) {
+          const parsedCartId = JSON.parse(cartId);
+          
+          if (!parsedCartId || parsedCartId === '' || typeof parsedCartId !== 'string') {
+            console.log('Removing suspicious cart ID:', parsedCartId);
+            localStorage.removeItem('cartId');
+          }
+        }
+      } catch (e) {
+        // If there's any error parsing the cart ID, it's probably invalid
+        console.log('Error parsing cart ID, removing it:', e);
+        localStorage.removeItem('cartId');
+      }
+    }
   }
 }

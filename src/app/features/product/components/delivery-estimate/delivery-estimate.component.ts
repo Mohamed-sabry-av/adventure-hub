@@ -13,10 +13,16 @@ import { interval, Subscription } from 'rxjs';
 })
 export class DeliveryEstimateComponent implements OnInit, OnDestroy {
   @Input() set isHubProduct(value: boolean) {
+    this._isHubProduct = value;
     this.deliveryService.setIsHubProduct(value);
     this.updateEstimate();
   }
-
+  
+  get isHubProductCheck(): boolean {
+    return this._isHubProduct;
+  }
+  
+  private _isHubProduct: boolean = false;
   deliveryService = inject(DeliveryEstimationService);
   
   selectedEmirate: string = 'Dubai';

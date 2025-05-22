@@ -1,27 +1,26 @@
 /* Card Details Container */
 .card-details-container {
-  padding: 0.75rem;
   display: flex;
   flex-direction: column;
+  padding: 0.5rem 0.5rem 0;
   height: 100%;
 }
 
-/* Category - Now first for prominence */
+/* Category */
 .category {
   font-size: 0.75rem;
   text-transform: uppercase;
   color: #6b7280;
   margin-bottom: 0.25rem;
   letter-spacing: 0.025em;
-  order: 1; /* Appears first */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .category a {
-  color: inherit;
   text-decoration: none;
+  color: #6b7280;
 }
 
 .category a:hover {
@@ -29,11 +28,11 @@
   color: #16a34a; /* Match green color */
 }
 
-/* Product Name - Now second */
+/* Product Name */
 .product-name {
   font-size: 0.875rem;
   line-height: 1.25rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #1f2937;
   margin-bottom: 0.25rem;
   display: -webkit-box;
@@ -43,7 +42,6 @@
   text-overflow: ellipsis;
   transition: color 0.2s ease;
   max-height: 2.5rem; /* Approximately 2 lines of text */
-  order: 2; /* Ensure it appears second */
 }
 
 .product-name a {
@@ -60,13 +58,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.25rem;
-  order: 3; /* Appears after category */
+  margin-top: 0.25rem; /* Reduced margin */
 }
 
 .current-price {
-  font-size: 0.875rem;
   font-weight: 600;
+  font-size: 0.925rem;
 }
 
 .sale-price {
@@ -78,42 +75,28 @@
 }
 
 .old-price {
-  font-size: 0.75rem;
-  color: #6b7280;
   text-decoration: line-through;
-  margin-left: 0.5rem;
-}
-
-/* Flex spacer to push content to top and colors to bottom */
-.flex-grow {
-  flex-grow: 1;
+  color: #6b7280;
+  font-size: 0.75rem;
 }
 
 /* Responsive adjustments */
 @media (max-width: 767px) {
   .card-details-container {
-    padding: 0.5rem;
-  }
-  
-  .product-name {
-    font-size: 0.85rem;
-    line-height: 1.2;
-    -webkit-line-clamp: 2;
-    max-height: 2.2rem;
-    margin-bottom: 0.2rem;
+    padding: 0.5rem 0.5rem 0;
   }
   
   .category {
     font-size: 0.7rem;
-    margin-bottom: 0.2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 90%;
+    margin-bottom: 0.15rem;
   }
   
-  .price {
-    margin-top: 0.1rem;
+  .product-name {
+    font-size: 0.8rem;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+    -webkit-line-clamp: 2;
+    max-height: 2rem;
   }
   
   .current-price {
@@ -122,6 +105,23 @@
   
   .old-price {
     font-size: 0.7rem;
+  }
+}
+
+/* Smaller devices */
+@media (max-width: 480px) {
+  .card-details-container {
+    padding: 0.4rem 0.4rem 0;
+  }
+  
+  .category {
+    font-size: 0.65rem;
+    margin-bottom: 0.1rem;
+  }
+  
+  .product-name {
+    font-size: 0.75rem;
+    margin-bottom: 0.15rem;
   }
 }
 

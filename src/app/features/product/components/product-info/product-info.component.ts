@@ -582,27 +582,95 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   shareProduct(): void {
     const productUrl = this.getCurrentProductUrl();
     const productName = this.productInfo()?.name || 'Check out this product';
+    const productDescription = this.productInfo()?.short_description?.replace(/<\/?[^>]+(>|$)/g, "") 
+      || `Check out ${productName} on Adventures Hub`;
     
-    // Check if Web Share API is available (mainly mobile devices)
-    if (navigator.share) {
-      navigator.share({
-        title: productName,
-        text: `Check out ${productName} on Adventures Hub`,
-        url: productUrl,
-      })
-      .then(() => console.log('Product shared successfully'))
-      .catch((error) => {
-        console.error('Error sharing product:', error);
-        // Fallback to copy link if sharing fails
-        this.copyProductLink(new Event('fallback'));
-      });
-    } else {
-      // Fallback for desktop or browsers without Web Share API
-      this.copyProductLink(new Event('fallback'));
+    try {
+      // Check if Web Share API is available (mainly mobile devices)
+      if (navigator.share) {
+        navigator.share({
+          title: productName,
+          text: productDescription,
+          url: productUrl,
+        })
+        .then(() => {
+          console.log('Product shared successfully');
+          this.uiService.showSuccess('Product shared successfully!');
+        })
+        .catch((error) => {
+          console.error('Error sharing product:', error);
+          // Fallback to copy link if sharing fails
+          this.fallbackShare(productUrl);
+        });
+      } else {
+        // Fallback for desktop or browsers without Web Share API
+        this.fallbackShare(productUrl);
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      this.fallbackShare(productUrl);
+    }
+  }
+
+  private fallbackShare(url: string): void {
+    try {
+      // Try to copy to clipboard
+      navigator.clipboard.writeText(url)
+        .then(() => {
+          this.linkCopied = true;
+          this.uiService.showSuccess('Link copied to clipboard!');
+          setTimeout(() => {
+            this.linkCopied = false;
+          }, 2000);
+        })
+        .catch((err) => {
+          console.error('Could not copy text: ', err);
+          // If clipboard API fails, try legacy method
+          this.legacyCopyToClipboard(url);
+        });
+    } catch (error) {
+      console.error('Fallback share error:', error);
+      this.legacyCopyToClipboard(url);
+    }
+  }
+
+  private legacyCopyToClipboard(text: string): void {
+    try {
+      // Create temporary input element
+      const tempInput = document.createElement('input');
+      tempInput.style.position = 'absolute';
+      tempInput.style.left = '-1000px';
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      
+      // Try to execute copy command
+      const successful = document.execCommand('copy');
+      if (successful) {
+        this.uiService.showSuccess('Link copied to clipboard!');
+      } else {
+        this.uiService.showError('Please copy this URL manually: ' + text);
+      }
+      
+      // Remove the temporary element
+      document.body.removeChild(tempInput);
+    } catch (error) {
+      console.error('Legacy copy failed:', error);
+      this.uiService.showError('Please copy this URL manually: ' + text);
     }
   }
 
   private getCurrentProductUrl(): string {
+    // Get absolute base URL 
+    const baseUrl = window.location.origin;
+    const product = this.productInfo();
+    
+    // If we have a product with a slug, use it for a more reliable URL
+    if (product && product.slug) {
+      return `${baseUrl}/product/${product.slug}`;
+    }
+    
+    // Fallback to current URL
     return window.location.href;
   }
 

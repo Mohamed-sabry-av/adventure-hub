@@ -202,6 +202,7 @@
   animation-fill-mode: both;
 }
 
+/* Drawer Account & Wishlist section */
 .drawer-section {
   padding: 16px 0;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -213,4 +214,39 @@
   font-size: 16px;
   margin-bottom: 10px;
   color: #333;
+}
+
+/* Account and Wishlist Items without icons */
+.drawer-section a {
+  transition: all 0.3s ease;
+  color: #4b5563;
+  padding: 5px 0;
+  display: block;
+}
+
+.drawer-section a:hover {
+  transform: translateX(3px);
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* Deals Button in drawer section */
+.drawer-section .deals-button {
+  background: linear-gradient(to right, #3b82f6, #4f46e5);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.drawer-section .deals-button:hover {
+  background: linear-gradient(to right, #2563eb, #4338ca);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
 }

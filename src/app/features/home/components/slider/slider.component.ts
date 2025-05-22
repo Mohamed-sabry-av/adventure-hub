@@ -49,11 +49,11 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
     loop: true,
     mouseDrag: true,
     touchDrag: true,
-    pullDrag: false,
+    pullDrag: true,
     dots: true,
     navSpeed: 700,
     navText: ['', ''],
-    autoplay: true,
+    autoplay: true, 
     autoplayTimeout: 5000,
     autoplayHoverPause: true,
     responsive: {

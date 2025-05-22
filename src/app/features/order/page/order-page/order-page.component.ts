@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   inject,
@@ -8,8 +7,6 @@ import {
 import { OrderMetaDataComponent } from '../../components/order-meta-data/order-meta-data.component';
 import { OrderMainDataComponent } from '../../components/order-main-data/order-main-data.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
-import { ServiceHighlightsComponent } from '../../../../shared/components/service-highlights/service-highlights.component';
-import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { OrderService } from '../../services/order.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
@@ -23,7 +20,6 @@ import { DialogErrorComponent } from '../../../../shared/components/dialog-error
     OrderMetaDataComponent,
     OrderMainDataComponent,
     AppContainerComponent,
-    ServiceHighlightsComponent,
     AsyncPipe,
     DialogErrorComponent,
   ],

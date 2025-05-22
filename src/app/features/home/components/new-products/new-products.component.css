@@ -1,14 +1,23 @@
+/* Component Container */
+.new-products {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Product carousel container */
 .products-carousel {
   position: relative;
   overflow: visible;
-  margin: 0 -10px;
-  padding: 0 10px;
+  margin: 0 -5px;
+  padding: 0 5px;
 }
 
 /* Fix for carousel items to prevent disappearing on resize */
 :host ::ng-deep .owl-stage {
   display: flex;
   align-items: stretch;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 :host ::ng-deep .owl-item {
@@ -16,53 +25,52 @@
   height: auto;
 }
 
-:host ::ng-deep .owl-item .px-2 {
+:host ::ng-deep .owl-item .px-2,
+:host ::ng-deep .owl-item .px-0\.5 {
   width: 100%;
 }
 
-.carousel-item {
-  box-sizing: border-box;
-  height: 100%;
-}
-
-/* Override PrimeNG carousel styles for better mobile experience */
-:host ::ng-deep .custom-carousel .p-carousel-indicators {
-  margin-top: 0.5rem;
-}
-
-:host ::ng-deep .custom-carousel .p-carousel-container {
-  padding: 0;
-}
-
-/* Hide arrows on mobile */
+/* Mobile optimizations */
 @media (max-width: 767px) {
-  :host ::ng-deep .custom-carousel .p-carousel-prev,
-  :host ::ng-deep .custom-carousel .p-carousel-next {
-    display: none !important;
-  }
-}
-
-/* Ensure carousel fits within mobile screen */
-@media (max-width: 576px) {
   .products-carousel {
-    margin: 0 -0.25rem;
-    width: 100vw;
-    max-width: calc(100% + 0.5rem);
-    transform: translateX(-0.25rem);
+    margin: 0 -1px;
+    padding: 0 1px;
   }
   
-  .carousel-item {
-    padding: 0 0.25rem;
+  .products-carousel-skeleton {
+    gap: var(--product-grid-gap-mobile, 0.5px) !important;
+}
+
+  /* Ensure skeletons match product card heights */
+  .product-card-skeleton {
+    height: var(--product-card-height-mobile, 440px);
+}
+
+  /* Ensure dots are smaller on mobile */
+  :host ::ng-deep .owl-dots .owl-dot span {
+    width: 6px;
+    height: 6px;
+    margin: 3px;
+  }
+  
+  :host ::ng-deep .owl-dots {
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card-skeleton {
+    height: var(--product-card-height-small-mobile, 420px);
   }
 }
 
 /* Custom Navigation Arrows */
 .custom-navigation {
   position: absolute;
-  top: 50%;
+  top: 40%;
   width: 100%;
   transform: translateY(-50%);
-  z-index: 30;
+  z-index: 10;
   pointer-events: none;
 }
 
@@ -78,7 +86,6 @@
   justify-content: center;
   transition: all 0.3s ease;
   pointer-events: auto;
-  z-index: 30;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -96,9 +103,47 @@
   right: 10px;
 }
 
-/* Hide Owl Carousel default navigation arrows */
-:host ::ng-deep .owl-nav {
-  display: none !important;
+/* Carousel dots styling */
+:host ::ng-deep .owl-dots {
+  margin-top: 15px;
+  text-align: center;
+}
+
+:host ::ng-deep .owl-dots .owl-dot span {
+  width: 10px;
+  height: 10px;
+  margin: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+:host ::ng-deep .owl-dots .owl-dot.active span,
+:host ::ng-deep .owl-dots .owl-dot:hover span {
+  background: rgba(0, 0, 0, 0.5);
+  transform: scale(1.2);
+}
+
+/* Override PrimeNG carousel styles for better mobile experience */
+:host ::ng-deep .custom-carousel .p-carousel-indicators {
+  margin-top: 0.5rem;
+}
+
+:host ::ng-deep .custom-carousel .p-carousel-container {
+  padding: 0;
+}
+
+/* Hide arrows on mobile */
+@media (max-width: 576px) {
+  .products-carousel {
+    margin: 0 -0.25rem;
+    width: 100vw;
+    max-width: calc(100% + 0.5rem);
+    transform: translateX(-0.25rem);
+  }
+  
+  .carousel-item {
+    padding: 0 0.25rem;
+  }
 }
 
 /* Customize dots */
@@ -119,4 +164,9 @@
 :host ::ng-deep .owl-dots .owl-dot:hover span {
   background: rgba(0, 0, 0, 0.5);
   transform: scale(1.2);
+}
+
+/* Hide Owl Carousel default navigation arrows */
+:host ::ng-deep .owl-nav {
+  display: none !important;
 }

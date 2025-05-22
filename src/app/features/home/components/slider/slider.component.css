@@ -191,3 +191,15 @@ img {
     transform: rotate(360deg);
   }
 }
+
+/* Add touch handling styles */
+.touch-action-manipulation {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.slider-container {
+  touch-action: pan-y;
+}

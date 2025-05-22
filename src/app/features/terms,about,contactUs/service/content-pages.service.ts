@@ -15,6 +15,7 @@ export interface ParsedPageContent {
     imageUrl?: string;
     tabsData?: Array<{ title: string; content: string }>;
     listItems?: string[];
+    position?: number; // For preserving original order
   }>;
   images: string[];
 }
@@ -31,7 +32,7 @@ export class ContentPagesService {
     terms: 3,
     cookies: 78519,
     returnPolicy: 78500,
-    contactUs: 1132, // Updated to correct ID
+    contactUs: 1132,
     // Add more page IDs as needed
   };
 
@@ -136,43 +137,72 @@ export class ContentPagesService {
     const sections: any = [];
     const contentBody = doc.body;
     
-    // Start with paragraph elements
-    const paragraphs = contentBody.querySelectorAll('p');
+    // Track element positions to maintain proper order
+    let position = 0;
+    
+    // First, extract headings to use as section markers
+    const headings = Array.from(contentBody.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+    headings.forEach(heading => {
+      const rect = heading.getBoundingClientRect();
+      sections.push({
+        type: 'text',
+        heading: heading.textContent || '',
+        content: '',
+        position: position++,
+        sourceElement: heading,
+        yPosition: rect.top // For sorting
+      });
+    });
+    
+    // Extract paragraphs
+    const paragraphs = Array.from(contentBody.querySelectorAll('p'));
     paragraphs.forEach(p => {
       // Skip empty paragraphs
       if (!p.textContent?.trim()) return;
       
-      // If paragraph contains an image, extract it
+      // If paragraph contains an image, extract it as image section
       const img = p.querySelector('img');
       if (img && img.src) {
+        const rect = img.getBoundingClientRect();
         sections.push({
           type: 'image',
           content: img.alt || 'Page image',
-          imageUrl: img.src
+          imageUrl: img.src,
+          position: position++,
+          sourceElement: img,
+          yPosition: rect.top
         });
         
         // If paragraph has text besides the image, also add it as text section
         const textContent = p.textContent?.trim();
         if (textContent) {
+          const rect = p.getBoundingClientRect();
           sections.push({
             type: 'text',
-            content: textContent
+            content: textContent,
+            position: position++,
+            sourceElement: p,
+            yPosition: rect.top
           });
         }
       } else {
         // Regular text paragraph
+        const rect = p.getBoundingClientRect();
         sections.push({
           type: 'text',
-          content: p.textContent || ''
+          content: p.textContent || '',
+          position: position++,
+          sourceElement: p,
+          yPosition: rect.top
         });
       }
     });
     
     // Extract tabs if present
-    const tabsElements = contentBody.querySelectorAll('.elementor-tabs');
+    const tabsElements = Array.from(contentBody.querySelectorAll('.elementor-tabs'));
     tabsElements.forEach(tabsElement => {
-      const tabTitles = tabsElement.querySelectorAll('.elementor-tab-title');
-      const tabContents = tabsElement.querySelectorAll('.elementor-tab-content');
+      const tabTitles = Array.from(tabsElement.querySelectorAll('.elementor-tab-title'));
+      const tabContents = Array.from(tabsElement.querySelectorAll('.elementor-tab-content'));
       
       if (tabTitles.length > 0 && tabContents.length > 0) {
         const tabsData = [];
@@ -186,47 +216,58 @@ export class ContentPagesService {
           }
         }
         
+        const rect = tabsElement.getBoundingClientRect();
         sections.push({
           type: 'tabs',
           content: 'Tabs content',
-          tabsData: tabsData
+          tabsData: tabsData,
+          position: position++,
+          sourceElement: tabsElement,
+          yPosition: rect.top
         });
       }
     });
     
     // Extract lists
-    const lists = contentBody.querySelectorAll('ul, ol');
+    const lists = Array.from(contentBody.querySelectorAll('ul, ol'));
     lists.forEach(list => {
       const items = Array.from(list.querySelectorAll('li')).map(item => item.textContent?.trim() || '');
       
       if (items.length > 0) {
+        const rect = list.getBoundingClientRect();
         sections.push({
           type: 'list',
           content: 'List content',
-          listItems: items
+          listItems: items,
+          position: position++,
+          sourceElement: list,
+          yPosition: rect.top
         });
       }
     });
     
-    // Find headings and associate them with the following content
-    const headings = contentBody.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    headings.forEach(heading => {
-      sections.push({
-        type: 'text',
-        heading: heading.textContent || '',
-        content: heading.textContent || ''
+    // Sort sections by their position in the document (using Y position or original order)
+    const sortedSections = [...sections]
+      .sort((a, b) => {
+        // If we have y positions, use those
+        if (a.yPosition !== undefined && b.yPosition !== undefined) {
+          return a.yPosition - b.yPosition;
+        }
+        // Fall back to the original position
+        return a.position - b.position;
+      })
+      .map(section => {
+        // Remove the temporary sorting properties
+        const { sourceElement, yPosition, ...cleanSection } = section;
+        return cleanSection;
       });
-    });
-    
-    // Sort sections by their original position in the document
-    // This is a simplified approach; a more accurate one would track exact positions
     
     return {
       title: data.title?.rendered || '',
       excerpt: data.excerpt?.rendered || '',
       date: data.date || '',
       modified: data.modified || '',
-      sections: sections,
+      sections: sortedSections,
       images: allImages
     };
   }

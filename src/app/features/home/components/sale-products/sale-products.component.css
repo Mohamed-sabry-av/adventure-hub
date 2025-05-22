@@ -1,14 +1,37 @@
+/* Component Container */
+.sale-products {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sale badge */
+.sale-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background: #ff3366;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Product carousel container */
 .products-carousel {
   position: relative;
   overflow: visible;
-  margin: 0 -10px;
-  padding: 0 10px;
+  margin: 0 -5px;
+  padding: 0 5px;
 }
 
 /* Fix for carousel items to prevent disappearing on resize */
 :host ::ng-deep .owl-stage {
   display: flex;
   align-items: stretch;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 :host ::ng-deep .owl-item {
@@ -16,13 +39,112 @@
   height: auto;
 }
 
-:host ::ng-deep .owl-item .px-2 {
+:host ::ng-deep .owl-item .px-2,
+:host ::ng-deep .owl-item .px-0\.5 {
   width: 100%;
 }
 
-.carousel-item {
-  box-sizing: border-box;
-  height: 100%;
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  .products-carousel {
+    margin: 0 -1px;
+    padding: 0 1px;
+  }
+  
+  .products-carousel-skeleton {
+    gap: var(--product-grid-gap-mobile, 0.5px) !important;
+  }
+  
+  /* Ensure skeletons match product card heights */
+  .product-card-skeleton {
+    height: var(--product-card-height-mobile, 440px);
+  }
+  
+  /* Ensure dots are smaller on mobile */
+  :host ::ng-deep .owl-dots .owl-dot span {
+    width: 6px;
+    height: 6px;
+    margin: 3px;
+  }
+  
+  :host ::ng-deep .owl-dots {
+    margin-top: 8px;
+  }
+  
+  .sale-badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card-skeleton {
+    height: var(--product-card-height-small-mobile, 420px);
+  }
+}
+
+/* Custom Navigation Arrows */
+.custom-navigation {
+  position: absolute;
+  top: 40%;
+  width: 100%;
+  transform: translateY(-50%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.nav-btn {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.7);
+  color: #000;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.prev-btn {
+  left: 10px;
+}
+
+.next-btn {
+  right: 10px;
+}
+
+/* Carousel dots styling */
+:host ::ng-deep .owl-dots {
+  margin-top: 15px;
+  text-align: center;
+}
+
+:host ::ng-deep .owl-dots .owl-dot span {
+  width: 10px;
+  height: 10px;
+  margin: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+:host ::ng-deep .owl-dots .owl-dot.active span,
+:host ::ng-deep .owl-dots .owl-dot:hover span {
+  background: rgba(0, 0, 0, 0.5);
+  transform: scale(1.2);
+}
+
+/* Hide Owl Carousel default navigation arrows */
+:host ::ng-deep .owl-nav {
+  display: none !important;
 }
 
 /* Override PrimeNG carousel styles for better mobile experience */
@@ -90,69 +212,4 @@
   .carousel-item {
     width: 50%;
   }
-}
-
-/* Custom Navigation Arrows */
-.custom-navigation {
-  position: absolute;
-  top: 50%;
-  width: 100%;
-  transform: translateY(-50%);
-  z-index: 30;
-  pointer-events: none;
-}
-
-.nav-btn {
-  position: absolute;
-  background-color: rgba(255, 255, 255, 0.7);
-  color: #000;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  pointer-events: auto;
-  z-index: 30;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.nav-btn:hover {
-  background-color: rgba(255, 255, 255, 1);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.prev-btn {
-  left: 10px;
-}
-
-.next-btn {
-  right: 10px;
-}
-
-/* Hide Owl Carousel default navigation arrows */
-:host ::ng-deep .owl-nav {
-  display: none !important;
-}
-
-/* Customize dots */
-:host ::ng-deep .owl-dots {
-  margin-top: 15px;
-  text-align: center;
-}
-
-:host ::ng-deep .owl-dots .owl-dot span {
-  width: 10px;
-  height: 10px;
-  margin: 5px;
-  background: rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-:host ::ng-deep .owl-dots .owl-dot.active span,
-:host ::ng-deep .owl-dots .owl-dot:hover span {
-  background: rgba(0, 0, 0, 0.5);
-  transform: scale(1.2);
 }

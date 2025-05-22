@@ -50,8 +50,14 @@
 }
 
 .tag-hub {
-  background-color: #2196f3;
+  background-color: transparent !important;
+  padding: 0 !important;
   color: white;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 .tag-featured {
@@ -635,4 +641,34 @@
 .sticky-footer .share-btn:active {
   background-color: #e5e7eb;
   color: #f4663c;
+}
+
+.hub-icon-product {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* حل مشكلة تأثير صورة Hub على العناصر المجاورة */
+.product-tags span {
+  display: inline-flex;
+  align-items: center;
+}
+
+span:hover .hub-icon-product {
+  transform: none;
+}
+
+.hub-tag-wrapper {
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }

@@ -51,48 +51,7 @@
   </div>
 
   <!-- Shipping calculation section -->
-  <div class="flex justify-between flex-col font-semibold">
-    <p class="text-base">Shipping:</p>
-    @if (!(loadedCart$ | async)?.cartIsLoaded) {
-    <div class="bg-gray-200 p-4 h-[60px] flex items-center justify-center">
-      <i class="pi pi-spin pi-spinner text-gray-500"></i>
-    </div>
-    } @else if (shippingError) {
-    <div class="bg-red-50 p-4 text-center mt-2 text-sm rounded-lg text-red-600">
-      <p>{{ shippingError }}</p>
-      <button (click)="retryLoadingAddress()" class="text-blue-600 underline mt-2 text-xs">
-        Try again
-      </button>
-      <p class="text-xs mt-2">
-        We'll use default shipping options for now, but you can update your address during checkout.
-      </p>
-    </div>
-    } @else if (isInternationalShipping) {
-    <div class="bg-yellow-50 p-4 text-center mt-2 text-sm rounded-lg border border-yellow-200">
-      <p>International shipping available. Our team will contact you to arrange delivery.</p>
-      <button (click)="requestShippingQuote()" class="text-orange-600 underline mt-1">
-        Request shipping quote
-      </button>
-      <p class="text-xs mt-2">
-        Shipping from: {{ userAddress?.country || 'Unknown' }}
-      </p>
-    </div>
-    } @else {
-    <div class="bg-gray-200 p-4 text-center mt-2 text-sm rounded-lg">
-      @if (isFreeShipping) {
-      <p class="text-green-600 font-semibold">Free shipping available for your order!</p>
-      } @else {
-      <p>Shipping cost: <span class="font-bold" [innerHTML]="20 | currencySvg"></span></p>
-      <p class="text-xs text-gray-600 mt-1">Spend <span [innerHTML]="(100 - cartTotal) | currencySvg"></span> more to
-        qualify for free shipping</p>
-      }
-      @if (userAddress?.address) {
-      <p class="text-xs mt-2">Shipping to: {{ userAddress?.address }}, {{ userAddress?.city }}, {{ userAddress?.country
-        }}</p>
-      }
-    </div>
-    }
-  </div>
+ 
 
   @if (!(loadedCart$ | async)?.cartIsLoaded) {
   <!-- Loading state for total -->

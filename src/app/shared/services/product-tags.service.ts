@@ -21,47 +21,18 @@ export class ProductTagsService {
     }
 
     const tags: string[] = [];
+    const seenTags = new Set<string>(); // لتجنب تكرار العلامات
 
-    // NEW! tag
-    if (product.date_created) {
-      const createdDate = new Date(product.date_created);
-      const now = new Date();
-      const daysDiff = Math.floor(
-        (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      if (daysDiff <= 14) {
-        tags.push('NEW!');
-      }
-    }
-
-    // Sale tag
-    if (product.on_sale) {
-      const salePercentage = this.getSalePercentage(product);
-      if (salePercentage > 0) {
-        tags.push(`-${salePercentage}%`);
-      }
-    }
-
-    // HUB tag
-    if (product.tags && product.tags.length > 0) {
-      const hubTag = product.tags.find(
-        (tag: any) =>
-          tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
-      );
-      if (hubTag) {
-        tags.push('HUB');
-      }
-    }
-
-    // Stock status for variable products
+    // Stock status is highest priority
     if (product.type === 'variable' && variations.length > 0) {
       const anyVariationInStock = variations.some(
         (v: any) =>
           v.stock_status === 'instock' &&
           (v.manage_stock ? v.stock_quantity > 0 : true)
       );
-      if (!anyVariationInStock) {
+      if (!anyVariationInStock && !seenTags.has('SOLD OUT')) {
         tags.push('SOLD OUT');
+        seenTags.add('SOLD OUT');
       }
     } else if (product.type === 'simple') {
       const isInStock =
@@ -69,38 +40,66 @@ export class ProductTagsService {
         (product.manage_stock
           ? (product.stock_quantity ?? 0) > 0
           : true);
-      if (!isInStock) {
+      if (!isInStock && !seenTags.has('SOLD OUT')) {
         tags.push('SOLD OUT');
+        seenTags.add('SOLD OUT');
+      }
+    }
+    
+    // Sale tag - second priority
+    if (product.on_sale) {
+      const salePercentage = this.getSalePercentage(product);
+      if (salePercentage > 0 && !seenTags.has(`-${salePercentage}%`)) {
+        tags.push(`-${salePercentage}%`);
+        seenTags.add(`-${salePercentage}%`);
       }
     }
 
-    // Best Seller tag
+    // NEW! tag - third priority
+    if (product.date_created) {
+      const createdDate = new Date(product.date_created);
+      const now = new Date();
+      const daysDiff = Math.floor(
+        (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (daysDiff <= 14 && !seenTags.has('NEW!')) {
+        tags.push('NEW!');
+        seenTags.add('NEW!');
+      }
+    }
+
+    // HUB tag - always show if present
+    if (product.tags && product.tags.length > 0) {
+      const hubTag = product.tags.find(
+        (tag: any) =>
+          tag.name?.toUpperCase() === 'HUB' || tag.slug?.toLowerCase() === 'hub'
+      );
+      if (hubTag && !seenTags.has('HUB')) {
+        tags.push('HUB');
+        seenTags.add('HUB');
+      }
+    }
+
+    // Best Seller tag - lower priority
     const isBestSeller =
       (product.rating_count && product.rating_count > 20) ||
       (product.meta_data &&
         product.meta_data.some(
           (meta: any) => meta.key === '_best_seller' && meta.value === 'yes'
         ));
-    if (isBestSeller) {
+    if (isBestSeller && !seenTags.has('BESTSELLER') && tags.length < 3) {
       tags.push('BESTSELLER');
+      seenTags.add('BESTSELLER');
     }
 
-    // Featured tag
-    if (product.featured) {
+    // Featured tag - lowest priority
+    if (product.featured && !seenTags.has('FEATURED') && tags.length < 3) {
       tags.push('FEATURED');
+      seenTags.add('FEATURED');
     }
 
-    const bottomTags = tags.filter((tag) => tag !== 'HUB');
-    const priorityOrder = [
-      bottomTags.find((tag) => tag === 'SOLD OUT'),
-      bottomTags.find((tag) => tag === 'NEW!'),
-      bottomTags.find((tag) => tag.includes('%')),
-      bottomTags.find((tag) => tag === 'FEATURED'),
-      bottomTags.find((tag) => tag === 'BESTSELLER'),
-    ].filter(Boolean) as string[];
-
-    const finalBottomTags = priorityOrder.slice(0, 2);
-    return [...finalBottomTags, ...(tags.includes('HUB') ? ['HUB'] : [])];
+    // Limit to maximum 3 tags for cleaner display
+    return tags.slice(0, 3);
   }
 
   /**

@@ -30,13 +30,19 @@
     <!-- Layer 2: Middle - Logo, Search, Icons (always visible) -->
     <div class="header-middle-layer" [class.header-middle-compact]="lastScrollY() > 10">
       <app-container>
-        <div class="py-2 flex items-center justify-between">
-          <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
+        <div class="py-2 flex items-center justify-between relative">
+          <!-- Menu icon and Search icon -->
+          <div class="z-10 flex items-center">
+            <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
+            <!-- Search icon moved to the left with some margin -->
+            <i class="pi pi-search md:hidden block ml-6" (click)="onShowSearchbar()" *ngIf="!showSearchbar()"></i>
+            <i class="pi pi-times md:hidden block ml-6" (click)="onShowSearchbar()" *ngIf="showSearchbar()"></i>
+          </div>
 
-          <!-- Logo -->
-          <a class="block">
+          <!-- Logo - Centered on mobile -->
+          <a class="block absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none">
             <img loading="lazy" src="header/White logo-01.webp" alt="Adventures hub logo" routerLink=""
-              class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" />
+              class="w-[180px] h-9 lg:w-[250px] lg:h-12 cursor-pointer" />
           </a>
 
           <!-- Search -->
@@ -44,18 +50,17 @@
             <app-search-bar />
           </div>
 
-          <!-- Icons -->
-          <div class="col-span-6 md:col-span-2 flex items-center justify-end gap-4 order-2 md:order-3">
-            <i class="pi pi-times md:hidden block" (click)="onShowSearchbar()" *ngIf="showSearchbar()"></i>
-
-            <i class="pi pi-search md:hidden block" (click)="onShowSearchbar()" *ngIf="!showSearchbar()"></i>
-
-            <a routerLink="/user" class="icon-container">
+          <!-- Icons - Only show cart icon on mobile, all icons on desktop -->
+          <div class="flex items-center justify-end gap-4">
+            <!-- User icon - only visible on desktop -->
+            <a routerLink="/user" class="icon-container hidden md:block">
               <i class="pi pi-user"></i>
             </a>
 
-            <app-wishlist-icon></app-wishlist-icon>
+            <!-- Wishlist icon - only visible on desktop -->
+            <app-wishlist-icon class="hidden md:block"></app-wishlist-icon>
 
+            <!-- Cart icon - always visible -->
             <a routerLink="/cart" class="icon-container">
               <i class="pi pi-shopping-bag"></i>
               <span *ngIf="cartCount > 0" class="count-badge">{{ cartCount }}</span>

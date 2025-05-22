@@ -4,9 +4,7 @@
   display: flex;
   flex-direction: column;
   width: 100%; /* Full width of grid cell */
-  height: 400px; /* Adjusted height to match mumzworld */
-  min-height: 400px;
-  max-height: 400px; /* Ensure max height is enforced */
+  height: var(--product-card-height-desktop, 500px); /* Fixed height for consistent cards */
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -14,6 +12,7 @@
   background-color: #fff;
   margin: 0 auto; /* Center the card */
   flex-shrink: 0; /* Prevent card from shrinking in flex containers */
+  padding-bottom: 10px; /* Add padding to ensure color swatches have room */
 }
 
 .product-card:hover {
@@ -21,107 +20,135 @@
   transform: translateY(-2px);
 }
 
-.quick-add-wrapper {
-  margin-top: auto;
+/* Discount badge styles */
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background-color: #ff3366;
+  color: white;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
 }
 
 /* Ensure consistent spacing regardless of color options */
 .product-card app-card-details {
-  flex: 1;
+  flex: 0 0 auto; /* Don't allow flex grow */
   display: flex;
   flex-direction: column;
-  padding: 0;
-  padding-bottom: 40px; /* Make room for color swatches */
+  padding: 8px 12px;
+  margin-top: 6px;
 }
 
 .product-card app-color-swatches {
+  margin-top: auto; /* Push to bottom of details section */
+  padding: 0 12px 5px;
+}
+
+/* Ensure the wishlist button is properly positioned */
+.product-card app-wishlist-button {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+/* Ensure the quick add button is positioned at bottom right */
+.product-card app-mobile-quick-add {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
   z-index: 10;
 }
 
 /* Responsive styles */
-@media (max-width: 767px) {
+@media (max-width: 992px) {
   .product-card {
-    width: 100%; /* Full width of grid cell on mobile */
-    height: 380px; /* Fixed height on mobile to match mumzworld */
-    min-height: 380px; 
-    max-height: 380px; /* Set fixed height constraint */
-    font-size: 0.9rem;
-    display: flex;
-    flex-direction: column;
-    position: relative; /* Ensure positioning context for options */
+    height: var(--product-card-height-tablet, 520px);
   }
-
-  /* Make images maintain aspect ratio but take up proper space */
-  .product-card img {
-    height: 200px; /* Fixed height for product images */
-    width: 100%;
-    object-fit: contain;
-  }
-
-  /* Adjust card details spacing */
-  .product-card .card-details {
-    padding: 0.5rem;
-  }
-
-  .mobile-quick-add-button {
-    padding: 0.5rem;
-    font-size: 0.8rem;
-  }
-
-  .product-card h3 {
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .product-card .price {
-    font-size: 0.9rem;
-  }
-
-  .product-card .color-swatch {
-    width: 24px;
-    height: 24px;
-    margin-right: 4px;
-  }
-
-  .product-card .size-btn {
-    padding: 2px 5px;
-    font-size: 0.7rem;
-    margin-right: 3px;
-  }
-
-  /* Keep desktop-style layout in mobile */
-  .product-card app-card-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .product-card app-color-swatches {
-    margin-top: auto; /* Push to bottom of details section */
-    order: unset; /* Keep original order */
-  }
-
-  .product-card app-mobile-quick-add {
-    order: unset; /* Keep original order */
-  }
-
-  /* Ensure options panel appears inside the card properly */
-  .product-card .options-panel {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  
+  .product-card app-card-image-slider {
+    height: 320px;
   }
 }
 
-@media (min-width: 768px) {
-  .quick-add-desktop-wrapper {
-    display: block;
+@media (max-width: 767px) {
+  .product-card {
+    height: var(--product-card-height-mobile, 440px); /* Match the defined mobile height */
+    font-size: 0.9rem;
+    width: 98%; /* Make cards wider on mobile */
+    margin: 0 auto 1px; /* Reduce bottom margin and center */
+    border-radius: 6px; /* Smaller border radius for mobile */
   }
-  .quick-add-mobile-wrapper {
-    display: none;
+
+  /* Make images maintain aspect ratio but take up proper space */
+  .product-card app-card-image-slider {
+    height: 280px; /* Increased height for image area on mobile - must match image-slider height */
+    overflow: visible; /* Changed from hidden to visible */
   }
+
+  /* Adjust card details spacing */
+  .product-card app-card-details {
+    padding: 6px 10px;
+    margin-top: 4px;
+  }
+
+  .product-card app-color-swatches {
+    padding: 0 10px 2px;
+  }
+
+  /* Ensure the quick add button is positioned correctly on mobile */
+  .product-card app-mobile-quick-add {
+    bottom: 8px;
+    right: 8px;
+  }
+  
+
+}
+
+/* Keep essential layout styles even on smaller devices */
+@media (max-width: 480px) {
+  .product-card {
+    height: var(--product-card-height-small-mobile, 420px); /* Adjusted for small screens */
+    font-size: 0.85rem;
+    width: 98%; /* Make cards wider on smaller screens */
+    margin-bottom: 1px; /* Reduce bottom margin */
+  }
+
+  .product-card app-card-image-slider {
+    height: 260px; /* Match the image slider height on smaller screens */
+  }
+}
+
+/* Add these additional global styles that will affect the product grid layout */
+:root {
+  --product-grid-gap-mobile: 0.5px;
+  --product-grid-gap-tablet: 2px;
+  --product-grid-gap-desktop: 4px;
+  --product-card-height-desktop: 540px;
+  --product-card-height-tablet: 520px;
+  --product-card-height-mobile: 440px;
+  --product-card-height-small-mobile: 420px;
+}
+
+@media (max-width: 767px) {
+  /* Target common grid containers */
+  .product-grid, 
+  .products-container,
+  .product-listing,
+  [class*="product-grid"],
+  [class*="products-container"],
+  [class*="product-listing"] {
+    gap: var(--product-grid-gap-mobile) !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+}
+
+/* Ensure tags are visible and don't overlap with other elements */
+.product-card app-card-image-slider .product-tags {
+  z-index: 20;
 }

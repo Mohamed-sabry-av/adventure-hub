@@ -1,18 +1,13 @@
 <div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
+  <!-- Discount tag -->
+
+
+  <!-- Image slider with product images -->
   <app-card-image-slider [product]="modifiedProduct" [isHovered]="isHovered" [variations]="variations">
   </app-card-image-slider>
 
   <!-- Wishlist Button -->
   <app-wishlist-button [product]="product"></app-wishlist-button>
-
-  <!-- Quick Add Button positioned at top-right corner -->
-  <app-mobile-quick-add [product]="product" [variations]="variations" [uniqueSizes]="uniqueSizes"
-    [selectedSize]="selectedSize" [colorOptions]="colorOptions" [selectedColor]="selectedColor"
-    [visibleColors]="visibleColors" [mobileQuickAddExpanded]="mobileQuickAddExpanded" [isMobile]="isMobile"
-    [isHovered]="isHovered" [selectedVariation]="selectedVariation" (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
-    (selectSize)="onSelectSize($event)" (selectColor)="selectColor($event.color, $event.image)"
-    (addToCart)="onAddToCartWithOptions($event)">
-  </app-mobile-quick-add>
 
   <!-- Product details (title, price, etc) -->
   <app-card-details [product]="product" [colorOptions]="colorOptions" [uniqueSizes]="uniqueSizes"
@@ -23,4 +18,13 @@
   <app-color-swatches [colorOptions]="colorOptions" [visibleColors]="visibleColors" [selectedColor]="selectedColor"
     [colorScrollIndex]="colorScrollIndex" [maxColorScrollIndex]="maxColorScrollIndex" [showColorPlaceholder]="true"
     (selectColor)="selectColor($event.color, $event.image)" (scrollColors)="scrollColors($event)"></app-color-swatches>
+
+  <!-- Quick Add Button positioned at bottom-right corner -->
+  <app-mobile-quick-add [product]="product" [variations]="variations" [uniqueSizes]="uniqueSizes"
+    [selectedSize]="selectedSize" [colorOptions]="colorOptions" [selectedColor]="selectedColor"
+    [visibleColors]="visibleColors" [mobileQuickAddExpanded]="mobileQuickAddExpanded" [isMobile]="isMobile"
+    [isHovered]="isHovered" [selectedVariation]="selectedVariation" (toggleMobileQuickAdd)="toggleMobileQuickAdd()"
+    (selectSize)="onSelectSize($event)" (selectColor)="selectColor($event.color, $event.image)"
+    (addToCart)="onAddToCartWithOptions($event)">
+  </app-mobile-quick-add>
 </div>

@@ -1,4 +1,8 @@
 <div class="card-details-container">
+  <!-- Product Name -->
+  <h3 class="product-name">
+    <a [routerLink]="['/product', product.slug]">{{ product.name }}</a>
+  </h3>
 
   <!-- Categories/Brand -->
   <div class="category">
@@ -11,11 +15,6 @@
       getBrandName() }}</a>
   </div>
 
-  <!-- Product Name -->
-  <h3 class="product-name">
-    <a [routerLink]="['/product', product.slug]">{{ product.name }}</a>
-  </h3>
-
   <!-- Price -->
   <div class="price">
     <span class="current-price" [ngClass]="{
@@ -24,9 +23,6 @@
       }" [appCurrencyPrice]="getNumericPrice(displayPrice)"></span>
 
     <span *ngIf="oldPrice" class="old-price" [appCurrencyPrice]="getNumericPrice(oldPrice)"
-      [originalPrice]="getNumericPrice(displayPrice)"></span>
+      [originalPrice]="getNumericPrice(displayPrice)" [hideSymbol]="true"></span>
   </div>
-
-  <!-- Spacer to push elements to top and bottom -->
-  <div class="flex-grow"></div>
 </div>

@@ -5,11 +5,12 @@ import { NavbarService } from '../../services/navbar.service';
 import { DrawerModule } from 'primeng/drawer';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CurrencySelectorComponent } from '../currency-selector/currency-selector.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-navbar-main-categories',
   standalone: true,
-  imports: [RouterLink, DrawerModule, CurrencySelectorComponent],
+  imports: [RouterLink, DrawerModule, CurrencySelectorComponent, CommonModule],
   templateUrl: './navbar-main-categories.component.html',
   styleUrl: './navbar-main-categories.component.css',
   animations: [
@@ -32,6 +33,18 @@ import { CurrencySelectorComponent } from '../currency-selector/currency-selecto
       ]),
     ]),
   ],
+  styles: [`
+    .drawer-section {
+      padding: 1rem 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .drawer-section-title {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+  `]
 })
 export class NavbarMainCategoriesComponent {
   @Input({ required: true }) categories: Category[] = [];

@@ -6,11 +6,13 @@ import { BaseContentPageComponent } from '../page-skeleton/base-content-page.com
 import { ContentPageComponent } from '../page-skeleton/content-page.component';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 @Component({
   selector: 'app-terms',
   standalone: true,
   imports: [CommonModule, ContentPageComponent],
+  schemas: [NO_ERRORS_SCHEMA],
   template: `
     <!-- SEO Schema Data -->
     <ng-container *ngIf="schemaData">

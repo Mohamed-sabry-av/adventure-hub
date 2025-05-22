@@ -11,27 +11,45 @@ import { DomSanitizer } from '@angular/platform-browser';
   imports: [NgIf, NgFor, NgClass, AsyncPipe],
   template: `
     <div class="currency-selector" 
-         (mouseenter)="isMobile ? null : showDropdown()" 
-         (mouseleave)="isMobile ? null : hideDropdown()" 
+         (mouseenter)="showDropdown()" 
+         (mouseleave)="hideDropdown()" 
          [ngClass]="{'mobile-view': isMobile}">
       <div class="selected-currency" (click)="isMobile ? toggleDropdown() : null">
-        <span *ngIf="(activeCurrency$ | async)?.code !== 'AED'">{{ (activeCurrency$ | async)?.code }}</span>
-        <span *ngIf="(activeCurrency$ | async)?.code === 'AED'" class="aed-with-svg">
-          <img src="/icons/UAE_Dirham_Symbol.svg" alt="AED" class="h-4 w-4 mr-1">
-          AED
-        </span>
+        <ng-container *ngIf="activeCurrency$ | async as activeCurrency">
+          <span class="country-flag-display">
+            <img [src]="'https://flagcdn.com/' + getCountryCode(activeCurrency.code)+ '.svg'" width="20" height="15" class="flag-icon h-4 w-5 mr-1">
+            {{ currencyService.getCountryForCurrency(activeCurrency.code) }}
+          </span>
+        </ng-container>
         <span class="dropdown-arrow" [ngClass]="{'open': dropdownOpen}">▼</span>
       </div>
       
-      <div class="currency-dropdown" *ngIf="dropdownOpen" @slideDown>
+      <div class="currency-dropdown" *ngIf="dropdownOpen" @slideDown
+           (mouseenter)="cancelHideDropdown()" 
+           (mouseleave)="hideDropdown()">
+        <!-- International Option always first with special styling -->
+        <div 
+          class="currency-option international-option"
+          [ngClass]="{'active': (activeCurrency$ | async)?.code === 'USD'}"
+          (click)="selectCurrency('USD')">
+          <span class="country-flag">
+            <img src="https://flagcdn.com/us.svg" width="20" height="15" class="flag-icon h-4 w-5 mr-1">
+          </span>
+          <span class="country-name">International ($)</span>
+        </div>
+        
+        <div class="divider my-1 border-t border-gray-200"></div>
+        
+        <!-- Regular currency options -->
         <div 
           *ngFor="let currency of prioritizedCurrencies$ | async" 
           class="currency-option"
           [ngClass]="{'active': (activeCurrency$ | async)?.code === currency.code}"
           (click)="selectCurrency(currency.code)">
-          <span class="currency-symbol" [innerHTML]="getCurrencySymbol(currency)"></span>
-          <span class="currency-code">{{ currency.code }}</span>
-          <span class="currency-name">{{ currency.name }}</span>
+          <span class="country-flag">
+            <img [src]="'https://flagcdn.com/' + getCountryCode(currency.code)+ '.svg'" width="20" height="15" class="flag-icon h-4 w-5 mr-1">
+          </span>
+          <span class="country-name">{{ currencyService.getCountryForCurrency(currency.code) }}</span>
           <span *ngIf="currency.isDetected" class="detected-tag">(Detected)</span>
         </div>
       </div>
@@ -101,8 +119,7 @@ import { DomSanitizer } from '@angular/platform-browser';
     .currency-option {
       padding: 8px 12px;
       cursor: pointer;
-      display: grid;
-      grid-template-columns: 30px 50px 1fr auto;
+      display: flex;
       align-items: center;
       transition: background-color 0.2s;
     }
@@ -115,23 +132,23 @@ import { DomSanitizer } from '@angular/platform-browser';
       background-color: #f0f9ff;
     }
     
-    .currency-symbol {
-      font-weight: bold;
-      text-align: center;
+    .country-flag {
+      margin-right: 10px;
     }
     
-    .aed-with-svg {
+    .flag-icon {
+      border-radius: 2px;
+      box-shadow: 0 0 1px rgba(0,0,0,0.2);
+    }
+    
+    .country-flag-display {
       display: flex;
       align-items: center;
     }
     
-    .currency-code {
+    .country-name {
+      flex-grow: 1;
       font-weight: 500;
-    }
-    
-    .currency-name {
-      color: #4a5568;
-      font-size: 0.85em;
     }
     
     .detected-tag {
@@ -139,6 +156,20 @@ import { DomSanitizer } from '@angular/platform-browser';
       color: #22c55e;
       margin-left: 6px;
       font-weight: 600;
+    }
+
+    .international-option {
+      background-color: #f7f9fc;
+      font-weight: 600;
+    }
+    
+    .international-option:hover {
+      background-color: #e6f0ff;
+    }
+    
+    .divider {
+      height: 1px;
+      margin: 4px 0;
     }
 
     /* Mobile-specific styles */
@@ -195,8 +226,8 @@ export class CurrencySelectorComponent implements OnInit, OnDestroy {
   private hoverTimeoutId: any = null;
   
   constructor(
-    private currencyService: CurrencyService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    public currencyService: CurrencyService
   ) {
     this.activeCurrency$ = this.currencyService.activeCurrency$;
     this.availableCurrencies$ = this.currencyService.availableCurrencies$;
@@ -234,10 +265,12 @@ export class CurrencySelectorComponent implements OnInit, OnDestroy {
     const currencies = this.currencyService.getAvailableCurrenciesValue();
     const detectedCurrencyCode = this.currencyService.getCurrencyForCountry(this.userCountryCode);
     
-    // Mark and sort currencies: detected first, then active, then alphabetically
+    // Mark and sort currencies: detected first, then active, then USD, then alphabetically
     return currencies.map(currency => ({
       ...currency,
-      isDetected: currency.code === detectedCurrencyCode
+      isDetected: currency.code === detectedCurrencyCode,
+      // Mark USD/International separately
+      isInternational: currency.code === 'USD'
     }))
     .sort((a, b) => {
       // Detected currency first
@@ -249,19 +282,28 @@ export class CurrencySelectorComponent implements OnInit, OnDestroy {
       if (a.code === activeCurrency.code && b.code !== activeCurrency.code) return -1;
       if (a.code !== activeCurrency.code && b.code === activeCurrency.code) return 1;
       
+      // USD (International) third - give it higher priority
+      if (a.isInternational && !b.isInternational) return -1;
+      if (!a.isInternational && b.isInternational) return 1;
+      
       // Then sort by name
       return a.code.localeCompare(b.code);
     });
   }
   
   showDropdown(): void {
+    if (this.isMobile) return;
     this.dropdownOpen = true;
   }
   
   hideDropdown(): void {
+    if (this.isMobile) return;
+    if (this.hoverTimeoutId) {
+      clearTimeout(this.hoverTimeoutId);
+    }
     this.hoverTimeoutId = setTimeout(() => {
       this.dropdownOpen = false;
-    }, 300);
+    }, 800);
   }
 
   toggleDropdown(): void {
@@ -271,5 +313,65 @@ export class CurrencySelectorComponent implements OnInit, OnDestroy {
   selectCurrency(currencyCode: string): void {
     this.currencyService.setActiveCurrency(currencyCode);
     this.dropdownOpen = false;
+  }
+
+  getCountryFlag(code: string | undefined): string {
+    // Handle undefined case
+    const currencyCode = code || 'AED'; // Default to AED if undefined
+    return this.sanitizer.bypassSecurityTrustUrl(this.currencyService.getCountryFlagUrl(currencyCode)).toString();
+  }
+
+  getCountryCode(code: string): string {
+    // Get ISO country code for this currency
+    let countryCode = '';
+    
+    // Special mapping for common currencies
+    switch(code) {
+      case 'USD': 
+        countryCode = 'us'; 
+        break;
+      case 'EUR': 
+        countryCode = 'eu'; // European Union
+        break;
+      case 'GBP': 
+        countryCode = 'gb'; 
+        break;
+      case 'AED': 
+        countryCode = 'ae'; 
+        break;
+      case 'AUD': 
+        countryCode = 'au'; 
+        break;
+      case 'CAD': 
+        countryCode = 'ca'; 
+        break;
+      case 'JPY': 
+        countryCode = 'jp'; 
+        break;
+      case 'CHF': 
+        countryCode = 'ch'; 
+        break;
+      case 'CNY': 
+        countryCode = 'cn'; 
+        break;
+      case 'INR': 
+        countryCode = 'in'; 
+        break;
+      case 'SGD': 
+        countryCode = 'sg'; 
+        break;
+      default:
+        // Try to find a country that uses this currency in the service
+        countryCode = this.currencyService.getCountryCodeForCurrency(code);
+    }
+    
+    return countryCode.toLowerCase();
+  }
+
+  cancelHideDropdown(): void {
+    if (this.hoverTimeoutId) {
+      clearTimeout(this.hoverTimeoutId);
+      this.hoverTimeoutId = null;
+    }
   }
 } 

@@ -1,12 +1,12 @@
 /* Compact, wide, and modern progress bar */
 .progress-map-container {
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
   display: flex;
   justify-content: center;
   background: #fff;
-  max-width: 800px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .progress-bar {
@@ -14,10 +14,10 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 100%;
+  max-width: 700px; /* Limit width for better readability */
   position: relative;
-  margin: 0;
-  padding: 1rem 0;
+  margin: 0 auto;
+  padding: 0.75rem 0;
   background: transparent;
 }
 
@@ -26,14 +26,14 @@
   flex-direction: column;
   align-items: center;
   z-index: 2;
-  width: 120px;
+  width: 90px; /* Reduced from 120px */
   margin: 0;
   padding: 0;
 }
 
 .step-circle {
-  width: 30px;
-  height: 30px;
+  width: 26px; /* Reduced from 30px */
+  height: 26px; /* Reduced from 30px */
   border-radius: 50%;
   background-color: #e0e0e0;
   display: flex;
@@ -41,9 +41,9 @@
   justify-content: center;
   color: #666;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px; /* Reduced from 8px */
   border: none;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   box-shadow: none;
   transition: all 0.2s;
 }
@@ -61,7 +61,7 @@
 }
 
 .step-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* Smaller text */
   color: #666;
   text-align: center;
   width: 100%;
@@ -79,40 +79,68 @@
 
 .connector {
   flex: 1;
-  height: 3px;
+  height: 2px; /* Thinner line */
   background-color: #e0e0e0;
   z-index: 1;
-  min-width: 150px;
+  min-width: 100px; /* Reduced from 150px */
   flex-grow: 1;
   margin: 0;
   position: relative;
-  top: -15px;
+  top: -13px; /* Adjusted for smaller circles */
 }
 
 .connector.completed-connector {
   background-color: #3bb54a;
 }
 
-@media (max-width: 640px) {
+/* Tablet breakpoint */
+@media (max-width: 768px) {
   .progress-bar {
-    max-width: 100%;
+    max-width: 550px;
     padding: 0.5rem 0;
   }
   .step-container {
-    width: 80px;
-  }
-  .step-label {
-    font-size: 0.65rem;
-  }
-  .step-circle {
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
-    margin-bottom: 5px;
+    width: 70px;
   }
   .connector {
     min-width: 60px;
-    height: 2px;
     top: -12px;
+  }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 640px) {
+  .progress-bar {
+    max-width: 100%;
+    padding: 0.5rem 0.75rem; /* Add horizontal padding */
+  }
+  .step-container {
+    width: 60px; /* Even smaller on mobile */
+  }
+  .step-label {
+    font-size: 0.6rem; /* Smaller text on mobile */
+  }
+  .step-circle {
+    width: 22px; /* Smaller circles on mobile */
+    height: 22px;
+    font-size: 0.7rem;
+    margin-bottom: 4px;
+  }
+  .connector {
+    min-width: 40px;
+    height: 2px;
+    top: -11px;
+  }
+  /* For very small screens */
+  @media (max-width: 360px) {
+    .step-container {
+      width: 50px;
+    }
+    .step-label {
+      font-size: 0.55rem;
+    }
+    .connector {
+      min-width: 30px;
+    }
   }
 } 

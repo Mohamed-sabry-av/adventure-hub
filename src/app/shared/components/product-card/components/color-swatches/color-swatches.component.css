@@ -5,11 +5,8 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  min-height: 35px; /* Reduced height to match mumzworld layout */
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  min-height: 35px;
+  position: relative;
   width: 100%;
 }
 
@@ -25,8 +22,8 @@
 /* Color Swatches */
 .color-swatches {
   display: flex;
-  justify-content: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 6px;
   flex-wrap: nowrap;
   padding: 0 6px;
   max-width: calc(100% - 50px);
@@ -47,16 +44,16 @@
 
 /* Swatch */
 .swatch {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: 1px solid #e5e7eb;
   overflow: hidden;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
   flex-shrink: 0; /* Prevent shrinking */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .swatch:hover:not(.out-of-stock) {
@@ -67,12 +64,13 @@
 .swatch.selected {
   border-color: #16a34a; /* Match green color with buttons */
   transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
 }
 
 .swatch.out-of-stock {
   position: relative;
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Improved out of stock indicator */
@@ -91,28 +89,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
   color: #dc2626;
-  font-size: 16px;
+  font-size: 10px;
   font-weight: bold;
   z-index: 3;
-}
-
-.swatch.out-of-stock .swatch-inner {
-  opacity: 0.7;
-}
-
-/* Out of stock tooltip */
-.swatch.out-of-stock:hover .color-tooltip::before {
-  content: 'Out of Stock';
-  position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #dc2626;
-  color: white;
-  font-size: 8px;
-  padding: 2px 4px;
-  border-radius: 2px;
-  white-space: nowrap;
 }
 
 /* Swatch Inner */
@@ -150,8 +129,8 @@
 
 /* Color Navigation Buttons */
 .color-nav-btn {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,7 +144,7 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .color-nav-btn.left {
@@ -198,11 +177,13 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background-color: #ddd;
+  background-color: #d1d5db;
+  transition: all 0.2s ease;
 }
 
 .pagination-dot.active {
   background-color: #16a34a; /* Match green color */
+  transform: scale(1.25);
 }
 
 /* Animations */
@@ -218,53 +199,36 @@
 /* Mobile Optimizations */
 @media (max-width: 767px) {
   .color-swatches-container {
-    padding: 0.15rem 0.5rem; /* Reduce padding further */
-    min-height: 30px; /* Even smaller height */
-    margin-top: 0; /* Override the auto margin */
-    margin-bottom: 0; /* Reset bottom margin */
-    z-index: 5; /* Make sure it's above most elements but below the options panel */
+    padding: 0.25rem 0.5rem 0.25rem;
+    min-height: 30px;
   }
-  
-  .color-swatches-wrapper {
-    justify-content: flex-start; /* Align colors to the left on mobile */
-  }
-  
+
   .color-swatches {
-    justify-content: flex-start; /* Align colors to the left for better UX */
-    gap: 5px; /* Smaller gap */
-    min-height: 20px; /* Smaller height */
-    padding-left: 0; /* No left padding needed */
+    gap: 6px;
+    min-height: 22px;
+    justify-content: flex-start;
   }
-  
+
   .swatch {
-    width: 20px; /* Smaller swatches */
-    height: 20px;
-    border-width: 1px; /* Thinner border on mobile */
+    width: 18px;
+    height: 18px;
   }
-  
+
   .swatch.out-of-stock::after {
-    font-size: 10px; /* Smaller X */
+    font-size: 9px;
   }
-  
+
   .color-tooltip {
-    display: none; /* Hide tooltips on mobile to save space */
+    font-size: 7px;
+    bottom: -16px;
   }
-  
+
   .color-nav-btn {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
-  
-  .color-nav-btn.left {
-    left: 0;
-  }
-  
-  .color-nav-btn.right {
-    right: 0;
-  }
-  
-  /* Hide pagination dots on mobile to save space */
+
   .pagination-dots {
-    display: none;
+    height: 4px;
   }
 }

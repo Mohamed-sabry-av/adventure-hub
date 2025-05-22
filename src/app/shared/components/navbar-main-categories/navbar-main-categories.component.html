@@ -61,8 +61,7 @@
       </div>
       @if (subOfSubOfMain && isCategoryExpanded(subOfSubOfMain.id)) {
       <!-- If Of Children Of Children Of Children Of Main -->
-      @for (subOfSubOfSubOfMain of getSubCategories(subOfSubOfMain.id); track
-      $index) {
+      @for (subOfSubOfSubOfMain of getSubCategories(subOfSubOfMain.id); track $index) {
       <!-- for Of Children Of Children Of Children Of Main -->
       <div @slideInOut>
         <a [routerLink]="getCategoryRoute(subOfSubOfSubOfMain)" (click)="onSiwtchSideNav(false)">
@@ -79,17 +78,35 @@
     }
     }
 
-    <!-- Currency Selector -->
+    <!-- Sales/Deals (moved under categories) -->
     <div class="drawer-section">
-      <h3 class="drawer-section-title">Select Currency</h3>
-      <app-currency-selector [isMobile]="true"></app-currency-selector>
+      <a routerLink="/product/sale" class="deals-button flex items-center" (click)="onSiwtchSideNav(false)">
+        <i class="pi pi-percentage text-xs mr-2"></i>
+        <span>Deals</span>
+      </a>
     </div>
 
-    <!-- Sales -->
-    <a routerLink="/product/sale" class="deals-button flex items-center" (click)="onSiwtchSideNav(false)">
-      <i class="pi pi-percentage text-xs mr-2"></i>
-      <span>Deals</span>
-    </a>
+    <!-- Account and Wishlist (moved under Deals) -->
+    <div class="drawer-section">
+      <h3 class="drawer-section-title">Account</h3>
+      <div class="flex flex-col">
+        <!-- Account / User - no icon -->
+        <a routerLink="/user" class="text-base font-medium" (click)="onSiwtchSideNav(false)">
+          My Account
+        </a>
+
+        <!-- Wishlist - no icon -->
+        <a routerLink="/wishlist" class="text-base font-medium" (click)="onSiwtchSideNav(false)">
+          Wishlist
+        </a>
+      </div>
+    </div>
+
+    <!-- Currency Selector (at the bottom) -->
+    <div class="drawer-section">
+      <h3 class="drawer-section-title">Country</h3>
+      <app-currency-selector [isMobile]="true"></app-currency-selector>
+    </div>
   </ul>
 </p-drawer>
 }@else { @if (showNavbar()) {

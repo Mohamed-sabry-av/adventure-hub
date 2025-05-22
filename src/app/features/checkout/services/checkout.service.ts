@@ -28,6 +28,7 @@ import { UIService } from '../../../shared/services/ui.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { GeoLocationService } from '../../../shared/services/geo-location.service';
+import { ApiService } from '../../../core/services/api.service';
 
 export interface PaymentIntentRequest {
   amount: number;
@@ -62,6 +63,7 @@ export class CheckoutService {
   private uiService = inject(UIService);
   private httpClient = inject(HttpClient);
   private geoLocationService = inject(GeoLocationService);
+  private apiService = inject(ApiService);
 
   private readonly BACKEND_URL = environment.apiUrl;
 
@@ -163,7 +165,7 @@ export class CheckoutService {
   // Helper method to get country name for a country code
   private getCountryNameForCode(countryCode: string): Observable<string | null> {
     // Try to fetch from the full list of world countries, not just allowed ones
-    return this.httpClient.get('https://adventures-hub.com/wp-json/wc/v3/data/countries').pipe(
+    return this.apiService.getExternalRequest<any>('https://adventures-hub.com/wp-json/wc/v3/data/countries').pipe(
       map((countries: any) => {
         const country = countries.find((c: any) => c.code === countryCode);
         return country ? country.name : null;
@@ -422,7 +424,7 @@ export class CheckoutService {
               address_1: forms.billingForm.get('address')?.value || '',
               city: forms.billingForm.get('city')?.value || '',
               state: forms.billingForm.get('state')?.value || '',
-              postcode: `${forms.billingForm.get('postCode')?.value || ''}`,
+              postcode: '', // Empty string for postcode
               country: forms.billingForm.get('countrySelect')?.value || '',
               email: forms.billingForm.get('email')?.value || '',
               phone: `${forms.billingForm.get('phone')?.value || ''}`,
@@ -435,7 +437,7 @@ export class CheckoutService {
                   address_1: forms.shippingForm.get('address')?.value || '',
                   city: forms.shippingForm.get('city')?.value || '',
                   state: forms.shippingForm.get('state')?.value || '',
-                  postcode: `${forms.shippingForm.get('postCode')?.value || ''}`,
+                  postcode: '', // Empty string for postcode
                   country: forms.shippingForm.get('countrySelect')?.value || '',
                 }
               : { ...billingAddress };

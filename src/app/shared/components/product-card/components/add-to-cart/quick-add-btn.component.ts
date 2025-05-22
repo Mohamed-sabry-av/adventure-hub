@@ -22,6 +22,7 @@ import { CartService } from '../../../../../features/cart/service/cart.service';
 import { VariationService } from '../../../../../core/services/variation.service';
 import { UIService } from '../../../../../shared/services/ui.service';
 import { Observable, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-mobile-quick-add',
@@ -75,6 +76,7 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
   loadingMap$: Observable<{ [key: string]: boolean }>;
   optionsVisible: boolean = false;
   private subscriptions: Subscription = new Subscription();
+  private activeQuickAddSubscription: Subscription = new Subscription();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -84,7 +86,7 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
     private sideOptionsService: SideOptionsService,
     private variationService: VariationService,
     private cartService: CartService,
-    private uiService: UIService
+    private uiService: UIService,
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
   }
@@ -120,11 +122,21 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
         }
       })
     );
+    
+    // Subscribe to active quick add panel changes
+    this.activeQuickAddSubscription = this.uiService.activeQuickAddProductId$.subscribe(activeProductId => {
+      // If another product's quick add panel became active and this one is open, close it
+      if (activeProductId !== null && this.product && activeProductId !== this.product.id && this.optionsVisible) {
+        this.optionsVisible = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   ngOnDestroy() {
     // Clean up all subscriptions to prevent memory leaks
     this.subscriptions.unsubscribe();
+    this.activeQuickAddSubscription.unsubscribe();
   }
 
   onToggleOptionsPanel() {
@@ -165,6 +177,8 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
     this.cartService.addProductToCart(cartProduct);
     this.addToCart.emit({ quantity: this.quantityValue });
     this.optionsVisible = false;
+    // Clear active quick add when closing
+    this.uiService.setActiveQuickAddProduct(null);
   }
 
   /**
@@ -196,6 +210,14 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
    */
   toggleOptions() {
     this.optionsVisible = !this.optionsVisible;
+    
+    // Update active quick add panel in service
+    if (this.optionsVisible && this.product) {
+      this.uiService.setActiveQuickAddProduct(this.product.id);
+    } else {
+      this.uiService.setActiveQuickAddProduct(null);
+    }
+    
     this.toggleMobileQuickAdd.emit();
   }
 
@@ -226,6 +248,21 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
 
   formatColorName(colorName: string): string {
     return this.variationService.formatColorName(colorName);
+  }
+
+  /**
+   * Scroll sizes horizontally
+   * @param container The size options container element
+   * @param scrollAmount Amount to scroll in pixels (positive for right, negative for left)
+   */
+  scrollSizes(container: HTMLElement, scrollAmount: number): void {
+    if (container) {
+      const currentScroll = container.scrollLeft;
+      container.scrollTo({
+        left: currentScroll + scrollAmount,
+        behavior: 'smooth'
+      });
+    }
   }
 
   setColorAndSize(color: string, size: string | null = null) {

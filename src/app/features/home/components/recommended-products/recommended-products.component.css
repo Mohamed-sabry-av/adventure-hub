@@ -2,14 +2,16 @@
 .products-carousel {
   position: relative;
   overflow: visible;
-  margin: 0 -10px;
-  padding: 0 10px;
+  margin: 0 -5px;
+  padding: 0 5px;
 }
 
 /* Fix for carousel items to prevent disappearing on resize */
 :host ::ng-deep .owl-stage {
   display: flex;
   align-items: stretch;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 :host ::ng-deep .owl-item {
@@ -17,8 +19,43 @@
   height: auto;
 }
 
-:host ::ng-deep .owl-item .px-2 {
+:host ::ng-deep .owl-item .px-2,
+:host ::ng-deep .owl-item .px-0\.5 {
   width: 100%;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  .products-carousel {
+    margin: 0 -1px;
+    padding: 0 1px;
+  }
+  
+  .products-carousel-skeleton {
+    gap: var(--product-grid-gap-mobile, 0.5px) !important;
+  }
+  
+  /* Ensure skeletons match product card heights */
+  .product-card-skeleton {
+    height: var(--product-card-height-mobile, 440px);
+  }
+  
+  /* Ensure dots are smaller on mobile */
+  :host ::ng-deep .owl-dots .owl-dot span {
+    width: 6px;
+    height: 6px;
+    margin: 3px;
+  }
+  
+  :host ::ng-deep .owl-dots {
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card-skeleton {
+    height: var(--product-card-height-small-mobile, 420px);
+  }
 }
 
 /* Custom Navigation Arrows */

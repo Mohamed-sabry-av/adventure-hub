@@ -243,7 +243,7 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
           .set('include', ids.join(','))
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type,sale_price,regular_price,on_sale'
           )
           .set('stock_status', 'instock'),
         observe: 'response',
@@ -281,14 +281,11 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
           if (!product) {
             return null;
           }
-          return {
-            ...product,
-            images: product.images.slice(0, 3) || [],
-          } as Product;
+          return product as Product;
         }),
         catchError((error) => {
           console.error(`Error fetching product with slug ${slug}:`, error);
-          return of(null); // في حالة الخطأ، نرجع null
+          return of(null);
         }),
         shareReplay(1)
       ),

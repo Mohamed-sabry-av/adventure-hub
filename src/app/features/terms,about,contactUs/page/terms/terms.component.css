@@ -12,3 +12,34 @@
   p {
     line-height: 1.6;
   }
+
+/* Terms page specific styles */
+/* Any page-specific styles can be added here */
+
+/* These styles will override or add to the shared styles from content-page.styles.css */
+.terms-page .section-heading {
+  color: #34495e;
+  border-bottom: 2px solid #34495e;
+}
+
+.terms-page .page-title {
+  color: #2c3e50;
+}
+
+.terms-page .featured-image img {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.terms-page blockquote {
+  font-style: italic;
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  margin: 20px 0;
+  border-left: 4px solid #34495e;
+  border-radius: 0 5px 5px 0;
+}
+
+.terms-page .content-list li {
+  margin-bottom: 12px;
+}

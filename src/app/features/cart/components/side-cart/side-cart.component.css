@@ -3,6 +3,11 @@
   z-index: 1022;
 }
 
+/* Additional overrides to ensure our styles take effect */
+:host ::ng-deep .p-drawer-mask.p-component-overlay {
+  z-index: 1022 !important;
+}
+
 .scrollbar-thin {
   scrollbar-width: thin;
 }

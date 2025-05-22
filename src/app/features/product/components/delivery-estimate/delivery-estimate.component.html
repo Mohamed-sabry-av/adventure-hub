@@ -5,8 +5,10 @@
                 Get it <strong>{{estimate.estimatedDelivery}}</strong>:</span>
         </div>
         <div class="location"> <span class="emirate">{{selectedEmirate}} <i class="pi pi-chevron-down"></i></span> <span
-                class="yalla-tag"
-                *ngIf="estimate.estimatedDelivery === 'Tomorrow' && selectedEmirate === 'Dubai'">Yalla</span> </div>
+                class="hub-tag"
+                *ngIf="isHubProductCheck && estimate.estimatedDelivery === 'Tomorrow' && selectedEmirate === 'Dubai'">
+                <img src="assets/Hub-logo/black-hub.png" alt="Hub" class="hub-icon">
+            </span> </div>
     </div>
 
     <div class="emirate-selector" *ngIf="showEmirateSelector">

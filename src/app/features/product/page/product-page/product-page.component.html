@@ -157,20 +157,20 @@
 
     <!-- Recently Viewed Products - Only load on idle -->
     @defer (on viewport; on idle) {
-      <app-recent-products-mini></app-recent-products-mini>
+    <app-recent-products-mini></app-recent-products-mini>
     } @placeholder {
-      <div class="mt-12">
-        <h2 class="text-xl font-semibold mb-6">Recently Viewed Products</h2>
-        <div class="animate-pulse grid grid-cols-2 md:grid-cols-4 gap-4">
-          @for (i of [0, 1, 2, 3]; track i) {
-          <div>
-            <div class="bg-gray-200 h-40 rounded-lg mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-          }
+    <div class="mt-12">
+      <h2 class="text-xl font-semibold mb-6">Recently Viewed Products</h2>
+      <div class="animate-pulse grid grid-cols-2 md:grid-cols-4 gap-4">
+        @for (i of [0, 1, 2, 3]; track i) {
+        <div>
+          <div class="bg-gray-200 h-40 rounded-lg mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
         </div>
+        }
       </div>
+    </div>
     }
 
     }

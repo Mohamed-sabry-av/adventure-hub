@@ -36,7 +36,9 @@ export class SideCartComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private platformId = inject(PLATFORM_ID);
 
-  constructor() {}
+  constructor() {
+    this.checkScreenSize();
+  }
 
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
 
@@ -46,6 +48,14 @@ export class SideCartComponent implements OnInit {
   sideCartVisible$: Observable<boolean> = this.cartService.cartIsVisible$;
 
   progressValue: number = 0;
+  isMobile: boolean = false;
+
+  @HostListener('window:resize', ['$event'])
+  checkScreenSize() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.isMobile = window.innerWidth < 768;
+    }
+  }
 
   ngOnInit() {
     const subscribtion = this.cartService.savedUserCart$

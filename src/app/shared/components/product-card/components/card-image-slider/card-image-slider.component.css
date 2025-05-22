@@ -1,8 +1,8 @@
 .image-slider {
   position: relative;
   width: 100%;
-  overflow: hidden;
-  margin-bottom: 10px;
+  overflow: visible; /* Changed to visible to show tags properly */
+  margin-bottom: 0; /* Remove margin bottom to keep layout tight */
 }
 
 .slider-container {
@@ -35,7 +35,7 @@
   pointer-events: auto;
 }
 
-/* إخفاء الصورة الأولى عند الـ hover */
+/* Hide first image on hover */
 .slider-container.hovered .slide.active {
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -47,7 +47,7 @@
   transition: opacity 0.3s ease;
 }
 
-/* منع الـ hover effect لو في صورة واحدة */
+/* Prevent hover effect if only one image */
 .slider-container:not(.hovered) .slide.active {
   opacity: 1 !important;
 }
@@ -65,8 +65,9 @@
   max-height: 100%;
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Cover instead of contain for consistent appearance */
+  object-fit: contain; /* Keep contain for better product display */
   transition: transform 0.3s ease;
+   /* Add slight padding to prevent edge touching */
 }
 
 .slider-container.hovered .slide.second-image img {
@@ -88,8 +89,8 @@
 }
 
 .nav-arrow {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.8);
   border: none;
@@ -100,7 +101,7 @@
   pointer-events: auto; /* Make buttons clickable */
   opacity: 0.8;
   transition: opacity 0.3s ease, background-color 0.3s ease;
-  margin: 0 10px;
+  margin: 0 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 11;
 }
@@ -116,7 +117,7 @@
 }
 
 .arrow-icon {
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
   color: #333;
 }
@@ -124,18 +125,18 @@
 /* Image indicators */
 .image-indicators {
   position: absolute;
-  bottom: 10px;
+  bottom: 8px;
   left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   z-index: 10;
 }
 
 .indicator-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -152,27 +153,36 @@
 /* Product tags */
 .product-tags {
   position: absolute;
-  z-index: 5;
+  z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 90%;
 }
 
 .product-tags-bottom-left {
-  bottom: 10px;
+  top: 10px;
   left: 10px;
   align-items: flex-start;
 }
 
 .tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
   text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tag:hover .hub-icon-small {
+  transform: none;
 }
 
 .tag-new {
@@ -184,7 +194,18 @@
 }
 
 .tag-hub {
-  background-color: #6366f1;
+  background-color: #2E2E2E;
+  padding: 4px 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hub-icon-small {
+  width: 22px;
+  height: 14px;
+  object-fit: contain;
 }
 
 .tag-featured {
@@ -207,173 +228,95 @@
   background-color: #64748b;
 }
 
-/* Mobile navigation arrows */
-.mobile-navigation-arrows {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 10;
-  pointer-events: none; /* Allow clicks to pass through to underlying elements */
-}
-
 /* Mobile-specific styles */
 @media (max-width: 767px) {
+  .image-slider {
+    height: 280px; /* Increased height for image slider on mobile */
+    overflow: visible;
+  }
+  
   .slider-container {
-    aspect-ratio: 1 / 1;
-    height: 0;
-    padding-bottom: 100%; /* Maintain square aspect ratio */
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding-bottom: 0;
+    aspect-ratio: unset;
+  }
+  
+  .slide {
+    height: 280px; /* Increased height for slides on mobile */
   }
   
   .slide img {
     object-fit: contain;
     width: 100%;
-    height: 100%;
+    height: 280px;
+    max-height: none;
   }
 
   /* Enhance mobile navigation */
   .nav-arrow {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 10px;
+    margin: 0 6px;
     pointer-events: auto;
     cursor: pointer;
     border: none;
   }
-
-  .image-indicators {
-    position: absolute;
-    bottom: 10px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    z-index: 5;
-  }
-
-  .indicator-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.5);
-    margin: 0 4px;
-    cursor: pointer;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-  }
-
-  .indicator-dot.active {
-    background-color: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.3);
-  }
-}
-
-/* Add support for product tags on mobile */
-.product-tags {
-  position: absolute;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.product-tags-bottom-left {
-  bottom: 10px;
-  left: 10px;
-}
-
-.tag {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.tag-sale {
-  background-color: #e53e3e;
-  color: white;
-}
-
-.tag-new {
-  background-color: #3182ce;
-  color: white;
-}
-
-.tag-limited {
-  background-color: #6b46c1;
-  color: white;
-}
-
-/* Responsive adjustments */
-@media (max-width: 767px) {
-  .tag {
-    font-size: 9px;
-    padding: 3px 6px;
-  }
-
-  .nav-arrow {
-    width: 26px;
-    height: 26px;
-  }
-
+  
   .arrow-icon {
-    font-size: 14px;
+    font-size: 12px;
   }
-
+  
   .indicator-dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
+  }
+  
+  /* Improve tag display on mobile */
+  .product-tags-bottom-left {
+    top: 8px;
+    left: 8px;
+  }
+  
+  .tag {
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 3px;
+  }
+  
+  .hub-icon-small {
+    width: 18px;
+    height: 11px;
   }
 }
 
-@media (max-width: 767px) {
+/* Even smaller screens adjustment */
+@media (max-width: 480px) {
   .image-slider {
-    overflow: visible !important; /* Changed from auto to visible to show arrows */
-    touch-action: manipulation !important;
-    pointer-events: auto !important;
+    height: 260px; /* Increased height for image slider on smaller screens */
   }
-
-  .image-slider .slider-container {
-    touch-action: manipulation !important;
-    pointer-events: auto !important;
-    overflow: visible !important; /* Changed from auto to visible to show arrows */
-    -webkit-overflow-scrolling: touch !important;
+  
+  .slide {
+    height: 260px; /* Increased height for slides on smaller screens */
   }
-
-  .image-slider .slide,
-  .image-slider .slide.active {
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
+  
+  .slide img {
+    height: 260px;
   }
-
-  /* Keep only current image visible on mobile */
-  .image-slider .slider-container .slide {
-    opacity: 0;
+  
+  /* Adjust tags for very small screens */
+  .product-tags {
+    gap: 4px;
   }
-
-  .image-slider .slider-container .slide.active {
-    opacity: 1 !important;
-  }
-
-  /* Override hover effects on mobile */
-  .image-slider .slider-container.hovered .slide.active {
-    opacity: 1 !important;
-  }
-
-  .image-slider .slider-container.hovered .slide.second-image {
-    opacity: 0 !important;
-    display: none !important;
-  }
-
-  .image-slider .slider-container.hovered .slide.second-image img {
-    transform: none !important;
+  
+  .tag {
+    padding: 3px 6px;
+    font-size: 9px;
   }
 }

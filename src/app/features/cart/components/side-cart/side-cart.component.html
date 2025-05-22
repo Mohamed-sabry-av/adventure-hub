@@ -1,7 +1,7 @@
 <div class="card flex justify-center">
   <p-drawer #drawerRef position="right" [visible]="(sideCartVisible$ | async)!" (onHide)="hideSideCart()"
     [transitionOptions]="'500ms cubic-bezier(0.4, 0, 0.2, 1)'" styleClass="sidecart-drawer" class="zindexDrawer"
-    [style]="{'background-color': 'white'}">
+    [style]="{'background-color': 'white', 'width': isMobile ? '100vw' : '700px', 'max-width': isMobile ? '100vw' : '400px'}">
     <ng-template #headless pTemplate="content">
       <main class="flex flex-col h-full">
         <header class="md:p-5 pt-4 px-4 pb-3 shrink-0">

@@ -16,6 +16,7 @@ import {
   syncCartAction,
   updateCartStockStatusAction,
   updateProductOfUserCartAction,
+  getUserCartAction,
 } from '../../../Store/actions/cart.action';
 import { savedUserCartSelector } from '../../../Store/selectors/cart.selector';
 import { Product } from '../../../interfaces/product';
@@ -61,6 +62,24 @@ export class CartService {
 
   cartMode(isVisible: boolean) {
     this.cartIsVisible$.next(isVisible);
+  }
+
+  // Create a method to handle empty guest carts by dispatching a valid empty cart
+  handleEmptyGuestCart() {
+    const emptyCart = {
+      cartIsLoaded: true,
+      userCart: {
+        items: [],
+        totals: {
+          sub_total: 0,
+          total_price: 0
+        },
+        items_count: 0
+      }
+    };
+    
+    // Use the getUserCartAction to update the store with an empty cart
+    this.store.dispatch(getUserCartAction({ userCart: emptyCart.userCart }));
   }
 
   loadedDataFromLS(isLoggedIn: boolean) {

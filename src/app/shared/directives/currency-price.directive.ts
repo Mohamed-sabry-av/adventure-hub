@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 export class CurrencyPriceDirective implements OnInit, OnDestroy {
   @Input('appCurrencyPrice') price: number = 0;
   @Input() originalPrice?: number; // Optional original price for showing discounts
+  @Input() hideSymbol: boolean = false; // Option to hide currency symbol
   
   // Add attributes for styling and accessibility
   @HostBinding('attr.data-currency') currencyCode: string = 'AED';
@@ -57,9 +58,12 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
     }
     
     const currency = this.currencyService.getActiveCurrencyValue();
+    
+    // Convert the price from AED to the current currency
     const convertedPrice = this.currencyService.convertPrice(this.price);
     
-    let formattedValue = convertedPrice.toFixed(currency.decimals);
+    // For debugging
+    // console.log(`Displaying price: ${this.price} AED → ${convertedPrice} ${currency.code} (rate: ${currency.rate})`);
     
     // Handle special case for UAE Dirham with SVG
     if (currency.code === 'AED') {
@@ -78,25 +82,29 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
   private createAEDPriceDisplay(price: number): void {
     const formattedValue = price.toLocaleString('en-US', {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
+      useGrouping: true,
+      numberingSystem: 'latn' // Force Latin (Western) numerals
     });
     
     // Create elements
     const container = document.createElement('span');
     container.className = 'flex items-center';
     
-    // Create SVG image for AED
+    // Create SVG image for AED (only if not hiding symbol)
+    if (!this.hideSymbol) {
     const img = document.createElement('img');
     img.src = '/icons/UAE_Dirham_Symbol.svg';
     img.alt = 'AED';
     img.className = 'h-4 w-4 mr-1';
+      container.appendChild(img);
+    }
     
     // Create price text
     const priceText = document.createElement('span');
     priceText.textContent = formattedValue;
     
     // Assemble elements
-    container.appendChild(img);
     container.appendChild(priceText);
     
     // Replace content
@@ -105,33 +113,38 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
   }
   
   private createStandardPriceDisplay(currency: any, price: number): void {
-    const formattedValue = price.toFixed(currency.decimals);
-    
-    // Create the formatted price based on currency format
-    let formattedHTML = currency.format
-      .replace('%s', currency.symbol)
-      .replace('%v', formattedValue);
+    // Format with English/Western numerals and proper decimal places
+    const formattedValue = price.toLocaleString('en-US', {
+      minimumFractionDigits: currency.decimals || 2,
+      maximumFractionDigits: currency.decimals || 2,
+      useGrouping: true,
+      numberingSystem: 'latn' // Force Latin (Western) numerals
+    });
     
     // Create elements
     const container = document.createElement('span');
     container.className = 'flex items-center';
     
+    // Only add currency symbol if not hiding it
+    if (!this.hideSymbol) {
     // Create symbol element
     const symbolSpan = document.createElement('span');
     symbolSpan.className = 'currency-symbol mr-1';
     symbolSpan.textContent = currency.symbol;
     
-    // Create price text
-    const priceText = document.createElement('span');
-    priceText.textContent = formattedValue;
-    
     // Assemble based on format
     if (currency.format.startsWith('%s')) {
       container.appendChild(symbolSpan);
-      container.appendChild(priceText);
+        container.appendChild(document.createTextNode(formattedValue));
+      } else {
+        container.appendChild(document.createTextNode(formattedValue));
+        container.appendChild(symbolSpan);
+      }
     } else {
+      // Just add the price without symbol
+      const priceText = document.createElement('span');
+      priceText.textContent = formattedValue;
       container.appendChild(priceText);
-      container.appendChild(symbolSpan);
     }
     
     // Replace content
@@ -142,7 +155,6 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
   private addOriginalPriceDisplay(originalPrice: number): void {
     const currency = this.currencyService.getActiveCurrencyValue();
     const convertedPrice = this.currencyService.convertPrice(originalPrice);
-    const formattedOriginal = this.currencyService.formatPrice(convertedPrice);
     
     // Store current price display
     const currentDisplay = this.el.nativeElement.innerHTML;
@@ -157,27 +169,19 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
     originalEl.style.marginRight = '0.5em';
     originalEl.style.color = '#777';
     
-    // For AED, create special display
-    if (currency.code === 'AED') {
-      const imgOriginal = document.createElement('img');
-      imgOriginal.src = '/icons/UAE_Dirham_Symbol.svg';
-      imgOriginal.alt = 'AED';
-      imgOriginal.className = 'h-3 w-3 mr-1';
-      
-      const formattedValue = convertedPrice.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      });
-      
-      const priceText = document.createElement('span');
-      priceText.textContent = formattedValue;
-      
-      originalEl.appendChild(imgOriginal);
-      originalEl.appendChild(priceText);
-    } else {
-      // For other currencies
-      originalEl.innerHTML = formattedOriginal;
-    }
+    // Always format the value without currency symbol for old prices
+    const formattedValue = convertedPrice.toLocaleString('en-US', {
+      minimumFractionDigits: currency.code === 'AED' ? 0 : 2,
+      maximumFractionDigits: currency.code === 'AED' ? 0 : 2,
+      useGrouping: true,
+      numberingSystem: 'latn' // Force Latin (Western) numerals for all old prices
+    });
+    
+    const priceText = document.createElement('span');
+    priceText.textContent = formattedValue;
+    
+    // Just append the price value without any currency symbol
+    originalEl.appendChild(priceText);
     
     // Clear and rebuild content
     this.el.nativeElement.innerHTML = '';

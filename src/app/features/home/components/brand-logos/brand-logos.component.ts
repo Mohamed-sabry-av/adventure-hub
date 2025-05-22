@@ -136,7 +136,7 @@ export class BrandLogosComponent implements OnInit, OnDestroy {
   error: string | null = null;
   
   // Featured brand IDs - can be configured or fetched from a settings API
-  private featuredBrandIds: number[] = [201, 216, 239, 248, 264, 270, 285, 294, 302, 326];
+  private featuredBrandIds: number[] = [550, 5126, 1126, 2461, 1441, 989, 877, 971, 3537,4582,311,5276,396,415,3102,2743,3537,3546];
   
   // Subscriptions for cleanup
   private subscriptions = new Subscription();
@@ -146,7 +146,7 @@ export class BrandLogosComponent implements OnInit, OnDestroy {
     mouseDrag: true,
     touchDrag: true,
     pullDrag: false,
-    dots: true,
+    dots: false,
     navSpeed: 700,
     autoplay: true,
     autoplayTimeout: 5000,
@@ -154,10 +154,10 @@ export class BrandLogosComponent implements OnInit, OnDestroy {
     items: 6,
     responsive: {
       0: {
-        items: 2
+        items: 3
       },
       400: {
-        items: 3
+        items: 4
       },
       768: {
         items: 4

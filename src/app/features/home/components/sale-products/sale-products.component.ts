@@ -49,12 +49,15 @@ export class SaleProductsComponent implements OnInit, AfterViewInit, OnDestroy {
     mouseDrag: true,
     touchDrag: true,
     pullDrag: false,
-    dots: true,
-    navSpeed: 300,
+    dots: false, // Disable dots for better performance
+    navSpeed: 300, // Faster animation
+    autoplay: false,
+    smartSpeed: 300, // Faster transitions
+    fluidSpeed: true,
     navText: ['', ''],
     autoWidth: false,
     items: 4,
-    lazyLoad: true,
+    lazyLoad: false, // Disable lazy loading for better performance
     responsive: {
       0: {
         items: 2
@@ -78,9 +81,12 @@ export class SaleProductsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
+    // Immediate setup plus fallback
+    this.setupCustomNavigation();
+    // Set a fallback in case the first attempt fails
+    requestAnimationFrame(() => {
       this.setupCustomNavigation();
-    }, 100);
+    });
   }
   
   ngOnDestroy(): void {
@@ -98,53 +104,33 @@ export class SaleProductsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setupCustomNavigation(): void {
-    if (this.prevBtn?.nativeElement && this.nextBtn?.nativeElement && this.owlCarousel) {
+    // Direct DOM manipulation for maximum performance
+    try {
+      this.removeNavigationListeners();
+      
+      // Get buttons using direct DOM queries for speed
+      const prevBtn = this.prevBtn?.nativeElement || document.querySelector('.sale-products .prev-btn') as HTMLElement;
+      const nextBtn = this.nextBtn?.nativeElement || document.querySelector('.sale-products .next-btn') as HTMLElement;
+      
+      if (!prevBtn || !nextBtn || !this.owlCarousel) return;
+      
+      // Simple and direct click handlers
       this.prevClickListener = (e: Event) => {
         e.preventDefault();
-        e.stopPropagation();
-        if (this.owlCarousel) {
-          this.owlCarousel.prev();
-          this.cdr.markForCheck();
-        }
+        if (this.owlCarousel) this.owlCarousel.prev();
       };
       
       this.nextClickListener = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.owlCarousel) {
-          this.owlCarousel.next();
-          this.cdr.markForCheck();
-        }
+        e.preventDefault(); 
+        if (this.owlCarousel) this.owlCarousel.next();
       };
       
-      this.prevBtn.nativeElement.addEventListener('click', this.prevClickListener);
-      this.nextBtn.nativeElement.addEventListener('click', this.nextClickListener);
-    } else {
-      const prevBtn = document.querySelector('.sale-products .prev-btn') as HTMLElement;
-      const nextBtn = document.querySelector('.sale-products .next-btn') as HTMLElement;
+      // Add listeners
+      prevBtn.addEventListener('click', this.prevClickListener);
+      nextBtn.addEventListener('click', this.nextClickListener);
       
-      if (prevBtn && nextBtn && this.owlCarousel) {
-        this.prevClickListener = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.owlCarousel) {
-            this.owlCarousel.prev();
-            this.cdr.markForCheck();
-          }
-        };
-        
-        this.nextClickListener = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.owlCarousel) {
-            this.owlCarousel.next();
-            this.cdr.markForCheck();
-          }
-        };
-        
-        prevBtn.addEventListener('click', this.prevClickListener);
-        nextBtn.addEventListener('click', this.nextClickListener);
-      }
+    } catch (err) {
+      console.error('Error setting up carousel navigation:', err);
     }
   }
 

@@ -202,7 +202,12 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (directProducts) => {
-          this.relatedProducts = [...directProducts];
+          // Filter out of stock products
+          const inStockProducts = directProducts.filter(product => 
+            product.stock_status === 'instock'
+          );
+          
+          this.relatedProducts = [...inStockProducts];
 
           if (numAdditionalNeeded > 0) {
             this.loadAdditionalProductsFromLocalStorage(numAdditionalNeeded, shuffledDirectIds);
@@ -231,8 +236,13 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
 
     this.productService.getProductsByIds(additionalIds).subscribe({
       next: (additionalProducts) => {
+        // Filter out of stock products
+        const inStockAdditionalProducts = additionalProducts.filter(product => 
+          product.stock_status === 'instock'
+        );
+        
         const existingIds = new Set(this.relatedProducts.map((p) => p.id));
-        const uniqueAdditionalProducts = additionalProducts.filter((p) => !existingIds.has(p.id));
+        const uniqueAdditionalProducts = inStockAdditionalProducts.filter((p) => !existingIds.has(p.id));
 
         this.relatedProducts = [...this.relatedProducts, ...uniqueAdditionalProducts];
         this.relatedProducts = this.shuffleArray(this.relatedProducts).slice(0, this.maxProductsToShow);
@@ -259,7 +269,10 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (products) => {
-          this.relatedProducts = products;
+          // Filter out of stock products
+          this.relatedProducts = products.filter(product => 
+            product.stock_status === 'instock'
+          );
           this.cdr.markForCheck();
         },
         error: (error) => {

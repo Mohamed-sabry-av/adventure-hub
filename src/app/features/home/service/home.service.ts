@@ -252,7 +252,7 @@ export class HomeService {
     
     this.loadingSaleProducts = true;
     
-    const cacheKey = `sale_products_p${page}_size${perPage}`;
+    const cacheKey = `sale_products_p${page}_size${perPage}_order_date_desc`;
     const cachedData = this.cachingService.get(cacheKey);
     if (cachedData) {
       cachedData.subscribe(products => {

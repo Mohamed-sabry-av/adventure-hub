@@ -38,6 +38,27 @@ export class UIService {
   }>({ isVisible: false, message: '' });
   warningState$ = this.warningState.asObservable();
 
+  // Active quick add panel tracking
+  private activeQuickAddProductId = new BehaviorSubject<number | null>(null);
+  activeQuickAddProductId$ = this.activeQuickAddProductId.asObservable();
+
+  /**
+   * Set the currently active quick add product panel
+   * @param productId ID of the product whose quick add panel is open
+   */
+  setActiveQuickAddProduct(productId: number | null) {
+    this.activeQuickAddProductId.next(productId);
+  }
+  
+  /**
+   * Check if a product's quick add panel is the active one
+   * @param productId ID of the product to check
+   * @returns boolean indicating if this product has the active quick add panel
+   */
+  isActiveQuickAddProduct(productId: number): boolean {
+    return this.activeQuickAddProductId.value === productId;
+  }
+
   showError(message: string) {
     this.errorState.next({ isVisible: true, message });
     setTimeout(() => {

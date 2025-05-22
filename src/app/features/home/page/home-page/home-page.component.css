@@ -1,0 +1,79 @@
+.home-page {
+  width: 100%;
+}
+
+/* Ensure consistent product card heights */
+.home-page app-new-products,
+.home-page app-recommended-products,
+.home-page app-sale-products {
+  display: block;
+}
+
+/* Ensure skeleton loaders match card heights */
+.home-page .animate-pulse {
+  height: var(--product-card-height-desktop, 540px);
+}
+
+.home-page .animate-pulse .bg-gray-200 {
+  height: 340px;
+}
+
+/* Consistent grid spacing */
+.home-page .grid {
+  gap: var(--product-grid-gap-desktop, 4px);
+}
+
+/* Optimize container padding on mobile */
+@media (max-width: 992px) {
+  .home-page .animate-pulse {
+    height: var(--product-card-height-tablet, 520px);
+  }
+  
+  .home-page .animate-pulse .bg-gray-200 {
+    height: 320px;
+  }
+  
+  .home-page .grid {
+    gap: var(--product-grid-gap-tablet, 2px) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .home-page .container {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  
+  /* Match product grid optimizations */
+  .home-page .grid {
+    gap: var(--product-grid-gap-mobile, 0.5px) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Reduce vertical spacing between sections */
+  .home-page .container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  /* Ensure product skeletons match actual product sizes */
+  .home-page .animate-pulse {
+    height: var(--product-card-height-mobile, 440px);
+  }
+  
+  .home-page .animate-pulse .bg-gray-200 {
+    height: 280px; /* Match the product image height */
+  }
+}
+
+/* Even smaller screens */
+@media (max-width: 480px) {
+  .home-page .animate-pulse {
+    height: var(--product-card-height-small-mobile, 420px);
+  }
+  
+  .home-page .animate-pulse .bg-gray-200 {
+    height: 260px; /* Match the smaller product image height */
+  }
+}

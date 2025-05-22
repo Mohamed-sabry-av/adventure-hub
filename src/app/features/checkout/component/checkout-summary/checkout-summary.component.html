@@ -1,36 +1,25 @@
-<div
-  class="lg:p-4"
-  [class]="{
+<div class="lg:p-4" [class]="{
 
   'bg-gray-200': ((cartStatus$ | async)?.sideCartLoading),
   'animate-pulse': ((cartStatus$ | async)?.sideCartLoading),
-}"
->
+}">
   <!-- items -->
   @if ( !(isVisible$ |async) && (loadedCart$ | async)?.userCart?.items?.length >
   0 ) {
-  <div
-    class="border p-4 rounded-lg"
-    [class]="{
+  <div class="border p-4 rounded-lg" [class]="{
   'h-[440px]': (loadedCart$ | async)?.userCart.items?.length>6,
   'overflow-auto': (loadedCart$ | async)?.userCart.items?.length>6,
-}"
-  >
+}">
     <div class="flex flex-col gap-y-4">
       <!-- Product Data -->
       @for (product of (loadedCart$ | async)?.userCart.items; track $index) {
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-x-2 relative">
-          <img
-            loading="lazy"
-            [src]="product.image.thumbnail"
-            [alt]="product.image.alt"
-            class="w-[55px] h-[55px] object-cover border rounded-lg p-1"
-          />
+          <img loading="lazy" [src]="product.image.thumbnail" [alt]="product.image.alt"
+            class="w-[55px] h-[55px] object-cover border rounded-lg p-1" />
           <div class="absolute -top-2 left-[40px]">
             <span
-              class="bg-gray-400 text-white rounded-full flex items-center justify-center w-5 h-5 text-xs font-medium p-1"
-            >
+              class="bg-gray-400 text-white rounded-full flex items-center justify-center w-5 h-5 text-xs font-medium p-1">
               {{ product.quantity }}
             </span>
           </div>
@@ -38,10 +27,7 @@
         </div>
 
         <!-- Price -->
-        <p
-          class="text-sm"
-          [innerHTML]="product.totals.line_total | currencySvg"
-        ></p>
+        <p class="text-sm" [innerHTML]="product.totals.line_total | currencySvg"></p>
       </div>
       }
     </div>
@@ -51,36 +37,24 @@
   <!-- Coupon Input -->
   <div>
     <div class="flex gap-x-2 items-center mt-4">
-      <input
-        type="text"
-        class="bg-white border w-full py-[14px] px-3 rounded-lg text-base font-semibold"
-        placeholder="Discount code or gift card"
-        [(ngModel)]="couponValue"
-        #couponInput
-        [disabled]="haveCoupon === true"
+      <input type="text" class="bg-white border w-full py-[14px] px-3 rounded-lg text-base font-semibold"
+        placeholder="Discount code or gift card" [(ngModel)]="couponValue" #couponInput [disabled]="haveCoupon === true"
         [class]="{
             'bg-[#99a0b1]': haveCoupon ===true ,
             'text-black': haveCoupon ===true ,
-          }"
-      />
+          }" />
 
-      <button
-        class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold"
-        (click)="haveCoupon === true ? onRemoveCoupon() : onApplyCoupon()"
-        [disabled]="
+      <button class="px-3 py-[14px] bg-red-500 rounded-lg text-white font-semibold"
+        (click)="haveCoupon === true ? onRemoveCoupon() : onApplyCoupon()" [disabled]="
           couponValue === '' || (cartStatus$ | async)?.sideCartLoading
-        "
-        [class]="{
+        " [class]="{
           'bg-red-500': haveCoupon === true,
           'bg-gray-500': couponValue === '' ,
           'cursor-pointer': couponValue !== '',
           'bg-orange-500': haveCoupon === false && couponValue !=='',
-        }"
-      >
+        }">
         @if (isCouponLoading$ | async) {
-        <div
-          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-        ></div>
+        <div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
 
         }@else {
         {{ haveCoupon === true ? "Remove" : "Apply" }}
@@ -105,11 +79,9 @@
         <span class="font-semibold"> Subtotal · </span>
         <span>{{ (loadedCart$ | async)?.userCart?.items_count }} items</span>
       </p>
-      <p
-        [innerHTML]="
+      <p [innerHTML]="
           (loadedCart$ | async)?.userCart.totals?.sub_total | currencySvg
-        "
-      ></p>
+        "></p>
     </div>
 
     <!-- Coupon Data -->
@@ -118,39 +90,32 @@
       <p>
         <span class="font-semibold"> Discount</span>
       </p>
-      <p
-        [innerHTML]="
+      <p [innerHTML]="
           (loadedCart$ | async)?.userCart.totals?.total_discount | currencySvg
-        "
-      >
+        ">
         -
       </p>
     </div>
     }
 
     <!-- Shipping Method -->
-    <div
-      class="flex"
-      [class]="{
+    <div class="flex" [class]="{
         'flex-col': (selectedCountry$ | async) !== 'AE',
         'justify-between': (selectedCountry$ | async) === 'AE',
-      }"
-    >
+      }">
       <h3 class="font-semibold text-base">Shipping</h3>
-      <div
-        [class]="{
+      <div [class]="{
           isUAE: (selectedCountry$ | async) !== 'AE'
-        }"
-      >
+        }">
         <p class="text-sm">
           {{
-            (selectedCountry$ | async) !== ""
-              ? (selectedCountry$ | async) === "AE"
-                ? (loadedCart$ | async)?.userCart.totals?.total_price > 100
-                  ? "FREE"
-                  : "AED " + 20
-                : "Our representative will send shipping fees separately "
-              : "Enter your shipping address to view available shipping methods."
+          (selectedCountry$ | async) !== ""
+          ? (selectedCountry$ | async) === "AE"
+          ? (loadedCart$ | async)?.userCart.totals?.total_price > 100
+          ? "FREE"
+          : "AED " + 20
+          : "Our representative will send shipping fees separately "
+          : "Enter your shipping address to view available shipping methods."
           }}
         </p>
       </div>
@@ -159,15 +124,12 @@
     <div class="flex justify-between text-xl text-black/80 font-semibold">
       <p>Total</p>
       @if ((loadedCart$ | async)?.userCart.totals?.total_price) {
-      <p
-        class="uppercase"
-        [innerHTML]="
+      <p class="uppercase" [innerHTML]="
           ((selectedCountry$ | async) === 'AE' && (loadedCart$ | async)?.userCart.totals?.total_price <= 100)
             ? ((loadedCart$ | async)?.userCart.totals?.total_price + 20)
             : ((loadedCart$ | async)?.userCart.totals?.total_price)
           | currencySvg
-        "
-      ></p>
+        "></p>
       }
     </div>
   </div>

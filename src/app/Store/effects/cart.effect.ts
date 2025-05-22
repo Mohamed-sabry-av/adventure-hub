@@ -290,12 +290,50 @@ export class CartEffect {
                   buttonName: buyItNow ? 'buy' : 'add',
                 })
               );
-
-              this.uiService.showError(
-                error.error.message
-                  ? error.error.message
-                  : `Something went wrong fetching the available data. Please try again later.`
+              
+              // Get the error message from wherever it might be in the error object
+              const errorMsg = error?.error?.message || error?.message || '';
+              
+              // Check if this is an invalid/expired cart case for guest users
+              const isInvalidCart = !isLoggedIn && (
+                errorMsg.includes('invalid cart id') || 
+                errorMsg.includes('Invalid cart') ||
+                errorMsg.includes('expired cart') ||
+                errorMsg.includes('Invalid or expired cart ID')
               );
+              
+              // Handle invalid/expired cart ID for guest users
+              if (isInvalidCart) {
+                console.log('Handling invalid cart ID for guest user');
+                
+                const emptyCart = {
+                  items: [],
+                  totals: {
+                    sub_total: 0,
+                    total_price: 0
+                  },
+                  items_count: 0,
+                  coupons: {}
+                };
+                
+                // Clear the invalid cart ID from localStorage
+                localStorage.removeItem('cartId');
+                
+                this.store.dispatch(
+                  cartStatusAction({
+                    mainPageLoading: false,
+                    sideCartLoading: false,
+                    error: null,
+                  })
+                );
+                
+                return of(getUserCartAction({ userCart: emptyCart }));
+              }
+              
+              this.uiService.showError(
+                errorMsg || `Something went wrong fetching the available data. Please try again later.`
+              );
+              
               this.store.dispatch(
                 cartStatusAction({
                   mainPageLoading: false,
@@ -308,9 +346,7 @@ export class CartEffect {
                 cartStatusAction({
                   mainPageLoading: false,
                   sideCartLoading: false,
-                  error:
-                    error.error.message ||
-                    'Something went wrong fetching the available data. Please try again later.',
+                  error: errorMsg || 'Something went wrong fetching the available data. Please try again later.',
                 })
               );
             })

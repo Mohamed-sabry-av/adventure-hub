@@ -22,6 +22,7 @@ import { ColorSwatchesComponent } from '../components/color-swatches/color-swatc
 import { MobileQuickAddComponent } from '../components/add-to-cart/quick-add-btn.component';
 import { WishlistButtonComponent } from '../components/wishlist-button/wishlist-button.component';
 import { VariationService } from '../../../../core/services/variation.service';
+import { UIService } from '../../../../shared/services/ui.service';
 
 @Component({
   selector: 'app-product-card',
@@ -95,7 +96,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private variationService: VariationService
+    private variationService: VariationService,
+    private uiService: UIService
   ) {
     this.modifiedProduct = {} as Product;
   }
@@ -462,13 +464,52 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  /**
+   * Toggle the mobile quick add panel
+   */
   toggleMobileQuickAdd(): void {
     this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
     
-    // If we're closing the panel and the user has selected a variation, 
-    // make sure we find and set the selected variation
-    if (!this.mobileQuickAddExpanded && this.selectedColor && this.selectedSize) {
+    // If we're closing the panel, ensure to clear the active quick add in the service
+    if (!this.mobileQuickAddExpanded) {
+      // Clear active quick add in service
+      if (this.product) {
+        this.uiService.setActiveQuickAddProduct(null);
+      }
+      
+      // If the user has selected a color and size, make sure we find and set the selected variation
+      if (this.selectedColor && this.selectedSize) {
       this.findAndSetSelectedVariation();
+      }
+    }
+    
+    // Close any expanded panel when clicking elsewhere on the page
+    if (isPlatformBrowser(this.platformId) && !this.isMobile) {
+      if (this.mobileQuickAddExpanded) {
+        // Handle clicking outside to close
+        const clickHandler = (e: MouseEvent) => {
+          // If click is outside the options panel, close it
+          const optionsPanel = document.querySelector('.options-panel');
+          const quickAddBtn = document.querySelector('.circular-add-button');
+          
+          if (optionsPanel && quickAddBtn) {
+            const target = e.target as Node;
+            const isClickInside = optionsPanel.contains(target) || quickAddBtn.contains(target);
+            
+            if (!isClickInside) {
+              this.mobileQuickAddExpanded = false;
+              this.uiService.setActiveQuickAddProduct(null);
+              this.cdr.markForCheck();
+              document.removeEventListener('click', clickHandler);
+            }
+          }
+        };
+        
+        // Add the click handler with a small delay to avoid immediate triggering
+        setTimeout(() => {
+          document.addEventListener('click', clickHandler);
+        }, 100);
+      }
     }
     
     this.cdr.markForCheck();
@@ -521,5 +562,21 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     return brandMeta
       ? brandMeta.value
       : this.getBrandName()?.toLowerCase().replace(/\s+/g, '-');
+  }
+
+  calculateDiscountPercentage(): number {
+    if (!this.product.regular_price || !this.product.sale_price) {
+      return 0;
+    }
+    
+    const regularPrice = parseFloat(this.product.regular_price);
+    const salePrice = parseFloat(this.product.sale_price);
+    
+    if (isNaN(regularPrice) || isNaN(salePrice) || regularPrice <= 0) {
+      return 0;
+    }
+    
+    const discount = Math.round(((regularPrice - salePrice) / regularPrice) * 100);
+    return discount;
   }
 }

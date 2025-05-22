@@ -1,46 +1,43 @@
 @if ((loadedOrder$ | async)) {
-  @if ((loadedOrder$ | async)?.id) {
-  <main>
-    <!-- Order Recevied -->
-    <div class="mt-12 mb-7">
-      <p class="text-center text-3xl text-green-600">
-        <i class="pi pi-check-circle text-xl"></i>
-        Thank you. Your order has been received
-      </p>
-    </div>
+@if ((loadedOrder$ | async)?.id) {
+<main>
+  <!-- Order Recevied -->
+  <!-- <div class="mt-12 mb-7">
+    <p class="text-center text-3xl text-green-600">
+      <i class="pi pi-check-circle text-xl"></i>
+      Thank you. Your order has been received
+    </p>
+  </div> -->
 
-    <!-- Order MetaData -->
-    <div class="bg-[#f8f8f8] px-6 py-4 mb-8 rounded-lg">
-      <ul
-        class="flex md:flex-row flex-col items-start md:items-center md:justify-center text-sm text-gray-500 md:text-center"
-      >
-        <li class="py-3 px-5">
-          Order number:
-          <strong>{{ (loadedOrder$ | async)?.id }}</strong>
-        </li>
-        <li class="py-3 px-5">
-          Date:
-          <strong>{{
-            (loadedOrder$ | async)?.date_created | date : "longDate"
-          }}</strong>
-        </li>
-        <li class="py-3 px-5">
-          Email:
-          <strong>{{ (loadedOrder$ | async)?.billing?.email }}</strong>
-        </li>
-        <li class="py-3 px-5">
-          Total:
-          <strong>{{
-            (loadedOrder$ | async)?.total
-              | currency : (loadedOrder$ | async)?.currency
-          }}</strong>
-        </li>
-        <li class="py-3 px-5">
-          {{ (loadedOrder$ | async)?.payment_method }}:
-          <strong>{{ (loadedOrder$ | async)?.payment_method_title }}</strong>
-        </li>
-      </ul>
-    </div>
-  </main>
-  }
+  <!-- Order MetaData -->
+  <div class="bg-white shadow-sm border border-gray-200 px-4 py-5 mb-6 rounded-lg">
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <li class="flex flex-col">
+        <span class="text-sm text-gray-500 mb-1">Order number:</span>
+        <span class="font-medium">{{ (loadedOrder$ | async)?.id }}</span>
+      </li>
+      <li class="flex flex-col">
+        <span class="text-sm text-gray-500 mb-1">Date:</span>
+        <span class="font-medium">{{
+          (loadedOrder$ | async)?.date_created | date : "mediumDate"
+          }}</span>
+      </li>
+      <li class="flex flex-col">
+        <span class="text-sm text-gray-500 mb-1">Email:</span>
+        <span class="font-medium">{{ (loadedOrder$ | async)?.billing?.email }}</span>
+      </li>
+      <li class="flex flex-col">
+        <span class="text-sm text-gray-500 mb-1">Total:</span>
+        <span class="font-medium">{{
+          (loadedOrder$ | async)?.total | currency : (loadedOrder$ | async)?.currency_symbol
+          }}</span>
+      </li>
+      <li class="flex flex-col">
+        <span class="text-sm text-gray-500 mb-1">Payment method:</span>
+        <span class="font-medium">{{ (loadedOrder$ | async)?.payment_method_title }}</span>
+      </li>
+    </ul>
+  </div>
+</main>
+}
 }

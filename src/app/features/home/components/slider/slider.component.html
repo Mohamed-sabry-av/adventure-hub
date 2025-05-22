@@ -15,14 +15,14 @@
   <owl-carousel-o #owlCarousel [options]="carouselOptions" class="w-full">
     @for (banner of bannerImages; track $index) {
     <ng-template carouselSlide>
-      <div class="slide-item h-[450px] md:h-[500px] relative">
+      <div class="slide-item h-[450px] md:h-[500px] relative touch-action-manipulation">
         @if (isMobile) {
         <img [src]="banner.small || 'assets/images/placeholder-banner-mobile.jpg'" alt="Banner image"
-          class="w-full h-full object-cover" loading="lazy"
+          class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
           onerror="this.src='assets/images/placeholder-banner-mobile.jpg'; this.onerror=null;" />
         } @else {
         <img [src]="banner.large || 'assets/images/placeholder-banner.jpg'" alt="Banner image"
-          class="w-full h-full object-cover" loading="lazy"
+          class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
           onerror="this.src='assets/images/placeholder-banner.jpg'; this.onerror=null;" />
         }
       </div>

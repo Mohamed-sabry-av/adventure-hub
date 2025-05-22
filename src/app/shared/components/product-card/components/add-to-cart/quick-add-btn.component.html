@@ -4,7 +4,8 @@
   <button *ngIf="!addSuccess && !(isLoading && (loadingMap$ | async)?.['add'])" class="circular-add-button"
     [class.disabled]="(product?.type === 'variable' && selectedVariation?.stock_status !== 'instock') || 
                      (product?.type === 'simple' && product?.stock_status !== 'instock')"
-    [class.ready-to-add]="isReadyToAddToCart() && optionsVisible" (click)="onToggleOptionsPanel()"
+    [class.ready-to-add]="isReadyToAddToCart() && optionsVisible"
+    (click)="optionsVisible && isReadyToAddToCart() ? onAddToCart() : onToggleOptionsPanel()"
     [attr.aria-label]="product?.type === 'simple' ? 'Add to cart' : (optionsVisible && selectedVariation ? 'Add to cart' : 'Choose options')"
     [title]="product?.type === 'simple' ? 'Add to cart' : (optionsVisible && selectedVariation ? 'Add to cart' : 'Choose options')">
     <svg *ngIf="!(selectedVariation && selectedVariation.stock_status !== 'instock') && 
@@ -35,14 +36,17 @@
 
 <!-- Options panel that appears within the product card -->
 <div *ngIf="optionsVisible && product?.type === 'variable'" [@slideUpDown] class="options-panel">
-  <!-- Close button -->
-  <button class="close-options-btn" (click)="toggleOptions()">
-    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
-      stroke-linecap="round" stroke-linejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"></line>
-      <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  </button>
+  <!-- Panel header with product name and close button -->
+  <div class="options-panel-header">
+    <span class="product-name-truncate">{{product?.name}}</span>
+    <button class="close-options-btn" (click)="toggleOptions()">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
 
   <!-- Color options if available -->
   <div *ngIf="colorOptions && colorOptions.length > 0" class="color-options-container">
@@ -65,28 +69,36 @@
   <!-- Size options if available -->
   <div *ngIf="uniqueSizes && uniqueSizes.length > 0" class="size-options-container">
     <h4 class="options-title">Size</h4>
-    <div class="size-options">
+    <div class="size-options" #sizeOptionsContainer>
       <button *ngFor="let sizeObj of uniqueSizes" class="size-btn" [class.selected]="selectedSize === sizeObj.size"
         [class.out-of-stock]="!sizeObj.inStock" [disabled]="!sizeObj.inStock" (click)="selectSize.emit(sizeObj.size)">
         {{ sizeObj.size }}
       </button>
     </div>
-  </div>
 
-  <!-- Quantity selector - only visible on desktop -->
-  <div *ngIf="!isMobile" class="quantity-container">
-    <h4 class="options-title">Quantity</h4>
-    <div class="quantity-control">
-      <button class="quantity-btn" (click)="decrementQuantity()" [disabled]="quantityValue <= 1">-</button>
-      <input type="number" class="quantity-input" [(ngModel)]="quantityValue" min="1" max="10">
-      <button class="quantity-btn" (click)="incrementQuantity()">+</button>
+    <!-- Size scroll controls (only show if overflow) -->
+    <div *ngIf="uniqueSizes && uniqueSizes.length > 4" class="size-scroll-controls">
+      <button class="size-scroll-btn prev" (click)="scrollSizes(sizeOptionsContainer, -80)">
+        <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button class="size-scroll-btn next" (click)="scrollSizes(sizeOptionsContainer, 80)">
+        <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <!-- Add to cart button within options panel -->
-  <button *ngIf="selectedVariation" class="add-to-cart-btn" [disabled]="!isReadyToAddToCart()" (click)="onAddToCart()">
-    Add to Cart
-  </button>
+  <!-- Instructions text -->
+  <div *ngIf="isReadyToAddToCart()" class="selection-ready">
+    Click + button to add to cart
+  </div>
+
+  <div *ngIf="!isReadyToAddToCart()" class="selection-required">
+    Please select options
+  </div>
 </div>
 
 <!-- Optional Quick View Button - can be uncommented if needed -->

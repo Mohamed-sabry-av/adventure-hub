@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, map, catchError, switchMap } from 'rxjs';
 import { GeoLocationService } from './geo-location.service';
+import { ApiService } from '../../core/services/api.service';
 
 export interface CurrencyInfo {
   code: string;       // AED, USD, etc
@@ -27,7 +27,7 @@ export class CurrencyService {
   };
   
   // Exchange Rate API base URL
-  private readonly EXCHANGE_RATE_API_URL = 'https://open.er-api.com/v6/latest/AED';
+  private readonly EXCHANGE_RATE_API_URL = 'https://latest.currency-api.pages.dev/v1/currencies/aed.json';
 
   private _activeCurrency$ = new BehaviorSubject<CurrencyInfo>(this.DEFAULT_CURRENCY);
   private _availableCurrencies$ = new BehaviorSubject<CurrencyInfo[]>([this.DEFAULT_CURRENCY]);
@@ -128,37 +128,48 @@ export class CurrencyService {
   };
 
   constructor(
-    private http: HttpClient,
+    private apiService: ApiService,
     private geoLocationService: GeoLocationService
   ) {
     this.initCurrencySettings();
   }
 
   initCurrencySettings(): void {
-    // First try to load from localStorage if available
-    const cachedUserCurrency = localStorage.getItem('user_currency');
-    if (cachedUserCurrency) {
-      try {
-        const currency = JSON.parse(cachedUserCurrency);
-        this._activeCurrency$.next(currency);
-        console.log('Loaded currency from cache:', currency.code);
-      } catch (e) {
-        console.error('Error parsing cached user currency:', e);
-      }
-    }
+    // Always get fresh data with no caching
 
-    // Always detect location to ensure we have the most up-to-date country
-    this.getAvailableCurrencies().pipe(
+    // First fetch exchange rates to ensure we have the latest rates
+    this.getExchangeRates().pipe(
+      switchMap(rates => {
+        console.log('Exchange rates loaded with', Object.keys(rates).length, 'currencies');
+        
+        // Then get available currencies
+        return this.getAvailableCurrencies();
+      }),
       switchMap(currencies => {
-        this._availableCurrencies$.next(currencies);
-        console.log('Available currencies loaded:', currencies.length);
+        // Update available currencies with the latest exchange rates
+        const rates = this._exchangeRates$.value;
+        
+        // Only keep currencies that have valid exchange rates
+        const validCurrencies = currencies.filter(currency => {
+          if (rates[currency.code]) {
+            currency.rate = rates[currency.code];
+            return true;
+          }
+          return currency.code === 'AED'; // Always keep AED
+        });
+        
+        this._availableCurrencies$.next(validCurrencies);
+        console.log('Available currencies loaded with valid exchange rates:', validCurrencies.length);
         
         // Always get user location - might have changed since last visit
         return this.geoLocationService.getUserLocation();
       })
-    ).subscribe(location => {
+    ).subscribe({
+      next: location => {
       if (!location) {
-        console.log('No location detected, using default or cached currency');
+          console.log('No location detected, using default currency');
+          // Set to AED if no location
+          this.setActiveCurrency('AED');
         return;
       }
       
@@ -167,30 +178,43 @@ export class CurrencyService {
       this._geoLocationCountry$.next(location.country_code);
       // Set the appropriate currency based on location
       this.setCurrencyForCountry(location.country_code);
+      },
+      error: err => {
+        console.error('Error initializing currency settings:', err);
+        // Ensure we default to AED if there's an error
+        this.setActiveCurrency('AED');
+      }
     });
+  }
+
+  /**
+   * Special method to select International (USD) currency
+   */
+  setInternationalCurrency(): void {
+    this.setActiveCurrency('USD');
+  }
+
+  /**
+   * Check if we have an International option in the available currencies
+   * This method no longer adds fallback data, only returns existing currencies
+   */
+  private ensureInternationalOption(currencies: CurrencyInfo[]): CurrencyInfo[] {
+    // We no longer add fake/fallback data
+    return currencies;
   }
 
   /**
    * Get all available currencies from WooCommerce
    */
   getAvailableCurrencies(): Observable<CurrencyInfo[]> {
-    // First check localStorage for cached currencies
-    const cachedCurrencies = localStorage.getItem('available_currencies');
-    if (cachedCurrencies) {
-      try {
-        const currencies = JSON.parse(cachedCurrencies);
-        if (Array.isArray(currencies) && currencies.length > 0) {
-          return of(currencies);
-        }
-      } catch (e) {
-        console.error('Error parsing cached currencies:', e);
-      }
-    }
-    
-    // Fetch from API if not in cache
-    return this.http.get<any>(`${this.WC_SITE_URL}/wp-json/wc/v3/data/currencies`).pipe(
+    // No caching - fetch directly from API
+    // Fetch currencies data from WooCommerce API
+    return this.apiService.getExternalRequest<any>(`${this.WC_SITE_URL}/wp-json/wc/v3/data/currencies`, { withCredentials: false }).pipe(
       map(response => {
-        if (!response) return this.getExtendedFallbackCurrencies();
+        if (!response) {
+          console.error('No response from currencies API');
+          throw new Error('Failed to fetch currencies from API');
+        }
         
         // Transform the response to our CurrencyInfo format
         const currencies = Object.keys(response).map(code => {
@@ -205,27 +229,29 @@ export class CurrencyService {
           };
         });
         
-        // Cache the results
-        try {
-          localStorage.setItem('available_currencies', JSON.stringify(currencies));
-        } catch (e) {
-          console.error('Error caching currencies:', e);
+        // If EGP is present, update its symbol to L.E
+        const egpCurrency = currencies.find(c => c.code === 'EGP');
+        if (egpCurrency) {
+          egpCurrency.symbol = 'L.E';
+          egpCurrency.format = '%s %v';
         }
         
-        return currencies.length ? currencies : this.getExtendedFallbackCurrencies();
+        return currencies;
       }),
       catchError(err => {
         console.error('Error fetching currencies:', err);
-        return of(this.getExtendedFallbackCurrencies());
+        throw new Error('Failed to fetch currencies from API');
       }),
       switchMap(currencies => {
         // After getting currencies, fetch exchange rates
         return this.getExchangeRates().pipe(
           map(rates => {
-            // Apply exchange rates to currencies
-            return currencies.map(currency => ({
+            // Only include currencies with valid exchange rates
+            return currencies
+              .filter(currency => rates[currency.code] || currency.code === 'AED')
+              .map(currency => ({
               ...currency,
-              rate: rates[currency.code] || 1
+                rate: rates[currency.code] || (currency.code === 'AED' ? 1 : 0)
             }));
           })
         );
@@ -234,287 +260,18 @@ export class CurrencyService {
   }
 
   /**
-   * Get an extended list of fallback currencies
-   * This provides a much larger set of currencies when the API fails
+   * Previously provided fallback currencies, now removed to only use real API data
    */
   private getExtendedFallbackCurrencies(): CurrencyInfo[] {
-    return [
-      // Middle East
-      {
+    // Return only the base currency - no fallback data
+    return [{
         code: 'AED',
         symbol: 'د.إ',
         name: 'UAE Dirham',
         rate: 1,
         decimals: 2,
         format: '%v %s'
-      },
-      {
-        code: 'SAR',
-        symbol: '﷼',
-        name: 'Saudi Riyal',
-        rate: 1.03,
-        decimals: 2,
-        format: '%v %s'
-      },
-      {
-        code: 'QAR',
-        symbol: 'ر.ق',
-        name: 'Qatari Riyal',
-        rate: 1,
-        decimals: 2,
-        format: '%v %s'
-      },
-      {
-        code: 'OMR',
-        symbol: 'ر.ع.',
-        name: 'Omani Rial',
-        rate: 0.1,
-        decimals: 3,
-        format: '%v %s'
-      },
-      {
-        code: 'BHD',
-        symbol: 'د.ب',
-        name: 'Bahraini Dinar',
-        rate: 0.1,
-        decimals: 3,
-        format: '%v %s'
-      },
-      {
-        code: 'KWD',
-        symbol: 'د.ك',
-        name: 'Kuwaiti Dinar',
-        rate: 0.083,
-        decimals: 3,
-        format: '%v %s'
-      },
-      {
-        code: 'EGP',
-        symbol: 'ج.م',
-        name: 'Egyptian Pound',
-        rate: 12.73,
-        decimals: 2,
-        format: '%v %s'
-      },
-      
-      // Major Global Currencies
-      {
-        code: 'USD',
-        symbol: '$',
-        name: 'US Dollar',
-        rate: 0.27,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'EUR',
-        symbol: '€',
-        name: 'Euro',
-        rate: 0.25,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'GBP',
-        symbol: '£',
-        name: 'British Pound',
-        rate: 0.21,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'JPY',
-        symbol: '¥',
-        name: 'Japanese Yen',
-        rate: 41.39,
-        decimals: 0,
-        format: '%s%v'
-      },
-      {
-        code: 'CAD',
-        symbol: 'C$',
-        name: 'Canadian Dollar',
-        rate: 0.37,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'AUD',
-        symbol: 'A$',
-        name: 'Australian Dollar',
-        rate: 0.40,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'CHF',
-        symbol: 'CHF',
-        name: 'Swiss Franc',
-        rate: 0.24,
-        decimals: 2,
-        format: '%s %v'
-      },
-      
-      // Asian Currencies
-      {
-        code: 'CNY',
-        symbol: '¥',
-        name: 'Chinese Yuan',
-        rate: 1.96,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'INR',
-        symbol: '₹',
-        name: 'Indian Rupee',
-        rate: 22.91,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'PKR',
-        symbol: '₨',
-        name: 'Pakistani Rupee',
-        rate: 75.38,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'SGD',
-        symbol: 'S$',
-        name: 'Singapore Dollar',
-        rate: 0.37,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'MYR',
-        symbol: 'RM',
-        name: 'Malaysian Ringgit',
-        rate: 1.25,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'THB',
-        symbol: '฿',
-        name: 'Thai Baht',
-        rate: 9.55,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'IDR',
-        symbol: 'Rp',
-        name: 'Indonesian Rupiah',
-        rate: 4302.66,
-        decimals: 0,
-        format: '%s%v'
-      },
-      {
-        code: 'PHP',
-        symbol: '₱',
-        name: 'Philippine Peso',
-        rate: 15.39,
-        decimals: 2,
-        format: '%s%v'
-      },
-      
-      // European Currencies
-      {
-        code: 'SEK',
-        symbol: 'kr',
-        name: 'Swedish Krona',
-        rate: 2.89,
-        decimals: 2,
-        format: '%v %s'
-      },
-      {
-        code: 'NOK',
-        symbol: 'kr',
-        name: 'Norwegian Krone',
-        rate: 2.89,
-        decimals: 2,
-        format: '%v %s'
-      },
-      {
-        code: 'DKK',
-        symbol: 'kr',
-        name: 'Danish Krone',
-        rate: 1.87,
-        decimals: 2,
-        format: '%v %s'
-      },
-      {
-        code: 'RUB',
-        symbol: '₽',
-        name: 'Russian Ruble',
-        rate: 25.15,
-        decimals: 2,
-        format: '%v %s'
-      },
-      {
-        code: 'TRY',
-        symbol: '₺',
-        name: 'Turkish Lira',
-        rate: 8.91,
-        decimals: 2,
-        format: '%v %s'
-      },
-      {
-        code: 'PLN',
-        symbol: 'zł',
-        name: 'Polish Złoty',
-        rate: 1.07,
-        decimals: 2,
-        format: '%v %s'
-      },
-      
-      // American Currencies
-      {
-        code: 'BRL',
-        symbol: 'R$',
-        name: 'Brazilian Real',
-        rate: 1.53,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'MXN',
-        symbol: '$',
-        name: 'Mexican Peso',
-        rate: 4.61,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'ARS',
-        symbol: '$',
-        name: 'Argentine Peso',
-        rate: 242.26,
-        decimals: 2,
-        format: '%s%v'
-      },
-      
-      // African Currencies
-      {
-        code: 'ZAR',
-        symbol: 'R',
-        name: 'South African Rand',
-        rate: 5.17,
-        decimals: 2,
-        format: '%s%v'
-      },
-      {
-        code: 'NGN',
-        symbol: '₦',
-        name: 'Nigerian Naira',
-        rate: 419.37,
-        decimals: 2,
-        format: '%s%v'
-      }
-    ];
+    }];
   }
 
   /**
@@ -522,73 +279,30 @@ export class CurrencyService {
    * Uses open.er-api.com which provides free exchange rate data
    */
   getExchangeRates(): Observable<{[code: string]: number}> {
-    // First check localStorage for cached rates
-    const cachedRates = localStorage.getItem('exchange_rates');
-    const cacheTime = localStorage.getItem('exchange_rates_time');
-    const now = Date.now();
-    
-    // Use cache if less than 24 hours old
-    if (cachedRates && cacheTime && (now - parseInt(cacheTime, 10)) < 24 * 60 * 60 * 1000) {
-      try {
-        const rates = JSON.parse(cachedRates);
-        this._exchangeRates$.next(rates);
-        return of(rates);
-      } catch (e) {
-        console.error('Error parsing cached rates:', e);
-      }
-    }
-    
-    // Fetch from Exchange Rate API if not in cache or cache is old
-    return this.http.get<any>(this.EXCHANGE_RATE_API_URL).pipe(
+    // No caching - only get fresh data from API
+    console.log('Fetching exchange rates from', this.EXCHANGE_RATE_API_URL);
+    return this.apiService.getExternalRequest<any>(this.EXCHANGE_RATE_API_URL, { withCredentials: true }).pipe(
       map(response => {
+        if (!response || !response.rates) {
+          console.error('Invalid response from exchange rate API:', response);
+          throw new Error('Invalid response from exchange rate API');
+        }
+        
+        console.log('Received exchange rates for', Object.keys(response.rates).length, 'currencies');
+        
         const rates: {[code: string]: number} = { 
           [this.DEFAULT_CURRENCY.code]: 1 // Base currency always has rate of 1
         };
         
-        if (response && response.rates) {
-          // The API returns rates relative to AED (our base currency)
-          Object.assign(rates, response.rates);
-        }
-        
-        // Cache the results
-        try {
-          localStorage.setItem('exchange_rates', JSON.stringify(rates));
-          localStorage.setItem('exchange_rates_time', now.toString());
-        } catch (e) {
-          console.error('Error caching rates:', e);
-        }
+        // The API returns rates relative to AED (our base currency)
+        Object.assign(rates, response.rates);
         
         this._exchangeRates$.next(rates);
         return rates;
       }),
       catchError(err => {
         console.error('Error fetching exchange rates:', err);
-        
-        // Fallback to common static rates if API fails
-        const fallbackRates = {
-          'AED': 1,
-          'USD': 0.27,
-          'EUR': 0.25,
-          'GBP': 0.21,
-          'JPY': 41.39,
-          'INR': 22.91,
-          'CNY': 1.96,
-          'AUD': 0.40,
-          'CAD': 0.37,
-          'CHF': 0.24,
-          'SAR': 1.03,
-          'QAR': 1,
-          'OMR': 0.1,
-          'KWD': 0.083,
-          'BHD': 0.1,
-          'EGP': 12.73,
-          'PKR': 75.38,
-          'RUB': 25.15,
-          'TRY': 8.91
-        };
-        
-        this._exchangeRates$.next(fallbackRates);
-        return of(fallbackRates);
+        throw new Error('Failed to fetch exchange rates from API');
       })
     );
   }
@@ -599,7 +313,13 @@ export class CurrencyService {
   setCurrencyForCountry(countryCode: string): void {
     console.log('Setting currency for country:', countryCode);
     
-    // Get currency mappings from our API or use fallback
+    // Special case for international users
+    if (countryCode === 'INTL') {
+      this.applyAndNotifyCurrencyChange('USD');
+      return;
+    }
+    
+    // Get currency mappings from mapping
     const directCurrencyCode = this.commonCountryCurrencyMap[countryCode];
     if (directCurrencyCode) {
       console.log('Direct currency mapping found:', countryCode, '->', directCurrencyCode);
@@ -608,18 +328,18 @@ export class CurrencyService {
     }
 
     // If no direct mapping, try WooCommerce API
-    this.http.get<any>(`${this.WC_SITE_URL}/wp-json/wc/v3/data/countries`).pipe(
+    this.apiService.getExternalRequest<any>(`${this.WC_SITE_URL}/wp-json/wc/v3/data/countries`).pipe(
       map(countries => {
         // Find the country by code
         const country = countries.find((c: any) => c.code === countryCode);
         // Get the currency code for this country
-        const currencyCode = country?.currency_code || this.commonCountryCurrencyMap[countryCode] || this.DEFAULT_CURRENCY.code;
+        const currencyCode = country?.currency_code || this.DEFAULT_CURRENCY.code;
         return currencyCode;
       }),
-      catchError(() => {
-        // If API fails, use our fallback mapping
-        const currencyCode = this.commonCountryCurrencyMap[countryCode] || this.DEFAULT_CURRENCY.code;
-        return of(currencyCode);
+      catchError(err => {
+        console.error('Error getting country data:', err);
+        // If API fails, use default
+        return of(this.DEFAULT_CURRENCY.code);
       })
     ).subscribe(currencyCode => {
       this.applyAndNotifyCurrencyChange(currencyCode);
@@ -633,42 +353,53 @@ export class CurrencyService {
     // Find this currency in our available currencies
     const currencies = this._availableCurrencies$.value;
     const currency = currencies.find(c => c.code === currencyCode);
+    
+    // Get current exchange rates
+    const exchangeRates = this._exchangeRates$.value;
 
-    // If currency not found in available currencies, add it from our extended fallback list
-    if (!currency) {
-      const extendedFallbacks = this.getExtendedFallbackCurrencies();
-      const fallbackCurrency = extendedFallbacks.find(c => c.code === currencyCode);
+    // If currency not found in available currencies or no exchange rates available, default to AED
+    if (!currency || Object.keys(exchangeRates).length === 0) {
+      console.warn(`Currency ${currencyCode} not found in available currencies or no exchange rates available, using AED`);
       
-      if (fallbackCurrency) {
-        // Add this currency to our available currencies
-        const updatedCurrencies = [...currencies, fallbackCurrency];
-        this._availableCurrencies$.next(updatedCurrencies);
-        
-        console.log('Added new currency to available list:', fallbackCurrency.code, fallbackCurrency.name);
-        this._activeCurrency$.next(fallbackCurrency);
-        localStorage.setItem('user_currency', JSON.stringify(fallbackCurrency));
+      // If we're already requesting AED, use the default
+      if (currencyCode === 'AED') {
+        this._activeCurrency$.next(this.DEFAULT_CURRENCY);
         
         // Dispatch event
         const event = new CustomEvent('currency-changed', { 
           detail: { 
-            currency: fallbackCurrency.code,
-            symbol: fallbackCurrency.symbol,
-            rate: fallbackCurrency.rate
+            currency: this.DEFAULT_CURRENCY.code,
+            symbol: this.DEFAULT_CURRENCY.symbol,
+            rate: this.DEFAULT_CURRENCY.rate
           } 
         });
         document.dispatchEvent(event);
         return;
+      } else {
+        // Otherwise, try again with AED
+        this.applyAndNotifyCurrencyChange('AED');
+        return;
       }
     }
     
-    const activeCurrency = currency || this.DEFAULT_CURRENCY;
-    console.log('Applying currency change to:', activeCurrency.code, activeCurrency.symbol);
+    // Use a deep clone to avoid modifying the original
+    const activeCurrency = {...currency};
+    
+    // Update exchange rate from current rates if available
+    if (exchangeRates && exchangeRates[activeCurrency.code]) {
+      activeCurrency.rate = exchangeRates[activeCurrency.code];
+      console.log('Using live exchange rate for', activeCurrency.code, 'of', activeCurrency.rate);
+    } else {
+      // If no valid exchange rate, switch to AED
+      console.warn('No exchange rate available for', activeCurrency.code, 'switching to AED');
+      this.applyAndNotifyCurrencyChange('AED');
+      return;
+    }
+    
+    console.log('Applying currency change to:', activeCurrency.code, activeCurrency.symbol, 'rate:', activeCurrency.rate);
     
     // Set as active currency
     this._activeCurrency$.next(activeCurrency);
-    
-    // Save user's currency preference
-    localStorage.setItem('user_currency', JSON.stringify(activeCurrency));
     
     // Dispatch an event for any non-Angular parts of the application
     const event = new CustomEvent('currency-changed', { 
@@ -686,22 +417,82 @@ export class CurrencyService {
    */
   setActiveCurrency(currencyCode: string): void {
     const currencies = this._availableCurrencies$.value;
-    const currency = currencies.find(c => c.code === currencyCode);
+    const exchangeRates = this._exchangeRates$.value;
+    let currency = currencies.find(c => c.code === currencyCode);
     
-    if (currency) {
-      this._activeCurrency$.next(currency);
-      localStorage.setItem('user_currency', JSON.stringify(currency));
-    } else {
+    // If currency not found or we have no exchange rates, default to AED
+    if (!currency) {
       console.warn(`Currency ${currencyCode} not found in available currencies`);
+      if (currencyCode !== 'AED') {
+        this.setActiveCurrency('AED');
+      }
+      return;
+    }
+    
+      // Ensure we're using the latest exchange rate from the API
+      if (exchangeRates && exchangeRates[currency.code]) {
+        // Clone the currency object to avoid modifying the original
+        currency = {...currency};
+        
+        // Update the rate using the latest data from the API
+        currency.rate = exchangeRates[currency.code];
+        console.log(`Updated exchange rate for ${currency.code} to ${currency.rate}`);
+      
+      this._activeCurrency$.next(currency);
+      
+      // Alert other parts of the application
+      const event = new CustomEvent('currency-changed', { 
+        detail: { 
+          currency: currency.code,
+          symbol: currency.symbol,
+          rate: currency.rate
+        } 
+      });
+      document.dispatchEvent(event);
+    } else {
+      console.warn(`No current exchange rate found for ${currency.code}, switching to AED`);
+      if (currencyCode !== 'AED') {
+        this.setActiveCurrency('AED');
+      } else {
+        // If we're already trying to set AED but have no exchange rates, just use default rate of 1
+        const aedCurrency = {...this.DEFAULT_CURRENCY};
+        this._activeCurrency$.next(aedCurrency);
+        
+        const event = new CustomEvent('currency-changed', { 
+          detail: { 
+            currency: aedCurrency.code,
+            symbol: aedCurrency.symbol,
+            rate: aedCurrency.rate
+          } 
+        });
+        document.dispatchEvent(event);
+      }
     }
   }
 
   /**
-   * Convert price from base currency to active currency
+   * Convert price from base currency (AED) to active currency
    */
   convertPrice(priceInBaseCurrency: number): number {
     const currency = this._activeCurrency$.value;
-    return priceInBaseCurrency * currency.rate;
+    
+    // If currency is AED (base currency), no conversion needed
+    if (currency.code === 'AED') {
+      return priceInBaseCurrency;
+    }
+    
+    // Check if we have a valid exchange rate
+    if (!currency.rate || currency.rate <= 0) {
+      console.warn('Invalid exchange rate for', currency.code, '- switching to AED');
+      this.setActiveCurrency('AED');
+      return priceInBaseCurrency;
+    }
+    
+    // For non-AED currencies, use the exchange rate from the active currency
+    // The rates are relative to AED (1 AED = X units of target currency)
+    const convertedPrice = priceInBaseCurrency * currency.rate;
+    
+    return convertedPrice;
   }
 
   /**
@@ -711,8 +502,14 @@ export class CurrencyService {
     const currency = this._activeCurrency$.value;
     const formattedValue = price.toFixed(currency.decimals);
     
+    // Use proper English symbols for all currencies
+    let symbol = currency.symbol;
+    if (currency.code === 'EGP') {
+      symbol = 'L.E';
+    }
+    
     return currency.format
-      .replace('%s', currency.symbol)
+      .replace('%s', symbol)
       .replace('%v', formattedValue);
   }
 
@@ -753,5 +550,179 @@ export class CurrencyService {
    */
   getAvailableCurrenciesValue(): CurrencyInfo[] {
     return this._availableCurrencies$.value;
+  }
+  
+  /**
+   * Get the country name for a given currency code
+   * Used for displaying country names in the currency selector
+   */
+  getCountryForCurrency(currencyCode: string): string {
+    // Special case for International (USD)
+    if (currencyCode === 'USD') {
+      return 'International';
+    }
+    
+    // Create a reverse mapping of currency to country
+    const currencyToCountry: Record<string, string> = {};
+    
+    // Populate the mapping
+    for (const [countryCode, currency] of Object.entries(this.commonCountryCurrencyMap)) {
+      if (currency === currencyCode) {
+        // Get country name from country code
+        switch (countryCode) {
+          case 'AE': return 'United Arab Emirates';
+          case 'OM': return 'Oman';
+          case 'QA': return 'Qatar';
+          case 'SA': return 'Saudi Arabia';
+          case 'BH': return 'Bahrain';
+          case 'KW': return 'Kuwait';
+          case 'JO': return 'Jordan';
+          case 'IQ': return 'Iraq';
+          case 'IL': return 'Israel';
+          case 'LB': return 'Lebanon';
+          case 'PS': return 'Palestine';
+          case 'SY': return 'Syria';
+          case 'YE': return 'Yemen';
+          case 'EG': return 'Egypt';
+          case 'MA': return 'Morocco';
+          case 'TN': return 'Tunisia';
+          case 'DZ': return 'Algeria';
+          case 'LY': return 'Libya';
+          case 'NG': return 'Nigeria';
+          case 'ZA': return 'South Africa';
+          case 'GH': return 'Ghana';
+          case 'KE': return 'Kenya';
+          case 'TZ': return 'Tanzania';
+          case 'ET': return 'Ethiopia';
+          case 'UG': return 'Uganda';
+          case 'US': return 'United States';
+          case 'CA': return 'Canada';
+          case 'MX': return 'Mexico';
+          case 'BR': return 'Brazil';
+          case 'AR': return 'Argentina';
+          case 'CL': return 'Chile';
+          case 'CO': return 'Colombia';
+          case 'PE': return 'Peru';
+          case 'CN': return 'China';
+          case 'JP': return 'Japan';
+          case 'KR': return 'South Korea';
+          case 'IN': return 'India';
+          case 'ID': return 'Indonesia';
+          case 'PK': return 'Pakistan';
+          case 'BD': return 'Bangladesh';
+          case 'PH': return 'Philippines';
+          case 'VN': return 'Vietnam';
+          case 'TH': return 'Thailand';
+          case 'MY': return 'Malaysia';
+          case 'SG': return 'Singapore';
+          case 'HK': return 'Hong Kong';
+          case 'GB': return 'United Kingdom';
+          case 'CH': return 'Switzerland';
+          case 'SE': return 'Sweden';
+          case 'NO': return 'Norway';
+          case 'DK': return 'Denmark';
+          case 'PL': return 'Poland';
+          case 'RU': return 'Russia';
+          case 'TR': return 'Turkey';
+          case 'CZ': return 'Czech Republic';
+          case 'HU': return 'Hungary';
+          case 'RO': return 'Romania';
+          case 'DE': return 'Germany';
+          case 'FR': return 'France';
+          case 'IT': return 'Italy';
+          case 'ES': return 'Spain';
+          case 'NL': return 'Netherlands';
+          case 'BE': return 'Belgium';
+          case 'AT': return 'Austria';
+          case 'IE': return 'Ireland';
+          case 'PT': return 'Portugal';
+          case 'GR': return 'Greece';
+          case 'FI': return 'Finland';
+          case 'AU': return 'Australia';
+          case 'NZ': return 'New Zealand';
+          default: return countryCode;
+        }
+      }
+    }
+    
+    // If not found in mapping, return currency name
+    const currency = this._availableCurrencies$.value.find(c => c.code === currencyCode);
+    return currency?.name || currencyCode;
+  }
+
+  /**
+   * Get a URL for a country flag based on currency code
+   */
+  getCountryFlagUrl(currencyCode: string): string {
+    // Get ISO country code for this currency
+    let countryCode = '';
+    
+    // Special mapping for common currencies
+    switch(currencyCode) {
+      case 'USD': 
+        countryCode = 'US'; 
+        break;
+      case 'EUR': 
+        countryCode = 'EU'; // European Union
+        break;
+      case 'GBP': 
+        countryCode = 'GB'; 
+        break;
+      case 'AED': 
+        countryCode = 'AE'; 
+        break;
+      case 'AUD': 
+        countryCode = 'AU'; 
+        break;
+      case 'CAD': 
+        countryCode = 'CA'; 
+        break;
+      case 'JPY': 
+        countryCode = 'JP'; 
+        break;
+      case 'CHF': 
+        countryCode = 'CH'; 
+        break;
+      case 'CNY': 
+        countryCode = 'CN'; 
+        break;
+      case 'INR': 
+        countryCode = 'IN'; 
+        break;
+      case 'SGD': 
+        countryCode = 'SG'; 
+        break;
+      default:
+        // Try to find a country that uses this currency
+        for (const [code, currency] of Object.entries(this.commonCountryCurrencyMap)) {
+          if (currency === currencyCode) {
+            countryCode = code;
+            break;
+          }
+        }
+        // Fallback
+        if (!countryCode) {
+          countryCode = 'UN'; // United Nations flag as fallback
+        }
+    }
+    
+    // Use the simpler flag URL format
+    return `https://flagcdn.com/${countryCode.toLowerCase()}`;
+  }
+
+  /**
+   * Get country code for a given currency code
+   * Used by the currency selector component for flag display
+   */
+  getCountryCodeForCurrency(currencyCode: string): string {
+    // Try to find a country that uses this currency
+    for (const [code, currency] of Object.entries(this.commonCountryCurrencyMap)) {
+      if (currency === currencyCode) {
+        return code.toLowerCase();
+      }
+    }
+    
+    // Fallback
+    return 'un'; // United Nations flag as fallback
   }
 } 

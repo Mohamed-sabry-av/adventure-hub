@@ -6,13 +6,12 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { FormValidationService } from '../../../../shared/services/form-validation.service';
 import { CheckoutService } from '../../services/checkout.service';
 import { StripeService } from '../../services/stripe.service';
-import { AsyncPipe, CommonModule, NgClass } from '@angular/common';
+import { AsyncPipe, CommonModule, NgClass, isPlatformBrowser } from '@angular/common';
 import { CheckoutSummaryComponent } from '../checkout-summary/checkout-summary.component';
-import { BehaviorSubject, Observable, take, interval } from 'rxjs';
-import { switchMap, takeWhile, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, take, interval, of } from 'rxjs';
+import { switchMap, takeWhile, tap, concatMap, delay } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { UIService } from '../../../../shared/services/ui.service';
-import { isPlatformBrowser } from '@angular/common';
 import { Stripe, StripeElements, StripeCardNumberElement, StripeCardExpiryElement, StripeCardCvcElement } from '@stripe/stripe-js';
 import { WalletPaymentComponent } from '../googlePay-button/google-pay-button.component';
 import { CartService } from '../../../cart/service/cart.service';
@@ -98,6 +97,10 @@ export class CheckoutFormComponent {
   cardNumber: StripeCardNumberElement | null = null;
   cardExpiry: StripeCardExpiryElement | null = null;
   cardCvc: StripeCardCvcElement | null = null;
+  
+  // State/province selection for country
+  availableBillingStates: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
+  availableShippingStates: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
 
   ngOnInit() {
     this.billingForm = this.createAddressForm(true);
@@ -119,6 +122,8 @@ export class CheckoutFormComponent {
       } else {
         this.isShippingDifferent = false;
         this.shippingForm.get('countrySelect')?.setValue(this.billingForm.controls?.['countrySelect'].value);
+        // Copy states too
+        this.updateShippingStates(this.availableBillingStates.value);
       }
       this.toggleShippingForm();
     });
@@ -129,14 +134,17 @@ export class CheckoutFormComponent {
 
     const subscribtion2 = this.billingForm.get('countrySelect')?.valueChanges.subscribe((value) => {
       this.onGetSelectedBillingCountry(value);
+      this.loadStatesForBillingCountry(value);
       if (!this.isShippingDifferent) {
         this.onGetSelectedShippingCountry(value);
+        this.updateShippingStates(this.availableBillingStates.value);
       }
     });
 
     const subscribtion4 = this.shippingForm?.get('countrySelect')?.valueChanges.subscribe((value) => {
       if (this.isShippingDifferent) {
         this.onGetSelectedShippingCountry(value);
+        this.loadStatesForShippingCountry(value);
       }
     });
 
@@ -299,7 +307,7 @@ export class CheckoutFormComponent {
               line1: this.billingForm.get('address')?.value,
               city: this.billingForm.get('city')?.value,
               state: this.billingForm.get('state')?.value,
-              postal_code: this.billingForm.get('postCode')?.value,
+              postal_code: '', // Empty string instead of postCode
               country: this.billingForm.get('countrySelect')?.value,
             },
           },
@@ -385,8 +393,9 @@ export class CheckoutFormComponent {
           next: (response) => {
             console.log('COD order created successfully:', response);
             if (response && response.id) {
-              this.router.navigate(['/order-received', response.id]);
+              // Clear the cart after successful order creation
               this.cartService.clearUserCart();
+              this.router.navigate(['/order-received', response.id]);
               this.isLoading = false;
             }
           },
@@ -405,20 +414,46 @@ export class CheckoutFormComponent {
   }
 
   private pollOrderStatus(paymentIntentId: string) {
+    // Start with a longer interval and increase it gradually to reduce server load
+    // Initial check after 2 seconds, then increase delay between checks
+    let attemptCount = 0;
+    const maxAttempts = 5; // Limit number of attempts
+    
     interval(2000).pipe(
-      switchMap(() => this.checkoutService.checkOrderStatus(paymentIntentId)),
+      concatMap(() => {
+        attemptCount++;
+        // If we've exceeded max attempts, stop polling
+        if (attemptCount > maxAttempts) {
+          this.router.navigate(['/order-received'], { 
+            queryParams: { 
+              payment_intent: paymentIntentId,
+              status: 'processing'
+            } 
+          });
+          return of({ success: false, message: 'Max attempts reached' });
+        }
+        
+        // Increase interval based on attempt count (progressive backoff)
+        const delayForNextPoll = attemptCount * 1000; // 2s, 3s, 4s, 5s, 6s
+        return this.checkoutService.checkOrderStatus(paymentIntentId).pipe(
+          delay(delayForNextPoll)
+        );
+      }),
       takeWhile((response) => !(response.success && response.orderId), true),
       tap((response) => {
         if (response.success && response.orderId) {
+          console.log('Order created successfully, navigating to order page');
           this.router.navigate(['/order-received', response.orderId]);
-          this.isLoading = false
+          this.cartService.clearUserCart();
+          this.isLoading = false;
         }
       })
     ).subscribe({
       error: (error) => {
+        console.error('Error checking order status:', error);
         this.uiService.showError('An error occurred while checking order status: ' + (error.message || 'Please try again.'));
         this.router.navigate(['/']);
-        this.isLoading = false
+        this.isLoading = false;
       },
     });
   }
@@ -440,7 +475,7 @@ export class CheckoutFormComponent {
       address_1: billingForm.get('address')?.value || '',
       city: billingForm.get('city')?.value || '',
       state: billingForm.get('state')?.value || '',
-      postcode: `${billingForm.get('postCode')?.value}` || '',
+      postcode: '', // Empty string for postcode
       country: billingForm.get('countrySelect')?.value || '',
       email: billingForm.get('email')?.value || '',
       phone: `${billingForm.get('phone')?.value}` || '',
@@ -453,7 +488,7 @@ export class CheckoutFormComponent {
           address_1: shippingForm.get('address')?.value || '',
           city: shippingForm.get('city')?.value || '',
           state: shippingForm.get('state')?.value || '',
-          postcode: `${billingForm.get('postCode')?.value}` || '',
+          postcode: '', // Empty string for postcode
           country: shippingForm.get('countrySelect')?.value || '',
         }
       : { ...billingAddress };
@@ -481,7 +516,6 @@ export class CheckoutFormComponent {
     if (includeContactInfo) {
       formControls['email'] = new FormControl('', [Validators.email, Validators.required]);
       formControls['phone'] = new FormControl('', [Validators.maxLength(30), Validators.required]);
-      formControls['postCode'] = new FormControl('', [Validators.maxLength(30), Validators.required]);
       formControls['subscribeNewsletter'] = new FormControl(false);
     }
 
@@ -501,7 +535,6 @@ export class CheckoutFormComponent {
       shippingMethod: 'same',
       email: '',
       phone: '',
-      postCode: '',
       subscribeNewsletter: false,
     });
 
@@ -513,7 +546,6 @@ export class CheckoutFormComponent {
       apartment: '',
       city: '',
       state: '',
-      postCode: '',
     });
 
     this.paymentRadiosValue = 'stripe';
@@ -605,10 +637,6 @@ export class CheckoutFormComponent {
 
   get phoneIsInvalid() {
     return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'phone');
-  }
-
-  get postCodeIsInvalid() {
-    return this.formValidationService.controlFieldIsInvalid(this.billingForm, 'postCode');
   }
 
   get paymentMethodIsInvalid() {
@@ -705,10 +733,14 @@ export class CheckoutFormComponent {
           this.billingForm.get('countrySelect')?.setValue(location.country_code);
           this.checkoutService.getSelectedBillingCountry(location.country_code);
           
+          // Load states for this country immediately
+          this.loadStatesForBillingCountry(location.country_code);
+          
           // Also update shipping form if using same address
           if (!this.isShippingDifferent) {
             this.shippingForm.get('countrySelect')?.setValue(location.country_code);
             this.checkoutService.getSelectedShippingCountry(location.country_code);
+            this.loadStatesForShippingCountry(location.country_code);
           }
           
           console.log('Set form country from localStorage geolocation:', location.country_code);
@@ -723,6 +755,13 @@ export class CheckoutFormComponent {
     } else {
       // No saved location, detect it
       this.checkoutService.setDefaultCountryBasedOnGeolocation();
+      
+      // Subscribe to the country once it's detected
+      this.selectedBillingCountry$.pipe(take(1)).subscribe(country => {
+        if (country) {
+          this.loadStatesForBillingCountry(country);
+        }
+      });
     }
   }
 
@@ -751,5 +790,55 @@ export class CheckoutFormComponent {
         }
       }
     });
+  }
+
+  // Load states for selected billing country
+  loadStatesForBillingCountry(countryCode: string) {
+    if (!countryCode) return;
+    
+    this.avaliableCountries$.pipe(take(1)).subscribe(countries => {
+      const country = countries.find((c: any) => c.code === countryCode);
+      if (country && country.states && country.states.length > 0) {
+        this.availableBillingStates.next(country.states);
+        
+        // If user has already populated a city value and we're changing to a state dropdown,
+        // we need to reset the city field to avoid validation errors
+        if (this.billingForm.get('city')?.value) {
+          this.billingForm.get('city')?.setValue('');
+        }
+        
+        console.log('Loaded billing states for country:', countryCode, country.states);
+      } else {
+        this.availableBillingStates.next([]);
+        console.log('No states available for country:', countryCode);
+      }
+    });
+  }
+  
+  // Load states for selected shipping country
+  loadStatesForShippingCountry(countryCode: string) {
+    if (!countryCode) return;
+    
+    this.avaliableCountries$.pipe(take(1)).subscribe(countries => {
+      const country = countries.find((c: any) => c.code === countryCode);
+      if (country && country.states && country.states.length > 0) {
+        this.availableShippingStates.next(country.states);
+        
+        // Reset city field if needed
+        if (this.shippingForm.get('city')?.value && this.isShippingDifferent) {
+          this.shippingForm.get('city')?.setValue('');
+        }
+        
+        console.log('Loaded shipping states for country:', countryCode, country.states);
+      } else {
+        this.availableShippingStates.next([]);
+        console.log('No states available for shipping country:', countryCode);
+      }
+    });
+  }
+  
+  // Update shipping states based on billing states (for same address option)
+  updateShippingStates(states: any[]) {
+    this.availableShippingStates.next(states);
   }
 }
