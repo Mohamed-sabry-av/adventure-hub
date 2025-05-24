@@ -1,16 +1,15 @@
-<div class="recent-products-section py-8 px-4">
+<section class="recent-products py-4 sm:py-8 px-2 sm:px-4">
   <div class="container mx-auto">
-    <div class="section-header flex justify-between items-center mb-6">
-      <h3 class="text-2xl font-bold">Recently Viewed</h3>
-      <a routerLink="/history" class="view-all-link text-blue-600 hover:underline">View All</a>
+    <div class="section-header flex justify-between items-center mb-4 sm:mb-6">
+      <h2 class="text-xl sm:text-2xl font-bold">Recently Viewed</h2>
     </div>
 
     <!-- Loading state -->
     @if (isLoading) {
-    <div class="products-carousel-skeleton grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div class="products-carousel-skeleton grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5 sm:gap-3 md:gap-4">
       @for (item of [1,2,3,4]; track item) {
-      <div class="product-card-skeleton animate-pulse bg-white rounded-lg shadow-md p-4">
-        <div class="h-40 bg-gray-200 rounded-md mb-4"></div>
+      <div class="product-card-skeleton animate-pulse bg-white rounded-lg shadow-md p-2 sm:p-4">
+        <div class="h-60 sm:h-40 bg-gray-200 rounded-md mb-2 sm:mb-4"></div>
         <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
         <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
         <div class="h-6 bg-gray-200 rounded w-1/3"></div>
@@ -19,12 +18,12 @@
     </div>
     }
 
-    @if (!isLoading && recentProducts && recentProducts.length > 0) {
+    @if (!isLoading && recentProducts.length > 0) {
     <div class="products-carousel overflow-hidden relative">
       <owl-carousel-o #owlCarousel [options]="carouselOptions">
-        @for (product of recentProducts; track product?.id || $index) {
-        <ng-template carouselSlide [id]="product.id?.toString() || ''" data-product-id="{{product.id || 'unknown'}}">
-          <div class="px-2" (click)="onProductClick(product.slug)">
+        @for (product of recentProducts; track product.id) {
+        <ng-template carouselSlide [id]="product.id.toString()">
+          <div class="px-0.5 sm:px-2">
             <app-product-card [product]="product"></app-product-card>
           </div>
         </ng-template>
@@ -49,10 +48,10 @@
     </div>
     }
 
-    @if (!isLoading && (!recentProducts || recentProducts.length === 0)) {
+    @if (!isLoading && recentProducts.length === 0) {
     <div class="text-center py-8 bg-gray-100 rounded-lg">
-      <p class="text-gray-600">لم تقم بمشاهدة أي منتجات مؤخراً.</p>
+      <p class="text-gray-600">No recently viewed products.</p>
     </div>
     }
   </div>
-</div>
+</section>

@@ -29,12 +29,12 @@
   @defer (on viewport) {
   <app-recommended-products></app-recommended-products>
   } @placeholder {
-  <div class="container mx-auto px-2 sm:px-4 py-6">
-    <h2 class="text-2xl font-bold mb-4 sm:mb-6">Recommended For You</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5 sm:gap-3 md:gap-4">
-      <!-- Skeleton loaders -->
+    <div class="container mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold mb-6">Recommended For You</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Skeleton loaders -->
       <div class="animate-pulse" *ngFor="let i of [1, 2, 3, 4]">
-        <div class="bg-gray-200 h-60 rounded-lg mb-2"></div>
+        <div class="bg-gray-200 h-48 rounded-lg mb-2"></div>
         <div class="h-4 bg-gray-200 rounded mb-2"></div>
         <div class="h-4 bg-gray-200 rounded w-2/3"></div>
       </div>
@@ -46,12 +46,12 @@
   @defer (on viewport; on idle) {
   <app-sale-products></app-sale-products>
   } @placeholder {
-  <div class="container mx-auto px-2 sm:px-4 py-6">
-    <h2 class="text-2xl font-bold mb-4 sm:mb-6">On Sale</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5 sm:gap-3 md:gap-4">
-      <!-- Skeleton loaders -->
+    <div class="container mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold mb-6">On Sale</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Skeleton loaders -->
       <div class="animate-pulse" *ngFor="let i of [1, 2, 3, 4]">
-        <div class="bg-gray-200 h-60 rounded-lg mb-2"></div>
+        <div class="bg-gray-200 h-48 rounded-lg mb-2"></div>
         <div class="h-4 bg-gray-200 rounded mb-2"></div>
         <div class="h-4 bg-gray-200 rounded w-2/3"></div>
       </div>
@@ -63,10 +63,10 @@
   @defer (on viewport; on idle) {
   <app-latest-blog-posts></app-latest-blog-posts>
   } @placeholder {
-  <div class="container mx-auto px-2 sm:px-4 py-6">
-    <h2 class="text-2xl font-bold mb-4 sm:mb-6">Latest Blog Posts</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
-      <!-- Skeleton loaders -->
+    <div class="container mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold mb-6">Latest Blog Posts</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Skeleton loaders -->
       <div class="animate-pulse" *ngFor="let i of [1, 2]">
         <div class="bg-gray-200 h-48 rounded-lg mb-3"></div>
         <div class="h-6 bg-gray-200 rounded mb-2"></div>

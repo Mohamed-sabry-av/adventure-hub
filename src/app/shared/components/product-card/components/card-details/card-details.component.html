@@ -7,12 +7,12 @@
   <!-- Categories/Brand -->
   <div class="category">
     <ng-container *ngIf="product.categories && product.categories.length">
-      <a [routerLink]="getCategoryRouterPath() | async" class="hover:underline">{{ product.categories[0].name }}</a>
+      <a [routerLink]="getCategoryRouterPath() | async" class="hover:underline" [innerHTML]="product.categories[0].name"></a>
     </ng-container>
     <span *ngIf="product.categories && product.categories.length && getBrandName()">,
     </span>
-    <a *ngIf="getBrandName()" [routerLink]="['/product/brand', getBrandSlug()]" class="hover:underline">{{
-      getBrandName() }}</a>
+    <a *ngIf="getBrandName()" [routerLink]="['/product/brand', getBrandSlug()]" class="hover:underline"
+      [innerHTML]="getBrandName()"></a>
   </div>
 
   <!-- Price -->

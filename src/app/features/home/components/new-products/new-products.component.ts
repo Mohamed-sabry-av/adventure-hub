@@ -49,7 +49,7 @@ export class NewProductsComponent implements OnInit, AfterViewInit, OnDestroy {
     mouseDrag: true,
     touchDrag: true,
     pullDrag: false,
-    dots: false, // Disable dots for better performance
+    dots: true, // Disable dots for better performance
     navSpeed: 300, // Faster animation
     autoplay: false,
     smartSpeed: 300, // Faster transitions
@@ -57,7 +57,7 @@ export class NewProductsComponent implements OnInit, AfterViewInit, OnDestroy {
     navText: ['', ''],
     autoWidth: false,
     items: 4,
-    lazyLoad: false, // Disable lazy loading for better performance
+    lazyLoad: true, // Disable lazy loading for better performance
     responsive: {
       0: {
         items: 2

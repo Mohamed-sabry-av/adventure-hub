@@ -141,26 +141,34 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
   }
 
   private loadSmartRecommendations(): void {
-    const popularIds = this.relatedProductsService.getMostCommonRelatedIds(6);
-    const randomIds = this.relatedProductsService.getRandomRelatedIds(6);
+    const popularIds = this.relatedProductsService.getMostCommonRelatedIds(10);
+    const randomIds = this.relatedProductsService.getRandomRelatedIds(10);
     const combinedIds = [...new Set([...popularIds, ...randomIds])];
 
     if (combinedIds.length >= 6) {
-      const idsToUse = this.shuffleArray(combinedIds).slice(0, 24);
-      this.productService.getProductsByIds(idsToUse).subscribe({
-        next: (products) => {
-          if (products.length >= 8) {
-            this.products = this.shuffleArray(products).slice(0, 12);
-            this.loading = false;
-            this.cdr.markForCheck();
+      // Use the new method to get in-stock products only
+      this.relatedProductsService.getInStockProductIds(combinedIds, 24).subscribe({
+        next: (inStockIds) => {
+          if (inStockIds.length >= 8) {
+            this.productService.getProductsByIds(inStockIds).subscribe({
+              next: (products) => {
+                this.products = this.shuffleArray(products).slice(0, 12);
+                this.loading = false;
+                this.cdr.markForCheck();
+              },
+              error: (error) => {
+                console.error('Error loading in-stock products:', error);
+                this.loadFeaturedProducts();
+              }
+            });
           } else {
-            this.loadFeaturedProductsToComplement(products);
+            this.loadFeaturedProducts();
           }
         },
         error: (error) => {
-          console.error('Error loading recommended products:', error);
+          console.error('Error getting in-stock product IDs:', error);
           this.loadFeaturedProducts();
-        },
+        }
       });
     } else {
       this.loadFeaturedProducts();
@@ -178,8 +186,14 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
 
     this.homeService.getFeaturedProducts(1, neededProductsCount + 5).subscribe({
       next: (featuredProducts: any) => {
+        // Filter for in-stock products only
+        const inStockFeaturedProducts = featuredProducts.filter((product: any) => 
+          product.stock_status === 'instock' || 
+          (product.variations?.length === 0 && (product.stock_quantity ?? 0) > 0)
+        );
+        
         const existingIds = new Set(existingProducts.map((p) => p.id));
-        const uniqueFeaturedProducts = featuredProducts.filter((p: any) => !existingIds.has(p.id));
+        const uniqueFeaturedProducts = inStockFeaturedProducts.filter((p: any) => !existingIds.has(p.id));
         this.products = this.shuffleArray([...existingProducts, ...uniqueFeaturedProducts]).slice(0, 12);
         this.loading = false;
         this.cdr.markForCheck();
@@ -193,9 +207,15 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
   }
 
   private loadFeaturedProducts(): void {
-    this.homeService.getFeaturedProducts(1, 12).subscribe({
+    this.homeService.getFeaturedProducts(1, 16).subscribe({
       next: (data: any) => {
-        this.products = data;
+        // Filter for in-stock products only
+        const inStockProducts = data.filter((product: any) => 
+          product.stock_status === 'instock' || 
+          (product.variations?.length === 0 && (product.stock_quantity ?? 0) > 0)
+        );
+        
+        this.products = inStockProducts.slice(0, 12);
         this.loading = false;
         this.cdr.markForCheck();
       },

@@ -56,10 +56,14 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
     touchDrag: true,
     pullDrag: false,
     dots: true,
-    navSpeed: 700,
+    navSpeed: 300,
+    autoplay: false,
+    smartSpeed: 300,
+    fluidSpeed: true,
     navText: ['', ''],
     autoWidth: false,
     items: 4,
+    lazyLoad: false,
     responsive: {
       0: {
         items: 2

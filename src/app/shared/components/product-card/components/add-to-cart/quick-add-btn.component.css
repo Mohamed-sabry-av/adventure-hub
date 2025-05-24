@@ -12,10 +12,9 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Blue circular add button positioned bottom right */
 .add-button-container {
   position: absolute;
-  bottom: 10px;
+  bottom: 30px;
   right: 10px;
   z-index: 20;
 }
@@ -153,34 +152,104 @@ button:disabled {
   to { opacity: 1; }
 }
 
-/* Options panel that slides up */
+/* Options Panel Container */
 .options-panel {
   position: absolute;
-  bottom: 50px;
-  left: auto;
   right: 0;
-  width: 240px;
-  background-color: white;
+  bottom: calc(100% + 10px); /* Position above the button with some spacing */
+  width: 220px;
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 15px;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 0 5px;
-  border: 1px solid #e5e7eb;
-  animation: fadeInSlideUp 0.3s ease-out;
+  border: 1px solid #e2e8f0;
+  max-height: calc(100vh - 40px); /* Prevent extending beyond viewport */
+  overflow-y: auto; /* Enable scrolling if content is too long */
+  transform-origin: bottom right;
+  animation: scaleIn 0.2s ease;
 }
 
-@keyframes fadeInSlideUp {
-  0% {
+/* Ensure the panel stays within the card boundaries */
+.product-card {
+  position: relative;
+  overflow: visible !important; /* Allow the panel to be visible outside the card */
+}
+
+/* Panel Header */
+.options-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.product-name-truncate {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a202c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.close-options-btn {
+  padding: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.close-options-btn:hover {
+  color: #1a202c;
+}
+
+@keyframes scaleIn {
+  from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: scale(0.95);
   }
-  100% {
+  to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
+  }
+}
+
+/* Media queries for different screen sizes */
+@media (max-width: 768px) {
+  .options-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    max-height: 80vh;
+    z-index: 1050;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Adjust panel position based on available space */
+  .options-panel {
+    max-height: min(400px, calc(100vh - var(--panel-top-offset, 60px)));
+    transform: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  /* If there's not enough space above, show below */
+  .options-panel.show-below {
+    bottom: auto;
+    top: calc(100% + 10px);
+    transform-origin: top right;
   }
 }
 
@@ -216,18 +285,6 @@ button:disabled {
     width: 24px;
     height: 24px;
   }
-}
-
-/* Close button for options panel */
-.close-options-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: transparent;
-  color: #666;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .options-title {

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of, forkJoin } from 'rxjs';
 import { LocalStorageService } from './local-storage.service';
 import { ProductService } from './product.service';
+import { map, catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +28,45 @@ export class RelatedProductsService {
    */
   get relatedProductsIds$(): Observable<number[]> {
     return this.relatedProductsSubject.asObservable();
+  }
+
+  /**
+   * Get in-stock related products by IDs
+   * @param productIds Array of product IDs to check
+   * @param count Maximum number of products to return
+   * @returns Observable of in-stock product IDs
+   */
+  getInStockProductIds(productIds: number[], count: number = 12): Observable<number[]> {
+    if (!productIds || productIds.length === 0) {
+      return of([]);
+    }
+
+    // Get products in batches to avoid overloading the API
+    const batchSize = 20;
+    const batches: Observable<any[]>[] = [];
+    
+    for (let i = 0; i < productIds.length; i += batchSize) {
+      const batchIds = productIds.slice(i, i + batchSize);
+      batches.push(
+        this.productService.getProductsByIds(batchIds).pipe(
+          map(products => products.filter(p => 
+            p.stock_status === 'instock' || 
+            (p.variations?.length === 0 && (p.stock_quantity ?? 0) > 0)
+          )),
+          catchError(() => of([]))
+        )
+      );
+    }
+
+    return forkJoin(batches).pipe(
+      map(batchResults => {
+        const allInStockProducts = batchResults.flat();
+        return this.shuffleArray(allInStockProducts)
+          .slice(0, count)
+          .map(product => product.id);
+      }),
+      catchError(() => of([]))
+    );
   }
 
   /**

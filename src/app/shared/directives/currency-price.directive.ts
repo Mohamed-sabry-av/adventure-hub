@@ -63,7 +63,7 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
     const convertedPrice = this.currencyService.convertPrice(this.price);
     
     // For debugging
-    // console.log(`Displaying price: ${this.price} AED → ${convertedPrice} ${currency.code} (rate: ${currency.rate})`);
+    console.log(`Displaying price: ${this.price} AED → ${convertedPrice} ${currency.code} (rate: ${currency.rate})`);
     
     // Handle special case for UAE Dirham with SVG
     if (currency.code === 'AED') {
@@ -87,22 +87,29 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
       numberingSystem: 'latn' // Force Latin (Western) numerals
     });
     
-    // Create elements
+    // Create elements with inline-flex to ensure better iOS compatibility
     const container = document.createElement('span');
     container.className = 'flex items-center';
+    container.style.display = 'inline-flex'; // Force inline-flex display
+    container.style.flexWrap = 'nowrap'; // Prevent wrapping
     
     // Create SVG image for AED (only if not hiding symbol)
     if (!this.hideSymbol) {
-    const img = document.createElement('img');
-    img.src = '/icons/UAE_Dirham_Symbol.svg';
-    img.alt = 'AED';
-    img.className = 'h-4 w-4 mr-1';
+      const img = document.createElement('img');
+      img.src = '/icons/UAE_Dirham_Symbol.svg';
+      img.alt = 'AED';
+      img.className = 'h-4 w-4 mr-1';
+      img.style.flexShrink = '0'; // Prevent the image from shrinking
+      img.style.marginRight = '2px'; // Ensure consistent spacing
+      img.style.width = '16px'; // Fixed width for consistency
+      img.style.height = '16px'; // Fixed height for consistency
       container.appendChild(img);
     }
     
     // Create price text
     const priceText = document.createElement('span');
     priceText.textContent = formattedValue;
+    priceText.style.whiteSpace = 'nowrap'; // Prevent text wrapping
     
     // Assemble elements
     container.appendChild(priceText);
@@ -121,29 +128,42 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
       numberingSystem: 'latn' // Force Latin (Western) numerals
     });
     
-    // Create elements
+    // Create elements with inline-flex for better iOS support
     const container = document.createElement('span');
     container.className = 'flex items-center';
+    container.style.display = 'inline-flex'; // Force inline-flex
+    container.style.flexWrap = 'nowrap'; // Prevent wrapping
     
     // Only add currency symbol if not hiding it
     if (!this.hideSymbol) {
-    // Create symbol element
-    const symbolSpan = document.createElement('span');
-    symbolSpan.className = 'currency-symbol mr-1';
-    symbolSpan.textContent = currency.symbol;
-    
-    // Assemble based on format
-    if (currency.format.startsWith('%s')) {
-      container.appendChild(symbolSpan);
-        container.appendChild(document.createTextNode(formattedValue));
+      // Create symbol element
+      const symbolSpan = document.createElement('span');
+      symbolSpan.className = 'currency-symbol mr-1';
+      symbolSpan.textContent = currency.symbol;
+      symbolSpan.style.flexShrink = '0'; // Prevent symbol from shrinking
+      symbolSpan.style.whiteSpace = 'nowrap'; // Prevent wrapping
+      
+      // Assemble based on format
+      if (currency.format.startsWith('%s')) {
+        container.appendChild(symbolSpan);
+        
+        const priceText = document.createElement('span');
+        priceText.textContent = formattedValue;
+        priceText.style.whiteSpace = 'nowrap'; // Prevent wrapping
+        container.appendChild(priceText);
       } else {
-        container.appendChild(document.createTextNode(formattedValue));
+        const priceText = document.createElement('span');
+        priceText.textContent = formattedValue;
+        priceText.style.whiteSpace = 'nowrap'; // Prevent wrapping
+        container.appendChild(priceText);
+        
         container.appendChild(symbolSpan);
       }
     } else {
       // Just add the price without symbol
       const priceText = document.createElement('span');
       priceText.textContent = formattedValue;
+      priceText.style.whiteSpace = 'nowrap'; // Prevent wrapping
       container.appendChild(priceText);
     }
     
@@ -159,15 +179,21 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
     // Store current price display
     const currentDisplay = this.el.nativeElement.innerHTML;
     
-    // Create container
+    // Create container with inline-flex for better iOS support
     const container = document.createElement('span');
     container.className = 'flex items-center';
+    container.style.display = 'inline-flex'; // Force inline-flex
+    container.style.flexWrap = 'nowrap'; // Prevent wrapping
+    container.style.width = 'auto'; // Ensure proper sizing
+    container.style.maxWidth = '100%'; // Don't exceed parent width
     
     // Create original price with strikethrough
     const originalEl = document.createElement('span');
     originalEl.style.textDecoration = 'line-through';
     originalEl.style.marginRight = '0.5em';
     originalEl.style.color = '#777';
+    originalEl.style.whiteSpace = 'nowrap'; // Prevent wrapping
+    originalEl.style.flexShrink = '0'; // Prevent shrinking
     
     // Always format the value without currency symbol for old prices
     const formattedValue = convertedPrice.toLocaleString('en-US', {
@@ -179,6 +205,7 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
     
     const priceText = document.createElement('span');
     priceText.textContent = formattedValue;
+    priceText.style.whiteSpace = 'nowrap'; // Prevent wrapping
     
     // Just append the price value without any currency symbol
     originalEl.appendChild(priceText);
@@ -190,6 +217,8 @@ export class CurrencyPriceDirective implements OnInit, OnDestroy {
     // Create current price element and append HTML
     const currentEl = document.createElement('span');
     currentEl.style.fontWeight = 'bold';
+    currentEl.style.whiteSpace = 'nowrap'; // Prevent wrapping
+    currentEl.style.flexShrink = '0'; // Prevent shrinking
     currentEl.innerHTML = currentDisplay;
     
     container.appendChild(currentEl);

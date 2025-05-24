@@ -59,11 +59,22 @@
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem; /* Reduced margin */
+  width: auto; /* Ensure price container doesn't stretch */
+  max-width: 100%; /* Don't exceed card width */
 }
 
 .current-price {
   font-weight: 600;
   font-size: 0.925rem;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.current-price img {
+  max-height: 16px;
+  max-width: 16px;
+  object-fit: contain;
 }
 
 .sale-price {
@@ -78,6 +89,7 @@
   text-decoration: line-through;
   color: #6b7280;
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 /* Responsive adjustments */
@@ -128,4 +140,33 @@
 /* Hover effects on product card hover */
 .product-card:hover .product-name {
   color: #16a34a; /* Match green color */
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .price {
+    display: inline-flex;
+    width: auto;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .current-price, .old-price {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  
+  /* Force proper display of currency symbol in iOS */
+  .current-price img {
+    margin-right: 2px !important;
+    flex-shrink: 0;
+  }
+
+  .current-price .flex,
+  .old-price .flex {
+    display: inline-flex !important;
+    width: auto !important;
+    flex-wrap: nowrap !important;
+  }
 }

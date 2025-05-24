@@ -1,11 +1,11 @@
 /* Color Swatches Container */
 .color-swatches-container {
-  padding: 0.25rem 0.5rem 0.5rem;
+  /* padding: 0.25rem 0.5rem 0.5rem; */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  min-height: 35px;
+  /* min-height: 35px; */
   position: relative;
   width: 100%;
 }
@@ -14,7 +14,7 @@
 .color-swatches-wrapper {
   display: flex;
   width: 100%;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   position: relative;
 }
@@ -22,12 +22,12 @@
 /* Color Swatches */
 .color-swatches {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 6px;
   flex-wrap: nowrap;
-  padding: 0 6px;
-  max-width: calc(100% - 50px);
-  min-height: 28px; /* Maintain consistent height */
+  padding: 0 30px;
+  max-width: calc(100% - 60px); /* Account for navigation buttons */
+  min-height: 0px; /* Maintain consistent height */
 }
 
 /* Empty placeholder when no colors */
@@ -129,8 +129,8 @@
 
 /* Color Navigation Buttons */
 .color-nav-btn {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,8 +169,8 @@
 .pagination-dots {
   display: flex;
   gap: 3px;
-  margin-top: 2px;
-  height: 6px; /* Fixed height to maintain consistency */
+  margin-top: 0px;
+  height: 0px; /* Fixed height to maintain consistency */
 }
 
 .pagination-dot {
@@ -199,14 +199,16 @@
 /* Mobile Optimizations */
 @media (max-width: 767px) {
   .color-swatches-container {
-    padding: 0.25rem 0.5rem 0.25rem;
-    min-height: 30px;
+    /* padding: 0.25rem 0.5rem 0.25rem; */
+    min-height: 10px;
   }
 
   .color-swatches {
     gap: 6px;
-    min-height: 22px;
-    justify-content: flex-start;
+    min-height: 5px;
+    justify-content: center;
+    padding: 0 25px; /* Slightly reduced padding for mobile */
+    max-width: calc(100% - 50px);
   }
 
   .swatch {
@@ -223,12 +225,20 @@
     bottom: -16px;
   }
 
-  .color-nav-btn {
-    width: 14px;
-    height: 14px;
+  .pagination-dots {
+    height: 2px;
   }
 
-  .pagination-dots {
-    height: 4px;
+  .color-nav-btn {
+    width: 16px; /* Smaller buttons on mobile */
+    height: 16px;
+  }
+
+  .color-nav-btn.left {
+    left: 4px;
+  }
+  
+  .color-nav-btn.right {
+    right: 4px;
   }
 }

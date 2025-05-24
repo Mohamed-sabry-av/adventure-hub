@@ -7,7 +7,7 @@
         {{ tag }}
       </ng-container>
       <ng-template #hubTag>
-        <img src="assets/Hub-logo/black-hub.png" alt="Hub" class="hub-icon-product">
+        <img src="assets/Hub-logo/black-hub.svg" alt="Hub" class="hub-icon-product">
       </ng-template>
     </span>
   </div>
@@ -209,6 +209,11 @@
   </div>
 </div>
 
+<!-- Add the Share Popup at the end of the template -->
+<app-share-popup [isVisible]="isSharePopupVisible" [productUrl]="getCurrentProductUrl()"
+  [productName]="productInfo()?.name || 'Check out this product'" (close)="closeSharePopup()">
+</app-share-popup>
+
 <div class="sticky-footer block md:hidden" [class.visible]="isFooterVisible$">
   <div class="quantity-controls">
     <button class="quantity-btn" (click)="onQuantityDown()" [disabled]="quantity <= 1">-</button>
@@ -218,9 +223,6 @@
   <button class="add-to-cart-btn" (click)="addToCart()"
     [disabled]="!isProductInStock || !allVariationAttributesSelected">
     Add to Cart
-  </button>
-  <button class="share-btn" (click)="shareProduct()" aria-label="Share product">
-    <i class="pi pi-share-alt"></i>
   </button>
 </div>
 

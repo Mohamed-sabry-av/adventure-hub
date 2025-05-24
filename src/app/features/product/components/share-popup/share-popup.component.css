@@ -1,0 +1,78 @@
+/* Share Popup Styles */
+.share-popup {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Platform Icon Wrapper */
+.platform-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.platform-icon-wrapper i {
+  font-size: 1.5rem;
+}
+
+.sharing-platform-btn:hover .platform-icon-wrapper {
+  transform: scale(1.1);
+}
+
+.sharing-platform-btn:active .platform-icon-wrapper {
+  transform: scale(0.95);
+}
+
+/* Copy Link Input */
+.copy-link-input {
+  font-size: 14px;
+  background-color: #f8f8f8;
+}
+
+.copy-link-input:focus {
+  outline: none;
+  border-color: #3BB45A;
+}
+
+/* Copy Button */
+button.copied {
+  background-color: #d1fae5;
+  color: #10b981;
+}
+
+/* Animation */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.copied {
+  animation: pulse 0.3s ease;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 640px) {
+  .share-popup {
+    max-width: 100%;
+    border-radius: 12px 12px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 80vh;
+  }
+  
+  .platform-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .platform-icon-wrapper i {
+    font-size: 1.2rem;
+  }
+} 

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   width: 100%; /* Full width of grid cell */
-  height: var(--product-card-height-desktop, 500px); /* Fixed height for consistent cards */
+  height: var(--product-card-height-desktop, 470px); /* Fixed height for consistent cards */
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -102,7 +102,7 @@
 
   /* Ensure the quick add button is positioned correctly on mobile */
   .product-card app-mobile-quick-add {
-    bottom: 8px;
+    bottom: 30px;
     right: 8px;
   }
   

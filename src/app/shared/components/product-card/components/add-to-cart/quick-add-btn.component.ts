@@ -9,6 +9,11 @@ import {
   Inject,
   PLATFORM_ID,
   OnDestroy,
+  ElementRef,
+  HostListener,
+  ViewChild,
+  Renderer2,
+  AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -50,7 +55,7 @@ import { takeUntil } from 'rxjs/operators';
     ]),
   ],
 })
-export class MobileQuickAddComponent implements OnInit, OnDestroy {
+export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() uniqueSizes: { size: string; inStock: boolean }[] = [];
   @Input() selectedSize: string | null = null;
   @Input() colorOptions: { color: string; image: string; inStock: boolean }[] = [];
@@ -68,6 +73,8 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
   @Output() selectSize = new EventEmitter<string>();
   @Output() selectColor = new EventEmitter<{ color: string; image: string }>();
   @Output() addToCart = new EventEmitter<{ quantity: number }>();
+
+  @ViewChild('optionsPanel') optionsPanel?: ElementRef;
 
   quantityValue: number = 1;
   addSuccess: boolean = false;
@@ -87,6 +94,8 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
     private variationService: VariationService,
     private cartService: CartService,
     private uiService: UIService,
+    private elementRef: ElementRef,
+    private renderer: Renderer2,
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
   }
@@ -137,6 +146,12 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
     // Clean up all subscriptions to prevent memory leaks
     this.subscriptions.unsubscribe();
     this.activeQuickAddSubscription.unsubscribe();
+  }
+
+  ngAfterViewInit() {
+    // Add event listener for scroll to update panel position
+    window.addEventListener('scroll', this.updatePanelPosition.bind(this), true);
+    window.addEventListener('resize', this.updatePanelPosition.bind(this), true);
   }
 
   onToggleOptionsPanel() {
@@ -321,5 +336,49 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy {
     
     // Otherwise, it might be a CSS color name
     return lowerColor;
+  }
+
+  private updatePanelPosition(): void {
+    if (!this.optionsVisible || !this.optionsPanel) return;
+
+    const panel = this.optionsPanel.nativeElement;
+    const button = this.elementRef.nativeElement.querySelector('.circular-add-button');
+    const card = this.elementRef.nativeElement.closest('.product-card');
+
+    if (!panel || !button || !card) return;
+
+    const panelRect = panel.getBoundingClientRect();
+    const buttonRect = button.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+
+    // Calculate available space
+    const spaceAbove = buttonRect.top;
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    
+    // Set panel position
+    if (spaceAbove > spaceBelow && spaceAbove >= 200) {
+      // Show above if there's enough space
+      this.renderer.removeClass(panel, 'show-below');
+      this.renderer.setStyle(panel, '--panel-top-offset', `${spaceAbove}px`);
+    } else {
+      // Show below
+      this.renderer.addClass(panel, 'show-below');
+    }
+
+    // Ensure panel stays within card boundaries horizontally
+    const rightOverflow = panelRect.right - cardRect.right;
+    if (rightOverflow > 0) {
+      this.renderer.setStyle(panel, 'right', `${rightOverflow}px`);
+    }
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  onScroll() {
+    this.updatePanelPosition();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.updatePanelPosition();
   }
 }
