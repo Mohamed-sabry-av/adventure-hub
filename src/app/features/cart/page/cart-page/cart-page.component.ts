@@ -14,9 +14,6 @@ import { ServiceHighlightsComponent } from '../../../../shared/components/servic
 import { Observable, Subscription, catchError, of } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { UIService } from '../../../../shared/services/ui.service';
-import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
-import { DialogSuccessComponent } from '../../../../shared/components/dialog-success/dialog-success.component';
-import { DialogInfoComponent } from '../../../../shared/components/dialog-info/dialog-info.component';
 import { CartStatus } from '../../model/cart.model';
 import { RouterLink } from '@angular/router';
 import { CheckoutProgressMapComponent } from '../../../shared/components/checkout-progress-map/checkout-progress-map.component';
@@ -29,9 +26,6 @@ import { CheckoutProgressMapComponent } from '../../../shared/components/checkou
     CartCheckoutComponent,
     ServiceHighlightsComponent,
     AsyncPipe,
-    DialogErrorComponent,
-    DialogSuccessComponent,
-    DialogInfoComponent,
     RouterLink,
     CheckoutProgressMapComponent,
   ],

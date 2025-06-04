@@ -1,16 +1,25 @@
-<div class="min-h-screen flex flex-col bg-[#2E2E2E]">
-  <div class="w-full md:pb-0">
+<div class="min-h-screen flex flex-col bg-[#222222]">
+  <header class="w-full md:pb-0" role="banner">
     <app-header />
-  </div>
+  </header>
 
   <app-side-cart />
   <app-side-options />
-  <div class="flex-1 bg-white w-full">
+  <main class="flex-1 bg-white w-full" role="main">
     <router-outlet />
-  </div>
+  </main>
 
   <!-- Service Highlights Banner - Above Footer -->
-  <app-service-highlights *ngIf="!isCheckoutPage && !isProductsPage" class="bg-white w-full"></app-service-highlights>
+  <section *ngIf="!isCheckoutPage && !isProductsPage" class="bg-white w-full" aria-label="Service Highlights">
+    <app-service-highlights></app-service-highlights>
+  </section>
 
-  <app-footer *ngIf="!isCheckoutPage" />
+  <footer *ngIf="!isCheckoutPage" role="contentinfo">
+    <app-footer />
+  </footer>
+
+  <!-- Toast notifications -->
+  <div aria-live="polite" role="status">
+    <app-toast />
+  </div>
 </div>

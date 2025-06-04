@@ -6,12 +6,12 @@ import { CategoriesService } from '../../../../../core/services/categories.servi
 import { Observable, firstValueFrom, from, map, of } from 'rxjs';
 import { VariationService } from '../../../../../core/services/variation.service';
 import { Variation } from '../../../../../interfaces/product';
-import { CurrencyPriceDirective } from '../../../../directives/currency-price.directive';
+import { CurrencySvgPipe } from '../../../../pipes/currency.pipe';
 
 @Component({
   selector: 'app-card-details',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyPriceDirective],
+  imports: [CommonModule, RouterLink, CurrencySvgPipe],
 
   templateUrl: './card-details.component.html',
   styleUrls: ['./card-details.component.css'],

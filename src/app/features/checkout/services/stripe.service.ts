@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -8,7 +9,7 @@ export class StripeService {
   private stripePromise: Promise<Stripe | null>;
 
   constructor() {
-    this.stripePromise = loadStripe('pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45');
+    this.stripePromise = loadStripe(environment.stripe.publishableKey);
   }
 
   getStripe(): Promise<Stripe | null> {

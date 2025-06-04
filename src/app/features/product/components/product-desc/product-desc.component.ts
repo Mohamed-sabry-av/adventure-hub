@@ -8,6 +8,8 @@ import {
   SecurityContext,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  OnChanges,
+  SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
@@ -31,12 +33,14 @@ interface Attribute {
   styleUrls: ['./product-desc.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductDescComponent implements OnInit, AfterViewInit {
-  @Input() productAdditionlInfo: any;
+export class ProductDescComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() product: any;
   activeSection: 'description' | 'additional-info' | 'reviews' = 'description';
   reviewCount: number = 0;
   safeDescription: SafeHtml | null = null;
+
+  // Derived product info for the template
+  productAdditionlInfo: any = null;
 
   private sectionPositions: { [key: string]: number } = {};
   private scrolling = false;
@@ -49,11 +53,21 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
-    this.productAdditionlInfo = this.productAdditionlInfo || {};
-    console.log('Product Additional Info:', this.productAdditionlInfo);
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['product'] && this.product) {
+      // Initialize productAdditionlInfo from product data
+      this.productAdditionlInfo = this.product;
+      this.setSafeDescription();
+      this.cdr.markForCheck();
+    }
+  }
 
-    this.setSafeDescription();
+  ngOnInit() {
+    if (this.product) {
+      this.productAdditionlInfo = this.product;
+      this.setSafeDescription();
+    }
+    
     this.reviewCount = 0;
     this.fetchReviews();
   }
@@ -162,14 +176,13 @@ export class ProductDescComponent implements OnInit, AfterViewInit {
       return;
     }
     try {
-      console.log('Raw description:', description);
+      // Skip extra console log that might slow down processing
+      // console.log('Raw description:', description);
       
       let processedDescription = description;
       
       processedDescription = processedDescription.replace(/data-src="(.*?)"/g, 'src="$1"');
-      
       processedDescription = processedDescription.replace(/src="data:image\/gif;base64,.*?"/g, '');
-      
       processedDescription = processedDescription.replace(/class="lazyload"/g, '');
       
       this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(processedDescription);

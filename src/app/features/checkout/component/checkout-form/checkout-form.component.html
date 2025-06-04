@@ -1,7 +1,8 @@
 <form class="my-2 sm:my-0 w-full" [formGroup]="billingForm">
   <div class="flex lg:flex-row flex-col w-full">
+
     <div class="lg:w-[55%] lg:border-r">
-      <div class="flex flex-col gap-y-8 lg:p-10 mb-5 lg:mb-0">
+      <div class="flex flex-col gap-y-4 lg:p-10 mb-5 lg:mb-0">
         <!-- Contact -->
         <section>
           <div class="flex flex-col items-center">
@@ -147,6 +148,23 @@
             </div>
           </div>
         </section>
+
+        <!-- Order Summary for Mobile - Move to top on mobile -->
+        <div class="lg:hidden w-full mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-xl font-semibold">Order summary</p>
+            <div class="flex items-center gap-x-2 text-orange-500 cursor-pointer" (click)="onShowSummary()">
+              <button>{{ !(summaryIsVisible$ | async) ? 'Hide' : 'Show' }}</button>
+              <i class="pi pi-sort-down-fill"></i>
+            </div>
+          </div>
+
+          <!-- Mobile Summary - Without Trust Symbols -->
+          <app-checkout-summary [isVisible$]="summaryIsVisible$!">
+            <ng-container ngProjectAs="trust-symbols-placeholder"></ng-container>
+          </app-checkout-summary>
+        </div>
+
 
         <!-- Payment -->
         <section>
@@ -366,51 +384,66 @@
       </div>
     </div>
 
-    <!-- Show Button -->
-    <div class="flex justify-between items-center mb-4 lg:hidden">
-      <p class="text-xl font-semibold">Order summary</p>
-      <div class="flex items-center gap-x-2 text-orange-500 cursor-pointer" (click)="onShowSummary()">
-        <button>{{ !(summaryIsVisible$ | async) ? 'Hide' : 'Show' }}</button>
-        <i class="pi pi-sort-down-fill"></i>
-      </div>
-    </div>
-
-    <!-- Summary -->
+    <!-- Summary for Desktop -->
     <div class="lg:w-[45%]">
+      <!-- Desktop Order Summary Header -->
+      <div class="hidden lg:flex justify-between items-center mb-2">
+        <p class="text-xl font-semibold">Order summary</p>
+        <div class="flex items-center gap-x-2 text-orange-500 cursor-pointer" (click)="onShowSummary()">
+          <button>{{ !(summaryIsVisible$ | async) ? 'Hide' : 'Show' }}</button>
+          <i class="pi pi-sort-down-fill"></i>
+        </div>
+      </div>
+
       <div class="lg:sticky lg:top-4">
-        <app-checkout-summary [isVisible$]="summaryIsVisible$!">
-          <!-- Pay Button moved to the right side below the summary -->
-          <div class="mt-6 mb-12 block">
-            <button [disabled]="!isFormValid() || isLoading"
-              (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
-              class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
-              [ngClass]="!isFormValid() || isLoading ? 'bg-[#8abb99] hover:bg-[#8abb99] cursor-not-allowed' : 'bg-[#3BB45A] hover:bg-[#2a9e39] cursor-pointer'">
-              @if (paymentRadiosValue === 'cod') {
-              @if (isLoading || (isOrderLoading$ | async)) {
-              <div class="flex items-center justify-center">
-                <span>Processing order</span>
-                <span class="ml-2">
-                  <div class="inline-block animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></div>
-                </span>
-              </div>
-              } @else {
-              <span>Complete order</span>
-              }
-              } @else {
-              @if (isLoading || (isOrderLoading$ | async)) {
-              <div class="flex items-center justify-center">
-                <span>Processing payment</span>
-                <span class="ml-2">
-                  <div class="inline-block animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></div>
-                </span>
-              </div>
-              } @else {
-              <span>Pay now</span>
-              }
-              }
-            </button>
-          </div>
-        </app-checkout-summary>
+        <!-- Only show on desktop with trust symbols included -->
+        <div class="hidden lg:block">
+          <app-checkout-summary [isVisible$]="summaryIsVisible$!">
+            <!-- Pay button - shown inside summary on desktop -->
+            <div class="mt-6 mb-6 block">
+              <button [disabled]="!isFormValid() || isLoading"
+                (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
+                class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
+                [ngClass]="!isFormValid() || isLoading ? 'bg-[#8abb99] hover:bg-[#8abb99] cursor-not-allowed' : 'bg-[#3BB45A] hover:bg-[#2a9e39] cursor-pointer'">
+                @if (isLoading || (isOrderLoading$ | async)) {
+                <div class="flex items-center justify-center">
+                  <span>Place Order</span>
+                  <span class="ml-2">
+                    <div class="inline-block animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full">
+                    </div>
+                  </span>
+                </div>
+                } @else {
+                <span>Place Order</span>
+                }
+              </button>
+            </div>
+          </app-checkout-summary>
+        </div>
+
+        <!-- Pay button - shown only on mobile -->
+        <div class="lg:hidden mt-6 mb-6 block">
+          <button [disabled]="!isFormValid() || isLoading"
+            (click)="paymentRadiosValue === 'stripe' ? payNow() : onSubmit()"
+            class="block font-semibold w-full lg:mx-auto py-3 text-center text-white rounded-lg transition-all duration-150"
+            [ngClass]="!isFormValid() || isLoading ? 'bg-[#8abb99] hover:bg-[#8abb99] cursor-not-allowed' : 'bg-[#3BB45A] hover:bg-[#2a9e39] cursor-pointer'">
+            @if (isLoading || (isOrderLoading$ | async)) {
+            <div class="flex items-center justify-center">
+              <span>Place Order</span>
+              <span class="ml-2">
+                <div class="inline-block animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></div>
+              </span>
+            </div>
+            } @else {
+            <span>Place Order</span>
+            }
+          </button>
+        </div>
+
+        <!-- Trust Symbols for Mobile Only - At the very bottom -->
+        <div class="lg:hidden mt-2 mb-12">
+          <app-trust-symbols></app-trust-symbols>
+        </div>
       </div>
     </div>
   </div>

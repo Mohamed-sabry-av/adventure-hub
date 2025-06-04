@@ -32,7 +32,7 @@
 .subLinks-child {
   animation: fadeIn 0.2s ease-out;
   background-color: #f0f0f0; /* lighter background for dropdown */
-  color: #2E2E2E; /* text color compatible with dark header */
+  color: #222222; /* text color compatible with dark header */
   border-radius: 4px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
 }

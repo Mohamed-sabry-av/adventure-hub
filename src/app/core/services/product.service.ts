@@ -30,7 +30,7 @@ export class ProductService {
         params: new HttpParams()
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,yoast_head_json,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
+            'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('per_page', perPage.toString())
           .set('page', page.toString())
@@ -243,7 +243,7 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
           .set('include', ids.join(','))
           .set(
             '_fields',
-            'default_attributes,id,name,price,images,categories,description,attributes,quantity_limits,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type,sale_price,regular_price,on_sale'
+            'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type,yoast_head,slug,yoast_head_json,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('stock_status', 'instock'),
         observe: 'response',

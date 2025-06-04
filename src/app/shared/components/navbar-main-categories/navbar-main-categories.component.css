@@ -17,7 +17,7 @@
 }
 
 .links-parent {
-  @apply block bg-[#2E2E2E];
+  @apply block bg-[#222222];
 }
 
 .links-child {

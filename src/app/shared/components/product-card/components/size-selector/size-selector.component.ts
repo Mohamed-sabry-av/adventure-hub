@@ -91,4 +91,12 @@ export class SizeSelectorComponent implements OnChanges {
   isAddToCartDisabled(): boolean {
     return !this.selectedSize || this.uniqueSizes.length === 0;
   }
+  
+  // Format the size value to use dots instead of dashes
+  formatSizeName(size: string): string {
+    if (!size) return '';
+    // Convert dash format to dot format (e.g., "1-l" to "1.L US")
+    const formattedSize = size.replace(/-/g, '.').toUpperCase();
+    return `${formattedSize} US`;
+  }
 }

@@ -1,60 +1,146 @@
-/* Component Container */
-.new-products {
-  position: relative;
-  overflow: hidden;
-}
+/* Import Splide core styles */
+@import '@splidejs/splide/dist/css/splide.min.css';
 
-/* Product carousel container */
+/* Full-width carousel container */
 .products-carousel {
   position: relative;
   overflow: visible;
-  margin: 0 -5px;
-  padding: 0 5px;
-}
-
-/* Fix for carousel items to prevent disappearing on resize */
-:host ::ng-deep .owl-stage {
-  display: flex;
-  align-items: stretch;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-:host ::ng-deep .owl-item {
-  display: flex;
-  height: auto;
-}
-
-:host ::ng-deep .owl-item .px-2,
-:host ::ng-deep .owl-item .px-0\.5 {
   width: 100%;
+  max-width: 100%;
+}
+
+/* Product card wrapper */
+.product-card-wrapper {
+  padding: 5px;
+  height: 100%;
+  display: block;
+}
+
+/* Splide custom styling for outside arrows - DESKTOP ONLY */
+:host ::ng-deep .splide__arrows {
+  position: absolute;
+  width: 100%;
+  height: 0;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+:host ::ng-deep .splide__arrow {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  background-color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  border: 1px solid #eee;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+:host ::ng-deep .splide__arrow:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+:host ::ng-deep .splide__arrow--prev {
+  left: -50px;
+}
+
+:host ::ng-deep .splide__arrow--next {
+  right: -50px;
+}
+
+:host ::ng-deep .splide__pagination {
+  bottom: -25px;
+}
+
+:host ::ng-deep .splide__pagination__page {
+  width: 10px;
+  height: 10px;
+  margin: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+:host ::ng-deep .splide__pagination__page.is-active {
+  background: rgba(0, 0, 0, 0.5);
+  transform: scale(1.2);
+}
+
+/* Loading skeleton styles */
+.products-carousel-skeleton {
+  min-height: 300px;
+}
+
+.product-skeleton {
+  transition: all 0.3s ease;
+}
+
+.product-skeleton:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes skeletonWave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-wave {
+  animation: skeletonWave 1.5s infinite;
 }
 
 /* Mobile optimizations */
 @media (max-width: 767px) {
+  /* Full-width container for mobile */
+  .products-carousel-container {
+    padding: 0 !important;
+    margin: 0; /* Remove negative margins */
+    width: 100%; /* Use exact 100% width */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+  }
+  
   .products-carousel {
-    margin: 0 -1px;
-    padding: 0 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Hide overflow on mobile */
+    width: 100%;
+  }
+  
+  :host ::ng-deep .splide__track {
+    padding: 0; /* Remove horizontal padding */
+    overflow: hidden; /* Ensure track doesn't cause overflow */
+  }
+  
+  :host ::ng-deep .splide__arrow {
+    display: none; /* Hide arrows on mobile */
   }
   
   .products-carousel-skeleton {
     gap: var(--product-grid-gap-mobile, 0.5px) !important;
-}
-
+  }
+  
   /* Ensure skeletons match product card heights */
   .product-card-skeleton {
     height: var(--product-card-height-mobile, 440px);
-}
-
-  /* Ensure dots are smaller on mobile */
-  :host ::ng-deep .owl-dots .owl-dot span {
+  }
+  
+  :host ::ng-deep .splide__pagination__page {
     width: 6px;
     height: 6px;
     margin: 3px;
   }
   
-  :host ::ng-deep .owl-dots {
-    margin-top: 8px;
+  :host ::ng-deep .splide__pagination {
+    bottom: -15px;
   }
 }
 
@@ -64,109 +150,22 @@
   }
 }
 
-/* Custom Navigation Arrows */
-.custom-navigation {
-  position: absolute;
-  top: 40%;
-  width: 100%;
-  transform: translateY(-50%);
-  z-index: 10;
-  pointer-events: none;
-}
-
-.nav-btn {
-  position: absolute;
-  background-color: rgba(255, 255, 255, 0.7);
-  color: #000;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  pointer-events: auto;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.nav-btn:hover {
-  background-color: rgba(255, 255, 255, 1);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.prev-btn {
-  left: 10px;
-}
-
-.next-btn {
-  right: 10px;
-}
-
-/* Carousel dots styling */
-:host ::ng-deep .owl-dots {
-  margin-top: 15px;
-  text-align: center;
-}
-
-:host ::ng-deep .owl-dots .owl-dot span {
-  width: 10px;
-  height: 10px;
-  margin: 5px;
-  background: rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-:host ::ng-deep .owl-dots .owl-dot.active span,
-:host ::ng-deep .owl-dots .owl-dot:hover span {
-  background: rgba(0, 0, 0, 0.5);
-  transform: scale(1.2);
-}
-
-/* Override PrimeNG carousel styles for better mobile experience */
-:host ::ng-deep .custom-carousel .p-carousel-indicators {
-  margin-top: 0.5rem;
-}
-
-:host ::ng-deep .custom-carousel .p-carousel-container {
-  padding: 0;
-}
-
-/* Hide arrows on mobile */
+/* Ensure carousel fits within mobile screen - FIXED WIDTH */
 @media (max-width: 576px) {
   .products-carousel {
-    margin: 0 -0.25rem;
-    width: 100vw;
-    max-width: calc(100% + 0.5rem);
-    transform: translateX(-0.25rem);
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    transform: translateX(0);
+    overflow-x: hidden;
   }
   
-  .carousel-item {
-    padding: 0 0.25rem;
+  :host ::ng-deep .splide__track {
+    padding: 0; /* Remove padding completely */
   }
-}
-
-/* Customize dots */
-:host ::ng-deep .owl-dots {
-  margin-top: 15px;
-  text-align: center;
-}
-
-:host ::ng-deep .owl-dots .owl-dot span {
-  width: 10px;
-  height: 10px;
-  margin: 5px;
-  background: rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-:host ::ng-deep .owl-dots .owl-dot.active span,
-:host ::ng-deep .owl-dots .owl-dot:hover span {
-  background: rgba(0, 0, 0, 0.5);
-  transform: scale(1.2);
-}
-
-/* Hide Owl Carousel default navigation arrows */
-:host ::ng-deep .owl-nav {
-  display: none !important;
+  
+  :host ::ng-deep .splide__list {
+    padding: 0;
+    margin: 0;
+  }
 }

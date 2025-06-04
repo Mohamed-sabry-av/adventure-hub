@@ -10,13 +10,15 @@ import {
   ChangeDetectorRef,
   ViewChild,
   ElementRef,
-  HostListener
+  HostListener,
+  PLATFORM_ID,
+  Inject
 } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd, RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
-import { filter, switchMap, of, EMPTY } from 'rxjs';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { filter, switchMap, of, EMPTY, map } from 'rxjs';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductImagesComponent } from '../../components/product-images/product-images.component';
 import { ProductInfoComponent } from '../../components/product-info/product-info.component';
@@ -24,13 +26,14 @@ import { ProductDescComponent } from '../../components/product-desc/product-desc
 import { ProductRelatedComponent } from '../../components/product-related/product-related.component';
 import { BreadcrumbComponent } from '../../../products/components/breadcrumb/breadcrumb.component';
 import { RecentProductsMiniComponent } from '../../../products/components/recent-products-mini/recent-products-mini.component';
-import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
 import { RelatedProductsService } from '../../../../core/services/related-products.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AttributeSelection } from '../../components/product-info/product-info.component';
 import { catchError } from 'rxjs/operators';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
+import { UIService } from '../../../../shared/services/ui.service';
+import { KlaviyoTrackingService } from '../../../../shared/services/klaviyo-tracking.service';
 
 const PRODUCT_DATA_KEY = makeStateKey<any>('product_data');
 
@@ -48,7 +51,6 @@ declare var _learnq: any;
     ProductRelatedComponent,
     BreadcrumbComponent,
     RecentProductsMiniComponent,
-    DialogErrorComponent,
     AppContainerComponent
   ],
   templateUrl: './product-page.component.html',
@@ -57,7 +59,6 @@ declare var _learnq: any;
 })
 export class ProductPageComponent implements OnInit, OnDestroy {
   productData: any;
-  productDataForDesc: any;
   selectedColor: string | null = null;
   selectedVariation: any | null = null;
   isLoading: boolean = true;
@@ -79,6 +80,8 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private document = inject(DOCUMENT);
   private transferState = inject(TransferState);
   private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID);
+  private klaviyoTracking = inject(KlaviyoTrackingService);
 
   ngOnInit() {
     // Listen for navigation events to reload product data
@@ -113,7 +116,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     this.lastLoadedSlug = slug;
     this.isLoading = true;
     this.productData = null;
-    this.productDataForDesc = null;
     this.selectedVariation = null; // Reset selected variation
     this.selectedColor = null; // Reset selected color
     this.cdr.markForCheck();
@@ -126,6 +128,33 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.processProductData(cachedProductData);
       return;
+    }
+
+    // Check localStorage cache first
+    if (typeof window !== 'undefined') {
+      try {
+        const localStorageKey = `product_${slug}`;
+        const localData = localStorage.getItem(localStorageKey);
+        if (localData) {
+          const parsedData = JSON.parse(localData);
+          const expirationTime = parsedData.expiry || 0;
+          
+          // Use cached data if not expired (10 minutes cache)
+          if (expirationTime > Date.now()) {
+            this.isLoading = false;
+            this.processProductData(parsedData.data);
+            
+            // Make an API call in the background to refresh data
+            this.refreshProductDataInBackground(slug);
+            return;
+          } else {
+            // Remove expired data
+            localStorage.removeItem(localStorageKey);
+          }
+        }
+      } catch (error) {
+        console.error('Error reading from localStorage:', error);
+      }
     }
 
     // Fetch product data
@@ -145,20 +174,57 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       
       // Store in transfer state for SSR
       this.transferState.set(makeStateKey(cacheKey), response);
+      
+      // Store in localStorage with expiration (10 minutes)
+      if (typeof window !== 'undefined') {
+        try {
+          const localStorageKey = `product_${slug}`;
+          const dataToCache = {
+            data: response,
+            expiry: Date.now() + (10 * 60 * 1000) // 10 minutes
+          };
+          localStorage.setItem(localStorageKey, JSON.stringify(dataToCache));
+        } catch (error) {
+          console.error('Error saving to localStorage:', error);
+        }
+      }
+      
       this.processProductData(response);
+    });
+  }
+  
+  // Refresh product data in the background without blocking UI
+  private refreshProductDataInBackground(slug: string) {
+    this.productService.getProductBySlug(slug).pipe(
+      catchError(() => EMPTY),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((response: any) => {
+      if (response && typeof window !== 'undefined') {
+        try {
+          const localStorageKey = `product_${slug}`;
+          const dataToCache = {
+            data: response,
+            expiry: Date.now() + (10 * 60 * 1000) // 10 minutes
+          };
+          localStorage.setItem(localStorageKey, JSON.stringify(dataToCache));
+          
+          // Only update UI if it's the same product currently being viewed
+          if (this.lastLoadedSlug === slug) {
+            this.productData = response;
+            this.nextProduct = response.next_product || null;
+            this.previousProduct = response.previous_product || null;
+            this.cdr.markForCheck();
+          }
+        } catch (error) {
+          console.error('Error updating cached product data:', error);
+        }
+      }
     });
   }
 
   private processProductData(product: any) {
     // Set product data for UI components
     this.productData = product;
-    
-    // Set product description data (separate from SEO)
-    this.productDataForDesc = {
-      ...product,
-      description: product.description,
-      name: product.name
-    };
     
     // Set next and previous product data if available
     this.nextProduct = product.next_product || null;
@@ -174,29 +240,29 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       // Add to recently visited products
       this.recentlyVisitedService.addProduct(product);
       
-      // Track product view in Klaviyo if available
-      this.trackProductView(product);
+      // Track product view in Klaviyo
+      if (isPlatformBrowser(this.platformId)) {
+        this.trackProductView(product);
+      }
     }
   }
 
   private trackProductView(product: any) {
+    if (!product) return;
+    
     try {
-      // Only run in browser context
-      if (_learnq && product) {
-        const currencyCode = product.currency || 'AED';
-        const price = parseFloat(product.price);
-
-        _learnq.push(['track', 'Viewed Product', {
-          Name: product.name,
-          ProductID: product.id,
-          Categories: product.categories?.map((cat: any) => cat.name) || [],
-          ImageURL: product.images?.[0]?.src || '',
-          URL: this.document.location.href,
-          Brand: this.getBrandFromProduct(product),
-          Price: price,
-          CompareAtPrice: product.regular_price
-        }]);
-      }
+      const productData = {
+        Name: product.name,
+        ProductID: product.id,
+        Categories: product.categories?.map((cat: any) => cat.name) || [],
+        ImageURL: product.images?.[0]?.src || '',
+        URL: this.document.location.href,
+        Brand: this.getBrandFromProduct(product),
+        Price: parseFloat(product.price || '0'),
+        CompareAtPrice: product.regular_price ? parseFloat(product.regular_price) : undefined
+      };
+      
+      this.klaviyoTracking.trackEvent('Viewed Product', productData);
     } catch (e) {
       console.error('Error tracking product view:', e);
     }
@@ -222,27 +288,29 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   onVariationSelected(variation: any) {
     this.selectedVariation = variation;
 
-    // Track variation selection in Klaviyo if available
-    this.trackVariationSelection(variation);
+    // Track variation selection in Klaviyo
+    if (isPlatformBrowser(this.platformId)) {
+      this.trackVariationSelection(variation);
+    }
   }
 
   private trackVariationSelection(variation: any) {
     if (!variation || !this.productData) return;
 
     try {
-      if (_learnq) {
-        const variantName = Object.entries(variation.attributes || {})
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(', ');
+      const variantName = Object.entries(variation.attributes || {})
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(', ');
 
-        _learnq.push(['track', 'Selected Product Variant', {
-          Name: this.productData.name,
-          ProductID: this.productData.id,
-          VariantID: variation.id,
-          VariantName: variantName,
-          Price: parseFloat(variation.price || this.productData.price),
-        }]);
-      }
+      const variantData = {
+        Name: this.productData.name,
+        ProductID: this.productData.id,
+        VariantID: variation.id,
+        VariantName: variantName,
+        Price: parseFloat(variation.price || this.productData.price || '0'),
+      };
+      
+      this.klaviyoTracking.trackEvent('Selected Product Variant', variantData);
     } catch (e) {
       console.error('Error tracking variation selection:', e);
     }

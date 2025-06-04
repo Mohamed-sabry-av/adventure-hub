@@ -14,15 +14,21 @@ button:disabled {
 
 .add-button-container {
   position: absolute;
-  bottom: 30px;
+  bottom: 40px;
   right: 10px;
   z-index: 20;
 }
 
 /* Ensure quick add button is positioned properly on mobile */
 @media (max-width: 767px) {
-  .add-button-container {
-    bottom: 10px;
+  .add-button-container{
+    bottom: 80px;
+    right: 10px;
+  }
+}
+@media (max-width: 480px) {
+  .add-button-container{
+    bottom: 40px;
     right: 10px;
   }
 }
@@ -155,25 +161,30 @@ button:disabled {
 /* Options Panel Container */
 .options-panel {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 10px); /* Position above the button with some spacing */
-  width: 220px;
+  right: 10px;
+  bottom: 80px; /* Position within the card, near the button */
+  width: 230px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  padding: 12px;
   z-index: 1000;
-  border: 1px solid #e2e8f0;
-  max-height: calc(100vh - 40px); /* Prevent extending beyond viewport */
+  border: 1px solid #e5e7eb;
+  max-height: 300px; /* Limit height to fit within card */
   overflow-y: auto; /* Enable scrolling if content is too long */
   transform-origin: bottom right;
-  animation: scaleIn 0.2s ease;
+  animation: fadeInUp 0.3s ease;
 }
 
-/* Ensure the panel stays within the card boundaries */
-.product-card {
-  position: relative;
-  overflow: visible !important; /* Allow the panel to be visible outside the card */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Panel Header */
@@ -181,9 +192,9 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .product-name-truncate {
@@ -193,195 +204,125 @@ button:disabled {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 160px;
+  max-width: 170px;
 }
 
 .close-options-btn {
-  padding: 4px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #4a5568;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
+  color: #6b7280;
+  flex-shrink: 0;
 }
 
 .close-options-btn:hover {
-  color: #1a202c;
+  background: #e5e7eb;
+  color: #374151;
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Media queries for different screen sizes */
-@media (max-width: 768px) {
-  .options-panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    border-radius: 12px 12px 0 0;
-    max-height: 80vh;
-    z-index: 1050;
-  }
-}
-
-@media (min-width: 769px) {
-  /* Adjust panel position based on available space */
-  .options-panel {
-    max-height: min(400px, calc(100vh - var(--panel-top-offset, 60px)));
-    transform: none;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-
-  /* If there's not enough space above, show below */
-  .options-panel.show-below {
-    bottom: auto;
-    top: calc(100% + 10px);
-    transform-origin: top right;
-  }
-}
-
-/* Mobile specific adjustments for the options panel */
-@media (max-width: 767px) {
-  .options-panel {
-    position: absolute;
-    bottom: 50px;
-    left: auto;
-    right: 0;
-    width: 200px;
-    max-height: 250px;
-    overflow-y: auto;
-    margin: 0 5px;
-    padding: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    z-index: 100;
-    border: 1px solid #e5e7eb;
-    background-color: white;
-    border-radius: 8px;
-  }
-  
-  .options-title {
-    font-size: 12px;
-    margin-bottom: 6px;
-  }
-  
-  .color-swatches {
-    gap: 6px;
-  }
-  
-  .color-swatch {
-    width: 24px;
-    height: 24px;
-  }
-}
-
+/* Section titles */
 .options-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  margin: 0 0 8px;
-  color: #333;
-}
+  color: #374151;
+  margin-bottom: 8px;
+  }
 
-/* Color swatches */
+/* Color options */
 .color-options-container {
   margin-bottom: 12px;
-}
+  }
 
 .color-swatches {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
+  margin-bottom: 5px;
+  }
 
 .color-swatch {
+  position: relative;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  border: 2px solid #e2e8f0;
+  border-radius: 8px;
   cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.color-swatch.selected {
+  transform: scale(1.05);
+  border: 2px solid #3bb54a;
 }
 
 .swatch-inner {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-size: cover;
-  background-position: center;
-}
-
-.color-swatch.selected {
-  border-color: #3bb54a;
-  transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(59, 181, 74, 0.3);
-}
-
-.color-swatch:hover:not(.out-of-stock) {
-  transform: scale(1.1);
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  display: block;
+  border-radius: 6px;
+  background-size: cover !important;
+  background-position: center !important;
 }
 
 .color-swatch.out-of-stock {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
-  position: relative;
 }
 
 .color-swatch.out-of-stock::after {
-  content: '✕';
+  content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #dc2626;
-  font-size: 16px;
-  font-weight: bold;
-  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Color tooltip */
 .color-tooltip {
   position: absolute;
-  bottom: -22px;
+  bottom: -28px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: #1a202c;
   color: white;
-  padding: 2px 6px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 11px;
+  white-space: nowrap;
   opacity: 0;
   visibility: hidden;
   transition: all 0.2s ease;
-  white-space: nowrap;
-  z-index: 5;
-  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.color-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #1a202c;
 }
 
 .color-swatch:hover .color-tooltip {
   opacity: 1;
   visibility: visible;
+  bottom: -24px;
 }
 
-/* Color check mark */
 .color-check-mark {
   position: absolute;
   top: 50%;
@@ -389,7 +330,6 @@ button:disabled {
   transform: translate(-50%, -50%);
   color: white;
   font-size: 14px;
-  font-weight: bold;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   z-index: 2;
 }
@@ -397,18 +337,16 @@ button:disabled {
 /* Size options */
 .size-options-container {
   margin-bottom: 12px;
-  width: 100%;
-  position: relative;
 }
 
 .size-options {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 100%;
   overflow-x: auto;
-  padding: 5px 0;
   scrollbar-width: thin;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
 }
 
 .size-options::-webkit-scrollbar {
@@ -421,152 +359,90 @@ button:disabled {
 }
 
 .size-options::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #c1c1c1;
   border-radius: 10px;
 }
 
 .size-btn {
-  min-width: 40px;
+  min-width: 35px;
   height: 30px;
   padding: 0 8px;
-  border-radius: 4px;
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
-  color: #4a5568;
-  font-size: 13px;
+  border-radius: 6px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 12px;
   font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   transition: all 0.2s ease;
-  flex-shrink: 0;
 }
 
 .size-btn:hover:not(:disabled) {
-  background-color: #edf2f7;
-  border-color: #cbd5e0;
+  background: #f3f4f6;
+  border-color: #d1d5db;
 }
 
 .size-btn.selected {
-  background-color: #3bb54a;
-  border-color: #3bb54a;
+  background: #3bb54a;
   color: white;
+  border-color: #3bb54a;
+  font-weight: 600;
 }
 
 .size-btn.out-of-stock {
-  opacity: 0.5;
+  color: #9ca3af;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
   text-decoration: line-through;
+  cursor: not-allowed;
 }
 
-/* Scroll buttons for sizes */
 .size-scroll-controls {
-  position: absolute;
-  top: 50%;
-  width: 100%;
   display: flex;
   justify-content: space-between;
-  pointer-events: none;
-  z-index: 5;
+  margin-top: 6px;
 }
 
 .size-scroll-btn {
-  background-color: rgba(255, 255, 255, 0.8);
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #6b7280;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  pointer-events: auto;
-  transform: translateY(-50%);
+  transition: all 0.2s ease;
+}
+
+.size-scroll-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.size-scroll-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .size-scroll-btn.prev {
-  left: -5px;
+  margin-right: auto;
 }
 
 .size-scroll-btn.next {
-  right: -5px;
+  margin-left: auto;
 }
 
-/* Quantity selector */
-.quantity-container {
-  margin-bottom: 8px;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-  max-width: 120px;
-}
-
-.quantity-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #4a5568;
-}
-
-.quantity-btn:hover:not(:disabled) {
-  background-color: #edf2f7;
-}
-
-.quantity-input {
-  width: 40px;
-  height: 30px;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  text-align: center;
-  margin: 0 5px;
-  font-size: 14px;
-  color: #2d3748;
-}
-
-.quantity-input::-webkit-outer-spin-button,
-.quantity-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Media queries for smaller screens */
-@media (max-width: 480px) {
-  .options-panel {
-    padding: 10px;
-    width: 180px;
-    max-height: 220px;
-  }
-  
-  .options-title {
-    font-size: 11px;
-    margin-bottom: 5px;
-  }
-  
-  .size-btn {
-    min-width: 32px;
-    height: 26px;
-    font-size: 11px;
-    padding: 0 6px;
-  }
-  
-  .color-swatch {
-    width: 22px;
-    height: 22px;
-  }
-}
-
-/* Selection instruction text */
+/* Instruction texts */
 .selection-required {
   text-align: center;
   font-size: 12px;
-  color: #666;
+  color: #6b7280;
   margin-top: 6px;
   font-style: italic;
 }
@@ -594,384 +470,68 @@ button:disabled {
   margin-right: 4px;
 }
 
-/* Product name truncate */
-.product-name-truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-  font-weight: 500;
-  font-size: 14px;
-  width: calc(100% - 25px);
-}
-
-/* Add these remaining styles from the original file */
-.options-panel-header {
-  padding: 0 0 8px 0;
-  position: relative;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 8px;
-}
-
-/* Product Options Side Panel (Desktop) */
-.options-side-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 380px;
-  height: 100%;
-  background-color: white;
-  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+/* Mobile specific styles */
+@media (max-width: 767px) {
+  .options-panel {
+    width: 200px;
+    padding: 10px;
+    bottom: 80px;
+    right: 8px;
+    max-height: 250px;
+    position: absolute;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+    transform: none !important;
 }
 
-.close-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  cursor: pointer;
-  z-index: 2;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background-color: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.close-button:hover {
-  background-color: #e0e0e0;
-}
-
-.close-icon {
-  width: 20px;
-  height: 20px;
-  color: #666;
-}
-
-.close-icon:hover {
-  color: #333;
-}
-
-.product-info {
-  display: flex;
-  margin-top: 25px;
-}
-
-.product-image {
-  width: 120px;
-  height: 120px;
-  margin-right: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 5px;
-  background-color: #fff;
-}
-
-.product-image img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.product-details {
-  flex: 1;
-}
-
-.product-name {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 5px;
-  line-height: 1.3;
-}
-
-.product-sku {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 10px;
-}
-
-.product-price {
-  margin-bottom: 5px;
-}
-
-.current-price {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
-.old-price {
-  font-size: 14px;
-  font-weight: normal;
-  color: #999;
-  text-decoration: line-through;
-  margin-left: 8px;
-}
-
-.tax-info {
+  .options-title {
   font-size: 12px;
-  color: #666;
-  margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
-.view-details-link {
-  font-size: 14px;
-  color: #0072bc;
-  text-decoration: none;
-  cursor: pointer;
-  display: inline-block;
-  margin-top: 5px;
-}
-
-.view-details-link:hover {
-  text-decoration: underline;
-}
-
-/* Options Selection Section */
-.options-selection {
-  padding: 20px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.option-section {
-  margin-bottom: 20px;
-}
-
-.option-section:last-child {
-  margin-bottom: 0;
-}
-
-.option-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: #333;
-}
-
-.color-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  .size-btn {
+    min-width: 32px;
+    height: 28px;
+    font-size: 11px;
+    padding: 0 6px;
 }
 
 .color-swatch {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid #ddd;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.color-swatch.selected {
-  border: 2px solid #0072bc;
-  transform: scale(1.1);
-}
-
-.color-swatch.out-of-stock {
-  opacity: 0.5;
-  cursor: not-allowed;
-  position: relative;
-}
-
-.color-swatch.out-of-stock::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background-color: #999;
-  transform: rotate(45deg);
-}
-
-.size-dropdown {
-  width: 100%;
-}
-
-.size-select {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-  font-size: 14px;
-  color: #333;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-}
-
-/* Add to Cart Section */
-.add-to-cart-section {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.quantity-selector {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.quantity-btn {
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f5f5;
-  color: #333;
-  font-size: 20px;
-  user-select: none;
-}
-
-.quantity-btn:hover:not(:disabled) {
-  background-color: #e0e0e0;
-}
-
-.quantity-input {
-  flex: 1;
-  height: 42px;
-  border: none;
-  text-align: center;
-  font-size: 16px;
-  -moz-appearance: textfield;
-  width: 60px;
-}
-
-.quantity-input::-webkit-outer-spin-button,
-.quantity-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.add-to-cart-btn {
-  width: 100%;
-  padding: 8px 16px;
-  background-color: #3bb54a;
-  color: white;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 14px;
-  margin-top: 12px;
-  box-shadow: 0 2px 5px rgba(59, 181, 74, 0.3);
-  transition: all 0.3s ease;
-}
-
-.add-to-cart-btn:hover:not(:disabled) {
-  background-color: #339e40;
-  box-shadow: 0 3px 7px rgba(59, 181, 74, 0.4);
-  transform: translateY(-1px);
-}
-
-.add-to-cart-btn:disabled {
-  background-color: #d1d5db;
-  color: #9ca3af;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* Mobile Bottom Sheet Panel */
-.mobile-options-panel {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background-color: white;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
-  max-height: 90vh;
-  overflow-y: auto;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.mobile-panel-header {
-  padding: 15px;
-  border-bottom: 1px solid #f0f0f0;
-  position: relative;
-}
-
-.panel-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-/* Animation states for panel backdrop */
-.panel-backdrop.active {
-  opacity: 1;
-}
-
-/* Pull handle for mobile */
-.pull-handle {
-  width: 40px;
-  height: 5px;
-  background-color: #e0e0e0;
-  border-radius: 3px;
-  margin: 0 auto 10px;
-}
-
-/* Quick view button styles */
-.quick-view-button {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  z-index: 20;
-}
-
-.quick-view-btn {
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 12px;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.quick-view-btn:hover {
-  background-color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-/* Mobile-specific button styling */
-@media (max-width: 767px) {
-  .add-to-cart-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-    margin-top: 8px;
-    width: 100%;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 28px;
+    height: 28px;
   }
+}
+
+/* Specific overrides for proper rendering on all devices */
+/* Ensure the options panel always appears in front */
+.options-panel {
+  z-index: 100;
+}
+
+/* Fix for proper image rendering */
+.swatch-inner {
+  background-repeat: no-repeat !important;
+}
+
+/* Fix for touch devices */
+@media (pointer: coarse) {
+  .color-swatch {
+    min-width: 34px;
+    min-height: 34px;
+}
+
+  .size-btn {
+    min-width: 38px;
+    min-height: 34px;
+    font-size: 13px;
+}
+}
+
+/* Mobile panel specific class */
+.options-panel-mobile {
+  position: absolute !important;
+  bottom: 80px !important;
+  right: 8px !important;
+  transform: none !important;
+  max-height: 250px !important;
+  z-index: 1000 !important;
 }

@@ -61,7 +61,14 @@ export class SideCartComponent implements OnInit {
     const subscribtion = this.cartService.savedUserCart$
       .pipe(filter((response: any) => response?.userCart?.items?.length > 0))
       .subscribe((response: any) => {
-        this.progressValue = response?.userCart.totals?.sub_total;
+        // Calculate total product price (excluding shipping)
+        const subTotal = response?.userCart.totals?.sub_total || 0;
+        // If shipping costs are included in sub_total, subtract them
+        const shippingCost = response?.userCart.totals?.shipping_total || 0;
+        
+        // Use product prices only for free shipping threshold calculation (100 is the threshold)
+        const productTotal = subTotal - shippingCost;
+        this.progressValue = productTotal > 0 ? productTotal : 0;
       });
 
     const subscribtion2 = this.sideCartVisible$.subscribe((visible) => {

@@ -23,7 +23,7 @@ import { SeoService } from '../../../../core/services/seo.service';
 import { FilterService } from '../../../../core/services/filter.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import isEqual from 'lodash/isEqual';
-import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
+import { UIService } from '../../../../shared/services/ui.service';
 
 // Define the state keys at the top level
 const SEARCH_RESULTS_KEY = makeStateKey<any>('search_results');
@@ -41,8 +41,7 @@ const SEARCH_FILTERS_KEY = makeStateKey<any>('search_filters');
     ProductsGridComponent,
     FilterSidebarComponent,
     FilterDrawerComponent,
-    SortMenuComponent,
-    DialogErrorComponent
+    SortMenuComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -1,0 +1,257 @@
+<section class="seo-content py-8 px-2 sm:px-4 md:px-6 bg-gray-50" aria-labelledby="seo-content-heading">
+    <div class="container-fluid mx-auto px-0 sm:px-2 md:px-4 lg:px-6 xl:px-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Section Title -->
+            <h2 id="seo-content-heading" class="text-2xl font-bold mb-4 text-center">More About Adventures Hub</h2>
+
+            <!-- Toggle Button -->
+            <div class="flex justify-center mb-6">
+                <button (click)="toggleContent()"
+                    class="toggle-btn flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
+                    [class.active]="isContentVisible" [attr.aria-expanded]="isContentVisible"
+                    [attr.aria-controls]="'seo-content-details'"
+                    [attr.aria-label]="isContentVisible ? 'Hide detailed information' : 'Show detailed information'">
+                    <span>{{ isContentVisible ? 'Hide Details' : 'Show Details' }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="arrow-icon h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- SEO Content - Always in DOM for SEO, but visually hidden when collapsed -->
+            <div id="seo-content-details" class="seo-content-wrapper" [class.collapsed]="!isContentVisible"
+                [class.expanded]="isContentVisible" [attr.aria-hidden]="!isContentVisible">
+                <h3 class="text-xl font-bold mb-6 text-center">Buy Best Sports & Outdoor Gear Online in the UAE –
+                    Trusted
+                    by Adventurers</h3>
+
+                <div class="prose prose-sm md:prose-base lg:prose-lg max-w-none mb-8">
+                    <p class="mb-4">Looking for <strong>high-quality</strong> sports and outdoor gear in the UAE? At
+                        Adventures Hub, we help you gear up for every journey – from desert camping to deep-sea diving
+                        and
+                        everything in between. Whether you're a seasoned athlete or just starting your adventure, you'll
+                        find the equipment, apparel, and expert advice you need—all in one place.</p>
+
+                    <p class="mb-4">Enjoy fast delivery across all Emirates, premium product selection, and easy online
+                        shopping backed by trusted brands.</p>
+
+                    <p class="mb-4">Welcome to Adventures Hub, the ultimate destination for sports gear and outdoor
+                        equipment in the UAE. Whether you're gearing up for a desert hike, a diving trip in Fujairah, or
+                        a
+                        weekend camping adventure, we've got everything you need to fuel your passion.</p>
+
+                    <p class="mb-8">From casual explorers to competitive athletes, we proudly serve every type of
+                        adventurer
+                        with top-quality products, expert advice, and seamless online shopping.</p>
+                </div>
+
+                <h4 class="text-lg font-bold mb-6">Shop Sports & Outdoor Gear by Category</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Camping Equipment -->
+                    <article class="bg-white p-4 rounded-lg shadow-sm">
+                        <h5 class="font-bold text-lg mb-2">Camping Equipment</h5>
+                        <p class="mb-3">Tents, portable chairs, cooking gear, lanterns, and everything else you need for
+                            your outdoor getaways in the UAE's deserts and mountains.</p>
+                        <a [routerLink]="['/category', categorySlugs.camping]"
+                            class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                            aria-label="Explore camping gear">
+                            Explore Camping Gear
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </article>
+
+                    <!-- Hiking Gear -->
+                    <article class="bg-white p-4 rounded-lg shadow-sm">
+                        <h5 class="font-bold text-lg mb-2">Hiking Gear</h5>
+                        <p class="mb-3">Top-rated hiking boots, trekking poles, backpacks, hydration systems, and
+                            trail-ready accessories.</p>
+                        <a [routerLink]="['/category', categorySlugs.hiking]"
+                            class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                            aria-label="Browse hiking equipment">
+                            Browse Hiking Equipment
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </article>
+
+                    <!-- Diving Equipment -->
+                    <article class="bg-white p-4 rounded-lg shadow-sm">
+                        <h5 class="font-bold text-lg mb-2">Diving Equipment</h5>
+                        <p class="mb-3">Wetsuits, regulators, masks, fins, dive computers, and snorkeling kits—trusted
+                            by
+                            beginners and pros alike.</p>
+                        <a [routerLink]="['/category', categorySlugs.diving]"
+                            class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                            aria-label="Shop diving gear">
+                            Shop Diving Gear
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </article>
+
+                    <!-- Watersports Essentials -->
+                    <article class="bg-white p-4 rounded-lg shadow-sm">
+                        <h5 class="font-bold text-lg mb-2">Watersports Essentials</h5>
+                        <p class="mb-3">Paddleboards, life vests, waterproof bags, and accessories for kayaking, SUP,
+                            kitesurfing, and more.</p>
+                        <a [routerLink]="['/category', categorySlugs.waterSports]"
+                            class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                            aria-label="View watersports collection">
+                            View Watersports Collection
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </article>
+
+                    <!-- Cycling & Biking -->
+                    <article class="bg-white p-4 rounded-lg shadow-sm">
+                        <h5 class="font-bold text-lg mb-2">Cycling & Biking</h5>
+                        <p class="mb-3">From helmets and gloves to accessories and tool kits—gear up for every ride
+                            across
+                            the UAE.</p>
+                        <a [routerLink]="['/category', categorySlugs.cycling]"
+                            class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                            aria-label="Discover cycling gear">
+                            Discover Cycling Gear
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </article>
+
+                    <!-- Limited-Time Offers -->
+                    <article class="bg-white p-4 rounded-lg shadow-sm">
+                        <h5 class="font-bold text-lg mb-2">Limited-Time Offers on Outdoor Gear</h5>
+                        <p class="mb-3">Looking for great deals? Don't miss our special sales section, where you can
+                            find
+                            high-quality outdoor gear at discounted prices. Shop top products for less—while stocks
+                            last!
+                        </p>
+                        <a [routerLink]="['/product/sale']"
+                            class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                            aria-label="View special offers">
+                            View Special Offers
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </article>
+                </div>
+
+                <!-- FAQs Section -->
+                <section class="mb-8">
+                    <h3 class="text-xl font-bold mb-6">FAQs</h3>
+
+                    <div class="space-y-4">
+                        <details class="faq-item">
+                            <summary class="font-bold cursor-pointer">Where can I buy sports and outdoor gear in the
+                                UAE?</summary>
+                            <p>You can easily shop online for premium outdoor, watersports, camping, and hiking gear
+                                through
+                                trusted UAE websites like <em>Adventures Hub</em>, offering fast delivery and a wide
+                                range
+                                of high-quality equipment.</p>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary class="font-bold cursor-pointer">What kind of outdoor gear do you sell?</summary>
+                            <p>We provide a wide selection of outdoor gear including camping tents, sleeping bags,
+                                hiking
+                                boots, snorkeling kits, cycling tools, waterproof bags, and more—perfect for all types
+                                of
+                                UAE adventures.</p>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary class="font-bold cursor-pointer">What are the main sportswear brands?</summary>
+                            <p>We carry trusted brands like <strong>Sea to Summit</strong>, <strong>Aqua
+                                    Marina</strong>,
+                                <strong>CamelBak</strong>, <strong>Ledlenser</strong> —high-performance names known for
+                                outdoor, camping, and watersports durability.
+                            </p>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary class="font-bold cursor-pointer">Which online shopping is best in the UAE for
+                                sports and outdoor
+                                gear?</summary>
+                            <p>The best platforms offer expert advice, genuine gear, top brands, and fast shipping.
+                                <em>Adventures Hub</em> delivers all of these—backed by excellent service and product
+                                range.
+                            </p>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary class="font-bold cursor-pointer">What is the most popular outdoor activity in the
+                                UAE?</summary>
+                            <p>Popular activities include desert camping, paddleboarding, snorkeling, hiking, and
+                                kayaking—made easier with the right gear from reliable stores across the UAE.</p>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary class="font-bold cursor-pointer">What are some good outdoor activities for families
+                                and adventurers?</summary>
+                            <p>Families and explorers love kayaking in Hatta, hiking in Ras Al Khaimah, beach camping,
+                                or
+                                snorkeling in Fujairah. You'll find gear for every skill level in one place.</p>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary class="font-bold cursor-pointer">What is the best summertime outdoor activity?
+                            </summary>
+                            <p>In summer, watersports like paddleboarding, kayaking, swimming, and snorkeling are ideal
+                                for
+                                staying active and cool. Lightweight, sun-safe gear makes the experience even better.
+                            </p>
+                        </details>
+                    </div>
+                </section>
+
+                <!-- Why Choose Section -->
+                <section class="mb-8">
+                    <h3 class="text-xl font-bold mb-6">Why Choose Adventures Hub?</h3>
+
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Trusted sports store with fast, reliable delivery across all Emirates</li>
+                        <li>Wide selection of top global brands and premium outdoor gear</li>
+                        <li>Expertly curated collections for camping, hiking, diving, cycling & more</li>
+                        <li>Friendly support and gear advice for both beginners and pros</li>
+                        <li>Seamless, <strong>secure online shopping with easy returns</strong></li>
+                    </ul>
+                </section>
+
+                <!-- Call to Action -->
+                <div class="text-center mb-4">
+                    <h3 class="text-xl font-bold mb-4">Ready to Start Your Adventure?</h3>
+                    <p class="mb-6">Browse our shop and discover gear that matches your lifestyle. Wherever your journey
+                        takes you, <strong>Adventures</strong> Hub is made for it.</p>
+
+                    <a [routerLink]="['/shop']"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg inline-flex items-center transition-colors duration-300"
+                        aria-label="Start shopping for outdoor gear">
+                        🛒 Start Shopping Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

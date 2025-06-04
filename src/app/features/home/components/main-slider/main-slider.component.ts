@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, HostListener, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-main-slider',
@@ -10,17 +10,23 @@ import { CommonModule } from '@angular/common';
 })
 export class MainSliderComponent implements OnInit {
   images = ['slider/slider15.webp', 'slider/1.png', 'slider/2.png'];
-  screenWidth = window.innerWidth;
+  screenWidth = 1024; // Default value
   showControls = true;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   @HostListener('window:resize', ['$event'])
   onResize() {
+    if (isPlatformBrowser(this.platformId)) {
     this.screenWidth = window.innerWidth;
     this.showControls = this.screenWidth > 768;
+    }
   }
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
     this.screenWidth = window.innerWidth;
     this.showControls = this.screenWidth > 768;
+    }
   }
 }

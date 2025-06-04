@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { catchError, Observable, of } from 'rxjs';
-import { map, retry, shareReplay } from 'rxjs/operators';
+import { map, retry, shareReplay, tap } from 'rxjs/operators';
 import {
   HttpClient,
   HttpErrorResponse,
@@ -10,6 +10,7 @@ import {
 } from '@angular/common/http';
 import { HandleErrorsService } from './handel-errors.service';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 interface CachedResponse {
   data: any;
@@ -20,7 +21,7 @@ interface CachedResponse {
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = 'https://adventures-hub.com/wp-json/wc/v3/';
+  private baseUrl = environment.wordpressApiUrl;
   private cache = new Map<string, CachedResponse>();
   private pendingRequests = new Map<string, Observable<any>>();
   private static serverCache = new Map<string, any>();
@@ -74,6 +75,8 @@ export class ApiService {
         )
       );
   }
+
+ 
 
   getRequestProducts<T>(
     endpoint: string,

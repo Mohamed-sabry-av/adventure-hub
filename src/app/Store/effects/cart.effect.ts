@@ -3,6 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 import { CartService } from '../../features/cart/service/cart.service';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
@@ -25,6 +26,8 @@ import { UIService } from '../../shared/services/ui.service';
 import { Router } from '@angular/router';
 import { SideOptionsService } from '../../core/services/side-options.service';
 import { ApiService } from '../../core/services/api.service';
+
+const CUSTOM_API_URL = environment.customApiUrl;
 
 export class CartEffect {
   private actions$ = inject(Actions);
@@ -49,7 +52,7 @@ export class CartEffect {
 
         return this.httpClient
           .post(
-            'https://adventures-hub.com/wp-json/custom/v1/cart/bulk-add',
+            `${CUSTOM_API_URL}/cart/bulk-add`,
             body,
             { headers }
           )
@@ -88,7 +91,7 @@ export class CartEffect {
 
           return this.httpClient
             .post(
-              'https://adventures-hub.com/wp-json/custom/v1/cart/add',
+              `${CUSTOM_API_URL}/cart/add`,
               body,
               {
                 headers: loadedData.headers,
@@ -135,8 +138,8 @@ export class CartEffect {
             );
         } else {
           const apiUrl = loadedData?.loadedCart
-            ? 'https://adventures-hub.com/wp-json/custom/v1/cart/guest/add'
-            : 'https://adventures-hub.com/wp-json/custom/v1/cart/guest';
+            ? `${CUSTOM_API_URL}/cart/guest/add`
+            : `${CUSTOM_API_URL}/cart/guest`;
 
           const body = {
             cart_id: loadedData.loadedCart ? loadedData.loadedCart : '',
@@ -206,7 +209,7 @@ export class CartEffect {
               error: null,
             })
           );
-          const apiUrl = `https://adventures-hub.com/wp-json/custom/v1/cart${
+          const apiUrl = `${CUSTOM_API_URL}/cart${
             isLoggedIn ? '' : '/guest/load'
           }`;
 
@@ -381,7 +384,7 @@ export class CartEffect {
             };
             return this.httpClient
               .put(
-                'https://adventures-hub.com/wp-json/custom/v1/cart/update',
+                `${CUSTOM_API_URL}/cart/update`,
                 body,
                 { headers: loadedData.headers }
               )
@@ -430,7 +433,7 @@ export class CartEffect {
             };
             return this.httpClient
               .post(
-                'https://adventures-hub.com/wp-json/custom/v1/cart/guest/update',
+                `${CUSTOM_API_URL}/cart/guest/update`,
                 body,
                 { headers: loadedData.headers }
               )
@@ -491,7 +494,7 @@ export class CartEffect {
 
           return this.httpClient
             .post(
-              'https://adventures-hub.com/wp-json/custom/v1/cart/remove',
+              `${CUSTOM_API_URL}/cart/remove`,
               body,
               { headers: loadedData.headers }
             )
@@ -538,7 +541,7 @@ export class CartEffect {
 
           return this.httpClient
             .post(
-              'https://adventures-hub.com/wp-json/custom/v1/cart/guest/remove',
+              `${CUSTOM_API_URL}/cart/guest/remove`,
               body
             )
             .pipe(
@@ -582,7 +585,7 @@ export class CartEffect {
 
           return this.httpClient
             .post(
-              'https://adventures-hub.com/wp-json/custom/v1/cart/clear',
+              `${CUSTOM_API_URL}/cart/clear`,
               {},
               { headers: loadedData.headers }
             )

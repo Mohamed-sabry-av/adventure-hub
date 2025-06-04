@@ -7,13 +7,13 @@ import { NewProductsComponent } from '../../components/new-products/new-products
 import { RecommendedProductsComponent } from '../../components/recommended-products/recommended-products.component';
 import { SaleProductsComponent } from '../../components/sale-products/sale-products.component';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
-import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { UIService } from '../../../../shared/services/ui.service';
 import { Observable } from 'rxjs';
 import { CartStatus } from '../../../cart/model/cart.model';
 import { LatestBlogPostsComponent } from '../../components/latest-blog-posts/latest-blog-posts.component';
 import { SeoService } from '../../../../core/services/seo.service';
 import { Title, Meta } from '@angular/platform-browser';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-home-page',
@@ -26,8 +26,8 @@ import { Title, Meta } from '@angular/platform-browser';
     NewProductsComponent,
     RecommendedProductsComponent,
     SaleProductsComponent,
-    DialogErrorComponent,
-    LatestBlogPostsComponent
+    LatestBlogPostsComponent,
+    SeoContentComponent
   ],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.css'],

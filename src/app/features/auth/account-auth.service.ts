@@ -1,9 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { BehaviorSubject, catchError, Observable, tap, of, throwError, delay, timer } from 'rxjs';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { LoginResponse, User } from '../../interfaces/user.model';
+import { environment } from '../../../environments/environment';
+import { isPlatformBrowser } from '@angular/common';
+import { KlaviyoTrackingService } from '../../shared/services/klaviyo-tracking.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,10 +16,15 @@ export class AccountAuthService {
   private readonly USER_KEY = 'auth_user';
   private readonly USER_ID_KEY = 'customerId'; // مفتاح جديد لتخزين user_id
   private readonly TOKEN_EXPIRY_KEY = 'token_expiry'; // تاريخ انتهاء التوكن
-  private readonly Api_Url = 'https://adventures-hub.com';
+  private readonly Api_Url = environment.baseUrl;
+  private readonly AUTH_API_URL = environment.authApiUrl;
+  private readonly STORE_API_URL = environment.wcStoreApiUrl;
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
   private tokenValidationInProgress = false;
+  
+  private platformId = inject(PLATFORM_ID);
+  private klaviyoTracking = inject(KlaviyoTrackingService);
 
   constructor(
     private WooApi: ApiService,
@@ -65,7 +73,7 @@ export class AccountAuthService {
 
     return this.http
       .post(
-        `${this.Api_Url}/wp-json/jwt-auth/v1/token/validate`,
+        `${this.AUTH_API_URL}/token/validate`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -130,7 +138,7 @@ export class AccountAuthService {
   }): Observable<HttpResponse<LoginResponse>> {
     return this.http
       .post<LoginResponse>(
-        `${this.Api_Url}/wp-json/jwt-auth/v1/token`,
+        `${this.AUTH_API_URL}/token`,
         credentials,
         {
           withCredentials: true,
@@ -160,6 +168,15 @@ export class AccountAuthService {
             this.localStorageService.setItem(this.TOKEN_EXPIRY_KEY, expiryTime);
 
             this.isLoggedInSubject.next(true);
+            
+            // Identify user in Klaviyo
+            if (isPlatformBrowser(this.platformId) && response.body.user_email) {
+              this.klaviyoTracking.identifyUser(
+                response.body.user_email,
+                response.body.user_username?.split(' ')[0] || '',
+                response.body.user_username?.split(' ').slice(1).join(' ') || ''
+              );
+            }
           }
         }),
         catchError((error) => {
@@ -171,7 +188,7 @@ export class AccountAuthService {
 
   getCart(): Observable<HttpResponse<any>> {
     return this.http
-      .get(`${this.Api_Url}/wp-json/wc/store/v1/cart`, {
+      .get(`${this.STORE_API_URL}/cart`, {
         withCredentials: true,
         observe: 'response',
       })

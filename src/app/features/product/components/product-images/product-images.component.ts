@@ -11,8 +11,14 @@ import {
   ChangeDetectorRef,
   signal,
   HostListener,
+  PLATFORM_ID,
+  AfterViewInit,
+  OnDestroy
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { VariationService } from '../../../../core/services/variation.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import Splide from '@splidejs/splide';
 
 @Component({
   selector: 'app-product-images',
@@ -20,11 +26,14 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   templateUrl: './product-images.component.html',
   styleUrls: ['./product-images.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush, // OnPush عشان الأداء
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductImagesComponent implements OnInit {
+export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
-  private cdr = inject(ChangeDetectorRef); // ChangeDetectorRef عشان التحديث اليدوي
+  private cdr = inject(ChangeDetectorRef);
+  private variationService = inject(VariationService);
+  private platformId = inject(PLATFORM_ID);
+  
   productImages = input<any>();
   selectedColor = input<string | null>(null);
   variations = input<any[]>([]);
@@ -48,6 +57,14 @@ export class ProductImagesComponent implements OnInit {
   
   // Track current product ID to detect changes
   private currentProductId: number | null = null;
+
+  // Splide instances
+  private mainSplide?: Splide;
+  private thumbsSplide?: Splide;
+
+  // Reference to Splide elements
+  @ViewChild('splideMain') splideMainRef!: ElementRef;
+  @ViewChild('splideThumb') splideThumbRef!: ElementRef;
 
   // Reference to the main image container for zoom functionality
   @ViewChild('zoomContainer') zoomContainer!: ElementRef;
@@ -73,11 +90,12 @@ export class ProductImagesComponent implements OnInit {
         this.isImageLoading = true; // Trigger loading state
         this.cdr.detectChanges(); // Force UI update
         
-        // Turn off loading after a small delay to ensure new images are loaded
+        // Keep loading state visible for a short time to show transition
         setTimeout(() => {
           this.isGalleryLoading.set(false);
           this.cdr.detectChanges();
-        }, 500);
+          this.updateSplide();
+        }, 300);
       }
     });
     
@@ -92,8 +110,8 @@ export class ProductImagesComponent implements OnInit {
           this.currentProductId = productId;
           this.selectedImageIndex = 0;
           this.isImageLoading = true;
-          // Reset internal state but don't modify the input signal
           this.cdr.detectChanges();
+          this.updateSplide();
         }
       }
     });
@@ -108,23 +126,126 @@ export class ProductImagesComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
     this.mediaQuery = window.matchMedia('(max-width: 1172px)');
     this.isMobile = this.mediaQuery.matches;
     this.mediaQueryListener = (event: MediaQueryListEvent) => {
       this.isMobile = event.matches;
       this.cdr.detectChanges(); // Update UI on media query change
+        this.updateSplide();
     };
     this.mediaQuery.addEventListener('change', this.mediaQueryListener);
+    } else {
+      this.isMobile = false;
+    }
 
-    this.destroyRef.onDestroy(() => {
-      this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
+    // Subscribe to loading state from VariationService
+    this.variationService.getLoadingState()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isLoading => {
+        if (isLoading) {
+          this.isGalleryLoading.set(true);
+          this.isImageLoading = true;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.initSplide();
+    }
+  }
+
+  // Initialize Splide sliders
+  private initSplide(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.splideMainRef) return;
+
+    // Destroy existing instances if they exist
+    if (this.mainSplide) {
+      this.mainSplide.destroy();
+    }
+    if (this.thumbsSplide) {
+      this.thumbsSplide.destroy();
+    }
+
+    // Initialize thumbnails slider only if there are multiple images
+    if (this.images.length > 1 && this.splideThumbRef) {
+      this.thumbsSplide = new Splide(this.splideThumbRef.nativeElement, {
+        direction: this.isMobile ? 'ltr' : 'ttb',
+        height: this.isMobile ? '80px' : '500px',
+        width: this.isMobile ? '100%' : '80px',
+        gap: '10px',
+        rewind: true,
+        pagination: false,
+        arrows: false,
+        cover: true,
+        fixedWidth: 60,
+        fixedHeight: 60,
+        isNavigation: true,
+        focus: 'center',
+      });
+    }
+
+    // Initialize main slider
+    this.mainSplide = new Splide(this.splideMainRef.nativeElement, {
+      type: 'fade',
+      rewind: true,
+      pagination: false,
+      arrows: this.images.length > 1, // Only show arrows if there are multiple images
+      height: '500px',
     });
+
+    // Sync the two sliders if thumbnails exist
+    if (this.thumbsSplide && this.images.length > 1) {
+      this.mainSplide.sync(this.thumbsSplide);
+      // Mount thumbnails slider
+      this.thumbsSplide.mount();
+    }
+    
+    // Add custom classes to main slider arrows
+    this.mainSplide.on('mounted', () => {
+      // Handle arrow classes
+      const prevArrow = this.splideMainRef.nativeElement.querySelector('.splide__arrow--prev');
+      const nextArrow = this.splideMainRef.nativeElement.querySelector('.splide__arrow--next');
+      
+      if (prevArrow) prevArrow.classList.add('prev');
+      if (nextArrow) nextArrow.classList.add('next');
+    });
+
+    // Update the selectedImageIndex when slide changes
+    this.mainSplide.on('moved', (newIndex) => {
+      this.selectedImageIndex = newIndex;
+      this.cdr.detectChanges();
+    });
+
+    // Mount main slider
+    this.mainSplide.mount();
+  }
+
+  // Update Splide when images or layout changes
+  private updateSplide(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        this.initSplide();
+      }, 100);
+    }
   }
 
   // Clean up event listeners when component is destroyed
   ngOnDestroy() {
+    if (isPlatformBrowser(this.platformId)) {
     if (this.mediaQuery && this.mediaQueryListener) {
       this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
+      }
+      
+      if (this.mainSplide) {
+        this.mainSplide.destroy();
+      }
+      
+      if (this.thumbsSplide) {
+        this.thumbsSplide.destroy();
+      }
     }
   }
 
@@ -132,6 +253,9 @@ export class ProductImagesComponent implements OnInit {
   openFullscreen(index?: number): void {
     if (index !== undefined) {
       this.selectedImageIndex = index;
+      if (this.mainSplide) {
+        this.mainSplide.go(index);
+      }
     }
     document.body.classList.add('overflow-hidden');
     this.isFullscreen.set(true);
@@ -218,7 +342,6 @@ export class ProductImagesComponent implements OnInit {
 
     if (this.selectedVariation()) {
       const variation = this.selectedVariation();
-      console.log('Selected variation in images component:', variation);
       
       // Add the main variation image if available
       const mainImage = variation.image?.src
@@ -235,105 +358,96 @@ export class ProductImagesComponent implements OnInit {
         }));
       }
       
-      // Combine main image with additional images
       imagesArray = [...mainImage, ...additionalImages];
-      console.log('Variation Images Array:', imagesArray);
-    } else {
-      // If no variation selected, use product's default images
-      const images = this.productImages() || this.defaultImages;
-      imagesArray = Array.isArray(images)
-        ? images.map((img: any) => ({
-            src: img.src || img,
+    } else if (this.productImages() && Array.isArray(this.productImages())) {
+      // Use original product images if no variation is selected
+      imagesArray = this.productImages().map((img: any) => ({
+        src: img.src,
             alt: img.alt || 'Product Image',
-          }))
-        : [];
+      }));
     }
 
-    // Ensure selectedImageIndex is within bounds
-    if (this.selectedImageIndex >= imagesArray.length && imagesArray.length > 0) {
-      this.selectedImageIndex = 0;
-      this.isImageLoading = true;
-      this.cdr.detectChanges();
-    }
-
-    return imagesArray;
+    return imagesArray.length > 0 ? imagesArray : this.defaultImages.map(src => ({ src, alt: 'Product Image' }));
   }
 
-  // Select a specific image by index
   selectImage(index: number): void {
-    const images = this.getGalleryImages();
-    if (index >= 0 && index < images.length) {
-      this.isImageLoading = true;
+    if (index === this.selectedImageIndex) return;
+    
       this.selectedImageIndex = index;
-      this.cdr.detectChanges(); // Force UI update
+    this.isImageLoading = true;
+    
+    if (this.mainSplide) {
+      this.mainSplide.go(index);
+    }
+    
+    this.cdr.detectChanges();
+  }
+
+  nextImage(): void {
+    const nextIndex = (this.selectedImageIndex + 1) % this.images.length;
+    this.selectImage(nextIndex);
+    
+    if (this.mainSplide) {
+      this.mainSplide.go('>');
     }
   }
 
-  // Navigate to the next image
-  nextImage(): void {
-    const images = this.getGalleryImages();
-    this.selectedImageIndex = (this.selectedImageIndex + 1) % images.length;
-    this.isImageLoading = true;
-    this.resetFullscreenZoom();
-    this.cdr.detectChanges();
-  }
-
-  // Navigate to the previous image
   prevImage(): void {
-    const images = this.getGalleryImages();
-    this.selectedImageIndex =
-      (this.selectedImageIndex - 1 + images.length) % images.length;
-    this.isImageLoading = true;
-    this.resetFullscreenZoom();
-    this.cdr.detectChanges();
+    const prevIndex = this.selectedImageIndex - 1 < 0 
+      ? this.images.length - 1 
+      : this.selectedImageIndex - 1;
+    this.selectImage(prevIndex);
+    
+    if (this.mainSplide) {
+      this.mainSplide.go('<');
+  }
   }
 
-  // Handle image load event to update loading state
   onImageLoad(): void {
     this.isImageLoading = false;
     this.cdr.detectChanges();
   }
 
-  // Improved zoom functionality with class toggle
+  onImageError(): void {
+    this.isImageLoading = false;
+    this.cdr.detectChanges();
+  }
+
   zoom(event: MouseEvent) {
-    if (this.isMobile) return; // Don't enable zoom on mobile
-
-    const container = this.zoomContainer.nativeElement;
-    const zoomedImage: HTMLElement = container.querySelector('.main-img');
-    if (!container || !zoomedImage) return;
-
-    const rect = container.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    const percentX = (x / rect.width) * 100;
-    const percentY = (y / rect.height) * 100;
-
-    zoomedImage.style.transformOrigin = `${percentX}% ${percentY}%`;
-    zoomedImage.style.transform = `scale(2)`;
-    zoomedImage.classList.add('zoomed');
-    this.isZoomed = true;
+    if (this.isZoomed) {
+      // Calculate relative position in the container
+      const rect = this.zoomContainer.nativeElement.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+      
+      // Update image position
+      const img = this.zoomContainer.nativeElement.querySelector('.splide__slide.is-active img');
+      if (img) {
+        img.style.transformOrigin = `${x}% ${y}%`;
+      }
+    }
   }
 
-  // Reset zoom when mouse leaves the container
   resetZoom() {
-    if (this.isMobile) return;
-
-    const container = this.zoomContainer.nativeElement;
-    const zoomedImage = container.querySelector('.main-img');
-    if (!zoomedImage) return;
-
-    zoomedImage.style.transform = 'scale(1)';
-    zoomedImage.classList.remove('zoomed');
     this.isZoomed = false;
+    const img = this.zoomContainer.nativeElement.querySelector('.splide__slide.is-active img');
+    if (img) {
+      img.style.transform = 'scale(1)';
+    }
   }
 
-  // Track by function for ngFor performance
+  toggleZoom() {
+    this.isZoomed = !this.isZoomed;
+    const img = this.zoomContainer.nativeElement.querySelector('.splide__slide.is-active img');
+    if (img) {
+      img.style.transform = this.isZoomed ? 'scale(2)' : 'scale(1)';
+    }
+  }
+
   trackByFn(index: number, item: any): string {
-    return item.src || index;
+    return item.src;
   }
 
-  // Getter for images array to use in template
   get images(): { src: string; alt: string }[] {
     return this.getGalleryImages();
   }

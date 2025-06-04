@@ -5,14 +5,15 @@ import { HttpParams } from '@angular/common/http';
 import { ApiService } from '../../../core/services/api.service';
 import { LocalStorageService } from '../../../core/services/local-storage.service';
 import { AccountAuthService } from '../account-auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WooCommerceAccountService {
-  private wishlistBaseUrl = 'https://adventures-hub.com/wp-json/swc/v1/wishlist'; // Update to your WordPress URL
-  private wcApiUrl = 'https://adventures-hub.com/wp-json/wc/v3'; // WooCommerce REST API base URL
-  private wooApiUrl = 'https://adventures-hub.com/wp-json/wc/store/v1'; // WooCommerce Store API base URL
+  private wishlistBaseUrl = `${environment.baseUrl}/wp-json/swc/v1/wishlist`; 
+  private wcApiUrl = `${environment.baseUrl}/wp-json/wc/v3`; // WooCommerce REST API base URL
+  private wooApiUrl = environment.wcStoreApiUrl; // WooCommerce Store API base URL
 
   constructor(
     private apiService: ApiService,

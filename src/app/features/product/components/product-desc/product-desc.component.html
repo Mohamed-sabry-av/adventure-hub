@@ -1,50 +1,56 @@
 <div class="product-description" *ngIf="productAdditionlInfo">
   <!-- Sticky Navigation -->
-  <div class="sticky-tabs">
-    <div class="description-tabs">
-      <div class="tab-item" [class.active]="activeSection === 'description'" (click)="scrollToSection('description')">
+  <nav class="sticky-tabs" aria-label="Product information tabs">
+    <div class="description-tabs" role="tablist">
+      <button class="tab-item" [class.active]="activeSection === 'description'" (click)="scrollToSection('description')"
+        role="tab" [attr.aria-selected]="activeSection === 'description'" aria-controls="description">
         Description
-      </div>
-      <div class="tab-item"
+      </button>
+      <button class="tab-item"
         *ngIf="productAdditionlInfo.brand || getAdditionalInfoFromVariations().colors?.length || getAdditionalInfoFromVariations().sizes?.length"
-        [class.active]="activeSection === 'additional-info'" (click)="scrollToSection('additional-info')">
+        [class.active]="activeSection === 'additional-info'" (click)="scrollToSection('additional-info')" role="tab"
+        [attr.aria-selected]="activeSection === 'additional-info'" aria-controls="additional-info">
         Additional Information
-      </div>
-      <div class="tab-item" [class.active]="activeSection === 'reviews'" (click)="scrollToSection('reviews')">
+      </button>
+      <button class="tab-item" [class.active]="activeSection === 'reviews'" (click)="scrollToSection('reviews')"
+        role="tab" [attr.aria-selected]="activeSection === 'reviews'" aria-controls="reviews">
         Reviews <span class="review-count" *ngIf="reviewCount > 0">{{ reviewCount }}</span>
-      </div>
+      </button>
     </div>
-  </div>
+  </nav>
 
   <!-- Content Sections -->
   <div class="tab-sections">
     <!-- Description Section -->
-    <div id="description" class="content-section">
-      <h2 class="section-header">Description</h2>
+    <section id="description" class="content-section" role="tabpanel" aria-labelledby="description-heading"
+      tabindex="0">
+      <h2 id="description-heading" class="section-header">Description</h2>
       <div *ngIf="safeDescription; else noDescription">
         <div class="raw-description" [innerHTML]="safeDescription"></div>
       </div>
       <ng-template #noDescription>
         <p class="no-description">No description available for this product.</p>
       </ng-template>
-    </div>
+    </section>
 
     <!-- Additional Information Section -->
-    <div id="additional-info" class="content-section"
-      *ngIf="productAdditionlInfo.brand || getAdditionalInfoFromVariations().colors?.length || getAdditionalInfoFromVariations().sizes?.length">
-      <h2 class="section-header">Additional Information</h2>
+    <section id="additional-info" class="content-section"
+      *ngIf="productAdditionlInfo.brand || getAdditionalInfoFromVariations().colors?.length || getAdditionalInfoFromVariations().sizes?.length"
+      role="tabpanel" aria-labelledby="additional-info-heading" tabindex="0">
+      <h2 id="additional-info-heading" class="section-header">Additional Information</h2>
       <div class="additional-info-content">
         <table class="info-table">
+          <caption class="sr-only">Product specifications and attributes</caption>
           <tbody>
             <!-- Brand -->
             <tr *ngIf="productAdditionlInfo.brand">
-              <th>Brand</th>
+              <th scope="row">Brand</th>
               <td>{{ productAdditionlInfo.brand }}</td>
             </tr>
 
             <!-- Colors -->
             <tr *ngIf="(getAdditionalInfoFromVariations().colors).length > 0">
-              <th>Color</th>
+              <th scope="row">Color</th>
               <td class="color-list">
                 <span *ngFor="let color of getAdditionalInfoFromVariations().colors; let last = last">
                   {{ color }}{{ !last ? ', ' : '' }}
@@ -54,7 +60,7 @@
 
             <!-- Sizes -->
             <tr *ngIf="(getAdditionalInfoFromVariations().sizes).length > 0">
-              <th>Size</th>
+              <th scope="row">Size</th>
               <td class="size-list">
                 <span *ngFor="let size of getAdditionalInfoFromVariations().sizes; let last = last">
                   {{ size }}{{ !last ? ', ' : '' }}
@@ -64,13 +70,11 @@
           </tbody>
         </table>
       </div>
-
-            <!-- Removed empty additional information message -->
-    </div>
+    </section>
 
     <!-- Reviews Section -->
-    <div id="reviews" class="content-section">
-      <h2 class="section-header">Reviews</h2>
+    <section id="reviews" class="content-section" role="tabpanel" aria-labelledby="reviews-heading" tabindex="0">
+      <h2 id="reviews-heading" class="section-header">Reviews</h2>
       <div class="reviews-content">
         <div *ngIf="reviewCount > 0; else noReviews">
           <p>Reviews implementation will be integrated here</p>
@@ -82,11 +86,11 @@
           </div>
         </ng-template>
       </div>
-    </div>
+    </section>
   </div>
 </div>
 
 <!-- Loading state -->
-<div class="loading-description" *ngIf="!productAdditionlInfo">
+<div class="loading-description" *ngIf="!productAdditionlInfo" aria-live="polite">
   <p>Loading product description...</p>
 </div>

@@ -29,16 +29,11 @@
 
   <!-- Price -->
   <div class="flex items-baseline mb-4 gap-2">
-    <span class="text-2xl font-bold" [appCurrencyPrice]="getNumericPrice(getPriceInfo().price)"></span>
+    <span class="text-2xl font-bold" [innerHTML]="getNumericPrice(getPriceInfo().price) | currencySvg"></span>
     <ng-container *ngIf="getPriceInfo().isOnSale">
       <span class="text-gray-500 line-through text-lg ml-2"
-        [appCurrencyPrice]="getNumericPrice(getPriceInfo().regularPrice)"></span>
+        [innerHTML]="getNumericPrice(getPriceInfo().regularPrice) | currencySvg:true"></span>
     </ng-container>
-  </div>
-
-  <div class="product-brand" *ngIf="brandName !== 'brand'">
-    <span class="brand-label"></span>
-    <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
   </div>
 
   <!-- Stock Status Message -->
@@ -63,16 +58,16 @@
     </ng-container>
   </div>
 
-  <!-- Delivery Estimation -->
-  <app-delivery-estimate [isHubProduct]="isHubProduct"></app-delivery-estimate>
+  <div class="product-brand" *ngIf="brandName !== 'brand'">
+    <span class="brand-label"></span>
+    <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
+  </div>
 
   <!-- Variation Selection -->
   <div *ngIf="productInfo()?.type === 'variable' && !isCompletelyOutOfStock">
     <!-- Color Options -->
     <ng-container *ngIf="getVariationOptions('Color').length">
       <div class="product-option">
-        <label class="option-label">Color: <span class="selected-attribute" *ngIf="selectedAttributes['Color']">{{
-            selectedAttributes['Color'] }}</span></label>
         <div class="color-options">
           <div *ngFor="let option of getVariationOptions('Color'); let i = index" class="color-option"
             [class.active]="selectedAttributes['Color'] === option.value" [class.out-of-stock]="!option.inStock"
@@ -82,26 +77,35 @@
             </div>
           </div>
         </div>
+        <label class="option-label">Color: <span class="selected-attribute" *ngIf="selectedAttributes['Color']">{{
+            selectedAttributes['Color'] }}</span></label>
       </div>
     </ng-container>
 
     <!-- Size Options (Filtered by Selected Color, including out of stock) -->
     <ng-container *ngIf="getVariationOptions('Size', selectedAttributes['Color']).length">
       <div class="product-option">
-        <label class="option-label">Size: <span class="selected-attribute" *ngIf="selectedAttributes['Size']">{{
-            selectedAttributes['Size'] }}</span></label>
         <div class="size-options">
           <div *ngFor="let option of getVariationOptions('Size', selectedAttributes['Color']); let i = index"
             class="size-option" [class.active]="selectedAttributes['Size'] === option.value"
             [class.out-of-stock]="!option.inStock"
             (click)="option.inStock && handleAttributeClick($event, 'Size', option.value)">
-            {{ option.value }}
+            {{ formatSizeName(option.value) }}
             <div class="out-of-stock-x" *ngIf="!option.inStock"></div>
           </div>
         </div>
+        <label class="option-label">Size: <span class="selected-attribute" *ngIf="selectedAttributes['Size']">{{
+            formatSizeName(selectedAttributes['Size']) }}</span></label>
       </div>
     </ng-container>
   </div>
+
+
+
+
+  <!-- Delivery Estimation -->
+  <app-delivery-estimate [isHubProduct]="isHubProduct"></app-delivery-estimate>
+
 
   <!-- Prompt to Select Variation -->
   <div *ngIf="
@@ -145,7 +149,7 @@
     </div>
 
     <!-- Buy Now button full width -->
-    <div class="buy-now-container mb-4">
+    <div class="buy-now-container mb-4" *ngIf="!(walletPaymentAvailable$ | async)">
       <button class="buy-btn" (click)="buyNow()" [disabled]="(loadingMap$ | async)?.['buy']" aria-label="Buy Now">
         <ng-container *ngIf="(loadingMap$ | async)?.['buy']; else buyNowText">
           <div class="spinner-container" role="status" aria-live="polite" aria-label="Processing purchase">
@@ -214,39 +218,43 @@
   [productName]="productInfo()?.name || 'Check out this product'" (close)="closeSharePopup()">
 </app-share-popup>
 
-<div class="sticky-footer block md:hidden" [class.visible]="isFooterVisible$">
-  <div class="quantity-controls">
-    <button class="quantity-btn" (click)="onQuantityDown()" [disabled]="quantity <= 1">-</button>
-    <span class="quantity-display">{{quantity}}</span>
-    <button class="quantity-btn" (click)="onQuantityUp()" [disabled]="quantity >= maxLength">+</button>
-  </div>
-  <button class="add-to-cart-btn" (click)="addToCart()"
-    [disabled]="!isProductInStock || !allVariationAttributesSelected">
-    Add to Cart
+<!-- Mobile sticky footer -->
+<div class="sticky-footer block md:hidden" [class.visible]="isFooterVisible$ | async"
+  *ngIf="!(walletPaymentAvailable$ | async)">
+  <button class="buy-now-btn" (click)="buyNow()"
+    [disabled]="!isProductInStock || !allVariationAttributesSelected || (loadingMap$ | async)?.['buy']">
+    <ng-container *ngIf="(loadingMap$ | async)?.['buy']; else buyNowFooterText">
+      <div class="spinner-container" role="status" aria-live="polite" aria-label="Processing purchase">
+        <div class="spinner"></div>
+      </div>
+    </ng-container>
+    <ng-template #buyNowFooterText>BUY NOW</ng-template>
   </button>
 </div>
 
-<div class="sticky-add-to-cart" *ngIf="isFooterVisible$ | async">
+<!-- Desktop sticky add to cart -->
+<div class="sticky-add-to-cart" *ngIf="(isFooterVisible$ | async) && !(walletPaymentAvailable$ | async)">
   <div class="container">
     <div class="product-info">
       <div class="product-title">{{ productInfo().name }}</div>
       <div class="product-price">
-        <span [class.sale-price]="getPriceInfo().isOnSale" [appCurrencyPrice]="getNumericPrice(getPriceInfo().price)">
+        <span [class.sale-price]="getPriceInfo().isOnSale"
+          [innerHTML]="getNumericPrice(getPriceInfo().price) | currencySvg">
         </span>
         <span class="regular-price" *ngIf="getPriceInfo().isOnSale"
-          [appCurrencyPrice]="getNumericPrice(getPriceInfo().regularPrice)">
+          [innerHTML]="getNumericPrice(getPriceInfo().regularPrice) | currencySvg:true">
         </span>
       </div>
     </div>
     <div class="actions">
-      <button class="cart-btn" (click)="addToCart()" [disabled]="(loadingMap$ | async)?.['add']"
-        aria-label="Add to cart">
-        <ng-container *ngIf="(loadingMap$ | async)?.['add']; else addToCartText">
-          <div class="spinner-container" role="status" aria-live="polite" aria-label="Adding to cart">
+      <button class="buy-btn" (click)="buyNow()"
+        [disabled]="!isProductInStock || !allVariationAttributesSelected || (loadingMap$ | async)?.['buy']">
+        <ng-container *ngIf="(loadingMap$ | async)?.['buy']; else buyNowStickyText">
+          <div class="spinner-container" role="status" aria-live="polite" aria-label="Processing purchase">
             <div class="spinner"></div>
           </div>
         </ng-container>
-        <ng-template #addToCartText>ADD TO CART</ng-template>
+        <ng-template #buyNowStickyText>BUY NOW</ng-template>
       </button>
     </div>
   </div>

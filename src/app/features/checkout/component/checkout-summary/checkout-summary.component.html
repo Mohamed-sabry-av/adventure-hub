@@ -134,40 +134,11 @@
     </div>
   </div>
 
-  <ng-content />
+  <!-- Place for Pay Now button -->
+  <ng-content></ng-content>
 
-  <!-- Trust Symbols and Testimonials Section -->
-  <div class="mt-8">
-    <!-- Trust Symbols -->
-    <div class="flex justify-center items-center gap-2 mb-6">
-      <img src="assets/checkout/trust-symbols_b-1536x161.jpg" alt="Trust Symbols" class="w-full">
-    </div>
-
-    <!-- Testimonials -->
-    <div class="mt-4">
-      <h2 class="text-xl font-bold mb-3">What they are saying</h2>
-
-      <!-- First Testimonial -->
-      <div class="mb-6">
-        <div class="flex mb-1">
-          <img src="assets/checkout/stars-5.svg" alt="5 stars" class="h-6">
-        </div>
-        <p class="text-sm text-gray-500">Jun 25, 2024</p>
-        <h3 class="text-xl font-bold my-2">A great purchase experience</h3>
-        <p class="text-sm">A great purchase experience. Tarek was very responsive and delivered my order ahead of
-          schedule. Definitely buying from Adventures Hub again!</p>
-      </div>
-
-      <!-- Second Testimonial -->
-      <div>
-        <div class="flex mb-1">
-          <img src="assets/checkout/stars-5.svg" alt="5 stars" class="h-6">
-        </div>
-        <p class="text-sm text-gray-500">May 24, 2024</p>
-        <h3 class="text-xl font-bold my-2">Everything was great with my experience...</h3>
-        <p class="text-sm">Everything was great with my experience with the store, from the Great customer service to
-          the genuine products. Highly recommended 🤩✌️</p>
-      </div>
-    </div>
+  <!-- Trust Symbols Component - Only visible on desktop -->
+  <div class="hidden lg:block">
+    <app-trust-symbols class="mt-8 block"></app-trust-symbols>
   </div>
 </div>

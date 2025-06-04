@@ -1,9 +1,11 @@
-<div class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)">
+<article class="product-card" *ngIf="product" (mouseenter)="onHover(true)" (mouseleave)="onHover(false)"
+  [attr.aria-label]="'Product card for ' + product.name" [attr.data-product-id]="product.id" role="article">
   <!-- Discount tag -->
 
 
   <!-- Image slider with product images -->
-  <app-card-image-slider [product]="modifiedProduct" [isHovered]="isHovered" [variations]="variations">
+  <app-card-image-slider [product]="modifiedProduct" [isHovered]="isHovered" [variations]="variations"
+    [selectedColorImage]="selectedColorImage">
   </app-card-image-slider>
 
   <!-- Wishlist Button -->
@@ -27,4 +29,4 @@
     (selectSize)="onSelectSize($event)" (selectColor)="selectColor($event.color, $event.image)"
     (addToCart)="onAddToCartWithOptions($event)">
   </app-mobile-quick-add>
-</div>
+</article>

@@ -13,8 +13,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ProductService } from '../../../../core/services/product.service';
 import { Product, Variation } from '../../../../interfaces/product';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { Subscription, fromEvent } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { Subscription, fromEvent, Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { CartService } from '../../../../features/cart/service/cart.service';
 import { CardImageSliderComponent } from '../components/card-image-slider/card-image-slider.component';
 import { CardDetailsComponent } from '../components/card-details/card-details.component';
@@ -61,6 +61,7 @@ import { UIService } from '../../../../shared/services/ui.service';
       ]),
     ]),
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
@@ -87,9 +88,11 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   modifiedProduct: Product;
   selectedVariation: Variation | null = null;
   isCardHovered: boolean = false;
-  hasInStockSizes: boolean = false; // New property to track if there are in-stock sizes
+  hasInStockSizes: boolean = false;
+  selectedColorImage: string = '';
 
-  private resizeSubscription?: Subscription;
+  private destroy$ = new Subject<void>();
+  private clickOutsideHandler: ((e: MouseEvent) => void) | null = null;
 
   constructor(
     private productService: ProductService,
@@ -111,13 +114,20 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.resizeSubscription?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
+    
+    if (this.clickOutsideHandler && isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('click', this.clickOutsideHandler);
+      this.clickOutsideHandler = null;
+    }
   }
 
   @HostListener('mouseenter')
   onMouseEnter() {
     this.isCardHovered = true;
   }
+  
   @HostListener('mouseleave')
   onMouseLeave() {
     this.isCardHovered = false;
@@ -125,12 +135,16 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   private setupResizeListener(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.resizeSubscription = fromEvent(window, 'resize')
-        .pipe(debounceTime(200))
+      fromEvent(window, 'resize')
+        .pipe(
+          debounceTime(200),
+          takeUntil(this.destroy$)
+        )
         .subscribe(() => {
           this.checkIfMobile();
           this.updateVisibleColors();
           this.updateVisibleSizes();
+          this.cdr.markForCheck();
         });
     }
   }
@@ -156,7 +170,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   private processVariations(): void {
     this.colorOptions = this.getColorOptions();
     this.uniqueSizes = this.getSizesForColor(this.selectedColor || '');
-    this.hasInStockSizes = this.uniqueSizes.some((size) => size.inStock); // Check if there are in-stock sizes
+    this.hasInStockSizes = this.uniqueSizes.some((size) => size.inStock);
     this.setDefaultVariation();
     this.updateVisibleColors();
     this.updateVisibleSizes();
@@ -165,13 +179,14 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   private fetchVariations(): void {
-    this.productService.getProductVariations(this.product.id).subscribe({
+    this.productService.getProductVariations(this.product.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (variations: Variation[]) => {
         this.variations = variations || [];
         this.processVariations();
       },
-      error: (error: any) => {
-        console.error('Error fetching variations:', error);
+        error: () => {
         this.variations = [];
         this.variationsLoaded = true;
         this.cdr.markForCheck();
@@ -307,6 +322,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   selectColor(color: string, image: string): void {
     this.selectedColor = color;
+    this.selectedColorImage = image; // Store the selected color image
     this.uniqueSizes = this.getSizesForColor(color);
     this.hasInStockSizes = this.uniqueSizes.some((size) => size.inStock); // Update in-stock sizes
 
@@ -468,51 +484,38 @@ export class ProductCardComponent implements OnInit, OnDestroy {
    * Toggle the mobile quick add panel
    */
   toggleMobileQuickAdd(): void {
-    this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
+    if (!isPlatformBrowser(this.platformId)) return;
     
-    // If we're closing the panel, ensure to clear the active quick add in the service
-    if (!this.mobileQuickAddExpanded) {
-      // Clear active quick add in service
-      if (this.product) {
-        this.uiService.setActiveQuickAddProduct(null);
-      }
-      
-      // If the user has selected a color and size, make sure we find and set the selected variation
-      if (this.selectedColor && this.selectedSize) {
-      this.findAndSetSelectedVariation();
-      }
+    this.mobileQuickAddExpanded = !this.mobileQuickAddExpanded;
+    this.cdr.markForCheck();
+
+    if (this.mobileQuickAddExpanded) {
+      // Remove any existing click handler
+      if (this.clickOutsideHandler) {
+        document.removeEventListener('click', this.clickOutsideHandler);
     }
     
-    // Close any expanded panel when clicking elsewhere on the page
-    if (isPlatformBrowser(this.platformId) && !this.isMobile) {
-      if (this.mobileQuickAddExpanded) {
-        // Handle clicking outside to close
-        const clickHandler = (e: MouseEvent) => {
-          // If click is outside the options panel, close it
-          const optionsPanel = document.querySelector('.options-panel');
-          const quickAddBtn = document.querySelector('.circular-add-button');
-          
-          if (optionsPanel && quickAddBtn) {
-            const target = e.target as Node;
-            const isClickInside = optionsPanel.contains(target) || quickAddBtn.contains(target);
-            
-            if (!isClickInside) {
+      // Set timeout to avoid immediate click event
+      setTimeout(() => {
+        this.clickOutsideHandler = (e: MouseEvent) => {
+          const target = e.target as HTMLElement;
+          const quickAddElement = document.querySelector('.mobile-quick-add');
+          if (
+            quickAddElement &&
+            !quickAddElement.contains(target) &&
+            this.mobileQuickAddExpanded
+          ) {
               this.mobileQuickAddExpanded = false;
-              this.uiService.setActiveQuickAddProduct(null);
               this.cdr.markForCheck();
-              document.removeEventListener('click', clickHandler);
-            }
           }
         };
         
-        // Add the click handler with a small delay to avoid immediate triggering
-        setTimeout(() => {
-          document.addEventListener('click', clickHandler);
+        document.addEventListener('click', this.clickOutsideHandler);
         }, 100);
-      }
+    } else if (this.clickOutsideHandler) {
+      document.removeEventListener('click', this.clickOutsideHandler);
+      this.clickOutsideHandler = null;
     }
-    
-    this.cdr.markForCheck();
   }
 
   onAddToCartWithOptions(

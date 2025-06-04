@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   width: 100%; /* Full width of grid cell */
-  height: var(--product-card-height-desktop, 470px); /* Fixed height for consistent cards */
+  height: var(--product-card-height-desktop, 500px); /* Increased height for desktop */
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -12,7 +12,7 @@
   background-color: #fff;
   margin: 0 auto; /* Center the card */
   flex-shrink: 0; /* Prevent card from shrinking in flex containers */
-  padding-bottom: 10px; /* Add padding to ensure color swatches have room */
+  padding-bottom: 2px; /* Add padding to ensure color swatches have room */
 }
 
 .product-card:hover {
@@ -75,51 +75,42 @@
   }
 }
 
+/* Mobile specific adjustments */
 @media (max-width: 767px) {
   .product-card {
-    height: var(--product-card-height-mobile, 440px); /* Match the defined mobile height */
-    font-size: 0.9rem;
-    width: 98%; /* Make cards wider on mobile */
-    margin: 0 auto 1px; /* Reduce bottom margin and center */
-    border-radius: 6px; /* Smaller border radius for mobile */
-  }
-
-  /* Make images maintain aspect ratio but take up proper space */
-  .product-card app-card-image-slider {
-    height: 280px; /* Increased height for image area on mobile - must match image-slider height */
-    overflow: visible; /* Changed from hidden to visible */
-  }
-
-  /* Adjust card details spacing */
-  .product-card app-card-details {
-    padding: 6px 10px;
-    margin-top: 4px;
-  }
-
-  .product-card app-color-swatches {
-    padding: 0 10px 2px;
-  }
-
-  /* Ensure the quick add button is positioned correctly on mobile */
-  .product-card app-mobile-quick-add {
-    bottom: 30px;
-    right: 8px;
+    height: var(--product-card-height-mobile, 440px);
   }
   
-
+  .product-card app-card-image-slider {
+    height: 280px;
+  }
+  
+  /* Make options more visible on mobile */
+  .product-card app-color-swatches {
+    display: block !important; /* Force display on mobile */
+    visibility: visible !important;
+    opacity: 1 !important;
+    padding: 0 8px;
+    margin-bottom: 5px;
+    z-index: 20; /* Higher z-index for mobile */
+  }
+  
+  /* Ensure quick add is properly positioned on mobile */
+  .product-card app-mobile-quick-add {
+    bottom: 5px;
+    right: 5px;
+    z-index: 30; /* Highest z-index for controls */
+  }
 }
 
-/* Keep essential layout styles even on smaller devices */
+/* Small mobile screens */
 @media (max-width: 480px) {
   .product-card {
-    height: var(--product-card-height-small-mobile, 420px); /* Adjusted for small screens */
-    font-size: 0.85rem;
-    width: 98%; /* Make cards wider on smaller screens */
-    margin-bottom: 1px; /* Reduce bottom margin */
+    height: var(--product-card-height-small-mobile, 400px);
   }
-
+  
   .product-card app-card-image-slider {
-    height: 260px; /* Match the image slider height on smaller screens */
+    height: 250px;
   }
 }
 
@@ -128,13 +119,29 @@
   --product-grid-gap-mobile: 0.5px;
   --product-grid-gap-tablet: 2px;
   --product-grid-gap-desktop: 4px;
-  --product-card-height-desktop: 540px;
+  --product-card-height-desktop: 560px; /* Increased desktop height */
   --product-card-height-tablet: 520px;
   --product-card-height-mobile: 440px;
-  --product-card-height-small-mobile: 420px;
+  --product-card-height-small-mobile: 400px;
+}
+
+/* Additional styles to ensure cards display properly in carousel */
+.splide__slide .product-card {
+  height: var(--product-card-height-desktop, 560px); /* Match desktop height in carousel */
+  margin: 0 5px; /* Add spacing between carousel cards */
+}
+
+@media (max-width: 992px) {
+  .splide__slide .product-card {
+    height: var(--product-card-height-tablet, 520px);
+  }
 }
 
 @media (max-width: 767px) {
+  .splide__slide .product-card {
+    height: var(--product-card-height-mobile, 440px);
+  }
+  
   /* Target common grid containers */
   .product-grid, 
   .products-container,
@@ -145,6 +152,12 @@
     gap: var(--product-grid-gap-mobile) !important;
     padding-left: 2px !important;
     padding-right: 2px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .splide__slide .product-card {
+    height: var(--product-card-height-small-mobile, 400px);
   }
 }
 

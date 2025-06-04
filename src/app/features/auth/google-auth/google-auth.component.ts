@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GoogleAuthService } from './google-auth.service';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../../environments/environment';
 
 declare var google: any;
 
@@ -59,7 +60,7 @@ export class GoogleAuthComponent implements AfterViewInit {
 
   initializeGoogleSignIn() {
     google.accounts.id.initialize({
-      client_id: '229026488808-ibbjvje0scn4bguqpauhfeqqakf2g43r.apps.googleusercontent.com',
+      client_id: environment.google.clientId,
       callback: (response: any) => this.handleCredentialResponse(response),
     });
 
@@ -86,7 +87,7 @@ export class GoogleAuthComponent implements AfterViewInit {
         next: (res) => {
           console.log('Login Success:', res);
           this.loginError = '';
-          this.router.navigate(['']);
+          this.router.navigate(['/user/Useraccount']);
         },
         error: (err) => {
           this.loginError = err.error?.message || 'Google login failed';

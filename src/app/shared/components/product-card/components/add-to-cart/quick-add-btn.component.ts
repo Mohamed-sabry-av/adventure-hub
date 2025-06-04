@@ -46,11 +46,11 @@ import { takeUntil } from 'rxjs/operators';
     ]),
     trigger('slideUpDown', [
       transition(':enter', [
-        style({ transform: 'translateY(20px)', opacity: 0 }),
-        animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 })),
+        style({ opacity: 0 }),
+        animate('200ms ease-out', style({ opacity: 1 })),
       ]),
       transition(':leave', [
-        animate('300ms ease-in', style({ transform: 'translateY(20px)', opacity: 0 })),
+        animate('200ms ease-in', style({ opacity: 0 })),
       ]),
     ]),
   ],
@@ -85,6 +85,13 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
   private subscriptions: Subscription = new Subscription();
   private activeQuickAddSubscription: Subscription = new Subscription();
 
+  // Bound event handlers to properly remove listeners
+  private boundUpdatePanelPosition: any;
+  private boundHandleTouchStart: any;
+  private boundHandleTouchMove: any;
+  private boundHandleTouchEnd: any;
+  private boundHandleOutsideClick: any;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private router: Router,
@@ -105,14 +112,14 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     
     // Debug - log product stock status
     if (this.product) {
-      console.log('Product type:', this.product.type);
-      console.log('Product stock status:', this.product.stock_status);
-      console.log('Product purchasable:', this.product.purchasable);
+      // console.log('Product type:', this.product.type);
+      // console.log('Product stock status:', this.product.stock_status);
+      // console.log('Product purchasable:', this.product.purchasable);
     }
     
     // Debug - log color options
     if (this.colorOptions && this.colorOptions.length > 0) {
-      console.log('Color options:', this.colorOptions);
+      // console.log('Color options:', this.colorOptions);
     }
     
     // Subscribe to loading state changes
@@ -146,21 +153,55 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     // Clean up all subscriptions to prevent memory leaks
     this.subscriptions.unsubscribe();
     this.activeQuickAddSubscription.unsubscribe();
+    
+    // Remove event listeners
+    window.removeEventListener('scroll', this.boundUpdatePanelPosition);
+    window.removeEventListener('resize', this.boundUpdatePanelPosition);
+    document.removeEventListener('click', this.boundHandleOutsideClick);
+    
+    if (this.optionsPanel) {
+      const panelElement = this.optionsPanel.nativeElement;
+      panelElement.removeEventListener('touchstart', this.boundHandleTouchStart);
+      panelElement.removeEventListener('touchmove', this.boundHandleTouchMove);
+      panelElement.removeEventListener('touchend', this.boundHandleTouchEnd);
+    }
   }
 
   ngAfterViewInit() {
+    // Create bound methods for event listeners
+    this.boundUpdatePanelPosition = this.updatePanelPosition.bind(this);
+    this.boundHandleTouchStart = this.handleTouchStart.bind(this);
+    this.boundHandleTouchMove = this.handleTouchMove.bind(this);
+    this.boundHandleTouchEnd = this.handleTouchEnd.bind(this);
+    this.boundHandleOutsideClick = this.handleOutsideClick.bind(this);
+    
     // Add event listener for scroll to update panel position
-    window.addEventListener('scroll', this.updatePanelPosition.bind(this), true);
-    window.addEventListener('resize', this.updatePanelPosition.bind(this), true);
+    window.addEventListener('scroll', this.boundUpdatePanelPosition, {passive: true});
+    window.addEventListener('resize', this.boundUpdatePanelPosition, {passive: true});
+    
+    // Add touch event listeners for better mobile experience
+    if (this.optionsPanel) {
+      const panelElement = this.optionsPanel.nativeElement;
+      panelElement.addEventListener('touchstart', this.boundHandleTouchStart, {passive: true});
+      panelElement.addEventListener('touchmove', this.boundHandleTouchMove, {passive: false});
+      panelElement.addEventListener('touchend', this.boundHandleTouchEnd, {passive: true});
+    }
+    
+    // Add document click listener to detect clicks outside the panel
+    document.addEventListener('click', this.boundHandleOutsideClick);
   }
 
   onToggleOptionsPanel() {
     if (this.product?.type === 'simple') {
+      // console.log('Simple product, adding directly to cart');
       this.onAddToCart();
       return;
     }
 
+    // Always open options panel for variable products
+    // console.log('Opening options panel for variable product');
     this.toggleOptions();
+    this.cdr.markForCheck();
   }
 
   onAddToCart() {
@@ -175,7 +216,31 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
       return;
     }
 
-    // For variable products, require both color and size selection if applicable
+    // For products with only colors, if a color is selected, add to cart
+    if (this.hasOnlyColors() && this.selectedColor) {
+      this.isLoading = true;
+      
+      // Make sure we have the correct variation for this color
+      if (!this.selectedVariation || 
+          !this.selectedVariation.attributes?.some((attr:any) => 
+            attr.name === 'Color' && attr.option === this.selectedColor)) {
+        this.selectedVariation = this.findColorVariation(this.selectedColor);
+      }
+      
+      const cartProduct = this.variationService.prepareProductForCart(
+        this.product,
+        this.selectedVariation,
+        this.quantityValue
+      );
+
+      this.cartService.addProductToCart(cartProduct);
+      this.addToCart.emit({ quantity: this.quantityValue });
+      this.optionsVisible = false;
+      this.uiService.setActiveQuickAddProduct(null);
+      return;
+    }
+
+    // For variable products with both color and size, require both selections
     if (this.product.type === 'variable' && !this.selectedVariation) {
       this.toggleOptions();
       return;
@@ -221,7 +286,7 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   /**
-   * Toggle options panel for variable products
+   * Toggle the options panel visibility and handle associated state
    */
   toggleOptions() {
     this.optionsVisible = !this.optionsVisible;
@@ -229,6 +294,41 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     // Update active quick add panel in service
     if (this.optionsVisible && this.product) {
       this.uiService.setActiveQuickAddProduct(this.product.id);
+      
+      // Set a short timeout to allow the panel to render before positioning it
+      setTimeout(() => {
+        if (this.optionsPanel && this.optionsVisible) {
+          const panel = this.optionsPanel.nativeElement;
+          const isMobileView = window.innerWidth < 768;
+          
+          // Reset any previously applied styles that might affect positioning
+          if (!isMobileView) {
+            this.renderer.removeStyle(panel, 'top');
+            this.renderer.removeStyle(panel, 'transform');
+          }
+          
+          // Position the panel within the card
+          const cardElement = this.elementRef.nativeElement.closest('.product-card');
+          if (cardElement) {
+            const cardRect = cardElement.getBoundingClientRect();
+            
+            // Ensure panel stays within card boundaries
+            if (isMobileView) {
+              // For mobile, use fixed positioning
+              this.renderer.setStyle(panel, 'bottom', '80px');
+              this.renderer.setStyle(panel, 'right', '8px');
+              this.renderer.setStyle(panel, 'max-height', '250px');
+              this.renderer.setStyle(panel, 'transform', 'none');
+            } else {
+              // For desktop, ensure it fits within the card height
+              this.renderer.setStyle(panel, 'max-height', `${cardRect.height - 100}px`);
+            }
+          }
+          
+          // Update panel position after it's visible
+          this.updatePanelPosition();
+        }
+      }, 10);
     } else {
       this.uiService.setActiveQuickAddProduct(null);
     }
@@ -242,6 +342,17 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     // Simple products are always ready if in stock and purchasable
     if (this.product.type === 'simple') {
       return this.product.stock_status === 'instock' && this.product.purchasable !== false;
+    }
+    
+    // For variable products, we need both color and size selected (if applicable)
+    if (this.colorOptions && this.colorOptions.length > 0) {
+      // Color is required
+      if (!this.selectedColor) return false;
+    }
+    
+    if (this.uniqueSizes && this.uniqueSizes.length > 0) {
+      // Size is required
+      if (!this.selectedSize) return false;
     }
     
     // Variable products need a selected variation that's in stock
@@ -262,7 +373,20 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   formatColorName(colorName: string): string {
-    return this.variationService.formatColorName(colorName);
+    if (!colorName) return '';
+    // Convert slug format to readable format
+    return colorName
+      .replace(/-/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  
+  formatSizeName(size: string): string {
+    if (!size) return '';
+    // Convert dash format to dot format (e.g., "1-l" to "1.L US")
+    const formattedSize = size.replace(/-/g, '.').toUpperCase();
+    return `${formattedSize} US`;
   }
 
   /**
@@ -281,21 +405,32 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   setColorAndSize(color: string, size: string | null = null) {
+    // For color, use provided value or keep existing
     if (color) {
-      this.selectColor.emit({ color, image: this.getImageForColor(color) });
-
-      if (size) {
-        this.selectSize.emit(size);
-      } else {
-        const sizesForColor = this.variationService.getSizesForColor(this.variations, color);
-        const firstInStockSize = sizesForColor.find(s => s.inStock);
-        if (firstInStockSize) {
-          this.selectSize.emit(firstInStockSize.size);
-        } else if (sizesForColor.length > 0 && this.showOutOfStockVariations) {
-          this.selectSize.emit(sizesForColor[0].size);
-        }
+      const image = this.getImageForColor(color);
+      this.selectColor.emit({ color, image });
+    }
+    
+    // For size, use provided value or keep existing
+    if (size) {
+      this.selectSize.emit(size);
+    } else if (!this.hasOnlyColors() && color) {
+      // For products with both colors and sizes, try to select a size automatically when color changes
+      const sizesForColor = this.variationService.getSizesForColor(this.variations, color);
+      const firstInStockSize = sizesForColor.find(s => s.inStock);
+      if (firstInStockSize) {
+        this.selectSize.emit(firstInStockSize.size);
+      } else if (sizesForColor.length > 0 && this.showOutOfStockVariations) {
+        this.selectSize.emit(sizesForColor[0].size);
       }
     }
+
+    // For products with only colors, find the matching variation automatically
+    if (this.hasOnlyColors() && color) {
+      this.selectedVariation = this.findColorVariation(color);
+    }
+
+    this.cdr.markForCheck();
   }
 
   private getImageForColor(color: string): string {
@@ -338,6 +473,10 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     return lowerColor;
   }
 
+  /**
+   * Update options panel position to ensure it stays within boundaries
+   * during scrolling and viewport changes
+   */
   private updatePanelPosition(): void {
     if (!this.optionsVisible || !this.optionsPanel) return;
 
@@ -347,28 +486,51 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
 
     if (!panel || !button || !card) return;
 
+    // Get necessary measurements
     const panelRect = panel.getBoundingClientRect();
     const buttonRect = button.getBoundingClientRect();
     const cardRect = card.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
 
-    // Calculate available space
-    const spaceAbove = buttonRect.top;
-    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    // Check if we're on mobile
+    const isMobileView = window.innerWidth < 768;
+
+    // Make sure panel doesn't extend outside the card
+    this.renderer.setStyle(panel, 'max-width', `${Math.min(230, cardRect.width - 20)}px`);
     
-    // Set panel position
-    if (spaceAbove > spaceBelow && spaceAbove >= 200) {
-      // Show above if there's enough space
-      this.renderer.removeClass(panel, 'show-below');
-      this.renderer.setStyle(panel, '--panel-top-offset', `${spaceAbove}px`);
+    if (isMobileView) {
+      // On mobile, position panel at a fixed position relative to the button
+      // This ensures it's always visible and doesn't move around unexpectedly
+      this.renderer.setStyle(panel, 'bottom', '80px');
+      this.renderer.setStyle(panel, 'right', '8px');
+      this.renderer.setStyle(panel, 'transform', 'none');
+      
+      // Close panel only if card is completely out of view
+      if (cardRect.bottom < 0 || cardRect.top > viewportHeight) {
+        this.optionsVisible = false;
+        this.cdr.markForCheck();
+        return;
+      }
     } else {
-      // Show below
-      this.renderer.addClass(panel, 'show-below');
-    }
-
-    // Ensure panel stays within card boundaries horizontally
-    const rightOverflow = panelRect.right - cardRect.right;
-    if (rightOverflow > 0) {
-      this.renderer.setStyle(panel, 'right', `${rightOverflow}px`);
+      // On desktop, position panel inside the card
+      const spaceAbove = buttonRect.top - cardRect.top;
+      const spaceBelow = cardRect.bottom - buttonRect.bottom;
+      
+      // Position relative to button and ensure it stays within card
+      if (spaceBelow >= panelRect.height + 10) {
+        // Enough space below, position panel below the button
+        this.renderer.setStyle(panel, 'bottom', '35px');
+        this.renderer.setStyle(panel, 'right', '10px');
+      } else if (spaceAbove >= panelRect.height + 10) {
+        // Enough space above, position panel above the button
+        this.renderer.setStyle(panel, 'bottom', `${buttonRect.height + spaceBelow + 10}px`);
+        this.renderer.setStyle(panel, 'right', '10px');
+      } else {
+        // Not enough space above or below, position panel to overlap as little as possible
+        this.renderer.setStyle(panel, 'bottom', `${Math.max(35, spaceBelow + 35)}px`);
+        this.renderer.setStyle(panel, 'right', '10px');
+      }
     }
   }
 
@@ -380,5 +542,158 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
   @HostListener('window:resize', ['$event'])
   onResize() {
     this.updatePanelPosition();
+  }
+
+  /**
+   * Find the appropriate variation for a product with only colors
+   */
+  private findColorVariation(color: string): Variation | null {
+    if (!this.variations || !color) return null;
+    
+    // First try to find an in-stock variation with the selected color
+    const inStockVariation = this.variations.find(v => 
+      v.attributes?.some((attr:any) => attr.name === 'Color' && attr.option === color) && 
+      v.stock_status === 'instock'
+    );
+    
+    if (inStockVariation) return inStockVariation;
+    
+    // If no in-stock variation found, find any variation with the selected color
+    const anyVariation = this.variations.find(v => 
+      v.attributes?.some((attr:any) => attr.name === 'Color' && attr.option === color)
+    );
+    
+    return anyVariation || null;
+  }
+
+  /**
+   * Check if the product has only colors and no sizes
+   */
+  hasOnlyColors(): boolean {
+    // Always return false to force the options panel to open
+    return false;
+    // Original code: return this.colorOptions && this.colorOptions.length > 0 && 
+    //        (!this.uniqueSizes || this.uniqueSizes.length === 0);
+  }
+
+  // Touch event handlers for better mobile scrolling experience
+  private touchStartY: number = 0;
+  private touchStartX: number = 0;
+  private isScrolling: boolean = false;
+
+  private handleTouchStart(event: TouchEvent) {
+    if (event.touches.length === 1) {
+      this.touchStartY = event.touches[0].clientY;
+      this.touchStartX = event.touches[0].clientX;
+      this.isScrolling = false;
+    }
+  }
+
+  private handleTouchMove(event: TouchEvent) {
+    if (!this.isScrolling && event.touches.length === 1) {
+      const touchY = event.touches[0].clientY;
+      const touchX = event.touches[0].clientX;
+      const deltaY = this.touchStartY - touchY;
+      const deltaX = this.touchStartX - touchX;
+      
+      // Determine if user is scrolling vertically or swiping horizontally
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        this.isScrolling = true;
+        // If panel is already at the top and user is pulling down, prevent default to avoid page scroll
+        const panel = event.currentTarget as HTMLElement;
+        if (panel.scrollTop <= 0 && deltaY < 0) {
+          event.preventDefault();
+        }
+        // If panel is at the bottom and user is pulling up, prevent default
+        else if (panel.scrollTop + panel.clientHeight >= panel.scrollHeight && deltaY > 0) {
+          event.preventDefault();
+        }
+      }
+    }
+  }
+
+  private handleTouchEnd(event: TouchEvent) {
+    this.isScrolling = false;
+  }
+
+  private handleOutsideClick(event: MouseEvent) {
+    if (!this.optionsVisible) return;
+    
+    // Check if the click is outside the options panel and the add button
+    const panel = this.optionsPanel?.nativeElement;
+    const addButton = this.elementRef.nativeElement.querySelector('.circular-add-button');
+    const productCard = this.elementRef.nativeElement.closest('.product-card');
+    
+    if (panel && addButton && productCard) {
+      const clickedElement = event.target as HTMLElement;
+      
+      // If click is outside the product card, close the panel
+      if (!productCard.contains(clickedElement)) {
+        this.optionsVisible = false;
+        this.uiService.setActiveQuickAddProduct(null);
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  /**
+   * Check if the product has colors and sizes, but all colors have the same size options
+   */
+  allColorsHaveSameSizes(): boolean {
+    if (!this.colorOptions || this.colorOptions.length <= 1 || !this.uniqueSizes || this.uniqueSizes.length === 0) {
+      return false;
+    }
+
+    // console.log('Checking if all colors have the same sizes for product:', this.product?.name);
+    // console.log('Color options:', this.colorOptions);
+    // console.log('Unique sizes:', this.uniqueSizes);
+
+    // Get all available sizes for each color
+    const sizesByColor = new Map<string, Set<string>>();
+    
+    // For each color, find all available sizes
+    for (const color of this.colorOptions) {
+      const sizesForColor = this.variationService.getSizesForColor(this.variations, color.color);
+      const sizeSet = new Set<string>(sizesForColor.map(s => s.size));
+      sizesByColor.set(color.color, sizeSet);
+      // console.log(`Sizes for color ${color.color}:`, Array.from(sizeSet));
+    }
+    
+    // If we have only one color, no need to compare
+    if (sizesByColor.size <= 1) {
+      // console.log('Only one color with sizes, returning false');
+      return false;
+    }
+    
+    // Compare all size sets to see if they're identical
+    const firstColorSizes = Array.from(sizesByColor.values())[0];
+    const firstColorSizesArray = Array.from(firstColorSizes);
+    // console.log('First color sizes:', firstColorSizesArray);
+    
+    // Check if all colors have the same set of sizes
+    let allSame = true;
+    for (const [color, sizeSet] of sizesByColor.entries()) {
+      // If the size count is different, they're not the same
+      if (sizeSet.size !== firstColorSizes.size) {
+        // console.log(`Color ${color} has different number of sizes (${sizeSet.size} vs ${firstColorSizes.size})`);
+        allSame = false;
+        break;
+      }
+      
+      // Check if all sizes from the first color exist in this color's sizes
+      for (const size of firstColorSizesArray) {
+        if (!sizeSet.has(size)) {
+          // console.log(`Color ${color} is missing size ${size}`);
+          allSame = false;
+          break;
+        }
+      }
+      
+      if (!allSame) break;
+    }
+    
+    // All colors have the same sizes
+    // console.log('All colors have the same sizes:', allSame);
+    return allSame;
   }
 }

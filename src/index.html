@@ -8,7 +8,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description"
     content="Premium outdoor and adventure sports equipment for enthusiasts. Shop high-quality gear for hiking, camping, and outdoor activities.">
-  <meta name="theme-color" content="#2E2E2E">
+  <meta name="theme-color" content="#222222">
+  <meta name="google-site-verification" content="rt6fOYIBwSbI9eK8Pt_0MACLhQGaGs6Tl1MdFohwZmw" />
 
   <!-- Resource hints -->
   <link rel="preconnect" href="https://adventures-hub.com" crossorigin>
@@ -37,6 +38,15 @@
 
   <!-- Zone.js -->
   <script src="zone.min.js" type="module"></script>
+
+  <!-- Environment variables script -->
+  <script>
+    window.env = {
+      gtmId: '%GTM_ID%',
+      klaviyoPublicKey: '%KLAVIYO_PUBLIC_KEY%',
+      facebookAppId: '%FACEBOOK_APP_ID%'
+    };
+  </script>
 
   <!-- Critical CSS -->
   <style>
@@ -92,7 +102,7 @@
       width: 40px;
       height: 40px;
       border: 4px solid #f3f3f3;
-      border-top: 4px solid #2E2E2E;
+      border-top: 4px solid #222222;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -167,15 +177,18 @@
       function loadGTM() {
         // Google Tag Manager - critical for analytics
         const gtmScript = document.createElement('script');
-        gtmScript.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-KQZ3H8ND';
+        gtmScript.src = 'https://www.googletagmanager.com/gtm.js?id=' + (window.env?.gtmId || 'GTM-KQZ3H8ND');
         gtmScript.async = true;
         document.head.appendChild(gtmScript);
       }
 
       function loadThirdPartyScripts() {
+        // Initialize Klaviyo _learnq array
+        window._learnq = window._learnq || [];
+
         // Klaviyo
         const klaviyoScript = document.createElement('script');
-        klaviyoScript.src = 'https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=QXDLFh';
+        klaviyoScript.src = 'https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=' + (window.env?.klaviyoPublicKey || 'QXDLFh');
         klaviyoScript.async = true;
         document.body.appendChild(klaviyoScript);
 
@@ -189,7 +202,7 @@
         // Facebook initialization
         window.fbAsyncInit = function () {
           FB.init({
-            appId: '639673088797642',
+            appId: window.env?.facebookAppId || '639673088797642',
             cookie: true,
             xfbml: true,
             version: 'v13.0',

@@ -5,9 +5,9 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  /* min-height: 35px; */
   position: relative;
   width: 100%;
+  min-height: 35px;
 }
 
 /* Color Swatches Wrapper */
@@ -44,8 +44,8 @@
 
 /* Swatch */
 .swatch {
-  width: 22px;
-  height: 22px;
+  width: 27px;
+  height: 27px;
   border-radius: 50%;
   border: 1px solid #e5e7eb;
   overflow: hidden;
@@ -199,21 +199,21 @@
 /* Mobile Optimizations */
 @media (max-width: 767px) {
   .color-swatches-container {
-    /* padding: 0.25rem 0.5rem 0.25rem; */
-    min-height: 10px;
+    min-height: 30px;
+    gap: 0.2rem;
   }
 
   .color-swatches {
-    gap: 6px;
-    min-height: 5px;
+    gap: 5px;
+    min-height: 28px;
     justify-content: center;
     padding: 0 25px; /* Slightly reduced padding for mobile */
     max-width: calc(100% - 50px);
   }
 
   .swatch {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
   }
 
   .swatch.out-of-stock::after {
@@ -225,20 +225,52 @@
     bottom: -16px;
   }
 
-  .pagination-dots {
-    height: 2px;
-  }
 
   .color-nav-btn {
-    width: 16px; /* Smaller buttons on mobile */
-    height: 16px;
+    width: 17px;
+    height: 17px;
   }
 
   .color-nav-btn.left {
-    left: 4px;
+    left: 1px;
   }
   
   .color-nav-btn.right {
     right: 4px;
+  }
+}
+
+/* Tablet Optimizations */
+@media (min-width: 768px) and (max-width: 992px) {
+  .color-swatches-container {
+    min-height: 32px;
+  }
+  
+  .color-swatches {
+    gap: 6px;
+    min-height: 30px;
+  }
+}
+
+/* Small Mobile Optimizations */
+@media (max-width: 480px) {
+  .color-swatches-container {
+    min-height: 28px;
+  }
+
+  .color-swatches {
+    gap: 4px;
+    padding: 0 20px;
+    max-width: calc(100% - 40px);
+  }
+
+  .swatch {
+    width: 22px;
+    height: 22px;
+  }
+
+  .color-nav-btn {
+    width: 14px;
+    height: 14px;
   }
 }

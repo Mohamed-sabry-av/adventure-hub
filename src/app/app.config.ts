@@ -6,7 +6,8 @@ import {
   withPreloading, 
   PreloadAllModules,
   withViewTransitions,
-  withRouterConfig
+  withRouterConfig,
+  UrlSerializer
 } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -22,8 +23,7 @@ import { CartEffect } from './Store/effects/cart.effect';
 import { CheckoutEffect } from './Store/effects/checkout.effect';
 import { reducers } from './Store/store';
 import { performanceInterceptor } from './core/interceptors/performance.interceptor';
-import { LocationStrategy, PathLocationStrategy } from '@angular/common'; // أضف ده
-import { CurrencyService } from './shared/services/currency.service';
+import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { GeoLocationService } from './shared/services/geo-location.service';
 
 export const appConfig: ApplicationConfig = {
@@ -38,10 +38,12 @@ export const appConfig: ApplicationConfig = {
       }),
       withViewTransitions(),
       withRouterConfig({
-        onSameUrlNavigation: 'reload' // خلّي ده بس، وشيل useHash
+        onSameUrlNavigation: 'reload',
+        paramsInheritanceStrategy: 'always',
+        urlUpdateStrategy: 'eager'
       })
     ),
-    { provide: LocationStrategy, useClass: PathLocationStrategy }, // أضف ده عشان تفعّل PathLocationStrategy
+    { provide: LocationStrategy, useClass: PathLocationStrategy },
     provideHttpClient(
       withFetch(),
       withInterceptors([
@@ -69,8 +71,7 @@ export const appConfig: ApplicationConfig = {
     }),
     provideStore(reducers),
     provideEffects([CartEffect, CheckoutEffect]),
-    // إضافة خدمات العملات والموقع الجغرافي
-    CurrencyService,
+    // Only geo location service
     GeoLocationService,
   ],
-};
+}; 

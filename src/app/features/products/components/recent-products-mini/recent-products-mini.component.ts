@@ -3,82 +3,43 @@ import {
   Component,
   OnInit,
   ViewChild,
-  ElementRef,
-  AfterViewInit,
-  OnDestroy,
   inject,
   ChangeDetectorRef,
-  NgZone,
   OnChanges,
-  SimpleChanges
+  SimpleChanges,
+  AfterViewInit,
+  ElementRef,
+  OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { RecentlyVisitedService } from '../../../../core/services/recently-visited.service';
 import { Product } from '../../../../interfaces/product';
-import { Observable, map, timer, of, finalize, tap } from 'rxjs';
+import { Observable, of, finalize, tap, map } from 'rxjs';
 import { take, catchError } from 'rxjs/operators';
 import { ProductCardComponent } from '../../../../shared/components/product-card/page/product-card.component';
-import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
+import Splide from '@splidejs/splide';
 
 @Component({
   selector: 'app-recent-products-mini',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent, CarouselModule],
+  imports: [CommonModule, RouterModule, ProductCardComponent],
   templateUrl: './recent-products-mini.component.html',
   styleUrls: ['./recent-products-mini.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RecentProductsMiniComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
+export class RecentProductsMiniComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
-  private zone = inject(NgZone);
   private router = inject(Router);
   
   recentProducts: Product[] = [];
   isLoading: boolean = true;
-  maxProductsToShow: number = 8;
+  maxProductsToShow: number = 12;
+  
+  @ViewChild('splideEl') splideEl?: ElementRef<HTMLElement>;
+  private splide?: Splide;
 
-  @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
-  @ViewChild('prevBtn') prevBtn?: ElementRef<HTMLButtonElement>;
-  @ViewChild('nextBtn') nextBtn?: ElementRef<HTMLButtonElement>;
-
-  private prevClickListener?: (e: Event) => void;
-  private nextClickListener?: (e: Event) => void;
-
-  // Carousel options
-  carouselOptions: OwlOptions = {
-    loop: true,
-    mouseDrag: true,
-    touchDrag: true,
-    pullDrag: false,
-    dots: true,
-    navSpeed: 300,
-    autoplay: false,
-    smartSpeed: 300,
-    fluidSpeed: true,
-    navText: ['', ''],
-    autoWidth: false,
-    items: 4,
-    lazyLoad: false,
-    responsive: {
-      0: {
-        items: 2
-      },
-      576: {
-        items: 2
-      },
-      768: {
-        items: 3
-      },
-      992: {
-        items: 4
-      }
-    },
-    nav: false
-  };
-
-  constructor(private recentlyVisitedService: RecentlyVisitedService) {
-  }
+  constructor(private recentlyVisitedService: RecentlyVisitedService) {}
 
   ngOnInit(): void {
     // Check if we already have products in the service
@@ -87,11 +48,14 @@ export class RecentProductsMiniComponent implements OnInit, AfterViewInit, OnDes
       this.recentProducts = currentProducts.slice(0, this.maxProductsToShow);
       this.isLoading = false;
       this.cdr.markForCheck();
-    } else {
     }
     
     // Still load from the observable to catch any updates
     this.loadRecentProducts();
+  }
+
+  ngAfterViewInit(): void {
+    this.initSplide();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -99,17 +63,51 @@ export class RecentProductsMiniComponent implements OnInit, AfterViewInit, OnDes
     this.loadRecentProducts();
   }
 
-  ngAfterViewInit() {
-    // Wait a bit for the carousel to initialize
-    timer(100, 300)
-      .pipe(take(5))
-      .subscribe(() => {
-        this.setupCustomNavigation();
+  private initSplide(): void {
+    if (this.splideEl && this.recentProducts.length > 0) {
+      if (this.splide) {
+        this.splide.destroy();
+      }
+      
+      this.splide = new Splide(this.splideEl.nativeElement, {
+        type: 'loop',
+        perPage: 4,
+        perMove: 1,
+        pagination: true,
+        arrows: true,
+        autoplay: false,
+        speed: 800,
+        easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+        lazyLoad: 'nearby',
+        drag: true,
+        snap: true,
+        role: 'region',
+        label: 'Recently Viewed Products',
+        padding: { left: 0, right: 0 },
+        trimSpace: true,
+        updateOnMove: true,
+        arrowPath: 'm15.5 0.932-4.3 4.38 14.5 14.6-14.5 14.5 4.3 4.4 14.6-14.6 4.4-4.3-4.4-4.4-14.6-14.6z',
+        breakpoints: {
+          640: {
+            perPage: 2,
+            padding: { left: 0, right: 0 },
+            // gap: '0.5rem',
+            arrows: false,
+            width: '100%'
+          },
+          1024: {
+            perPage: 3,
+            padding: { left: 0, right: 0 }
+          },
+          1180: {
+            perPage: 4,
+            padding: { left: 0, right: 0 }
+          }
+        }
       });
-  }
-
-  ngOnDestroy() {
-    this.removeNavigationListeners();
+      
+      this.splide.mount();
+    }
   }
 
   loadRecentProducts() {
@@ -120,24 +118,36 @@ export class RecentProductsMiniComponent implements OnInit, AfterViewInit, OnDes
       .pipe(
         tap(products => console.log('RecentProductsMini - Products received:', products?.length || 0)),
         take(1),
-        map((products) => {
+        map((products: Product[]) => {
           // Filter out any invalid products (without ID) to prevent errors
+          // AND limit each product to have only 3 images
           return products
-            .filter(product => product && typeof product.id !== 'undefined')
+            .filter((product: Product) => product && typeof product.id !== 'undefined')
+            .map((product: Product) => ({
+              ...product,
+              images: product.images?.slice(0, 3) || []
+            }))
             .slice(0, this.maxProductsToShow);
         }),
         catchError(error => {
           console.error('RecentProductsMini - Error loading products:', error);
-          return of([]);
+          return of([] as Product[]);
         }),
         finalize(() => {
           this.isLoading = false;
           this.cdr.markForCheck();
           console.log('RecentProductsMini - Loading completed');
+          
+          // Initialize Splide after data is loaded
+          setTimeout(() => {
+            if (this.recentProducts.length > 3) {
+              this.initSplide();
+            }
+          }, 100);
         })
       )
       .subscribe({
-        next: (products) => {
+        next: (products: Product[]) => {
           this.recentProducts = products;
           console.log('RecentProductsMini - Products loaded:', this.recentProducts.length);
           this.cdr.markForCheck();
@@ -160,87 +170,9 @@ export class RecentProductsMiniComponent implements OnInit, AfterViewInit, OnDes
     this.router.navigate(['/product', productSlug]);
   }
 
-  private removeNavigationListeners(): void {
-    if (this.prevBtn?.nativeElement && this.prevClickListener) {
-      this.prevBtn.nativeElement.removeEventListener('click', this.prevClickListener);
+  ngOnDestroy(): void {
+    if (this.splide) {
+      this.splide.destroy();
     }
-    
-    if (this.nextBtn?.nativeElement && this.nextClickListener) {
-      this.nextBtn.nativeElement.removeEventListener('click', this.nextClickListener);
-    }
-  }
-
-  setupCustomNavigation(): void {
-    this.zone.runOutsideAngular(() => {
-      // Remove previous listeners
-      this.removeNavigationListeners();
-
-      if (this.prevBtn?.nativeElement && this.nextBtn?.nativeElement && this.owlCarousel) {
-        this.prevClickListener = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.owlCarousel) {
-            this.owlCarousel.prev();
-            this.zone.run(() => {
-              this.cdr.markForCheck();
-            });
-          }
-        };
-        
-        this.nextClickListener = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.owlCarousel) {
-            this.owlCarousel.next();
-            this.zone.run(() => {
-              this.cdr.markForCheck();
-            });
-          }
-        };
-        
-        this.prevBtn.nativeElement.addEventListener('click', this.prevClickListener);
-        this.nextBtn.nativeElement.addEventListener('click', this.nextClickListener);
-      } else {
-        // Use DOM selectors as fallback
-        const prevBtn = document.querySelector('.products-carousel .prev-btn') as HTMLElement;
-        const nextBtn = document.querySelector('.products-carousel .next-btn') as HTMLElement;
-        
-        if (prevBtn && nextBtn && this.owlCarousel) {
-          this.prevClickListener = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (this.owlCarousel) {
-              this.owlCarousel.prev();
-              this.zone.run(() => {
-                this.cdr.markForCheck();
-              });
-            }
-          };
-          
-          this.nextClickListener = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (this.owlCarousel) {
-              this.owlCarousel.next();
-              this.zone.run(() => {
-                this.cdr.markForCheck();
-              });
-            }
-          };
-          
-          prevBtn.addEventListener('click', this.prevClickListener);
-          nextBtn.addEventListener('click', this.nextClickListener);
-        }
-      }
-    });
-  }
-
-  private shuffleArray<T>(array: T[]): T[] {
-    const result = [...array];
-    for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [result[i], result[j]] = [result[j], result[i]];
-    }
-    return result;
   }
 }

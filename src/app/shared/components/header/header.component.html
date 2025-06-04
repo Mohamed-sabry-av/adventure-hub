@@ -1,16 +1,27 @@
-<!-- Header spacer for fixed positioning - invisible but maintains layout -->
-<div class="header-spacer" [style.height.px]="headerHeight()" [ngClass]="{'hidden': currentPage === 'checkout'}"></div>
-
+<!-- Header content - no spacer needed as we're using body padding now -->
 <header class="w-full header-container" [ngClass]="{
     'is-scroll': lastScrollY() > 0 && !isProductPage,
     'non-sticky': isProductPage || currentPage === 'checkout'
   }" #headerEl>
   @if (currentPage === 'checkout') {
-  <div class="h-[135px] w-full bg-[#2E2E2E] flex items-center justify-center">
-    <a class="block" [routerLink]="''">
-      <img src="header/White logo-01.webp" alt="Adventures hub logo" routerLink=""
-        class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" loading="lazy" />
+  <!-- Simplified Checkout Header -->
+  <div class="checkout-header flex items-center justify-between px-4 py-3 bg-[#222222]">
+    <!-- Empty div for left side spacing -->
+    <div class="w-[36px]"></div>
+
+    <!-- Centered logo -->
+    <a class="block mx-auto">
+      <img src="header/White logo-01.png" alt="Adventures hub logo" routerLink=""
+        class="w-[140px] h-7 md:w-[200px] md:h-10 cursor-pointer" loading="lazy" />
     </a>
+
+    <!-- Cart icon on right -->
+    <div class="flex items-center">
+      <a routerLink="/cart" class="icon-container">
+        <i class="pi pi-shopping-bag"></i>
+        <span *ngIf="cartCount > 0" class="count-badge">{{ cartCount }}</span>
+      </a>
+    </div>
   </div>
   } @else if(currentPage !== 'checkout') {
   <!-- Header content wrapper to maintain stable height -->
@@ -41,7 +52,7 @@
 
           <!-- Logo - Centered on mobile -->
           <a class="block absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none">
-            <img loading="lazy" src="header/White logo-01.webp" alt="Adventures hub logo" routerLink=""
+            <img loading="lazy" src="header/White logo-01.png" alt="Adventures hub logo" routerLink=""
               class="w-[180px] h-9 lg:w-[250px] lg:h-12 cursor-pointer" />
           </a>
 
@@ -75,10 +86,8 @@
       </app-container>
     </div>
 
-    <!-- Layer 3: Bottom - Navbar (visible only at top or during scroll up) -->
-    <div class="header-bottom-layer"
-      [class.header-layer-hidden]="scrollDirection() === 'down' && lastScrollY() > 100 && !forceNavbarVisible"
-      @layerAnimation>
+    <!-- Layer 3: Bottom - Navbar (using the new thirdLayerVisible signal) -->
+    <div class="header-bottom-layer" [class.header-layer-hidden]="!thirdLayerVisible()" @layerAnimation>
       @defer (on idle) {
       <app-navbar-container [mainCategories]="mainCategories" [allCategories]="allCategories" />
       }

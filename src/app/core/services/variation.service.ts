@@ -7,6 +7,7 @@ import { Product, Variation } from '../../interfaces/product';
 })
 export class VariationService {
   private selectedVariationSubject = new BehaviorSubject<Variation | null>(null);
+  private loadingStateSubject = new BehaviorSubject<boolean>(false);
 
   constructor() {}
 
@@ -188,5 +189,15 @@ export class VariationService {
       variation: selectedVariation,
       product: product
     };
+  }
+
+  // Set loading state for variation changes
+  setLoadingState(isLoading: boolean): void {
+    this.loadingStateSubject.next(isLoading);
+  }
+
+  // Get the current loading state
+  getLoadingState(): Observable<boolean> {
+    return this.loadingStateSubject.asObservable();
   }
 }

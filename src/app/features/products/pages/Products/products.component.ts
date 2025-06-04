@@ -8,10 +8,12 @@ import {
   ViewChild,
   TransferState,
   makeStateKey,
+  Inject,
+  PLATFORM_ID,
 } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { CategoriesService } from '../../../../core/services/categories.service';
 import { FilterService } from '../../../../core/services/filter.service';
 import { FilterSidebarComponent } from '../../components/filter-sidebar/filter-sidebar.component';
@@ -23,7 +25,8 @@ import { SeoService } from '../../../../core/services/seo.service';
 import { catchError, finalize, of, Subject, throwError } from 'rxjs';
 import { debounceTime, tap } from 'rxjs/operators';
 import isEqual from 'lodash/isEqual';
-import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
+import { UIService } from '../../../../shared/services/ui.service';
+import { KlaviyoTrackingService } from '../../../../shared/services/klaviyo-tracking.service';
 
 const PRODUCTS_KEY = makeStateKey<any[]>('products');
 
@@ -37,7 +40,6 @@ const PRODUCTS_KEY = makeStateKey<any[]>('products');
     FilterDrawerComponent,
     SortMenuComponent,
     ProductsGridComponent,
-    DialogErrorComponent,
   ],
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css'],
@@ -78,7 +80,10 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private filterService: FilterService,
     private seoService: SeoService,
-    private transferState: TransferState
+    private transferState: TransferState,
+    private uiService: UIService,
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private klaviyoTracking: KlaviyoTrackingService
   ) {
     this.showSkeleton = true; // ضمان ظهور الـ skeleton فورًا
     this.scrollSubject.pipe(debounceTime(50)).subscribe(() => {
@@ -123,6 +128,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     this.showSkeleton = true;
     this.cdr.markForCheck();
+
+    // Load initial data
+    this.loadInitialData().then(() => {
+      // Track category view after data is loaded
+      this.trackCategoryView();
+    });
   }
 
   ngAfterViewInit() {
@@ -382,6 +393,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
       await this.loadProducts(true);
       await this.loadTotalProducts();
+      
+      // Track new category view after category change
+      this.trackCategoryView();
     } catch (error) {
       console.error('Error in onCategoryIdChange:', error);
       // تحقق ما إذا كان الخطأ بسبب عدم وجود الفئة، وفي هذه الحالة انتقل إلى صفحة 404
@@ -463,5 +477,19 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.showSkeleton = true;
     this.showEmptyState = false; // إخفاء الحالة الفارغة عند تغيير الفلاتر
     this.loadProducts(true, filters);
+  }
+
+  /**
+   * Track category view in Klaviyo
+   */
+  private trackCategoryView(): void {
+    if (isPlatformBrowser(this.platformId) && this.currentCategory) {
+      this.klaviyoTracking.trackViewedCategory({
+        id: this.currentCategory.id,
+        name: this.currentCategory.name,
+        url: window.location.href,
+        productCount: this.totalProducts
+      });
+    }
   }
 }

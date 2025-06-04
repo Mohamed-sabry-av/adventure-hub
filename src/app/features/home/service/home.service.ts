@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { Observable, map, catchError, of, shareReplay, BehaviorSubject } from 'rxjs';
+import { Observable, map, catchError, of, shareReplay, BehaviorSubject, forkJoin } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { CacheService } from '../../../core/services/cashing.service';
 import { environment } from '../../../../environments/environment';
@@ -11,6 +11,12 @@ interface BannerImage {
   small: string;
 }
 
+interface CategoryImage {
+  category_id: number;
+  category_name: string;
+  image_url: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class HomeService {
   // Cache TTL settings (in milliseconds)
@@ -18,6 +24,7 @@ export class HomeService {
   private readonly CATEGORIES_CACHE_TTL = 7200000; // 2 hours
   private readonly BANNERS_CACHE_TTL = 3600000; // 1 hour
   private readonly BRANDS_CACHE_TTL = 7200000; // 2 hours
+  private readonly CATEGORY_IMAGES_CACHE_TTL = 7200000; // 2 hours
   
   // Local storage keys
   private readonly LS_NEW_ARRIVALS_KEY = 'home_new_arrivals';
@@ -374,33 +381,69 @@ export class HomeService {
       );
   }
 
-  getBrandById(termId: number): Observable<any> {
-    const cacheKey = `brand_${termId}`;
+  /**
+   * Get a single brand by its ID
+   * @param brandId ID of the brand to fetch
+   * @returns Observable of the brand object
+   */
+  getBrandById(brandId: number): Observable<any> {
+    if (!brandId) {
+      return of(null);
+    }
+    
+    const cacheKey = `brand_${brandId}`;
     const cachedData = this.cachingService.get(cacheKey);
     if (cachedData) {
+      console.log(`Using cached data for brand ID ${brandId}`);
       return cachedData;
     }
-
+    
+    console.log(`Fetching brand with ID ${brandId} from API`);
+    
     return this.wooApi
-      .getRequestProducts<any>(`products/attributes/3/terms/${termId}`, {
-        params: new HttpParams().set('_fields', 'id,name,slug,count,image'),
+      .getRequestProducts<any>(`products/attributes/3/terms/${brandId}`, {
+        params: new HttpParams()
+          .set('_fields', 'id,name,slug,count,image'),
         observe: 'response',
       })
       .pipe(
         map((response: HttpResponse<any>) => {
+          console.log(`API response for brand ID ${brandId}:`, response);
+          if (!response.body) {
+            console.warn(`Received invalid response body for brand ID ${brandId}:`, response.body);
+            return null;
+          }
+          
           const brand = response.body;
+          
+          // Check if brand has image data
+          let imageData = undefined;
+          if (brand.image) {
+            imageData = {
+              ...brand.image,
+              // Ensure URL is accessible both as url and src for compatibility
+              url: brand.image.src || brand.image.url,
+              src: brand.image.src || brand.image.url
+            };
+            console.log(`Brand ${brand.name} has image:`, imageData);
+          } else {
+            console.log(`Brand ${brand.name} has no image`);
+          }
+          
           const formattedBrand = {
             id: brand.id,
             name: brand.name,
             slug: brand.slug,
             count: brand.count,
-            image: brand.image || undefined,
+            image: imageData,
           };
+          
+          console.log(`Processed brand ID ${brandId}:`, formattedBrand);
           this.cachingService.set(cacheKey, formattedBrand, this.BRANDS_CACHE_TTL);
           return formattedBrand;
         }),
         catchError((error) => {
-          console.error(`Error fetching brand with ID ${termId}:`, error);
+          console.error(`Error fetching brand with ID ${brandId}:`, error);
           return of(null);
         }),
         shareReplay(1)
@@ -411,9 +454,11 @@ export class HomeService {
     const cacheKey = `all_brands_${perPage}`;
     const cachedData = this.cachingService.get(cacheKey);
     if (cachedData) {
+      console.log('Using cached brand data');
       return cachedData;
     }
 
+    console.log('Fetching brands from API');
     return this.wooApi
       .getRequestProducts<any>('products/attributes/3/terms', {
         params: new HttpParams()
@@ -423,18 +468,121 @@ export class HomeService {
       })
       .pipe(
         map((response: HttpResponse<any>) => {
-          const brands = response.body.map((brand: any) => ({
-            id: brand.id,
-            name: brand.name,
-            slug: brand.slug,
-            count: brand.count,
-            image: brand.image || undefined,
-          }));
+          console.log('API response for brands:', response);
+          if (!response.body || !Array.isArray(response.body)) {
+            console.warn('Received invalid response body for brands:', response.body);
+            return [];
+          }
+          
+          const brands = response.body.map((brand: any) => {
+            // Check if brand has image data
+            let imageData = undefined;
+            if (brand.image) {
+              imageData = {
+                ...brand.image,
+                // Ensure URL is accessible both as url and src for compatibility
+                url: brand.image.src || brand.image.url,
+                src: brand.image.src || brand.image.url
+              };
+              console.log(`Brand ${brand.name} has image:`, imageData);
+            } else {
+              console.log(`Brand ${brand.name} has no image`);
+            }
+            
+            return {
+              id: brand.id,
+              name: brand.name,
+              slug: brand.slug,
+              count: brand.count,
+              image: imageData,
+            };
+          });
+          
+          console.log('Processed brands:', brands);
           this.cachingService.set(cacheKey, brands, this.BRANDS_CACHE_TTL);
           return brands;
         }),
         catchError((error) => {
           console.error('Error fetching all brands:', error);
+          return of([]);
+        }),
+        shareReplay(1)
+      );
+  }
+
+  /**
+   * Get specific brands by their IDs
+   * @param brandIds Array of brand IDs to fetch
+   * @returns Observable of brand objects
+   */
+  getFeaturedBrands(brandIds: number[]): Observable<any[]> {
+    if (!brandIds || brandIds.length === 0) {
+      return of([]);
+    }
+    
+    const cacheKey = `featured_brands_${brandIds.join('_')}`;
+    const cachedData = this.cachingService.get(cacheKey);
+    if (cachedData) {
+      console.log('Using cached featured brands data');
+      return cachedData;
+    }
+    
+    console.log('Fetching featured brands by IDs:', brandIds);
+    
+    // Create a comma-separated list of IDs
+    const idsParam = brandIds.join(',');
+    
+    return this.wooApi
+      .getRequestProducts<any>(`products/attributes/3/terms`, {
+        params: new HttpParams()
+          .set('include', idsParam)
+          .set('per_page', brandIds.length.toString())
+          .set('_fields', 'id,name,slug,count,image'),
+        observe: 'response',
+      })
+      .pipe(
+        map((response: HttpResponse<any>) => {
+          console.log('API response for featured brands:', response);
+          if (!response.body || !Array.isArray(response.body)) {
+            console.warn('Received invalid response body for featured brands:', response.body);
+            return [];
+          }
+          
+          const brands = response.body.map((brand: any) => {
+            // Check if brand has image data
+            let imageData = undefined;
+            if (brand.image) {
+              imageData = {
+                ...brand.image,
+                // Ensure URL is accessible both as url and src for compatibility
+                url: brand.image.src || brand.image.url,
+                src: brand.image.src || brand.image.url
+              };
+              console.log(`Brand ${brand.name} has image:`, imageData);
+            } else {
+              console.log(`Brand ${brand.name} has no image`);
+            }
+            
+            return {
+              id: brand.id,
+              name: brand.name,
+              slug: brand.slug,
+              count: brand.count,
+              image: imageData,
+            };
+          });
+          
+          // Sort by the original order in brandIds
+          brands.sort((a, b) => {
+            return brandIds.indexOf(a.id) - brandIds.indexOf(b.id);
+          });
+          
+          console.log('Processed featured brands:', brands);
+          this.cachingService.set(cacheKey, brands, this.BRANDS_CACHE_TTL);
+          return brands;
+        }),
+        catchError((error) => {
+          console.error('Error fetching featured brands:', error);
           return of([]);
         }),
         shareReplay(1)
@@ -450,7 +598,7 @@ export class HomeService {
     }
     
     // Use the API service for the external request
-    const url = 'https://adventures-hub.com/wp-json/custom/v1/banners';
+    const url = `${environment.customApiUrl}/banners`;
     
     return this.http.get<{banner_images: BannerImage[]}>(url)
       .pipe(
@@ -481,6 +629,57 @@ export class HomeService {
         }),
         catchError(error => {
           console.error('Error fetching banner images:', error);
+          return of([]);
+        }),
+        shareReplay(1)
+      );
+  }
+
+  /**
+   * Get custom category images from API
+   */
+  getCategoryImages(): Observable<CategoryImage[]> {
+    const cacheKey = 'category_images';
+    const cachedData = this.cachingService.get(cacheKey);
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
+    // Use the API service for the external request
+    const url = `${environment.customApiUrl}/category-images`;
+    
+    return this.http.get<{category_images: CategoryImage[]}>(url)
+      .pipe(
+        map(response => {
+          // Validate response structure
+          if (response && response.category_images && Array.isArray(response.category_images)) {
+            // Validate each category image has required properties
+            const validCategoryImages = response.category_images.filter((image: any) => 
+              image && typeof image === 'object' && 
+              typeof image.category_id === 'number' && 
+              typeof image.category_name === 'string' && 
+              typeof image.image_url === 'string'
+            );
+            
+            this.cachingService.set(cacheKey, validCategoryImages, this.CATEGORY_IMAGES_CACHE_TTL);
+            return validCategoryImages;
+          } else if (response && Array.isArray(response)) {
+            // Handle case where response is an array directly
+            const validCategoryImages = response.filter((image: any) => 
+              image && typeof image === 'object' && 
+              typeof image.category_id === 'number' && 
+              typeof image.category_name === 'string' && 
+              typeof image.image_url === 'string'
+            );
+            
+            this.cachingService.set(cacheKey, validCategoryImages, this.CATEGORY_IMAGES_CACHE_TTL);
+            return validCategoryImages;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('Error fetching category images:', error);
           return of([]);
         }),
         shareReplay(1)

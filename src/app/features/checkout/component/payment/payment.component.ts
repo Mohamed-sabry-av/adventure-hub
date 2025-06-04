@@ -32,8 +32,8 @@ export class PaymentComponent implements OnInit, OnChanges {
   // Use demo mode for testing (set to false in production)
   useDemoMode = false; // Change to false for production
 
-  private readonly STRIPE_PUBLISHABLE_KEY = 'pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45';
-  private readonly BACKEND_URL = environment.apiUrl; // e.g., 'http://localhost:4000'
+  private readonly STRIPE_PUBLISHABLE_KEY = environment.stripe.publishableKey;
+  private readonly BACKEND_URL = environment.apiUrl;
 
   @ViewChild('paymentElement', { static: true }) paymentElementRef!: ElementRef;
 

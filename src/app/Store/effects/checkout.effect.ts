@@ -27,6 +27,9 @@ import {
 } from '../actions/ui.action';
 import { UIService } from '../../shared/services/ui.service';
 import { HandleErrorsService } from '../../core/services/handel-errors.service';
+import { environment } from '../../../environments/environment';
+
+const CUSTOM_API_URL = environment.customApiUrl;
 
 export class CheckoutEffect {
   private actions$ = inject(Actions);
@@ -118,7 +121,7 @@ export class CheckoutEffect {
 
             return this.httpClient
               .post(
-                'https://adventures-hub.com/wp-json/custom/v1/cart/coupon',
+                `${CUSTOM_API_URL}/cart/coupon`,
                 body,
                 { headers: loadedData.headers, params: loadedData.params }
               )
@@ -198,7 +201,7 @@ export class CheckoutEffect {
 
             return this.httpClient
               .post(
-                'https://adventures-hub.com/wp-json/custom/v1/cart/guest/coupon',
+                `${CUSTOM_API_URL}/cart/guest/coupon`,
                 body
               )
               .pipe(
@@ -287,7 +290,7 @@ export class CheckoutEffect {
 
           return this.httpClient
             .post(
-              'https://adventures-hub.com/wp-json/custom/v1/cart/coupon',
+              `${CUSTOM_API_URL}/cart/coupon`,
               body,
               { headers: loadedData.headers, params: loadedData.params }
             )
@@ -320,7 +323,7 @@ export class CheckoutEffect {
 
           return this.httpClient
             .post(
-              'https://adventures-hub.com/wp-json/custom/v1/cart/guest/coupon',
+              `${CUSTOM_API_URL}/cart/guest/coupon`,
               body
             )
             .pipe(
@@ -354,7 +357,7 @@ export class CheckoutEffect {
       tap(() => this.store.dispatch(startLoadingOrderAction())),
       switchMap(({ orderDetails }) => {
         return this.httpClient
-          .post('http://localhost:4000/api/orders', orderDetails, {
+          .post(`${environment.apiUrl}/api/orders`, orderDetails, {
             headers: { 'Content-Type': 'application/json' },
           })
           .pipe(

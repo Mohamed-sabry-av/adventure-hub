@@ -1,44 +1,50 @@
-<div class="image-slider" >
+<div class="image-slider">
   <!-- Image slider -->
-  <div class="slider-container" #sliderContainer [ngClass]="{'hovered': isHovered && product.images.length > 1}">
+  <div class="slider-container" #sliderContainer [ngClass]="{'hovered': isHovered}" role="region"
+    aria-label="Product image slider">
     <!-- Mobile navigation arrows (only show if multiple images) -->
     <div class="mobile-navigation-arrows" *ngIf="isMobile && hasMultipleImages">
-      <button class="nav-arrow nav-prev" [disabled]="currentImageIndex === 0" (click)="navigateImages(-1, $event)">
-        <span class="arrow-icon">❮</span>
+      <button class="nav-arrow nav-prev" [disabled]="currentImageIndex === 0" (click)="navigateImages(-1, $event)"
+        aria-label="Previous image">
+        <span class="arrow-icon" aria-hidden="true">❮</span>
       </button>
-      <button class="nav-arrow nav-next" [disabled]="currentImageIndex >= (product?.images?.length ?? 0) - 1"
-        (click)="navigateImages(1, $event)">
-        <span class="arrow-icon">❯</span>
+      <button class="nav-arrow nav-next" [disabled]="currentImageIndex >= maxImageIndex"
+        (click)="navigateImages(1, $event)" aria-label="Next image">
+        <span class="arrow-icon" aria-hidden="true">❯</span>
       </button>
     </div>
 
     <!-- Images -->
     <div class="slide" *ngFor="let image of product?.images; let i = index" [ngClass]="{
         'active': i === currentImageIndex || (i === 0 && !isMobile && currentImageIndex === 0),
-        'second-image': i === 1 && isHovered && product.images.length > 1 && !isMobile
-      }">
-      <a [routerLink]="['/product', product.slug]">
+        'second-image': i === 1 && isHovered && !isMobile,
+        'color-selected': selectedColorIndex === i && selectedColorIndex >= 0
+      }" [attr.aria-hidden]="i !== currentImageIndex && !(i === 1 && isHovered && !isMobile)">
+      <a [routerLink]="['/product', product.slug]" [attr.aria-label]="'View ' + product.name">
         <img [src]="getOptimizedImageUrl(image.src)" [srcset]="getImageSrcset(image)"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px" width="400" height="400" loading="lazy"
-          [alt]="product.name" (load)="onImageLoad($event)" />
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px" width="400" height="400"
+          [loading]="i === 0 ? 'eager' : 'lazy'" [attr.data-index]="i" [attr.fetchpriority]="i === 0 ? 'high' : 'low'"
+          [alt]="image.alt || product.name" (load)="onImageLoad($event)" />
       </a>
     </div>
 
     <!-- Image indicator dots for mobile -->
-    <div class="image-indicators" *ngIf="isMobile && hasMultipleImages">
+    <div class="image-indicators" *ngIf="isMobile && hasMultipleImages" role="tablist"
+      aria-label="Product image navigation">
       <span *ngFor="let image of product?.images; let i = index" class="indicator-dot"
-        [ngClass]="{'active': i === currentImageIndex}" (click)="goToImage(i, $event)"></span>
+        [ngClass]="{'active': i === currentImageIndex}" (click)="goToImage(i, $event)" role="tab"
+        [attr.aria-selected]="i === currentImageIndex" [attr.aria-label]="'Image ' + (i + 1)"></span>
     </div>
   </div>
 
   <!-- Product status tags -->
-  <div class="product-tags product-tags-bottom-left">
+  <div class="product-tags product-tags-bottom-left" aria-label="Product tags">
     <div *ngFor="let tag of getProductTags()" class="tag" [ngClass]="getTagClass(tag)">
       <ng-container *ngIf="tag !== 'HUB'; else hubTag">
         {{ tag }}
       </ng-container>
       <ng-template #hubTag>
-        <img src="assets/Hub-logo/black-hub.svg" alt="Hub" class="hub-icon-small">
+        <img src="assets/Hub-logo/black-hub.svg" alt="Hub" class="hub-icon-small" width="16" height="16">
       </ng-template>
     </div>
   </div>

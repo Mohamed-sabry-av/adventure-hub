@@ -77,6 +77,8 @@ export class FilterService {
     );
   }
 
+  
+
   /**
    * Fetch available attributes and terms based on selected filters using the custom endpoint.
    */

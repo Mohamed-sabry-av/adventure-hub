@@ -6,6 +6,6 @@ import { environment } from '../../../../../environments/environment';
 })
 export class TabbyConfigService {
   getConfig() {
-    return environment.tabbyConfig;
+    return environment.tabby;
   }
 }

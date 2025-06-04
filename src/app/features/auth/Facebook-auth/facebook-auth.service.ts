@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { LocalStorageService } from '../../../core/services/local-storage.service';
+import { environment } from '../../../../environments/environment';
 
 interface LoginResponse {
   token: string;
@@ -15,7 +16,7 @@ interface LoginResponse {
 export class FacebookAuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
-  private readonly API_URL = 'https://adventures-hub.com';
+  private readonly CUSTOM_API_URL = environment.customApiUrl;
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
@@ -29,7 +30,7 @@ export class FacebookAuthService {
 
   loginWithFacebook(accessToken: string): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${this.API_URL}/wp-json/custom/v1/facebook-login`, { accessToken })
+      .post<LoginResponse>(`${this.CUSTOM_API_URL}/facebook-login`, { accessToken })
       .pipe(
         tap((response) => {
           if (response.token) {

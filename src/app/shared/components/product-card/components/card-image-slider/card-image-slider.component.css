@@ -35,16 +35,43 @@
   pointer-events: auto;
 }
 
-/* Hide first image on hover */
-.slider-container.hovered .slide.active {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.slider-container.hovered .slide.second-image {
+/* Show selected color image without requiring hover */
+.slide.color-selected {
   opacity: 1;
   z-index: 2;
-  transition: opacity 0.3s ease;
+  pointer-events: auto;
+}
+
+/* Image hover effect - Only for desktop */
+@media (min-width: 768px) {
+  /* Hide first image on hover */
+  .slider-container.hovered .slide.active {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .slider-container.hovered .slide.second-image {
+    opacity: 1;
+    z-index: 3;
+    transition: opacity 0.3s ease;
+  }
+  
+  /* Disable navigation arrows on desktop since we use hover */
+  .mobile-navigation-arrows {
+    display: none;
+  }
+  
+  /* Scale effect on hover for desktop */
+  .slider-container.hovered .slide.second-image img {
+    transform: scale(1.05);
+  }
+}
+
+/* Ensure image is always visible for single-image products */
+.slide:only-child {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 1;
 }
 
 /* Prevent hover effect if only one image */
@@ -70,11 +97,7 @@
    /* Add slight padding to prevent edge touching */
 }
 
-.slider-container.hovered .slide.second-image img {
-  transform: scale(1.05);
-}
-
-/* Mobile navigation arrows */
+/* Mobile navigation arrows - Only visible on mobile */
 .mobile-navigation-arrows {
   position: absolute;
   top: 0;
@@ -230,6 +253,39 @@
 
 /* Mobile-specific styles */
 @media (max-width: 767px) {
+  /* Override any desktop hover effects */
+  .slider-container.hovered .slide.active {
+    opacity: 1 !important;
+  }
+  
+  .slider-container.hovered .slide.second-image {
+    opacity: 0;
+  }
+  
+  /* Make navigation arrows more prominent on mobile */
+  .nav-arrow {
+    width: 32px;
+    height: 32px;
+    opacity: 0.9;
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .arrow-icon {
+    font-size: 16px;
+  }
+  
+  /* Ensure slide transitions work with click instead of hover */
+  .slide.active-mobile {
+    opacity: 1;
+    z-index: 2;
+  }
+  
+  /* Keep selected color visible without hover */
+  .slide.color-selected {
+    opacity: 1 !important;
+    z-index: 3;
+  }
+  
   .image-slider {
     height: 280px; /* Increased height for image slider on mobile */
     overflow: visible;
@@ -252,30 +308,6 @@
     width: 100%;
     height: 280px;
     max-height: none;
-  }
-
-  /* Enhance mobile navigation */
-  .nav-arrow {
-    width: 24px;
-    height: 24px;
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 6px;
-    pointer-events: auto;
-    cursor: pointer;
-    border: none;
-  }
-  
-  .arrow-icon {
-    font-size: 12px;
-  }
-  
-  .indicator-dot {
-    width: 5px;
-    height: 5px;
   }
   
   /* Improve tag display on mobile */

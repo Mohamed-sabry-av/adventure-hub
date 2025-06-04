@@ -12,6 +12,8 @@ import { CommonModule } from '@angular/common';
 import { RecapchaComponent } from './recapcha/recapcha.component';
 import { GoogleAuthComponent } from '../google-auth/google-auth.component';
 import { FacebookAuthComponent } from '../Facebook-auth/facebook-auth.component';
+import { CartService } from '../../cart/service/cart.service';
+import { UnifiedWishlistService } from '../../../shared/services/unified-wishlist.service';
 
 @Component({
   selector: 'app-signup',
@@ -30,11 +32,14 @@ export class SignupComponent {
   signupError: string = '';
   signupSuccess: string = '';
   recaptchaToken: string | null = null;
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private accountService: AccountAuthService
+    private accountService: AccountAuthService,
+    private cartService: CartService,
+    private wishlistService: UnifiedWishlistService
   ) {}
 
   ngOnInit() {
@@ -60,16 +65,50 @@ export class SignupComponent {
       return;
     }
 
+    this.isLoading = true;
     const userData = {
       ...this.signupForm.value,
       recaptchaToken: this.recaptchaToken,
     };
+    
     this.accountService.signup(userData).subscribe({
       next: (response) => {
         this.signupError = '';
-        this.signupSuccess = 'Account created successfully! You can now sign in.';
+        this.signupSuccess = 'Account created successfully! Logging you in...';
+        
+        // Auto login after successful registration
+        const credentials = {
+          username: userData.username,
+          password: userData.password
+        };
+        
+        this.accountService.login(credentials).subscribe({
+          next: () => {
+            this.cartService.syncUserCart();
+            
+            this.wishlistService.syncWishlistOnLogin().subscribe({
+              next: (result) => {
+                console.log('Wishlist sync result:', result);
+              },
+              error: (err) => {
+                console.error('Error syncing wishlist:', err);
+              }
+            });
+            
+            // Redirect to dashboard
+            this.router.navigate(['/user/Useraccount']);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.signupSuccess = 'Account created successfully! Please login to continue.';
+            setTimeout(() => {
+              this.router.navigate(['/user/myaccount']);
+            }, 2000);
+          }
+        });
       },
       error: (err) => {
+        this.isLoading = false;
         this.signupError = err.error?.message || 'Registration failed. Please try again.';
       },
     });

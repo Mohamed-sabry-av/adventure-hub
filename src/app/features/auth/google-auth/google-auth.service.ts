@@ -4,6 +4,7 @@ import { LoginResponse } from '../../../interfaces/user.model';
 import { ApiService } from '../../../core/services/api.service';
 import { HttpClient } from '@angular/common/http';
 import { LocalStorageService } from '../../../core/services/local-storage.service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +12,8 @@ import { LocalStorageService } from '../../../core/services/local-storage.servic
 export class GoogleAuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
-  private readonly Api_Url = 'https://adventures-hub.com';
+  private readonly Api_Url = environment.baseUrl;
+  private readonly CUSTOM_API_URL = environment.customApiUrl;
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
@@ -26,7 +28,7 @@ export class GoogleAuthService {
 
   loginWithGoogle(idToken: string): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${this.Api_Url}/wp-json/custom/v1/google-login`, {
+      .post<LoginResponse>(`${this.CUSTOM_API_URL}/google-login`, {
         idToken,
       })
       .pipe(

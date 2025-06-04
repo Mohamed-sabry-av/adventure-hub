@@ -8,6 +8,8 @@ import {
   inject,
   effect,
   runInInjectionContext,
+  PLATFORM_ID,
+  Inject,
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -26,9 +28,11 @@ import { StickyFooterService } from '../../../../shared/services/sticky-footer.s
 import { ProductInfoService } from '../../services/product-info.service';
 import { UnifiedWishlistService } from '../../../../shared/services/unified-wishlist.service';
 import { ProductTagsService } from '../../../../shared/services/product-tags.service';
-import { CurrencyPriceDirective } from '../../../../shared/directives/currency-price.directive';
 import { DeliveryEstimateComponent } from '../delivery-estimate/delivery-estimate.component';
 import { SharePopupComponent } from '../share-popup/share-popup.component';
+import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
+import { isPlatformBrowser } from '@angular/common';
+import { KlaviyoTrackingService } from '../../../../shared/services/klaviyo-tracking.service';
 
 /**
  * Interface for product attribute options
@@ -57,9 +61,9 @@ declare var _learnq: any;
     ReactiveFormsModule,
     WalletPaymentComponent,
     TabbyPromoComponent,
-    CurrencyPriceDirective,
     DeliveryEstimateComponent,
     SharePopupComponent,
+    CurrencySvgPipe,
   ],
   templateUrl: './product-info.component.html',
   styleUrls: ['./product-info.component.css'],
@@ -81,10 +85,14 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   linkCopied: boolean = false;
   isHubProduct: boolean = false;
   isSharePopupVisible: boolean = false;
+  walletPaymentAvailable$: Observable<boolean>;
 
   private stickyFooterService = inject(StickyFooterService);
   private productInfoService = inject(ProductInfoService);
   private productTagsService = inject(ProductTagsService);
+  private checkoutService = inject(CheckoutService);
+  private platformId = inject(PLATFORM_ID);
+  private klaviyoTracking = inject(KlaviyoTrackingService);
   isFooterVisible$ = this.stickyFooterService.isFooterVisible$;
   private scrollHandler!: () => void;
 
@@ -96,12 +104,12 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     private wishlistService: UnifiedWishlistService,
     private variationService: VariationService,
     private uiService: UIService,
-    private checkoutService: CheckoutService,
     private router: Router,
     private tabbyConfigService: TabbyConfigService
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
     this.tabbyConfig = this.tabbyConfigService.getConfig();
+    this.walletPaymentAvailable$ = this.checkoutService.walletPaymentAvailable$;
     
     // Track product changes using effect (within injection context)
     effect(() => {
@@ -118,6 +126,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const product = this.productInfo();
+    console.log('product',product)
     if (product) {
       // Reset state
       this.quantity = 1;
@@ -199,6 +208,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     if (this.scrollHandler) {
       this.scrollHandler();
     }
+    
+    // Reset wallet payment availability when leaving the page
+    this.checkoutService.walletPaymentAvailable$.next(false);
   }
 
   onQuantityUp() {
@@ -284,6 +296,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     this.selectedAttributeChange.emit({ name, value });
 
     if (name === 'Color') {
+      // When color changes, trigger loading state first
+      this.variationService.setLoadingState(true);
+      
       this.selectedAttributes['Size'] = null;
 
       const availableSizes = this.getVariationOptions('Size', value);
@@ -291,13 +306,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
         const firstInStockSize = availableSizes.find((size) => size.inStock);
 
         if (firstInStockSize) {
-          setTimeout(() => {
-            this.selectAttribute('Size', firstInStockSize.value);
-          }, 100);
+          this.selectAttribute('Size', firstInStockSize.value);
         } else if (this.showOutOfStockVariations) {
-          setTimeout(() => {
-            this.selectAttribute('Size', availableSizes[0].value);
-          }, 100);
+          this.selectAttribute('Size', availableSizes[0].value);
         }
       }
     }
@@ -326,6 +337,8 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
               // Fallback to the basic variation if full data couldn't be fetched
               this.variationSelected.emit(selectedVariation);
             }
+            // Turn off loading state after variation is selected
+            this.variationService.setLoadingState(false);
           });
         
         this.addFeedbackAnimation();
@@ -380,6 +393,18 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Track button click
+    if (isPlatformBrowser(this.platformId)) {
+      this.klaviyoTracking.trackButtonClick(
+        buyItNow ? 'Buy Now' : 'Add to Cart', 
+        'Product Page',
+        { 
+          ProductID: product.id,
+          ProductName: product.name
+        }
+      );
+    }
+
     const cartProduct = this.productInfoService.prepareCartProduct(
       product,
       this.selectedAttributes,
@@ -391,20 +416,21 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
     this.cartService.addProductToCart(cartProduct, buyItNow);
 
-    if (typeof _learnq !== 'undefined') {
-      _learnq.push([
-        'track',
-        buyItNow ? 'Buy Now' : 'Added to Cart',
-        {
-          ProductID: product.id,
-          ProductName: product.name,
-          Price: cartProduct.price || product.price,
-          VariationID: cartProduct.id !== product.id ? cartProduct.id : null,
-          Attributes: { ...this.selectedAttributes },
-          Brand: this.brandName,
-          Categories: product.categories?.map((cat: any) => cat.name) || [],
-        },
-      ]);
+    // Track in Klaviyo
+    if (isPlatformBrowser(this.platformId)) {
+      const eventData = {
+        ProductID: product.id,
+        ProductName: product.name,
+        Price: parseFloat(cartProduct.price || product.price),
+        Quantity: this.quantity,
+        VariationID: cartProduct.id !== product.id ? cartProduct.id : null,
+        Attributes: { ...this.selectedAttributes },
+        Brand: this.brandName,
+        Categories: product.categories?.map((cat: any) => cat.name) || [],
+        ImageURL: product.images?.[0]?.src || '',
+      };
+      
+      this.klaviyoTracking.trackEvent(buyItNow ? 'Buy Now' : 'Added to Cart', eventData);
     }
   }
 
@@ -421,23 +447,26 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   }
 
   onWalletPaymentSucceeded(paymentIntentId: string) {
-    if (typeof _learnq !== 'undefined') {
+    // Track wallet purchase in Klaviyo
+    if (isPlatformBrowser(this.platformId)) {
       const product = this.productInfo();
-      _learnq.push([
-        'track',
-        'Wallet Purchase',
-        {
-          ProductID: product?.id,
-          ProductName: product?.name,
-          Price: this.getPriceInfo().price,
+      if (product) {
+        const eventData = {
+          ProductID: product.id,
+          ProductName: product.name,
+          Price: parseFloat(this.getPriceInfo().price),
           Quantity: this.quantity,
           VariationID: this.getSelectedVariation()?.id || null,
           Attributes: { ...this.selectedAttributes },
           Brand: this.brandName,
-          Categories: product?.categories?.map((cat: any) => cat.name) || [],
-        },
-      ]);
+          Categories: product.categories?.map((cat: any) => cat.name) || [],
+          PaymentIntentID: paymentIntentId
+        };
+        
+        this.klaviyoTracking.trackEvent('Wallet Purchase', eventData);
+      }
     }
+    
     this.pollOrderStatus(paymentIntentId);
   }
 
@@ -495,6 +524,19 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Track button click
+    if (isPlatformBrowser(this.platformId)) {
+      this.klaviyoTracking.trackButtonClick(
+        'Toggle Wishlist', 
+        'Product Page',
+        { 
+          ProductID: productId,
+          ProductName: product.name,
+          CurrentState: this.isInWishlist ? 'In Wishlist' : 'Not In Wishlist'
+        }
+      );
+    }
+    
     this.wishlistSubscription = this.wishlistService
       .toggleWishlistItem(product)
       .subscribe({
@@ -508,18 +550,16 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
             );
             
             // Track only when adding to wishlist
-            if (response.added && typeof _learnq !== 'undefined') {
-              _learnq.push([
-                'track',
-                'Added to Wishlist',
-                {
-                  ProductID: productId,
-                  ProductName: product?.name,
-                  Price: this.getPriceInfo().price,
-                  Brand: this.brandName,
-                  Categories: product?.categories?.map((cat: any) => cat.name) || [],
-                },
-              ]);
+            if (response.added && isPlatformBrowser(this.platformId)) {
+              const eventData = {
+                ProductID: productId,
+                ProductName: product?.name,
+                Price: parseFloat(this.getPriceInfo().price),
+                Brand: this.brandName,
+                Categories: product?.categories?.map((cat: any) => cat.name) || [],
+              };
+              
+              this.klaviyoTracking.trackEvent('Added to Wishlist', eventData);
             }
           } else {
             this.showWishlistMessage(
@@ -735,5 +775,12 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     const numericString = price.toString().replace(/[^0-9.]/g, '');
     const numeric = parseFloat(numericString);
     return isNaN(numeric) ? 0 : numeric;
+  }
+
+  formatSizeName(size: string): string {
+    if (!size) return '';
+    // Convert dash format to dot format (e.g., "1-l" to "1.L US")
+    const formattedSize = size.replace(/-/g, '.').toUpperCase();
+    return `${formattedSize} US`;
   }
 }

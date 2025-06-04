@@ -1,82 +1,61 @@
 <main class="home-page">
-  <!-- Main Slider - Critical component, load normally -->
-  <app-slider></app-slider>
+  <!-- Hero Section - Critical component, load normally -->
+  <section aria-labelledby="hero-heading" class="m-0 p-0">
+    <h1 id="hero-heading" class="sr-only">Adventures HUB - Premium Outdoor & Adventure Sports Equipment</h1>
+    <app-slider></app-slider>
+  </section>
 
   <!-- Brand Logos - Critical for branding, load early -->
-  <app-brand-logos></app-brand-logos>
+  <section aria-label="Our Trusted Brands" class="m-0 p-0">
+    <app-brand-logos></app-brand-logos>
+  </section>
 
   <!-- Related Categories - Important for navigation, load early -->
-  <app-related-categories></app-related-categories>
+  <section aria-labelledby="categories-heading" class="m-0 p-0">
+    <h2 id="categories-heading" class="sr-only">Shop By Categories</h2>
+    <app-related-categories></app-related-categories>
+  </section>
 
   <!-- New Products - Load with defer but with high priority -->
   @defer (on viewport; prefetch on idle) {
-  <app-new-products></app-new-products>
+  <section aria-labelledby="new-products-heading" class="m-0 p-0">
+    <h2 id="new-products-heading" class="sr-only">New Products</h2>
+    <app-new-products></app-new-products>
+  </section>
   } @placeholder {
-  <div class="container mx-auto px-2 sm:px-4 py-6">
-    <h2 class="text-2xl font-bold mb-4 sm:mb-6">New Arrivals</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5 sm:gap-3 md:gap-4">
-      <!-- Skeleton loaders -->
-      <div class="animate-pulse" *ngFor="let i of [1, 2, 3, 4]">
-        <div class="bg-gray-200 h-60 rounded-lg mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    </div>
-  </div>
+  <div class="empty-placeholder"></div>
   }
 
   <!-- Recommended Products - Load when visible -->
   @defer (on viewport) {
-  <app-recommended-products></app-recommended-products>
+  <section aria-labelledby="recommended-products-heading" class="m-0 p-0">
+    <h2 id="recommended-products-heading" class="sr-only">Recommended Products</h2>
+    <app-recommended-products></app-recommended-products>
+  </section>
   } @placeholder {
-    <div class="container mx-auto px-4 py-8">
-      <h2 class="text-2xl font-bold mb-6">Recommended For You</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <!-- Skeleton loaders -->
-      <div class="animate-pulse" *ngFor="let i of [1, 2, 3, 4]">
-        <div class="bg-gray-200 h-48 rounded-lg mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    </div>
-  </div>
+  <div class="empty-placeholder"></div>
   }
 
   <!-- Sale Products - Load when visible with idle loading -->
   @defer (on viewport; on idle) {
-  <app-sale-products></app-sale-products>
+  <section aria-labelledby="sale-products-heading" class="m-0 p-0">
+    <h2 id="sale-products-heading" class="sr-only">Sale Products</h2>
+    <app-sale-products></app-sale-products>
+  </section>
   } @placeholder {
-    <div class="container mx-auto px-4 py-8">
-      <h2 class="text-2xl font-bold mb-6">On Sale</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <!-- Skeleton loaders -->
-      <div class="animate-pulse" *ngFor="let i of [1, 2, 3, 4]">
-        <div class="bg-gray-200 h-48 rounded-lg mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    </div>
-  </div>
+  <div class="empty-placeholder"></div>
   }
 
   <!-- Latest Blog Posts - Lowest priority, load last -->
   @defer (on viewport; on idle) {
-  <app-latest-blog-posts></app-latest-blog-posts>
+  <section aria-labelledby="blog-posts-heading" class="m-0 p-0">
+    <h2 id="blog-posts-heading" class="sr-only">Latest Blog Posts</h2>
+    <app-latest-blog-posts></app-latest-blog-posts>
+  </section>
   } @placeholder {
-    <div class="container mx-auto px-4 py-8">
-      <h2 class="text-2xl font-bold mb-6">Latest Blog Posts</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Skeleton loaders -->
-      <div class="animate-pulse" *ngFor="let i of [1, 2]">
-        <div class="bg-gray-200 h-48 rounded-lg mb-3"></div>
-        <div class="h-6 bg-gray-200 rounded mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-      </div>
-    </div>
-  </div>
+  <div class="empty-placeholder"></div>
   }
-</main>
 
-<!-- Error dialog - Always load, important for UX -->
-<app-dialog-error />
+  <!-- SEO Content - Important for SEO, load normally -->
+  <app-seo-content></app-seo-content>
+</main>

@@ -107,11 +107,9 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
     // Start with Home
     const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Home', url: ['/'] }];
 
-    // Get the primary category (first one)
-    const primaryCategory = categories[0];
-
-    // Convert to Observable to handle async operations
-    return from(this.buildCategoryHierarchy(primaryCategory)).pipe(
+    // Find the most specific category (the one with the most levels in its hierarchy)
+    // This will help us show the most detailed breadcrumb path
+    return from(this.findMostSpecificCategory(categories)).pipe(
       map(categoryItems => {
         // Add all category items to breadcrumbs
         breadcrumbItems.push(...categoryItems);
@@ -129,6 +127,34 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
         return breadcrumbItems;
       })
     );
+  }
+
+  /**
+   * Find the most specific category (with the deepest hierarchy) from a list of categories
+   */
+  private async findMostSpecificCategory(categories: any[]): Promise<BreadcrumbItem[]> {
+    if (!categories || categories.length === 0) {
+      return [];
+    }
+
+    let mostSpecificCategoryItems: BreadcrumbItem[] = [];
+    let maxDepth = -1;
+
+    // Check each category to find the one with the deepest hierarchy
+    for (const category of categories) {
+      try {
+        const categoryItems = await this.buildCategoryHierarchy(category);
+        
+        if (categoryItems.length > maxDepth) {
+          maxDepth = categoryItems.length;
+          mostSpecificCategoryItems = categoryItems;
+        }
+      } catch (error) {
+        console.error('Error processing category:', error);
+      }
+    }
+
+    return mostSpecificCategoryItems;
   }
 
   /**

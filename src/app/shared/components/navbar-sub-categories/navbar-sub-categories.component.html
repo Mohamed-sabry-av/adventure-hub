@@ -1,62 +1,45 @@
 @if (keepOpen) {
-  <div class="w-full h-[1px] bg-[#e0e0e0]"></div>
-  <div
-    class="bg-[#f0f0f0] z-30 subLinks-child text-[#2E2E2E] w-full overflow-hidden border-b border-[#e0e0e0] shadow-md"
-    (mouseleave)="onLeave()"
-    (mouseenter)="onEnter()"
-    @visible
-  >
-    <div class="p-6 overflow-y-auto custom-scrollbar" style="max-height: 70vh">
-      <div
-        class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-7"
-      >
-        @for (category of categoriesData; track category.id) {
-        <div
-          class="break-inside-avoid mb-7 bg-white rounded shadow-sm hover:shadow-md transition-shadow duration-200"
-        >
-          <!-- العنوان -->
-          <div class="bg-[#f8f8f8] px-3 py-2 mb-2 rounded-t border-b border-[#e0e0e0]">
-            <a
-              class="block cursor-pointer text-base font-bold text-[#2E2E2E]"
-              [routerLink]="getCategoryRoute(category)"
-              [innerHTML]="category.name"
-              (onclick)="onLeave()"
-            ></a>
-          </div>
-          <!-- الفئات الفرعية -->
-          <div class="px-3 py-2">
-            @for (childOfSubCategory of getSubCategories(category.id); track
-            childOfSubCategory.id) {
-            <div class="mb-2">
-              <a [routerLink]="getCategoryRoute(childOfSubCategory)">
-                <span
-                  [innerHTML]="childOfSubCategory.name"
-                  class="text-sm cursor-pointer block hover:text-[#717261] transition-all duration-150 text-[#3D3D3D]"
-                ></span>
-              </a>
-              @if (getSubCategories(childOfSubCategory.id).length > 0) {
-              <div class="ml-3 mt-1">
-                @for (childOfChildOfSubCategory of
-                getSubCategories(childOfSubCategory.id); track
-                childOfChildOfSubCategory.id) {
-                <div class="text-xs py-[2px]">
-                  <a
-                    [routerLink]="getCategoryRoute(childOfChildOfSubCategory)"
-                    class="hover:text-[#717261] transition-all duration-150 text-[#6E6E6E]"
-                  >
-                    {{ childOfChildOfSubCategory.name }}
-                  </a>
-                </div>
-                }
+<div class="w-full h-[1px] bg-[#e0e0e0]"></div>
+<div class="bg-[#f0f0f0] z-30 subLinks-child text-[#222222] w-full overflow-hidden border-b border-[#e0e0e0] shadow-md"
+  (mouseleave)="onLeave()" (mouseenter)="onEnter()" @visible>
+  <div class="p-6 overflow-y-auto custom-scrollbar" style="max-height: 70vh">
+    <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-7">
+      @for (category of categoriesData; track category.id) {
+      <div class="break-inside-avoid mb-7 bg-white rounded shadow-sm hover:shadow-md transition-shadow duration-200">
+        <!-- العنوان -->
+        <div class="bg-[#f8f8f8] px-3 py-2 mb-2 rounded-t border-b border-[#e0e0e0]">
+          <a class="block cursor-pointer text-base font-bold text-[#222222]" [routerLink]="getCategoryRoute(category)"
+            [innerHTML]="category.name" (onclick)="onLeave()"></a>
+        </div>
+        <!-- الفئات الفرعية -->
+        <div class="px-3 py-2">
+          @for (childOfSubCategory of getSubCategories(category.id); track
+          childOfSubCategory.id) {
+          <div class="mb-2">
+            <a [routerLink]="getCategoryRoute(childOfSubCategory)">
+              <span [innerHTML]="childOfSubCategory.name"
+                class="text-sm cursor-pointer block hover:text-[#717261] transition-all duration-150 text-[#3D3D3D]"></span>
+            </a>
+            @if (getSubCategories(childOfSubCategory.id).length > 0) {
+            <div class="ml-3 mt-1">
+              @for (childOfChildOfSubCategory of
+              getSubCategories(childOfSubCategory.id); track
+              childOfChildOfSubCategory.id) {
+              <div class="text-xs py-[2px]">
+                <a [routerLink]="getCategoryRoute(childOfChildOfSubCategory)"
+                  class="hover:text-[#717261] transition-all duration-150 text-[#6E6E6E]">
+                  {{ childOfChildOfSubCategory.name }}
+                </a>
               </div>
               }
             </div>
             }
           </div>
+          }
         </div>
-        }
       </div>
+      }
     </div>
   </div>
-  }
-  
+</div>
+}

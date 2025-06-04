@@ -12,7 +12,6 @@ import { RouterLink } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { CheckoutService } from '../../services/checkout.service';
 import { UIService } from '../../../../shared/services/ui.service';
-import { DialogErrorComponent } from '../../../../shared/components/dialog-error/dialog-error.component';
 import { SkeletonLoaderComponent } from '../../../../shared/components/skeleton-loader/skeleton-loader.component';
 import { CartStatus } from '../../../cart/model/cart.model';
 import { CheckoutProgressMapComponent } from '../../../shared/components/checkout-progress-map/checkout-progress-map.component';
@@ -23,7 +22,6 @@ import { CheckoutProgressMapComponent } from '../../../shared/components/checkou
     CheckoutFormComponent,
     RouterLink,
     AsyncPipe,
-    DialogErrorComponent,
     SkeletonLoaderComponent,
     CheckoutProgressMapComponent,
   ],

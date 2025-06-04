@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FacebookAuthService } from './facebook-auth.service';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../../environments/environment';
 
 declare var FB: any;
 
@@ -76,10 +77,10 @@ export class FacebookAuthComponent implements AfterViewInit {
   initFB() {
     // Initialize the Facebook SDK with your app ID
     FB.init({
-      appId: '834825131701175',
+      appId: environment.socialAuth.facebook.appId,
       cookie: true,
       xfbml: true,
-      version: 'v17.0'
+      version: environment.socialAuth.facebook.version
     });
 
     this.checkLoginStatus();
@@ -127,7 +128,7 @@ export class FacebookAuthComponent implements AfterViewInit {
         next: (res) => {
           console.log('Facebook Login Success:', res);
           this.loginError = '';
-          this.router.navigate(['']);
+          this.router.navigate(['/user/Useraccount']);
         },
         error: (err) => {
           this.loginError = err.error?.message || 'Facebook login failed';

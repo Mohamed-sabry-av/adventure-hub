@@ -1,0 +1,60 @@
+.seo-content h2,
+.seo-content h3,
+.seo-content h4 {
+  color: #333;
+}
+
+.seo-content p {
+  color: #555;
+  line-height: 1.6;
+}
+
+.seo-content a {
+  transition: all 0.2s ease-in-out;
+}
+
+.seo-content a:hover {
+  text-decoration: underline;
+}
+
+.seo-content .prose p {
+  margin-bottom: 1rem;
+}
+
+/* Toggle button styles */
+.seo-content .toggle-btn {
+  position: relative;
+  z-index: 1;
+}
+
+.seo-content .toggle-btn.active .arrow-icon {
+  transform: rotate(180deg);
+}
+
+.seo-content .arrow-icon {
+  transition: transform 0.3s ease;
+}
+
+/* Content wrapper styles */
+.seo-content .seo-content-wrapper {
+  overflow: hidden;
+  transition: all 0.5s ease;
+}
+
+/* Collapsed state */
+.seo-content .seo-content-wrapper.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  pointer-events: none;
+}
+
+/* Expanded state */
+.seo-content .seo-content-wrapper.expanded {
+  max-height: 5000px;
+  opacity: 1;
+  pointer-events: auto;
+} 

@@ -8,6 +8,8 @@ import { isPlatformBrowser, NgIf, DOCUMENT } from '@angular/common';
 import { filter, first } from 'rxjs/operators';
 import { CartService } from './features/cart/service/cart.service';
 import { ServiceHighlightsComponent } from './shared/components/service-highlights/service-highlights.component';
+import { ToastComponent } from './shared/components/toast/toast.component';
+import { Meta } from '@angular/platform-browser';
 
 declare global {
   interface Window {
@@ -41,7 +43,8 @@ interface PerformanceNavigationTiming extends PerformanceEntry {
     SideCartComponent,
     SideOptionsComponent,
     NgIf,
-    ServiceHighlightsComponent
+    ServiceHighlightsComponent,
+    ToastComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -53,6 +56,7 @@ export class AppComponent {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private document = inject(DOCUMENT);
+  private meta = inject(Meta);
   
   isCheckoutPage = false;
   isProductsPage = false;
@@ -61,6 +65,12 @@ export class AppComponent {
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   ngOnInit() {
+    // Add Google site verification meta tag
+    this.meta.addTag({ 
+      name: 'google-site-verification', 
+      content: 'rt6fOYIBwSbI9eK8Pt_0MACLhQGaGs6Tl1MdFohwZmw' 
+    });
+
     if (isPlatformBrowser(this.platformId)) {
       // Report performance metrics
       this.reportPerformanceMetrics();

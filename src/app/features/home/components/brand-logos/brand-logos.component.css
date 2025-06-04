@@ -1,0 +1,169 @@
+.brands-carousel {
+  padding: 0;
+  margin: 0;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.brand-logo {
+  border-radius: 8px;
+  margin: 0 5px;
+  text-align: center;
+  height: 50px;
+  width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 5px;
+}
+
+.brand-image {
+  filter: grayscale(100%);
+  opacity: 0.6;
+  height: 40px;
+  width: 90px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.brand-logo:hover .brand-image {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+/* Style for Splide */
+:host ::ng-deep .splide__pagination {
+  bottom: -20px;
+}
+
+:host ::ng-deep .splide__pagination__page {
+  width: 8px;
+  height: 8px;
+  margin: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+:host ::ng-deep .splide__pagination__page.is-active {
+  background: rgba(0, 0, 0, 0.5);
+  transform: scale(1.2);
+}
+
+/* Brand skeleton styles */
+.brand-carousel-skeleton {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding: 0;
+  display: flex;
+}
+
+.brand-carousel-skeleton::-webkit-scrollbar {
+  display: none;
+}
+
+.brand-skeleton {
+  min-width: 100px;
+  height: 50px;
+  border-radius: 8px;
+}
+
+/* Container styles */
+.brand-logos {
+  overflow: hidden; /* Prevent content from extending outside */
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  background-color: #f9fafb;
+}
+
+.container {
+  max-width: 100%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+
+.splide-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Make sure the Splide container is visible and contained */
+.splide {
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Ensure slides are visible */
+.splide__slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 110px !important;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Fix for Splide track */
+.splide__track {
+  overflow: hidden;
+  padding: 0.25rem 0;
+  margin: 0 -0.25rem; /* Negative margin to offset the slide padding */
+}
+
+/* Ensure Splide list is visible */
+.splide__list {
+  display: flex !important;
+  visibility: visible !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .brand-image {
+    height: 35px;
+    width: 80px;
+  }
+  
+  .brand-logo {
+    height: 45px;
+    width: 90px;
+  }
+  
+  .splide__slide {
+    width: 100px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-image {
+    height: 30px;
+    width: 70px;
+  }
+  
+  .brand-logo {
+    height: 40px;
+    width: 80px;
+    margin: 0 3px;
+  }
+  
+  .splide__slide {
+    width: 86px !important;
+  }
+}

@@ -7,31 +7,46 @@
     </div>
   </div>
 
-  <!-- Thumbnails -->
-  <div class="thumbnails-column">
-    <div *ngFor="let image of images; let i = index; trackBy: trackByFn" class="thumbnail-item"
-      [class.active]="selectedImageIndex === i" (click)="selectImage(i)">
-      <img [src]="image.src" [alt]="image.alt || productName()" class="thumbnail-img" loading="lazy" />
+  <!-- Thumbnails Splide - Only show when there are multiple images -->
+  <div class="thumbnails-column" *ngIf="images.length > 1">
+    <div class="splide thumbnails-splide" #splideThumb>
+      <div class="splide__track">
+        <ul class="splide__list">
+          <li class="splide__slide" *ngFor="let image of images; let i = index; trackBy: trackByFn">
+            <div class="thumbnail-item" [class.active]="selectedImageIndex === i">
+              <img [src]="image.src" [alt]="image.alt || productName()" class="thumbnail-img" loading="lazy" />
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 
-  <div class="main-image zoom-container" (mousemove)="zoom($event)" (mouseleave)="resetZoom()" #zoomContainer>
-    <button class="prev" (click)="prevImage()">❮</button>
-    <button class="next" (click)="nextImage()">❯</button>
-    <button class="fullscreen-btn" (click)="openFullscreen()" title="View fullscreen">
+  <!-- Main image Splide with zoom functionality -->
+  <div class="main-image zoom-container" [class.single-image]="images.length === 1" (mousemove)="zoom($event)"
+    (mouseleave)="resetZoom()" (click)="toggleZoom()" #zoomContainer>
+    <div class="splide main-splide" #splideMain>
+      <div class="splide__track">
+        <ul class="splide__list">
+          <li class="splide__slide" *ngFor="let image of images; let i = index; trackBy: trackByFn">
+            <div class="image-slide">
+              <img [src]="image.src" [alt]="image.alt || productName()" class="main-img"
+                [class.loading]="isImageLoading" width="640" height="640" loading="lazy" fetchpriority="high"
+                (load)="onImageLoad()" (error)="onImageError()" />
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <button class="fullscreen-btn" (click)="openFullscreen(); $event.stopPropagation()" title="View fullscreen">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
         <path
           d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z" />
       </svg>
     </button>
 
-    <div class="image-slide">
-      <img *ngIf="images[selectedImageIndex]" [src]="images[selectedImageIndex].src"
-        [alt]="images[selectedImageIndex].alt || productName()" class="main-img" [class.loading]="isImageLoading"
-        width="640" height="640" loading="lazy" fetchpriority="high" (load)="onImageLoad()" />
-    </div>
-
-    <!-- Image counter for mobile -->
+    <!-- Image counter for mobile - Only show if multiple images -->
     <div class="image-counter" *ngIf="images.length > 1">
       {{ selectedImageIndex + 1 }} / {{ images.length }}
     </div>
@@ -52,9 +67,11 @@
       </svg>
     </button>
 
-    <!-- Navigation buttons -->
-    <button class="fullscreen-prev" (click)="prevImage(); $event.stopPropagation()">❮</button>
-    <button class="fullscreen-next" (click)="nextImage(); $event.stopPropagation()">❯</button>
+    <!-- Navigation buttons - Only show if multiple images -->
+    <ng-container *ngIf="images.length > 1">
+      <button class="fullscreen-prev" (click)="prevImage(); $event.stopPropagation()">❮</button>
+      <button class="fullscreen-next" (click)="nextImage(); $event.stopPropagation()">❯</button>
+    </ng-container>
 
     <!-- Zoom toggle button -->
     <button class="zoom-toggle" (click)="toggleFullscreenZoom(); $event.stopPropagation()">
@@ -80,16 +97,16 @@
       [style.transform]="'scale(' + fullscreenZoomLevel() + ')'"
       [style.transform-origin]="fullscreenPosition().x + '% ' + fullscreenPosition().y + '%'">
       <img *ngIf="images[selectedImageIndex]" [src]="images[selectedImageIndex].src"
-        [alt]="images[selectedImageIndex].alt || productName()" (load)="onImageLoad()" />
+        [alt]="images[selectedImageIndex].alt || productName()" (load)="onImageLoad()" (error)="onImageError()" />
     </div>
 
-    <!-- Image counter -->
-    <div class="fullscreen-counter">
+    <!-- Image counter - Only show if multiple images -->
+    <div class="fullscreen-counter" *ngIf="images.length > 1">
       {{ selectedImageIndex + 1 }} / {{ images.length }}
     </div>
 
-    <!-- Thumbnails at the bottom -->
-    <div class="fullscreen-thumbnails">
+    <!-- Thumbnails at the bottom - Only show if multiple images -->
+    <div class="fullscreen-thumbnails" *ngIf="images.length > 1">
       <div *ngFor="let image of images; let i = index; trackBy: trackByFn" class="fullscreen-thumbnail"
         [class.active]="selectedImageIndex === i"
         (click)="selectImage(i); resetFullscreenZoom(); $event.stopPropagation()">

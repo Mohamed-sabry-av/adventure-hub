@@ -8,15 +8,13 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
-  HostListener,
-  NgZone
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CarouselModule, OwlOptions, CarouselComponent } from 'ngx-owl-carousel-o';
-import { Subscription, timer } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { HomeService } from '../../service/home.service';
+import Splide from '@splidejs/splide';
 
 interface BannerImage {
   large: string;
@@ -26,7 +24,7 @@ interface BannerImage {
 @Component({
   selector: 'app-slider',
   standalone: true,
-  imports: [CommonModule, RouterModule, CarouselModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './slider.component.html',
   styleUrls: ['./slider.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,44 +32,16 @@ interface BannerImage {
 export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
   private homeService = inject(HomeService);
   private cdr = inject(ChangeDetectorRef);
-  private zone = inject(NgZone);
   
-  @ViewChild('owlCarousel') owlCarousel?: CarouselComponent;
-  @ViewChild('prevBtn') prevBtn?: ElementRef<HTMLButtonElement>;
-  @ViewChild('nextBtn') nextBtn?: ElementRef<HTMLButtonElement>;
+  @ViewChild('splideEl') splideEl?: ElementRef<HTMLElement>;
   
   bannerImages: BannerImage[] = [];
   loading: boolean = true;
   error: string | null = null;
   isMobile: boolean = false;
   
-  carouselOptions: OwlOptions = {
-    loop: true,
-    mouseDrag: true,
-    touchDrag: true,
-    pullDrag: true,
-    dots: true,
-    navSpeed: 700,
-    navText: ['', ''],
-    autoplay: true, 
-    autoplayTimeout: 5000,
-    autoplayHoverPause: true,
-    responsive: {
-      0: {
-        items: 1,
-        nav: false
-      },
-      768: {
-        items: 1,
-        nav: false
-      }
-    },
-    nav: false
-  };
-
+  private splide?: Splide;
   private subscriptions: Subscription = new Subscription();
-  private prevClickListener?: (e: Event) => void;
-  private nextClickListener?: (e: Event) => void;
 
   ngOnInit(): void {
     this.checkScreenSize();
@@ -79,23 +49,29 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   ngAfterViewInit(): void {
-    // استخدام زمن مناسب للتأكد من تهيئة العناصر
-    timer(100, 300)
-      .pipe(take(5))
-      .subscribe(() => {
-        this.setupCustomNavigation();
-      });
+    this.initSplide();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
-    this.removeNavigationListeners();
+    
+    if (this.splide) {
+      this.splide.destroy();
+    }
   }
   
   @HostListener('window:resize')
   onResize(): void {
+    const wasMobile = this.isMobile;
     this.checkScreenSize();
+    
+    // Only re-render if the device type changed (mobile/desktop)
+    if (wasMobile !== this.isMobile) {
     this.cdr.markForCheck();
+      if (this.splide) {
+        this.splide.refresh();
+      }
+    }
   }
   
   checkScreenSize(): void {
@@ -111,12 +87,10 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
           this.loading = false;
           this.cdr.markForCheck();
           
-          // إعادة محاولة إعداد الأزرار بعد تحميل الصور
-          this.zone.runOutsideAngular(() => {
+          // Initialize Splide after images are loaded
             setTimeout(() => {
-              this.setupCustomNavigation();
+            this.initSplide();
             }, 300);
-          });
         },
         error: (err) => {
           console.error('Error loading banner images:', err);
@@ -129,81 +103,30 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.add(subscription);
   }
   
-  // إزالة المستمعين السابقين لتجنب التكرار
-  private removeNavigationListeners(): void {
-    if (this.prevBtn?.nativeElement && this.prevClickListener) {
-      this.prevBtn.nativeElement.removeEventListener('click', this.prevClickListener);
+  private initSplide(): void {
+    if (this.splideEl && this.bannerImages.length > 0) {
+      if (this.splide) {
+        this.splide.destroy();
     }
-    
-    if (this.nextBtn?.nativeElement && this.nextClickListener) {
-      this.nextBtn.nativeElement.removeEventListener('click', this.nextClickListener);
-    }
-  }
-  
-  setupCustomNavigation(): void {
-    this.zone.runOutsideAngular(() => {
-      // إزالة المستمعين السابقين
-      this.removeNavigationListeners();
       
-      // إنشاء مستمعين جدد
-      if (this.prevBtn?.nativeElement && this.nextBtn?.nativeElement && this.owlCarousel) {
-        // استخدام addEventListener بدلاً من onclick لأداء أفضل
-        this.prevClickListener = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.owlCarousel) {
-            this.owlCarousel.prev();
-            this.zone.run(() => {
-              this.cdr.markForCheck();
-            });
-          }
-        };
-        
-        this.nextClickListener = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.owlCarousel) {
-            this.owlCarousel.next();
-            this.zone.run(() => {
-              this.cdr.markForCheck();
-            });
-          }
-        };
-        
-        this.prevBtn.nativeElement.addEventListener('click', this.prevClickListener);
-        this.nextBtn.nativeElement.addEventListener('click', this.nextClickListener);
-      } else {
-        // محاولة استخدام المحددات في حالة عدم توفر ViewChild
-        const prevBtn = document.querySelector('.slider-container .prev-btn') as HTMLElement;
-        const nextBtn = document.querySelector('.slider-container .next-btn') as HTMLElement;
-        
-        if (prevBtn && nextBtn && this.owlCarousel) {
-          this.prevClickListener = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (this.owlCarousel) {
-              this.owlCarousel.prev();
-              this.zone.run(() => {
-                this.cdr.markForCheck();
-              });
-            }
-          };
-          
-          this.nextClickListener = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (this.owlCarousel) {
-              this.owlCarousel.next();
-              this.zone.run(() => {
-                this.cdr.markForCheck();
-              });
-            }
-          };
-          
-          prevBtn.addEventListener('click', this.prevClickListener);
-          nextBtn.addEventListener('click', this.nextClickListener);
+      this.splide = new Splide(this.splideEl.nativeElement, {
+        type: 'loop',
+        perPage: 1,
+        autoplay: true,
+        interval: 5000,
+        pauseOnHover: true,
+        arrows: true,
+        pagination: true,
+        speed: 800,
+        rewind: true,
+        height: this.isMobile ? '450px' : '550px',
+        lazyLoad: 'nearby',
+        easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+        role: 'region',
+        label: 'Featured Banner Images'
+      });
+      
+      this.splide.mount();
         }
-      }
-    });
   }
 }

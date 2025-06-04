@@ -8,6 +8,9 @@ import {
   Inject,
   PLATFORM_ID,
   inject,
+  NgZone,
+  ChangeDetectorRef,
+  OnDestroy,
 } from '@angular/core';
 import {
   debounceTime,
@@ -16,6 +19,7 @@ import {
   switchMap,
   of,
   firstValueFrom,
+  Subscription,
 } from 'rxjs';
 import { SearchBarService } from '../../services/search-bar.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -38,8 +42,9 @@ interface Category {
   imports: [CommonModule],
   templateUrl: './search-bar.component.html',
   styleUrls: ['./search-bar.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SearchBarComponent implements OnInit {
+export class SearchBarComponent implements OnInit, OnDestroy {
   searchTerm = new Subject<string>();
   products: any[] = [];
   categories: Category[] = [];
@@ -48,11 +53,17 @@ export class SearchBarComponent implements OnInit {
   showResults = false;
   activeTab: 'products' | 'categories' = 'products';
   recentSearches: string[] = [];
+  
+  // Voice search properties
+  isListening: boolean = false;
+  speechSupported: boolean = false;
 
   @ViewChild('searchInput') searchInput!: ElementRef;
   @ViewChild('resultsContainer') resultsContainer!: ElementRef;
 
   private categoriesService: CategoriesService;
+  private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   constructor(
     private searchService: SearchBarService,
@@ -65,11 +76,35 @@ export class SearchBarComponent implements OnInit {
       if (savedSearches) {
         this.recentSearches = JSON.parse(savedSearches).slice(0, 5);
       }
+      
+      // Get speech recognition support status from service
+      this.speechSupported = this.searchService.isSpeechRecognitionSupported();
     }
   }
 
   ngOnInit() {
     this.handleSearch();
+    
+    // Subscribe to voice search status updates
+    const voiceSearchSub = this.searchService.voiceSearchStatus$.subscribe(status => {
+      this.isListening = status.isListening;
+      
+      // If we got a transcript, update the search input and trigger search
+      if (status.transcript) {
+        if (this.searchInput && this.searchInput.nativeElement) {
+          this.searchInput.nativeElement.value = status.transcript;
+          this.searchTerm.next(status.transcript);
+        }
+      }
+      
+      this.cdr.markForCheck();
+    });
+    
+    this.subscriptions.add(voiceSearchSub);
+  }
+  
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   // Handle Enter key press for search
@@ -136,7 +171,8 @@ export class SearchBarComponent implements OnInit {
           }
           this.loading = true;
           this.showResults = true;
-          return this.searchService.ComprehensiveSearch(term);
+          // Use optimized search method for better performance
+          return this.searchService.OptimizedComprehensiveSearch(term);
         })
       )
       .subscribe(
@@ -150,10 +186,12 @@ export class SearchBarComponent implements OnInit {
           } else if (this.products.length === 0 && this.categories.length > 0) {
             this.activeTab = 'categories';
           }
+          this.cdr.markForCheck();
         },
         (error) => {
           console.error('Error fetching search results:', error);
           this.loading = false;
+          this.cdr.markForCheck();
         }
       );
   }
@@ -316,5 +354,19 @@ export class SearchBarComponent implements OnInit {
 
   preventClose(event: Event): void {
     event.stopPropagation();
+  }
+
+  /**
+   * Start voice search using the service
+   */
+  startVoiceSearch(): void {
+    this.searchService.startVoiceSearch();
+  }
+  
+  /**
+   * Stop voice search using the service
+   */
+  stopVoiceSearch(): void {
+    this.searchService.stopVoiceSearch();
   }
 }

@@ -12,38 +12,26 @@
     <p class="text-gray-500">No banner images available</p>
   </div>
   } @else {
-  <owl-carousel-o #owlCarousel [options]="carouselOptions" class="w-full">
-    @for (banner of bannerImages; track $index) {
-    <ng-template carouselSlide>
-      <div class="slide-item h-[450px] md:h-[500px] relative touch-action-manipulation">
-        @if (isMobile) {
-        <img [src]="banner.small || 'assets/images/placeholder-banner-mobile.jpg'" alt="Banner image"
-          class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
-          onerror="this.src='assets/images/placeholder-banner-mobile.jpg'; this.onerror=null;" />
-        } @else {
-        <img [src]="banner.large || 'assets/images/placeholder-banner.jpg'" alt="Banner image"
-          class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
-          onerror="this.src='assets/images/placeholder-banner.jpg'; this.onerror=null;" />
+  <div #splideEl class="splide">
+    <div class="splide__track">
+      <ul class="splide__list">
+        @for (banner of bannerImages; track $index) {
+        <li class="splide__slide">
+          <div class="slide-item h-[450px] md:h-[500px] relative touch-action-manipulation">
+            @if (isMobile) {
+            <img [src]="banner.small || 'assets/images/placeholder-banner-mobile.jpg'" alt="Banner image"
+              class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
+              onerror="this.src='assets/images/placeholder-banner-mobile.jpg'; this.onerror=null;" />
+            } @else {
+            <img [src]="banner.large || 'assets/images/placeholder-banner.jpg'" alt="Banner image"
+              class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
+              onerror="this.src='assets/images/placeholder-banner.jpg'; this.onerror=null;" />
+            }
+          </div>
+        </li>
         }
-      </div>
-    </ng-template>
-    }
-  </owl-carousel-o>
-
-  <!-- Custom Navigation Arrows -->
-  <div class="custom-navigation hidden md:block">
-    <button #prevBtn class="nav-btn prev-btn" aria-label="Previous slide">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 18l-6-6 6-6"></path>
-      </svg>
-    </button>
-    <button #nextBtn class="nav-btn next-btn" aria-label="Next slide">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 18l6-6-6-6"></path>
-      </svg>
-    </button>
+      </ul>
+    </div>
   </div>
   }
 </div>

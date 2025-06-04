@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, catchError, map, of, shareReplay } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ApiService } from '../../../core/services/api.service';
+import { environment } from '../../../../environments/environment';
 
 export interface ParsedPageContent {
   title: string;
@@ -24,7 +25,7 @@ export interface ParsedPageContent {
   providedIn: 'root',
 })
 export class ContentPagesService {
-  private readonly baseApiURL = 'https://adventures-hub.com/wp-json/wp/v2/pages'; 
+  private readonly baseApiURL = `${environment.baseUrl}/wp-json/wp/v2/pages`; 
   
   // Page ID mapping for common pages
   private readonly pageIds = {

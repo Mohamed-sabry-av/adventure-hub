@@ -1,17 +1,32 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone, PLATFORM_ID, Inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import { Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, tap, Subject } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { CacheService } from '../../core/services/cashing.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SearchBarService {
+  // Voice search properties
+  private isListening: boolean = false;
+  private speechRecognition: any;
+  private speechSupported: boolean = false;
+  
+  // Subject to notify components about speech recognition status
+  private voiceSearchStatusSubject = new Subject<{isListening: boolean, transcript?: string}>();
+  public voiceSearchStatus$ = this.voiceSearchStatusSubject.asObservable();
+
   constructor(
     private wooApi: ApiService,
-    private cacheService: CacheService
-  ) {}
+    private cacheService: CacheService,
+    private ngZone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    // Initialize speech recognition if supported
+    this.initSpeechRecognition();
+  }
 
   /**
    * Search for products with expanded options
@@ -318,4 +333,148 @@ export class SearchBarService {
       ),
       300000
     );
-  }}
+  }
+
+  /**
+   * Initialize speech recognition functionality
+   */
+  private initSpeechRecognition(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      // Check if browser supports SpeechRecognition
+      const SpeechRecognition = (window as any).SpeechRecognition || 
+                               (window as any).webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        this.speechSupported = true;
+        this.speechRecognition = new SpeechRecognition();
+        this.speechRecognition.continuous = false;
+        this.speechRecognition.interimResults = false;
+        this.speechRecognition.lang = 'en-US'; // Default language
+        
+        this.speechRecognition.onstart = () => {
+          this.ngZone.run(() => {
+            this.isListening = true;
+            this.voiceSearchStatusSubject.next({isListening: true});
+          });
+        };
+        
+        this.speechRecognition.onend = () => {
+          this.ngZone.run(() => {
+            this.isListening = false;
+            this.voiceSearchStatusSubject.next({isListening: false});
+          });
+        };
+        
+        this.speechRecognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          this.ngZone.run(() => {
+            // Clean up the transcript by removing any trailing punctuation marks
+            const cleanTranscript = transcript.replace(/[.,?!;:]+$/, '').trim();
+            
+            this.voiceSearchStatusSubject.next({
+              isListening: false,
+              transcript: cleanTranscript
+            });
+          });
+        };
+        
+        this.speechRecognition.onerror = (event: any) => {
+          console.error('Speech recognition error', event.error);
+          this.ngZone.run(() => {
+            this.isListening = false;
+            this.voiceSearchStatusSubject.next({isListening: false});
+          });
+        };
+      }
+    }
+  }
+  
+  /**
+   * Check if speech recognition is supported
+   */
+  isSpeechRecognitionSupported(): boolean {
+    return this.speechSupported;
+  }
+  
+  /**
+   * Check if currently listening
+   */
+  isVoiceListening(): boolean {
+    return this.isListening;
+  }
+  
+  /**
+   * Start voice search
+   */
+  startVoiceSearch(): void {
+    if (this.speechSupported && !this.isListening) {
+      this.speechRecognition.start();
+    }
+  }
+  
+  /**
+   * Stop voice search
+   */
+  stopVoiceSearch(): void {
+    if (this.speechSupported && this.isListening) {
+      this.speechRecognition.stop();
+    }
+  }
+
+  /**
+   * Optimized version of ComprehensiveSearch with caching and performance improvements
+   * @param searchTerm Search query
+   * @returns Combined results with better performance
+   */
+  OptimizedComprehensiveSearch(searchTerm: string): Observable<any> {
+    if (!searchTerm.trim()) {
+      return of({ products: [], categories: [] });
+    }
+
+    // Create cache key based on search term
+    const cacheKey = `comprehensive_search_${searchTerm.toLowerCase()}`;
+    
+    // Try to get from cache first
+    return this.cacheService.cacheObservable(
+      cacheKey,
+      forkJoin({
+        // Limit initial results for faster response
+        products: this.wooApi
+          .getRequest<any[]>(`products?search=${searchTerm}&_embed=true&status=publish&per_page=8`)
+          .pipe(
+            map((products: any[]) => {
+              return products.map((product) => ({
+                ...product,
+                onSale:
+                  product.sale_price &&
+                  parseFloat(product.sale_price) < parseFloat(product.regular_price),
+                discountPercentage:
+                  product.sale_price && product.regular_price
+                    ? Math.round(
+                        ((parseFloat(product.regular_price) -
+                          parseFloat(product.sale_price)) /
+                          parseFloat(product.regular_price)) *
+                          100
+                      )
+                    : 0,
+              }));
+            }),
+            catchError(error => {
+              console.error('Error fetching products:', error);
+              return of([]);
+            })
+          ),
+        categories: this.wooApi
+          .getRequest(`products/categories?search=${searchTerm}&per_page=8`)
+          .pipe(
+            catchError(error => {
+              console.error('Error fetching categories:', error);
+              return of([]);
+            })
+          )
+      }),
+      // Cache for 2 minutes
+    12000000
+    );
+  }
+}

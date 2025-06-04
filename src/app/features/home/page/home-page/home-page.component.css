@@ -2,11 +2,25 @@
   width: 100%;
 }
 
+/* Reduce spacing between sections */
+.home-page section {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Ensure consistent product card heights */
 .home-page app-new-products,
 .home-page app-recommended-products,
 .home-page app-sale-products {
   display: block;
+}
+
+/* Make placeholder smaller to reduce empty space */
+.empty-placeholder {
+  height: 4px;
+  margin: 0;
 }
 
 /* Ensure skeleton loaders match card heights */
@@ -53,8 +67,8 @@
   
   /* Reduce vertical spacing between sections */
   .home-page .container {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
   }
   
   /* Ensure product skeletons match actual product sizes */
@@ -64,6 +78,11 @@
   
   .home-page .animate-pulse .bg-gray-200 {
     height: 280px; /* Match the product image height */
+  }
+  
+  /* Make placeholder even smaller on mobile */
+  .empty-placeholder {
+    height: 2px;
   }
 }
 

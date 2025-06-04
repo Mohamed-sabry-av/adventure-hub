@@ -407,7 +407,13 @@ const renderPage = async (req: express.Request, res: express.Response, next: exp
       ],
     });
 
-    res.send(html);
+    // Ensure Google site verification tag is in the HTML
+    const modifiedHtml = html.replace(
+      /<meta name="theme-color" content="#222222">/,
+      `<meta name="theme-color" content="#222222">\n  <meta name="google-site-verification" content="rt6fOYIBwSbI9eK8Pt_0MACLhQGaGs6Tl1MdFohwZmw" />`
+    );
+
+    res.send(modifiedHtml);
   } catch (err) {
     console.error('SSR Error:', err);
     next(err);
@@ -436,7 +442,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // Start the server
 if (isMainModule(import.meta.url)) {
-  const port = process.env['PORT'] || 4000;
+  const port = process.env['PORT'] || 3000;
   app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
     console.log(`Server running in ${process.env['NODE_ENV'] || 'development'} mode`);

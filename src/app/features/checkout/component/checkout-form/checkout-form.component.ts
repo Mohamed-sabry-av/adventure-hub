@@ -17,6 +17,8 @@ import { WalletPaymentComponent } from '../googlePay-button/google-pay-button.co
 import { CartService } from '../../../cart/service/cart.service';
 import { KlaviyoService } from '../../services/klaviyo.service';
 import { WooCommerceAccountService } from '../../../auth/account-details/account-details.service';
+import { TrustSymbolsComponent } from '../trust-symbols/trust-symbols.component';
+import { KlaviyoTrackingService } from '../../../../shared/services/klaviyo-tracking.service';
 
 interface CartItem {
   product_id: number;
@@ -46,7 +48,8 @@ interface PaymentIntentResponse {
     NgClass,
     CheckoutSummaryComponent,
     AsyncPipe,
-    WalletPaymentComponent
+    WalletPaymentComponent,
+    TrustSymbolsComponent
   ],
   templateUrl: './checkout-form.component.html',
   styleUrls: ['./checkout-form.component.css'],
@@ -73,6 +76,7 @@ export class CheckoutFormComponent {
   private cartService = inject(CartService);
   private klaviyoService = inject(KlaviyoService);
   private wooCommerceAccountService = inject(WooCommerceAccountService);
+  private klaviyoTrackingService = inject(KlaviyoTrackingService);
 
   billingForm!: FormGroup;
   shippingForm!: FormGroup;
@@ -161,6 +165,7 @@ export class CheckoutFormComponent {
     }
 
     this.checkoutService.setBillingForm(this.billingForm);
+    this.trackCheckoutStarted();
   }
 
   ngAfterViewInit() {
@@ -343,8 +348,22 @@ export class CheckoutFormComponent {
       return;
     }
 
+    this.isPaying = true;
+    this.isLoading = true;
+
+    // Track button click for Place Order
+    if (isPlatformBrowser(this.platformId)) {
+      this.klaviyoTrackingService.trackButtonClick(
+        'Place Order', 
+        'Checkout Page',
+        { PaymentMethod: this.paymentRadiosValue }
+      );
+    }
+
+    // Validate form before proceeding
     if (!this.isFormValid()) {
-      this.uiService.showError('Please fill in all required fields correctly.');
+      this.isPaying = false;
+      this.isLoading = false;
       return;
     }
     
@@ -362,9 +381,6 @@ export class CheckoutFormComponent {
       this.router.navigate(['/cart']);
       return;
     }
-
-    this.isPaying = true;
-    this.isLoading = true;
 
     // Check if user wants to subscribe to newsletter
     const subscribeNewsletter = this.billingForm.get('subscribeNewsletter')?.value;
@@ -840,5 +856,15 @@ export class CheckoutFormComponent {
   // Update shipping states based on billing states (for same address option)
   updateShippingStates(states: any[]) {
     this.availableShippingStates.next(states);
+  }
+
+  private trackCheckoutStarted(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.cartService.savedUserCart$.pipe(take(1)).subscribe(cartData => {
+        if (cartData?.userCart) {
+          this.klaviyoTrackingService.trackStartedCheckout(cartData.userCart);
+        }
+      });
+    }
   }
 }

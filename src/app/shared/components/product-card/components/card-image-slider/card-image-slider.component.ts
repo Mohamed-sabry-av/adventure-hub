@@ -9,19 +9,23 @@ import {
   PLATFORM_ID,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  OnChanges,
+  SimpleChanges,
+  OnDestroy
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Product, Variation } from '../../../../../interfaces/product';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { ProductTagsService } from '../../../../../shared/services/product-tags.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-card-image-slider',
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './card-image-slider.component.html',
-
   styleUrls: ['./card-image-slider.component.css'],
   animations: [
     trigger('fadeIn', [
@@ -31,15 +35,19 @@ import { ProductTagsService } from '../../../../../shared/services/product-tags.
       ]),
     ]),
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CardImageSliderComponent implements OnInit {
-  @Input() product!: Product  ;
+export class CardImageSliderComponent implements OnInit, OnChanges, OnDestroy {
+  @Input() product!: Product;
   @Input() isHovered: boolean = false;
   @Input() variations: Variation[] = []; // Ensure variations is defined
+  @Input() selectedColorImage: string = ''; // Added input for selected color image
   @ViewChild('sliderContainer') sliderContainer!: ElementRef;
 
   isMobile: boolean = false;
   currentImageIndex: number = 0;
+  selectedColorIndex: number = -1; // Track index of the selected color image
+  private destroy$ = new Subject<void>();
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -49,10 +57,32 @@ export class CardImageSliderComponent implements OnInit {
 
   ngOnInit() {
     this.checkIfMobile();
-    if (this.isMobile) {
-      this.isHovered = false; // تعطيل الهوفر على الموبايل
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // When selectedColorImage changes, find the corresponding image index
+    if (changes['selectedColorImage'] && this.selectedColorImage && this.product?.images) {
+      // Find the index of the selected color image
+      this.selectedColorIndex = this.product.images.findIndex(
+        (img) => img.src === this.selectedColorImage || 
+                 img.src.includes(this.selectedColorImage) || 
+                 this.selectedColorImage.includes(img.src)
+      );
+      
+      // If found, update current image index but don't interfere with hover behavior
+      if (this.selectedColorIndex >= 0 && (!this.isHovered || !this.hasMultipleImages)) {
+        this.currentImageIndex = this.selectedColorIndex;
+        this.cdr.markForCheck();
+      }
     }
   }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkIfMobile();
+    this.cdr.markForCheck();
+  }
+
   get hasMultipleImages(): boolean {
     return !!this.product?.images && this.product.images.length > 1;
   }
@@ -60,16 +90,6 @@ export class CardImageSliderComponent implements OnInit {
     return (this.product?.images?.length ?? 0) - 1;
   }
   
-
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event) {
-    if (isPlatformBrowser(this.platformId)) {
-      this.checkIfMobile();
-    }
-    if (this.isMobile) {
-      this.isHovered = false; // منع الهوفر عند اللمس
-    }
-  }
 
   checkIfMobile() {
     if (isPlatformBrowser(this.platformId)) {
@@ -157,5 +177,10 @@ export class CardImageSliderComponent implements OnInit {
    */
   getTagClass(tag: string): string {
     return this.productTagsService.getTagClass(tag);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

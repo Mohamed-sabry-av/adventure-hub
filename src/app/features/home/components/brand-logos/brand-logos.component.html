@@ -1,0 +1,40 @@
+<div class="brand-logos bg-gray-50">
+    <div class="container mx-auto px-1 sm:px-2">
+        @if (loading) {
+        <div class="flex justify-center">
+            <div class="flex space-x-4">
+                @for (item of [1,2,3,4,5,6]; track item) {
+                <div class="brand-skeleton animate-pulse flex items-center justify-center">
+                    <div class="h-8 w-24 bg-gray-200 rounded"></div>
+                </div>
+                }
+            </div>
+        </div>
+        } @else if (brands.length > 0) {
+        <div class="splide-container">
+            <div class="splide" #splideRef>
+                <div class="splide__track">
+                    <ul class="splide__list">
+                        @for (brand of brands; track brand.id) {
+                        <li class="splide__slide">
+                            <a [routerLink]="['/product/brand', brand.slug]" class="brand-logo">
+                                @if (brand.image && (brand.image.url || brand.image.src)) {
+                                <img [src]="brand.image.url || brand.image.src" [alt]="brand.name" class="brand-image"
+                                    loading="eager" />
+                                } @else {
+                                <span class="font-bold text-gray-800">{{ brand.name }}</span>
+                                }
+                            </a>
+                        </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        } @else if (error) {
+        <div class="text-center text-red-500">
+            {{ error }}
+        </div>
+        }
+    </div>
+</div>

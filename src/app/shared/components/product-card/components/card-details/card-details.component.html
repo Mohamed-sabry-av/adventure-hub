@@ -7,7 +7,8 @@
   <!-- Categories/Brand -->
   <div class="category">
     <ng-container *ngIf="product.categories && product.categories.length">
-      <a [routerLink]="getCategoryRouterPath() | async" class="hover:underline" [innerHTML]="product.categories[0].name"></a>
+      <a [routerLink]="getCategoryRouterPath() | async" class="hover:underline"
+        [innerHTML]="product.categories[0].name"></a>
     </ng-container>
     <span *ngIf="product.categories && product.categories.length && getBrandName()">,
     </span>
@@ -20,9 +21,8 @@
     <span class="current-price" [ngClass]="{
         'sale-price': oldPrice,
         'regular-price': !oldPrice
-      }" [appCurrencyPrice]="getNumericPrice(displayPrice)"></span>
+      }" [innerHTML]="getNumericPrice(displayPrice) | currencySvg"></span>
 
-    <span *ngIf="oldPrice" class="old-price" [appCurrencyPrice]="getNumericPrice(oldPrice)"
-      [originalPrice]="getNumericPrice(displayPrice)" [hideSymbol]="true"></span>
+    <span *ngIf="oldPrice" class="old-price" [innerHTML]="getNumericPrice(oldPrice) | currencySvg:true"></span>
   </div>
 </div>

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DialogErrorComponent } from './dialog-error.component';
+import { TrustSymbolsComponent } from './trust-symbols.component';
 
-describe('DialogErrorComponent', () => {
-  let component: DialogErrorComponent;
-  let fixture: ComponentFixture<DialogErrorComponent>;
+describe('TrustSymbolsComponent', () => {
+  let component: TrustSymbolsComponent;
+  let fixture: ComponentFixture<TrustSymbolsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DialogErrorComponent]
+      imports: [TrustSymbolsComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DialogErrorComponent);
+    fixture = TestBed.createComponent(TrustSymbolsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

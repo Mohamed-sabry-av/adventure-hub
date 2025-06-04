@@ -19,12 +19,12 @@
             <div class="flex items-center justify-center mt-2 gap-x-1">
               <i class="pi pi-check-circle text-[#4d4f3a] text-xs"></i>
               <p class="text-xs">
-                @if (progressValue > 100) {
+                @if (progressValue >= 100) {
                 <span> Your order is eligible for free shipping! </span>
                 } @else if (progressValue !== 0) {
                 <span>
                   Spend
-                  <strong>{{ 100 - progressValue }}</strong>
+                  <strong>{{ (100 - progressValue).toFixed(2) }}</strong>
                   more for <strong>free shipping!</strong>
                 </span>
                 } @else {

@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { CacheService } from '../../../core/services/cashing.service';
+import { environment } from '../../../../environments/environment';
 
 export interface BlogPost {
   id: number;
@@ -22,6 +23,7 @@ export class BlogService {
   private httpClient = inject(HttpClient);
   private apiService = inject(ApiService);
   private cacheService = inject(CacheService);
+  private readonly WP_API_URL = `${environment.baseUrl}/wp-json/wp/v2`;
 
   blogData$ = new BehaviorSubject<BlogPost[]>([]);
   private cacheTimeMs = 60 * 60 * 1000; // 1 hour cache
@@ -40,7 +42,7 @@ export class BlogService {
 
     // تحديث البيانات من الخادم بغض النظر عن وجود بيانات مخزنة مؤقتًا
     this.httpClient
-      .get<BlogPost[]>(`https://adventures-hub.com/wp-json/wp/v2/posts`, {
+      .get<BlogPost[]>(`${this.WP_API_URL}/posts`, {
         params: new HttpParams()
           .set(
             '_fields',
@@ -67,7 +69,7 @@ export class BlogService {
 
 
     return this.httpClient
-      .get<BlogPost[]>(`https://adventures-hub.com/wp-json/wp/v2/posts`, {
+      .get<BlogPost[]>(`${this.WP_API_URL}/posts`, {
         params: new HttpParams()
           .set(
             '_fields',
@@ -91,7 +93,7 @@ export class BlogService {
 
 
     return this.httpClient
-      .get<BlogPost[]>(`https://adventures-hub.com/wp-json/wp/v2/posts`, {
+      .get<BlogPost[]>(`${this.WP_API_URL}/posts`, {
         params: new HttpParams()
           .set(
             '_fields',
