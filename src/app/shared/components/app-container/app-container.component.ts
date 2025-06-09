@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 @Component({
   selector: 'app-container',
   standalone: true,
@@ -9,3 +8,4 @@ import { CommonModule } from '@angular/common';
   styleUrl: './app-container.component.css',
 })
 export class AppContainerComponent {}
+

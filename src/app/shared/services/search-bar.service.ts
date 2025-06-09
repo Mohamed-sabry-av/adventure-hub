@@ -302,13 +302,13 @@ export class SearchBarService {
       );
       params = params.set('attributes', JSON.stringify(formattedFilters));
     }
-  
-    console.log('Generated API URL:', `https://adventures-hub.com/wp-json/wc/v3/products?${params.toString()}`);
-  
+
     return this.cacheService.cacheObservable(
       cacheKey,
       this.wooApi.getRequest<any[]>(`products`, { params }).pipe(
-        tap((response) => console.log('API Response:', response)),
+        tap((response) => {
+          // Log was removed here
+        }),
         map((products: any[]) => {
           return products.map((product) => ({
             ...product,
@@ -478,3 +478,4 @@ export class SearchBarService {
     );
   }
 }
+

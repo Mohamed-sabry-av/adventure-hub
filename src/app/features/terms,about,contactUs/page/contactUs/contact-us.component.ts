@@ -194,8 +194,7 @@ export class ContactUsComponent extends BaseContentPageComponent {
     }
     
     // Here you would typically submit the form to a backend API
-    console.log('Form submitted:', this.contactForm.value);
-    
+
     // Show success message
     this.formSubmitted = true;
     
@@ -218,3 +217,4 @@ export class ContactUsComponent extends BaseContentPageComponent {
     };
   }
 }
+

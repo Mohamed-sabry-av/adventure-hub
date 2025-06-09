@@ -21,7 +21,7 @@
 }
 
 .links-child {
-  @apply px-8 lg:px-8 xl:px-16  w-full flex flex-wrap items-center gap-x-4 pt-3 pb-1;
+  @apply px-8 lg:px-8 xl:px-16 w-full flex flex-wrap items-center gap-x-4 pt-1 pb-1;
 }
 
 .links-name {
@@ -249,4 +249,77 @@
   background: linear-gradient(to right, #2563eb, #4338ca);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
   transform: translateY(-1px);
+}
+
+/* تحسين أنماط زر Deals في الشريط العلوي */
+.deals-button-desktop {
+  background: linear-gradient(to right, #f4663c, #f97316);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 2px 8px rgba(244, 102, 60, 0.4);
+  min-width: 120px; /* جعل الزر أكثر استطالة */
+  height: 30px;
+  text-align: center;
+  justify-content: center;
+  margin-right: 12px; /* زيادة المساحة على اليمين */
+  padding-left: 16px; /* زيادة المساحة على اليسار */
+  padding-right: 16px; /* زيادة المساحة على اليمين */
+}
+
+.deals-button-desktop:hover {
+  background: linear-gradient(to right, #e94426, #ea580c);
+  box-shadow: 0 4px 12px rgba(244, 102, 60, 0.5);
+  transform: translateY(-2px);
+}
+
+.deals-button-desktop:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 4px rgba(244, 102, 60, 0.4);
+}
+
+.deals-button-desktop::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transition: left 0.8s;
+}
+
+.deals-button-desktop:hover::before {
+  left: 100%;
+}
+
+/* تحسين أنماط زر Deals في القائمة الجانبية */
+.deals-button-mobile {
+  background: linear-gradient(to right, #f4663c, #f97316);
+  color: white;
+  font-weight: 600;
+  padding: 12px 20px;
+  margin: 12px auto;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  display: flex;
+  width: 90%;
+  max-width: 300px;
+  box-shadow: 0 2px 8px rgba(244, 102, 60, 0.4);
+  transition: all 0.3s ease;
+}
+
+.deals-button-mobile:hover {
+  background: linear-gradient(to right, #e94426, #ea580c);
+  box-shadow: 0 4px 12px rgba(244, 102, 60, 0.5);
+  transform: translateY(-2px);
+}
+
+.deals-button-mobile:active {
+  transform: translateY(0);
 }

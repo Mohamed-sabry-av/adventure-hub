@@ -22,7 +22,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProductService } from '../../../../../core/services/product.service';
 import { Product, Variation } from '../../../../../interfaces/product';
-import { SideOptionsService } from '../../../../../core/services/side-options.service';
 import { CartService } from '../../../../../features/cart/service/cart.service';
 import { VariationService } from '../../../../../core/services/variation.service';
 import { UIService } from '../../../../../shared/services/ui.service';
@@ -97,7 +96,6 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object,
     private productService: ProductService,
-    private sideOptionsService: SideOptionsService,
     private variationService: VariationService,
     private cartService: CartService,
     private uiService: UIService,
@@ -112,14 +110,14 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     
     // Debug - log product stock status
     if (this.product) {
-      // console.log('Product type:', this.product.type);
-      // console.log('Product stock status:', this.product.stock_status);
-      // console.log('Product purchasable:', this.product.purchasable);
+      // 
+      // 
+      // 
     }
     
     // Debug - log color options
     if (this.colorOptions && this.colorOptions.length > 0) {
-      // console.log('Color options:', this.colorOptions);
+      // 
     }
     
     // Subscribe to loading state changes
@@ -193,13 +191,13 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
 
   onToggleOptionsPanel() {
     if (this.product?.type === 'simple') {
-      // console.log('Simple product, adding directly to cart');
+      // 
       this.onAddToCart();
       return;
     }
 
     // Always open options panel for variable products
-    // console.log('Opening options panel for variable product');
+    // 
     this.toggleOptions();
     this.cdr.markForCheck();
   }
@@ -384,9 +382,9 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
   
   formatSizeName(size: string): string {
     if (!size) return '';
-    // Convert dash format to dot format (e.g., "1-l" to "1.L US")
+    // Convert dash format to dot format (e.g., "1-l" to "1.L")
     const formattedSize = size.replace(/-/g, '.').toUpperCase();
-    return `${formattedSize} US`;
+    return formattedSize;
   }
 
   /**
@@ -644,9 +642,9 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
       return false;
     }
 
-    // console.log('Checking if all colors have the same sizes for product:', this.product?.name);
-    // console.log('Color options:', this.colorOptions);
-    // console.log('Unique sizes:', this.uniqueSizes);
+    // 
+    // 
+    // 
 
     // Get all available sizes for each color
     const sizesByColor = new Map<string, Set<string>>();
@@ -656,26 +654,26 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
       const sizesForColor = this.variationService.getSizesForColor(this.variations, color.color);
       const sizeSet = new Set<string>(sizesForColor.map(s => s.size));
       sizesByColor.set(color.color, sizeSet);
-      // console.log(`Sizes for color ${color.color}:`, Array.from(sizeSet));
+      // );
     }
     
     // If we have only one color, no need to compare
     if (sizesByColor.size <= 1) {
-      // console.log('Only one color with sizes, returning false');
+      // 
       return false;
     }
     
     // Compare all size sets to see if they're identical
     const firstColorSizes = Array.from(sizesByColor.values())[0];
     const firstColorSizesArray = Array.from(firstColorSizes);
-    // console.log('First color sizes:', firstColorSizesArray);
+    // 
     
     // Check if all colors have the same set of sizes
     let allSame = true;
     for (const [color, sizeSet] of sizesByColor.entries()) {
       // If the size count is different, they're not the same
       if (sizeSet.size !== firstColorSizes.size) {
-        // console.log(`Color ${color} has different number of sizes (${sizeSet.size} vs ${firstColorSizes.size})`);
+        // `);
         allSame = false;
         break;
       }
@@ -683,7 +681,7 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
       // Check if all sizes from the first color exist in this color's sizes
       for (const size of firstColorSizesArray) {
         if (!sizeSet.has(size)) {
-          // console.log(`Color ${color} is missing size ${size}`);
+          // 
           allSame = false;
           break;
         }
@@ -693,7 +691,8 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
     }
     
     // All colors have the same sizes
-    // console.log('All colors have the same sizes:', allSame);
+    // 
     return allSame;
   }
 }
+

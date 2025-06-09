@@ -3,7 +3,6 @@ import { CommonModule, DatePipe, AsyncPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BlogPost, BlogService } from '../../../blog/services/blog.service';
 import { Observable, of } from 'rxjs';
-
 @Component({
   selector: 'app-latest-blog-posts',
   standalone: true,
@@ -15,7 +14,6 @@ import { Observable, of } from 'rxjs';
           <h2 class="text-3xl font-bold text-center">Latest From Our Blog</h2>
           <p class="text-center text-gray-600 mt-2">Stay up to date with the latest trends and news</p>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           @for (post of latestPosts$ | async; track post.id) {
             <div class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
@@ -38,7 +36,6 @@ import { Observable, of } from 'rxjs';
             </div>
           }
         </div>
-
       </div>
     </section>
   `,
@@ -49,14 +46,12 @@ import { Observable, of } from 'rxjs';
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-
     .line-clamp-3 {
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-
     .excerpt ::ng-deep p {
       margin: 0;
     }
@@ -64,13 +59,10 @@ import { Observable, of } from 'rxjs';
 })
 export class LatestBlogPostsComponent implements OnInit {
   private blogService = inject(BlogService);
-
   latestPosts$: Observable<BlogPost[]> = of([]);
-
   ngOnInit(): void {
     this.latestPosts$ = this.blogService.getLatestPosts(4);
   }
-
   // Get image URL from post
   getPostImageUrl(post: BlogPost): string {
     if (post.yoast_head_json && post.yoast_head_json.og_image && post.yoast_head_json.og_image[0]) {
@@ -78,7 +70,6 @@ export class LatestBlogPostsComponent implements OnInit {
     }
     return 'https://via.placeholder.com/400x300';
   }
-
   // استخراج النص الصافي من HTML
   getExcerpt(html: string): string {
     if (typeof window !== 'undefined') {
@@ -92,3 +83,4 @@ export class LatestBlogPostsComponent implements OnInit {
     }
   }
 }
+

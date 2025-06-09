@@ -79,13 +79,13 @@ export class GoogleAuthComponent implements AfterViewInit {
   }
 
   handleCredentialResponse(response: any) {
-    console.log('Google Response:', response);
+
     if (response && response.credential) {
       const idToken = response.credential;
-      console.log('idToken:', idToken);
+
       this.googleService.loginWithGoogle(idToken).subscribe({
         next: (res) => {
-          console.log('Login Success:', res);
+
           this.loginError = '';
           this.router.navigate(['/user/Useraccount']);
         },
@@ -95,7 +95,7 @@ export class GoogleAuthComponent implements AfterViewInit {
         },
       });
     } else {
-      console.log('No credential in response');
+
       this.loginError = 'Failed to get credentials from Google';
     }
   }

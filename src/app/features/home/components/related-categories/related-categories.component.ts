@@ -1,14 +1,27 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject, ChangeDetectorRef, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeService } from '../../service/home.service';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { forkJoin, of, throwError, timer } from 'rxjs';
+import { catchError, finalize, map, take, timeout, mergeMap } from 'rxjs/operators';
 
 interface CategoryImage {
   category_id: number;
   category_name: string;
   image_url: string;
+  slug?: string; // Add slug from API
+}
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  count: number;
+  image?: {
+    src?: string;
+    url?: string;
+  };
+  display_name?: string;
 }
 
 @Component({
@@ -17,103 +30,147 @@ interface CategoryImage {
   imports: [CommonModule, RouterModule],
   templateUrl: './related-categories.component.html',
   styleUrls: ['./related-categories.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RelatedCategoriesComponent implements OnInit {
-  categories: any[] = [];
+  categories: Category[] = [];
   categoryImages: CategoryImage[] = [];
   loading: boolean = true;
   error: string | null = null;
+  
+  // Top categories that should be loaded eagerly (first 3 categories)
+  private topCategoryIds: number[] = [];
 
-  // صور الفئات الإفتراضية
-  defaultImages: { [key: string]: string } = {
-    hiking:
-      'https://images.unsplash.com/photo-1501554728187-ce583db33af7?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    camping:
-      'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    climbing:
-      'https://images.unsplash.com/photo-1516592066400-86d98f655676?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    footwear:
-      'https://images.unsplash.com/photo-1560072810-1cffb09faf0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    jackets:
-      'https://images.unsplash.com/photo-1520027298377-d137e4122dab?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    backpacks:
-      'https://images.unsplash.com/photo-1501198837835-640009e1a100?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    accessories:
-      'https://images.unsplash.com/photo-1532179214618-f169ac064704?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    tents:
-      'https://images.unsplash.com/photo-1506535995048-638aa1b62b77?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    'sleeping-bags':
-      'https://images.unsplash.com/photo-1503756143517-cbe130ba7009?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-    'water-sports':
-      'https://images.unsplash.com/photo-1530539595977-0aa9890547c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80',
-  };
+  // Category types we're looking for (to match with API data)
+  private categoryTypes: string[] = [
+    'water-sports', 
+    'diving', 
+    'hiking', 
+    'camping', 
+    'cycling', 
+    'biking'
+  ];
 
-  // Water sports category to replace Home
-  waterSportsCategory = {
-    id: 999,
-    name: 'Water Sports',
-    slug: 'water-sports',
-    count: 25,
-    image: {
-      src: this.defaultImages['water-sports']
-    }
-  };
-
-  constructor(private homeService: HomeService) {}
+  private homeService = inject(HomeService);
+  private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID);
 
   ngOnInit(): void {
     this.loadCategories();
+  }
+  
+  /**
+   * Check if a category is one of the top categories that should be loaded eagerly
+   */
+  isTopCategory(category: Category): boolean {
+    return this.topCategoryIds.includes(category.id);
+  }
+  
+  /**
+   * Get the appropriate image URL for a category
+   */
+  getImageUrl(category: Category): string {
+    return category.image?.src || category.image?.url || '';
+  }
+  
+  /**
+   * Get the srcset attribute for responsive images
+   */
+  getImageSrcSet(category: Category): string {
+    // Only use srcset if the API provides it
+    return '';
   }
 
   loadCategories(): void {
     this.loading = true;
     
+    // Set a timeout to stop showing loading state after 3 seconds even if API is slow
+    timer(3000).subscribe(() => {
+      if (this.loading) {
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
+    });
+    
     // Fetch both categories and custom category images simultaneously
     forkJoin({
-      categories: this.homeService.getCategories(0, 10).pipe(
+      categories: this.homeService.getCategories(0, 50).pipe( // Get more categories to ensure we find all needed types
+        timeout(5000), // Set 5-second timeout
+        take(1),
         catchError(err => {
           console.error('Error loading categories:', err);
           return of([]);
         })
       ),
       categoryImages: this.homeService.getCategoryImages().pipe(
+        timeout(5000), // Set 5-second timeout
+        take(1),
         catchError(err => {
           console.error('Error loading category images:', err);
           return of([]);
         })
       )
     }).pipe(
-      finalize(() => this.loading = false)
+      finalize(() => {
+        this.loading = false;
+        this.cdr.markForCheck();
+      })
     ).subscribe({
       next: (result) => {
         this.categoryImages = result.categoryImages || [];
         
-        if (result.categories && Array.isArray(result.categories)) {
-          // Filter out "home" category if it exists
-          let filteredCategories = result.categories.filter(cat => cat.slug !== 'home');
+        // Start with empty categories array
+        this.categories = [];
+        
+        // Only use categories directly from the API
+        if (result.categories && Array.isArray(result.categories) && result.categories.length > 0) {
+          // Filter categories that match our preferred types, if possible
+          const matchingCategories = this.categoryTypes.reduce((matches, type) => {
+            const match = result.categories.find(
+              (cat: Category) => cat.slug === type || 
+              cat.slug.includes(type) ||
+              cat.name.toLowerCase().includes(type.replace('-', ' '))
+            );
+            
+            if (match && !matches.some(c => c.id === match.id)) {
+              matches.push(match);
+            }
+            
+            return matches;
+          }, [] as Category[]);
           
-          // Add water sports category at the beginning if needed
-          const hasWaterSports = filteredCategories.some(cat => 
-            cat.slug === 'water-sports' || cat.name.toLowerCase() === 'water sports');
+          // Add matching categories first
+          this.categories = [...matchingCategories];
           
-          if (!hasWaterSports) {
-            filteredCategories.unshift(this.waterSportsCategory);
+          // If we don't have enough, add other categories from API up to 6 total
+          if (this.categories.length < 6) {
+            const remainingNeeded = 6 - this.categories.length;
+            const otherCategories = result.categories.filter(
+              (cat: Category) => !this.categories.some(c => c.id === cat.id)
+            ).slice(0, remainingNeeded);
+            
+            this.categories = [...this.categories, ...otherCategories];
           }
-          
-          // Map custom images to categories
-          filteredCategories = this.mapCategoryImages(filteredCategories);
-          
-          // Take only 6 categories
-          this.categories = filteredCategories.slice(0, 6);
-        } else {
-          this.categories = [];
-          this.error = 'No categories found';
-          console.warn('Received invalid categories data:', result.categories);
         }
+        
+        // Ensure we only have 6 categories and all have valid API-provided slugs
+        this.categories = this.categories.slice(0, 6).filter(cat => !!cat.slug);
+        
+        // Map images from API to our categories
+        if (this.categoryImages.length > 0) {
+          this.categories = this.mapCategoryImages(this.categories);
+        }
+        
+        // First 3 categories are considered "top" and should be loaded eagerly
+        this.topCategoryIds = this.categories.slice(0, 3).map(c => c.id);
+        
+        // Update the view
+        this.cdr.markForCheck();
       },
       error: (err) => {
-        this.error = 'Failed to load categories';
         console.error('Error in forkJoin:', err);
+        this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -121,41 +178,31 @@ export class RelatedCategoriesComponent implements OnInit {
   /**
    * Map custom images to categories
    */
-  private mapCategoryImages(categories: any[]): any[] {
+  private mapCategoryImages(categories: Category[]): Category[] {
     if (!this.categoryImages || this.categoryImages.length === 0) {
       return categories;
     }
 
     return categories.map(category => {
-      // Try to find a matching custom image by category ID
-      const customImage = this.categoryImages.find(img => img.category_id === category.id);
+      // Try to find a matching custom image by category name (case-insensitive)
+      const customImage = this.categoryImages.find(img => 
+        (img.slug && img.slug === category.slug) || // Only use exact slug matches
+        img.category_id === category.id || // Match by ID 
+        img.category_name.toLowerCase() === category.name.toLowerCase() // Match by exact name
+      );
       
       if (customImage && customImage.image_url) {
-        // Replace the category image with the custom one
+        // Keep the original category slug - don't update with custom slug
         return {
           ...category,
           image: {
-            ...category.image,
-            src: customImage.image_url
+            src: customImage.image_url,
+            url: customImage.image_url
           }
         };
       }
       
-      // If no custom image found but category has no image or invalid image, use default
-      if (!category.image || !category.image.src) {
-        const defaultImage = this.defaultImages[category.slug] || 
-          'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=80';
-        
-        return {
-          ...category,
-          image: {
-            ...category.image,
-            src: defaultImage
-          }
-        };
-      }
-      
-      // Return unchanged if it already has a valid image
+      // If no matching image, return the category without an image
       return category;
     });
   }

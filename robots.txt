@@ -1,55 +1,80 @@
-# Robots.txt for Adventures HUB Sports Shop
-# Optimized for headless WooCommerce setup with Yoast SEO
+
+# Robots.txt for Angular Frontend + WooCommerce Backend
+# Optimized for SEO and crawling efficiency
 
 User-agent: *
-Allow: /
+
+# Block WordPress admin and unnecessary areas
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+# Block WooCommerce specific directories
+Disallow: /wp-content/uploads/wc-logs/
+Disallow: /wp-content/uploads/woocommerce_transient_files/
+Disallow: /wp-content/uploads/woocommerce_uploads/
+
+# Block Angular development and build files
+Disallow: /node_modules/
+Disallow: /src/
+Disallow: /dist/
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.map$
+Disallow: /main-*.js
+Disallow: /polyfills-*.js
+Disallow: /styles-*.css
+Disallow: /scripts-*.js
+Disallow: /zone.min.js
+
+# Block cart and checkout functionality (prevent indexing)
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-received/
+
+# Block user account areas
+Disallow: /user/
+Disallow: /my-account/
+
+# Block search and filter parameters
+Disallow: /*?*
+Disallow: /*&*
+Disallow: /*?add-to-cart*
+Disallow: /*&add-to-cart*
+Disallow: /*?add_to_wishlist*
+Disallow: /*&add_to_wishlist*
+Disallow: /product/search*
+
+# Block feeds (since you're using Angular)
+Disallow: /feed/
+Disallow: /*/feed/
+Disallow: /wp-json/wp/v2/
+
+# Allow important content
+Allow: /wp-content/uploads/
 Allow: /product/
 Allow: /category/
 Allow: /blog/
-Allow: /cart/
-Allow: /order-received/
 Allow: /pages/
 
-# Prevent duplicate content
-Disallow: /checkout/
-Disallow: /user/
-Disallow: /*?*sort=
-Disallow: /*?*order=
-Disallow: /*?*filter=
-Disallow: /*?*add-to-cart=
-Disallow: /*?*lang=
-
-# Media and document crawling allowed
-Allow: /*.jpg$
-Allow: /*.jpeg$
-Allow: /*.png$
-Allow: /*.gif$
-Allow: /*.webp$
-Allow: /*.pdf$
-
-# Sitemap location
-Sitemap: https://adventures-hub.com/sitemap.xml
-
-# Crawl delay
+# Crawl delay to be respectful to server
 Crawl-delay: 1
 
-# Bot-specific rules
+# Sitemaps
+Sitemap: http://46.202.88.235/sitemap.xml
+Sitemap: http://46.202.88.235/product-sitemap.xml
+Sitemap: http://46.202.88.235/category-sitemap.xml
+Sitemap: http://46.202.88.235/post-sitemap.xml
+Sitemap: http://46.202.88.235/page-sitemap.xml
+
+# Additional bot-specific rules
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 0.5
-
-User-agent: Googlebot-Image
-Allow: /*.jpg$
-Allow: /*.jpeg$
-Allow: /*.png$
-Allow: /*.gif$
-Allow: /*.webp$
-Crawl-delay: 0.5
 
 User-agent: Bingbot
 Allow: /
-Crawl-delay: 1
 
-User-agent: Yandex
+User-agent: facebookexternalhit
 Allow: /
-Crawl-delay: 1
+
+User-agent: Twitterbot
+Allow: /

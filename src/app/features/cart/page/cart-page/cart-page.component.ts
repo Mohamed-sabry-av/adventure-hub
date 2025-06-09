@@ -107,7 +107,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
     
     // Handle invalid cart errors by showing empty cart
     if (isInvalidCartError) {
-      console.log('Handling invalid cart error in component:', errorMsg);
+
       this.hasError = false;
       this.isLoading = false;
       
@@ -154,15 +154,16 @@ export class CartPageComponent implements OnInit, OnDestroy {
           const parsedCartId = JSON.parse(cartId);
           
           if (!parsedCartId || parsedCartId === '' || typeof parsedCartId !== 'string') {
-            console.log('Removing suspicious cart ID:', parsedCartId);
+
             localStorage.removeItem('cartId');
           }
         }
       } catch (e) {
         // If there's any error parsing the cart ID, it's probably invalid
-        console.log('Error parsing cart ID, removing it:', e);
+
         localStorage.removeItem('cartId');
       }
     }
   }
 }
+

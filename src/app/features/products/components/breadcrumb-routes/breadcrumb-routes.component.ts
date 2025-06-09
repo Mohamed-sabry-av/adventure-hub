@@ -4,7 +4,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CategoriesService } from '../../../../core/services/categories.service';
 import { Category } from '../../../../interfaces/category.model';
 import { SafeHtmlPipe } from "../../../../shared/pipes/safeHtml.pipe";
-
 @Component({
   selector: 'app-breadcrumb-routes',
   standalone: true,
@@ -43,18 +42,15 @@ export class BreadcrumbRoutesComponent implements OnInit {
   subcategories: { category: Category; productCount: number }[] = [];
   isDataFullyLoaded = false;
   skeletonArray = Array(3).fill(0);
-
   constructor(
     private categoryService: CategoriesService,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private route: ActivatedRoute
   ) {}
-
   async ngOnInit() {
     await this.loadSubCategories();
   }
-
   async ngOnChanges(changes: SimpleChanges) {
     if (changes['categoryId'] && !changes['categoryId'].firstChange && this.categoryId !== null) {
       this.subcategories = [];
@@ -63,29 +59,23 @@ export class BreadcrumbRoutesComponent implements OnInit {
       await this.loadSubCategories();
     }
   }
-
   private async loadSubCategories(): Promise<void> {
-    console.log('loadSubCategories called with categoryId:', this.categoryId);
 
     if (this.categoryId === null || this.categoryId === undefined) {
-      console.log('categoryId is null or undefined, skipping load');
+
       this.isDataFullyLoaded = true;
       this.cdr.markForCheck();
       return;
     }
-
     try {
       const allCategories = (await this.categoryService.getAllCategories().toPromise()) || [];
-      console.log('All categories fetched:', allCategories.length);
 
       const subCats = allCategories.filter((cat) => cat.parent === this.categoryId);
-      console.log('Filtered subcategories:', subCats);
 
       this.subcategories = subCats.map((cat) => ({
         category: cat,
         productCount: cat.count ?? 0,
       }));
-      console.log('Mapped subcategories:', this.subcategories);
 
       this.isDataFullyLoaded = true;
     } catch (error) {
@@ -95,7 +85,6 @@ export class BreadcrumbRoutesComponent implements OnInit {
     }
     this.cdr.markForCheck();
   }
-
   getSubCategoryRoute(category: Category): string[] {
     const currentUrl = this.route.snapshot.url
       .map((segment) => segment.path)
@@ -108,7 +97,6 @@ export class BreadcrumbRoutesComponent implements OnInit {
     );
     return ['/', ...newSegments];
   }
-
   async onSubcategoryClick(category: Category): Promise<void> {
     const newPath = this.getSubCategoryRoute(category);
     try {

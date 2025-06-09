@@ -3,8 +3,6 @@ export interface User {
   email:string;
   password?:string;
 }
-
-
 export interface LoginResponse {
   token?: string;
   user_email?: string;
@@ -12,3 +10,4 @@ export interface LoginResponse {
   headers?: any;
   user_id:any;
 }
+

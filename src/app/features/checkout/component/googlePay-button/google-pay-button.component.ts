@@ -60,8 +60,7 @@ export class WalletPaymentComponent implements AfterViewInit {
           this.userDetails = await this.accountService.getCustomerDetails(userId)
             .pipe(take(1))
             .toPromise();
-            
-          console.log('Loaded user details for wallet payment:', this.userDetails);
+
         } catch (error) {
           console.error('Failed to load user details:', error);
         }
@@ -241,7 +240,7 @@ export class WalletPaymentComponent implements AfterViewInit {
             }
 
             if (paymentIntent && paymentIntent.status === 'succeeded') {
-              console.log('Payment succeeded:', paymentIntent.id);
+
               event.complete('success');
               this.paymentSucceeded.emit(paymentIntentId);
             } else {
@@ -260,8 +259,7 @@ export class WalletPaymentComponent implements AfterViewInit {
             const countryCode = shippingAddress.country || 'AE';
             
             // Log the address for debugging
-            console.log('Shipping address from wallet:', shippingAddress);
-            
+
             // International shipping
             if (countryCode !== 'AE') {
               event.updateWith({
@@ -314,7 +312,7 @@ export class WalletPaymentComponent implements AfterViewInit {
           }
         });
       } else {
-        console.log('No supported wallet payment methods found');
+
       }
     } catch (error) {
       console.error('Error initializing wallet payments:', error);
@@ -322,8 +320,7 @@ export class WalletPaymentComponent implements AfterViewInit {
   }
 
   private prepareOrderData(billingDetails: any, shippingAddress: any) {
-    console.log('Preparing order data with billing:', billingDetails, 'shipping:', shippingAddress);
-    
+
     let billing: any = {};
     let shipping: any = {};
     

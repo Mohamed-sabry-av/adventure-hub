@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { blogSectionGuard } from '../blog/guards/blog-section.guard';
-
 export const blogRoutes: Routes = [
   {
     path: '',

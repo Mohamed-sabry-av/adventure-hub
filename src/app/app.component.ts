@@ -3,13 +3,13 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { SideCartComponent } from './features/cart/components/side-cart/side-cart.component';
-import { SideOptionsComponent } from './shared/components/side-options/side-options.component';
 import { isPlatformBrowser, NgIf, DOCUMENT } from '@angular/common';
 import { filter, first } from 'rxjs/operators';
 import { CartService } from './features/cart/service/cart.service';
 import { ServiceHighlightsComponent } from './shared/components/service-highlights/service-highlights.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { Meta } from '@angular/platform-browser';
+import { NavbarSpacerComponent } from './features/shared/components/navbar-spacer/navbar-spacer.component';
 
 declare global {
   interface Window {
@@ -41,10 +41,10 @@ interface PerformanceNavigationTiming extends PerformanceEntry {
     HeaderComponent,
     FooterComponent,
     SideCartComponent,
-    SideOptionsComponent,
     NgIf,
     ServiceHighlightsComponent,
-    ToastComponent
+    ToastComponent,
+    NavbarSpacerComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],

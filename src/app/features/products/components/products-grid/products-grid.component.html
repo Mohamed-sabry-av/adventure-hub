@@ -1,12 +1,12 @@
 <div class="products-grid-container">
   <!-- Loading Message -->
-  @if (showSkeleton) {
+  @if (showSkeleton && displayedProducts.length === 0) {
   <div class="text-center text-gray-500 mb-4 animate-pulse">
   </div>
   }
 
   <!-- Skeleton Loading State -->
-  @if (showSkeleton) {
+  @if (showSkeleton && displayedProducts.length === 0) {
   <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4" @fadeIn>
     <div *ngFor="let i of skeletonArray; trackBy: trackByIndex" class="product-skeleton animate-pulse">
       <div class="relative aspect-square bg-gray-200 rounded-lg mb-3 overflow-hidden">
@@ -26,8 +26,8 @@
   </div>
   }
 
-  <!-- Products Grid -->
-  @if (!showSkeleton && displayedProducts.length > 0) {
+  <!-- Products Grid - Always show if we have products, regardless of loading state -->
+  @if (displayedProducts.length > 0) {
   <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-1 sm:gap-1"
     @staggerFadeIn>
     <app-product-card *ngFor="let product of displayedProducts; trackBy: trackByProductId" [product]="product"

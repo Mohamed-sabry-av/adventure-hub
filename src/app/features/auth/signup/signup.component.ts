@@ -48,7 +48,7 @@ export class SignupComponent {
 
   onRecaptchaSuccess(token: any) {
     this.recaptchaToken = token;
-    console.log('recaptchaToken', token);
+
   }
 
   signupFormValidator() {
@@ -88,7 +88,7 @@ export class SignupComponent {
             
             this.wishlistService.syncWishlistOnLogin().subscribe({
               next: (result) => {
-                console.log('Wishlist sync result:', result);
+
               },
               error: (err) => {
                 console.error('Error syncing wishlist:', err);
@@ -114,3 +114,4 @@ export class SignupComponent {
     });
   }
 }
+

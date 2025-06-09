@@ -116,7 +116,9 @@ export class RecentProductsMiniComponent implements OnInit, OnChanges, AfterView
     
     this.recentlyVisitedService.recentlyVisitedProducts$
       .pipe(
-        tap(products => console.log('RecentProductsMini - Products received:', products?.length || 0)),
+        tap(products => {
+          // Log was removed here
+        }),
         take(1),
         map((products: Product[]) => {
           // Filter out any invalid products (without ID) to prevent errors
@@ -136,8 +138,7 @@ export class RecentProductsMiniComponent implements OnInit, OnChanges, AfterView
         finalize(() => {
           this.isLoading = false;
           this.cdr.markForCheck();
-          console.log('RecentProductsMini - Loading completed');
-          
+
           // Initialize Splide after data is loaded
           setTimeout(() => {
             if (this.recentProducts.length > 3) {
@@ -149,7 +150,7 @@ export class RecentProductsMiniComponent implements OnInit, OnChanges, AfterView
       .subscribe({
         next: (products: Product[]) => {
           this.recentProducts = products;
-          console.log('RecentProductsMini - Products loaded:', this.recentProducts.length);
+
           this.cdr.markForCheck();
         },
         error: (error) => {

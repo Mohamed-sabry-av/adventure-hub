@@ -7,7 +7,6 @@ import {
 import { OrderService } from '../../services/order.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
-
 @Component({
   selector: 'app-order-meta-data',
   imports: [DatePipe, AsyncPipe, CurrencyPipe],
@@ -16,6 +15,6 @@ import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
 })
 export class OrderMetaDataComponent {
   private orderService = inject(OrderService);
-
   loadedOrder$: Observable<any> = this.orderService.loadedOrder$;
 }
+

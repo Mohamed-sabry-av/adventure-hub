@@ -181,8 +181,7 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
     }
     
     this.isLoadingMore = true;
-    console.log('Loading deferred related products:', remainingIds.length);
-    
+
     this.productService.getProductsByIds(remainingIds).subscribe({
       next: (moreProducts) => {
         const inStockProducts = moreProducts.filter(product => 
@@ -318,8 +317,7 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
     }
     
     this.isLoadingMore = true;
-    console.log('Loading deferred localStorage products:', remainingIds.length);
-    
+
     this.productService.getProductsByIds(remainingIds).subscribe({
       next: (moreProducts) => {
         const inStockProducts = moreProducts.filter(product => 

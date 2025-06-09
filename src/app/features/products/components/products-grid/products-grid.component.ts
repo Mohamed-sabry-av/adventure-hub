@@ -60,32 +60,12 @@ export class ProductsGridComponent implements OnChanges {
   showEmptyState: boolean = false;
   skeletonCount = 8; // Consistent skeleton count
   displayedProducts: any[] = []; // Track displayed products separately to prevent flicker
+  private previousProductCount = 0; // Track previous product count
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    // Clear displayedProducts when showSkeleton becomes true (category switching)
-    if (changes['showSkeleton'] && changes['showSkeleton'].currentValue === true) {
-      this.displayedProducts = [];
-      this.cdr.markForCheck();
-    }
-    
-    // Only update displayed products when we have new products and aren't loading more
-    if (changes['products'] && !this.isLoadingMore) {
-      this.displayedProducts = [...this.products];
-    } 
-    // Append products when loading more
-    else if (changes['isLoadingMore'] && changes['isLoadingMore'].previousValue === true && !this.isLoadingMore) {
-      this.displayedProducts = [...this.products];
-    }
-    
-    if (
-      changes['products'] ||
-      changes['isLoading'] ||
-      changes['isLoadingMore'] ||
-      changes['isInitialLoadComplete'] ||
-      changes['showSkeleton']
-    ) {
+    // First, handle showing empty state if needed
       if (
         !this.showSkeleton &&
         !this.isLoading &&
@@ -97,8 +77,43 @@ export class ProductsGridComponent implements OnChanges {
       } else {
         this.showEmptyState = false;
       }
-      this.cdr.markForCheck();
+    
+    // If products array has changed
+    if (changes['products']) {
+      // Only clear displayedProducts when it's an initial load with a new set of products
+      // (not when loading more or when scrolling)
+      if (this.products.length > 0) {
+        if (this.isLoadingMore) {
+          // When loading more, append only the new products
+          if (this.products.length > this.previousProductCount) {
+            const newProducts = this.products.slice(this.previousProductCount);
+            this.displayedProducts = [...this.displayedProducts, ...newProducts];
+          }
+        } else if (changes['products'].firstChange || this.displayedProducts.length === 0) {
+          // For first load or when displayedProducts is empty
+          this.displayedProducts = [...this.products];
+        } else if (!this.isLoading && this.products.length !== this.previousProductCount) {
+          // For cases where products array has changed entirely (like when changing filters)
+          // Only update if it's not currently loading and the product count has changed
+          this.displayedProducts = [...this.products];
+        }
+        
+        // Update previous product count for next comparison
+        this.previousProductCount = this.products.length;
+      }
     }
+    
+    // Only clear displayed products when explicitly starting a new load
+    // BUT NOT when scrolling or loading more
+    if (changes['showSkeleton'] && 
+        changes['showSkeleton'].currentValue === true && 
+        changes['showSkeleton'].previousValue === false && 
+        !this.isLoadingMore) {
+      this.displayedProducts = [];
+      this.previousProductCount = 0;
+    }
+
+    this.cdr.markForCheck();
   }
 
   get skeletonArray() {

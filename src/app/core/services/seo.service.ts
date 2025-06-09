@@ -434,40 +434,77 @@ export class SeoService {
    * Create Product Schema
    */
   private createProductSchema(data: any, fallbackData: SeoData, pageUrl: string): any {
-    return {
+    // Base product schema
+    const schema: any = {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      name: data.name,
-      image: data.images?.[0]?.src || fallbackData.image || this.defaultImage,
-      description: data.description ? this.stripHtml(data.description) : (fallbackData.description || this.defaultDescription),
-      sku: data.sku,
-      mpn: data.id,
+      name: data.name || fallbackData.title || this.siteName,
+      description: this.stripHtml(data.description || fallbackData.description || this.defaultDescription),
+      url: pageUrl,
+      sku: data.sku || '',
       brand: {
         '@type': 'Brand',
-        name: data.attributes?.find((attr: any) => attr.name === 'Brand')?.options[0]?.name || 'Adventures Hub'
+        name: 'Adventures HUB'
       },
       offers: {
         '@type': 'Offer',
-        url: data.permalink || pageUrl,
-        priceCurrency: data.priceSpecification?.priceCurrency || 'AED',
-        price: data.price,
-        priceValidUntil: data.priceSpecification?.validThrough || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+        url: pageUrl,
+        priceCurrency: data.currency || 'AED',
+        price: data.price || '',
         availability: data.stock_status === 'instock' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-        itemCondition: 'https://schema.org/NewCondition',
-        seller: {
-          '@type': 'Organization',
-          name: this.siteName,
-          logo: this.logoUrl
-        }
-      },
-      aggregateRating: data.average_rating && data.rating_count > 0
-        ? {
-            '@type': 'AggregateRating',
-            ratingValue: data.average_rating,
-            reviewCount: data.rating_count
-          }
-        : undefined
+        priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]
+      }
     };
+
+    // Add image(s)
+    if (data.images && data.images.length > 0) {
+      schema.image = data.images.map((img: any) => img.src || img.source_url);
+    } else if (fallbackData.image) {
+      schema.image = fallbackData.image;
+    } else {
+      schema.image = this.defaultImage;
+    }
+    
+    // Add product ratings if available
+    if (data.average_rating) {
+      schema.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: data.average_rating,
+        reviewCount: data.rating_count || 0
+      };
+    }
+    
+    // Add reviews if available
+    if (data.reviews && data.reviews.length > 0) {
+      schema.review = data.reviews.map((review: any) => ({
+        '@type': 'Review',
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: review.rating
+        },
+        author: {
+          '@type': 'Person',
+          name: review.reviewer
+        },
+        reviewBody: review.review
+      }));
+    }
+    
+    // Add Global Identifiers if available
+    if (data.meta_data) {
+      const gtin = data.meta_data.find((meta: any) => meta.key === '_gtin');
+      const mpn = data.meta_data.find((meta: any) => meta.key === '_mpn');
+      
+      if (gtin) schema.gtin = gtin.value;
+      if (mpn) schema.mpn = mpn.value;
+    }
+    
+    // Add product categories
+    if (data.categories && data.categories.length > 0) {
+      schema.category = data.categories.map((cat: any) => cat.name).join(', ');
+    }
+    
+    return schema;
   }
 
   /**

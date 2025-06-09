@@ -30,7 +30,6 @@ export interface Product {
   date_on_sale_from_gmt?: any;
   date_on_sale_to?: any;
   date_on_sale_to_gmt?: any;
-  
   on_sale?: boolean;
   purchasable?: boolean;
   total_sales?: number;
@@ -54,7 +53,6 @@ export interface Product {
     sizes?: string;
     thumbnail: string;
   }[];
-
   backordered?: boolean;
   low_stock_amount?: any;
   sold_individually?: boolean;
@@ -109,7 +107,6 @@ export interface Product {
   brandSlug?: string;
   quantity_limits?: QuantityLimits;
 }
-
 export interface Variation {
   id?: number;
   manage_stock?:boolean;
@@ -132,7 +129,6 @@ export interface Variation {
     thumbnail: string;  
   }[]
 }
-
 export interface CardState {
   variations: Variation[];
   colorOptions: { color: string; image: string; inStock: boolean }[];
@@ -145,19 +141,16 @@ export interface CardState {
   sizeScrollIndex: number;
   maxScrollIndex: number;
 }
-
 export interface MetaDaum {
   id?: number;
   key?: string;
   value?: any;
 }
-
 export interface VariationAttribute {
   id?: number;
   name?: string;
   option?: string;
 }
-
 export interface Image {
   id?: number;
   date_created: string;
@@ -168,7 +161,6 @@ export interface Image {
   name?: string;
   alt?: string;
 }
-
 export interface Attribute {
   id?: number;
   slug?: string; // Use slug instead of name
@@ -176,14 +168,13 @@ export interface Attribute {
   terms?: { id: string; name: string }[];
   options: (string | { name?: string; value?: string; slug?: string })[];
 }
-
 export interface ProductAttribute {
   name: string;
   options: (string | { name?: string; value?: string })[]; // options ممكن تكون نصوص أو كائنات
 }
-
 export interface QuantityLimits {
   minimum?: number;
   maximum?: number;
   multiple_of?: number;
 }
+

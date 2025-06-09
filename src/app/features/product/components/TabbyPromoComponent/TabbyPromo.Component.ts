@@ -1,6 +1,5 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 declare class TabbyPromo {
   constructor(options: {
     selector: string;
@@ -13,7 +12,6 @@ declare class TabbyPromo {
     shouldInheritBg?: boolean;
   });
 }
-
 @Component({
   selector: 'app-tabby-promo',
   template: `
@@ -27,7 +25,6 @@ declare class TabbyPromo {
       display: flex;
       justify-content: center;
     }
-
     @media (min-width: 768px) {
       .tabby-promo-container {
         max-width: 400px;
@@ -45,25 +42,20 @@ export class TabbyPromoComponent implements OnInit, OnChanges {
   @Input() publicKey: string = '';
   @Input() merchantCode: string = '';
   @Input() shouldInheritBg: boolean = true;
-
   uniqueId: string = `tabby-promo-${Math.random().toString(36).substr(2, 9)}`;
-
   ngOnInit() {
     this.loadTabbyScript();
   }
-
   ngOnChanges(changes: SimpleChanges) {
     if (changes['price'] || changes['currency'] || changes['lang'] || changes['source'] || changes['publicKey'] || changes['merchantCode']) {
       this.initializeTabbyPromo();
     }
   }
-
   private loadTabbyScript() {
     if (typeof TabbyPromo !== 'undefined') {
       this.initializeTabbyPromo();
       return;
     }
-
     const script = document.createElement('script');
     script.src = 'https://checkout.tabby.ai/tabby-promo.js';
     script.async = true;
@@ -71,12 +63,10 @@ export class TabbyPromoComponent implements OnInit, OnChanges {
     script.onerror = () => console.error('Failed to load Tabby Promo script');
     document.body.appendChild(script);
   }
-
   private initializeTabbyPromo() {
     if (typeof TabbyPromo === 'undefined') {
       return;
     }
-
     new TabbyPromo({
       selector: `#${this.uniqueId}`,
       currency: this.currency,

@@ -170,7 +170,7 @@ export class WalletPaymentService {
     });
 
     this.paymentRequest.on('cancel', () => {
-      console.log('Payment request canceled');
+
     });
   }
 
@@ -203,3 +203,4 @@ export class WalletPaymentService {
     this.paymentRequest = null;
   }
 }
+

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AppContainerComponent } from '../../../../shared/components/app-container/app-container.component';
-
 @Component({
   selector: 'app-about',
   imports: [AppContainerComponent],
@@ -8,3 +7,4 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
   styleUrl: './about.component.css',
 })
 export class AboutComponent {}
+

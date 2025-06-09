@@ -183,7 +183,7 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
         fixedWidth: 60,
         fixedHeight: 60,
         isNavigation: true,
-        focus: 'center',
+        // focus: 'center',
       });
     }
 

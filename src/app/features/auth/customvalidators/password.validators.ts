@@ -1,5 +1,4 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
-
 export class passwordValidator{
     static passStrength():ValidatorFn{
         return(control:AbstractControl): ValidationErrors| null=>{
@@ -16,7 +15,6 @@ export class passwordValidator{
             }
         }
     }
-
     static matchPassword():ValidatorFn{
         return (control:AbstractControl):ValidationErrors | null=>{
             const retypepassword = control.value;
@@ -43,5 +41,4 @@ export class passwordValidator{
             return{passworddismatch:true}
         }
     }
-
 }

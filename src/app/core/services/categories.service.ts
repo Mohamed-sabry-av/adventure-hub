@@ -8,7 +8,6 @@ import { CacheService } from './cashing.service';
 import { HandleErrorsService } from './handel-errors.service';
 import { Category } from '../../interfaces/category.model';
 import { LocalStorageService } from './local-storage.service';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -18,7 +17,6 @@ export class CategoriesService {
   private categoriesSubject = new BehaviorSubject<Category[] | null>(null);
   private categories$: Observable<Category[]> | null = null;
   private readonly EXCLUDED_SLUGS = ['home', 'men', 'women', 'uncategorized'];
-
   constructor(
     private WooAPI: ApiService,
     private cachingService: CacheService,
@@ -27,13 +25,11 @@ export class CategoriesService {
     private transferState: TransferState,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
-
   /**
    * Retrieves all categories as an observable, filtering by display if needed.
    */
   getAllCategories(displayFilter?: string[]): Observable<Category[]> {
     const CATEGORIES_KEY = makeStateKey<Category[]>('all_categories');
-
     // Check TransferState for SSR
     if (this.transferState.hasKey(CATEGORIES_KEY)) {
       const cachedCategories = this.transferState.get(CATEGORIES_KEY, null);
@@ -42,22 +38,18 @@ export class CategoriesService {
         return of(cachedCategories);
       }
     }
-
     // Check LocalStorage for client-side
     const cachedCategories = this.localStorageService.getItem<Category[]>(
       this.LOCAL_STORAGE_KEY,
       this.CACHE_TTL
     );
-
     if (cachedCategories && !this.categoriesSubject.value) {
       const filteredCategories = this.excludeUnwantedCategories(cachedCategories);
       this.categoriesSubject.next(filteredCategories);
     }
-
     if (this.categoriesSubject.value) {
       return of(this.categoriesSubject.value);
     }
-
     if (!this.categories$) {
       this.categories$ = this.fetchAllCategories().pipe(
         map((categories) => this.excludeUnwantedCategories(categories)),
@@ -75,10 +67,8 @@ export class CategoriesService {
         shareReplay(1)
       );
     }
-
     return this.categories$;
   }
-
   /**
    * Fetches all categories page by page from the API.
    */
@@ -91,11 +81,9 @@ export class CategoriesService {
     }).pipe(
       switchMap((categories: Category[]) => {
         const updatedCategories = accumulatedCategories.concat(categories);
-
         if (categories.length < 100) {
           return of(updatedCategories);
         }
-
         return this.fetchAllCategories(page + 1, updatedCategories);
       }),
       catchError((error) => {
@@ -104,14 +92,11 @@ export class CategoriesService {
       })
     );
   }
-
-
   /**
    * Retrieves a category by its slug directly from the API.
    */
   getCategoryBySlugDirect(slug: string): Observable<Category | null> {
     const CATEGORY_KEY = makeStateKey<Category>(`category_${slug}`);
-
     // Check TransferState for SSR
     if (this.transferState.hasKey(CATEGORY_KEY)) {
       const cachedCategory = this.transferState.get(CATEGORY_KEY, null);
@@ -119,7 +104,6 @@ export class CategoriesService {
         return of(cachedCategory);
       }
     }
-
     // First, try to get from cached categories to avoid unnecessary API calls
     return this.getAllCategories().pipe(
       switchMap((categories) => {
@@ -127,7 +111,6 @@ export class CategoriesService {
         if (category) {
           return of(category);
         }
-
         // If not found in cache or excluded, fetch directly from API
         return this.WooAPI.getRequest<Category[]>('products/categories', {
           params: new HttpParams()
@@ -148,7 +131,6 @@ export class CategoriesService {
       })
     );
   }
-
   /**
    * Retrieves a category by its slug from cached categories.
    */
@@ -164,7 +146,6 @@ export class CategoriesService {
       })
     );
   }
-
   /**
    * Filters categories based on the display field.
    */
@@ -173,7 +154,6 @@ export class CategoriesService {
       (category:Category) => !this.EXCLUDED_SLUGS.includes(category.slug) && category.count > 0
     );
   }
-
   /**
    * Retrieves a category by its ID from cached categories.
    */

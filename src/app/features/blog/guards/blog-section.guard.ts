@@ -2,17 +2,13 @@ import { CanMatchFn, RedirectCommand, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { map } from 'rxjs/operators';
-
 export const blogSectionGuard: CanMatchFn = (route, segments) => {
   const httpClient = inject(HttpClient);
   const router = inject(Router);
-
   const articleName = segments.length > 0 ? segments[0].path : null;
-
   if (!articleName) {
     return new RedirectCommand(router.parseUrl('/'));
   }
-
   return httpClient
     .get(`https://adventures-hub.com/wp-json/wp/v2/posts?slug=${articleName}`)
     .pipe(
@@ -26,7 +22,6 @@ export const blogSectionGuard: CanMatchFn = (route, segments) => {
       })
     );
 };
-
 /*
     .get(`https://adventures-hub.com/wp-json/wp/v2/posts?slug=${articleName}`, {
       params: new HttpParams().set(
@@ -35,3 +30,4 @@ export const blogSectionGuard: CanMatchFn = (route, segments) => {
       ),
     })
 */
+

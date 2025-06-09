@@ -1,5 +1,3 @@
-
-
 /* Active Filters Pills */
 .active-filter-pill {
   transition: all 0.2s ease;
@@ -48,6 +46,8 @@
   top: 1rem;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
+  z-index: 10;
+  height: fit-content;
 }
 
 /* Hide scrollbar but allow scrolling */
@@ -83,4 +83,29 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Fix for sticky container issues */
+.sticky-container {
+  position: relative;
+  overflow: visible;
+}
+
+/* Ensure the grid layout preserves the sticky behavior */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* Ensure main content allows for sticky positioning */
+section {
+  position: relative;
+  overflow: visible;
 }

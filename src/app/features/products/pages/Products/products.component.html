@@ -85,16 +85,16 @@
 
       <!-- Main Content Section -->
       <section class="pt-6 pb-24">
-        <div class="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-5">
           <!-- Filter sidebar (desktop) -->
-          <div class="hidden lg:block">
+          <div class="hidden lg:block lg:col-span-1 sidebar-sticky">
             <app-filter-sidebar [categoryId]="currentCategoryId"
               [selectedFilters]="filterSidebar?.selectedFilters || {}" (filtersChanges)="onFiltersChange($event)">
             </app-filter-sidebar>
           </div>
 
           <!-- Products grid -->
-          <div class="lg:col-span-3">
+          <div class="lg:col-span-4">
             <app-products-grid [products]="products" [isLoading]="isLoading" [isLoadingMore]="isLoadingMore"
               [isInitialLoadComplete]="isInitialLoadComplete" [showSkeleton]="showSkeleton"></app-products-grid>
           </div>

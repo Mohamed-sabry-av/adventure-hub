@@ -55,7 +55,7 @@ export class RecapchaComponent implements AfterViewInit {
   onRecaptchaSuccess(token: string) {
     this.recaptchaToken = token;
     this.recaptchaSuccess.emit(token);
-    console.log('reCAPTCHA Token from Component:', token);
+
   }
 
   resetRecaptcha() {

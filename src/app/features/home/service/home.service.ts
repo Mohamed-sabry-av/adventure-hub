@@ -394,12 +394,10 @@ export class HomeService {
     const cacheKey = `brand_${brandId}`;
     const cachedData = this.cachingService.get(cacheKey);
     if (cachedData) {
-      console.log(`Using cached data for brand ID ${brandId}`);
+
       return cachedData;
     }
-    
-    console.log(`Fetching brand with ID ${brandId} from API`);
-    
+
     return this.wooApi
       .getRequestProducts<any>(`products/attributes/3/terms/${brandId}`, {
         params: new HttpParams()
@@ -408,7 +406,7 @@ export class HomeService {
       })
       .pipe(
         map((response: HttpResponse<any>) => {
-          console.log(`API response for brand ID ${brandId}:`, response);
+
           if (!response.body) {
             console.warn(`Received invalid response body for brand ID ${brandId}:`, response.body);
             return null;
@@ -425,9 +423,9 @@ export class HomeService {
               url: brand.image.src || brand.image.url,
               src: brand.image.src || brand.image.url
             };
-            console.log(`Brand ${brand.name} has image:`, imageData);
+
           } else {
-            console.log(`Brand ${brand.name} has no image`);
+
           }
           
           const formattedBrand = {
@@ -437,8 +435,7 @@ export class HomeService {
             count: brand.count,
             image: imageData,
           };
-          
-          console.log(`Processed brand ID ${brandId}:`, formattedBrand);
+
           this.cachingService.set(cacheKey, formattedBrand, this.BRANDS_CACHE_TTL);
           return formattedBrand;
         }),
@@ -454,11 +451,10 @@ export class HomeService {
     const cacheKey = `all_brands_${perPage}`;
     const cachedData = this.cachingService.get(cacheKey);
     if (cachedData) {
-      console.log('Using cached brand data');
+
       return cachedData;
     }
 
-    console.log('Fetching brands from API');
     return this.wooApi
       .getRequestProducts<any>('products/attributes/3/terms', {
         params: new HttpParams()
@@ -468,7 +464,7 @@ export class HomeService {
       })
       .pipe(
         map((response: HttpResponse<any>) => {
-          console.log('API response for brands:', response);
+
           if (!response.body || !Array.isArray(response.body)) {
             console.warn('Received invalid response body for brands:', response.body);
             return [];
@@ -484,9 +480,9 @@ export class HomeService {
                 url: brand.image.src || brand.image.url,
                 src: brand.image.src || brand.image.url
               };
-              console.log(`Brand ${brand.name} has image:`, imageData);
+
             } else {
-              console.log(`Brand ${brand.name} has no image`);
+
             }
             
             return {
@@ -497,8 +493,7 @@ export class HomeService {
               image: imageData,
             };
           });
-          
-          console.log('Processed brands:', brands);
+
           this.cachingService.set(cacheKey, brands, this.BRANDS_CACHE_TTL);
           return brands;
         }),
@@ -523,12 +518,10 @@ export class HomeService {
     const cacheKey = `featured_brands_${brandIds.join('_')}`;
     const cachedData = this.cachingService.get(cacheKey);
     if (cachedData) {
-      console.log('Using cached featured brands data');
+
       return cachedData;
     }
-    
-    console.log('Fetching featured brands by IDs:', brandIds);
-    
+
     // Create a comma-separated list of IDs
     const idsParam = brandIds.join(',');
     
@@ -542,7 +535,7 @@ export class HomeService {
       })
       .pipe(
         map((response: HttpResponse<any>) => {
-          console.log('API response for featured brands:', response);
+
           if (!response.body || !Array.isArray(response.body)) {
             console.warn('Received invalid response body for featured brands:', response.body);
             return [];
@@ -558,9 +551,9 @@ export class HomeService {
                 url: brand.image.src || brand.image.url,
                 src: brand.image.src || brand.image.url
               };
-              console.log(`Brand ${brand.name} has image:`, imageData);
+
             } else {
-              console.log(`Brand ${brand.name} has no image`);
+
             }
             
             return {
@@ -576,8 +569,7 @@ export class HomeService {
           brands.sort((a, b) => {
             return brandIds.indexOf(a.id) - brandIds.indexOf(b.id);
           });
-          
-          console.log('Processed featured brands:', brands);
+
           this.cachingService.set(cacheKey, brands, this.BRANDS_CACHE_TTL);
           return brands;
         }),

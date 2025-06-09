@@ -29,6 +29,7 @@ import {
   transition,
   trigger,
   AnimationEvent,
+  state
 } from '@angular/animations';
 import { WishlistIconComponent } from './wishlist-icon/wishlist-icon.component';
 import { CartService } from '../../../features/cart/service/cart.service';
@@ -49,18 +50,56 @@ import { CartService } from '../../../features/cart/service/cart.service';
   styleUrls: ['./header.component.css'],
   animations: [
     trigger('layerAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, maxHeight: 0, visibility: 'hidden', transform: 'translateY(-20px)' }),
+      state('visible', style({
+        opacity: 1,
+        maxHeight: '200px',
+        visibility: 'visible',
+        transform: 'translateY(0)',
+        pointerEvents: 'auto'
+      })),
+      state('hidden', style({
+        opacity: 0,
+        maxHeight: 0,
+        visibility: 'hidden',
+        transform: 'translateY(-5px)',
+        pointerEvents: 'none'
+      })),
+      transition('visible => hidden', [
+        style({ 
+          opacity: 1, 
+          maxHeight: '200px', 
+          visibility: 'visible', 
+          transform: 'translateY(0)',
+          pointerEvents: 'auto'
+        }),
         animate(
-          '350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          style({ opacity: 1, maxHeight: '200px', visibility: 'visible', transform: 'translateY(0)' })
+          '1000ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          style({ 
+            opacity: 0, 
+            maxHeight: 0, 
+            visibility: 'hidden', 
+            transform: 'translateY(-5px)',
+            pointerEvents: 'none'
+          })
         ),
       ]),
-      transition(':leave', [
-        style({ opacity: 1, maxHeight: '200px', visibility: 'visible', transform: 'translateY(0)' }),
+      transition('hidden => visible', [
+        style({ 
+          opacity: 0, 
+          maxHeight: 0, 
+          visibility: 'hidden', 
+          transform: 'translateY(-5px)',
+          pointerEvents: 'none'
+        }),
         animate(
-          '350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          style({ opacity: 0, maxHeight: 0, visibility: 'hidden', transform: 'translateY(-20px)' })
+          '1000ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          style({ 
+            opacity: 1, 
+            maxHeight: '200px', 
+            visibility: 'visible', 
+            transform: 'translateY(0)',
+            pointerEvents: 'auto'
+          })
         ),
       ]),
     ]),
@@ -198,6 +237,16 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     this.destroyRef.onDestroy(() => {
       cartSubscription.unsubscribe();
     });
+
+    // Add a timer to periodically check and force the third layer visibility
+    if (isPlatformBrowser(this.platformId)) {
+      setInterval(() => {
+        // If we're scrolled down and the third layer is visible, force it to hide
+        if (window.scrollY > 200 && this.navbarService.thirdLayerVisible()) {
+          this.forceCloseThirdLayer();
+        }
+      }, 5000); // Check every 5 seconds
+    }
   }
   
   ngAfterViewInit() {
@@ -220,7 +269,9 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
   onSetHeaderHeight() {
     if (this.headerElement && isPlatformBrowser(this.platformId)) {
-      const height = this.headerElement.nativeElement.offsetHeight;
+      // Use getBoundingClientRect for more accurate measurement
+      const headerRect = this.headerElement.nativeElement.getBoundingClientRect();
+      const height = Math.ceil(headerRect.height); // Round up to avoid fractional pixels
       
       // تعيين ارتفاع الهيدر بدقة
       this.headerHeight.set(height);
@@ -229,12 +280,11 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       // تعيين متغير CSS للاستخدام في جميع أنحاء التطبيق
       document.documentElement.style.setProperty('--header-height', `${height}px`);
       
-      // تطبيق تعديلات خاصة بصفحات المنتج والدفع
-      if (this.isProductPage || this.currentPage === 'checkout') {
-        document.body.style.paddingTop = '0';
-      } else {
-        document.body.style.paddingTop = `${height}px`;
-      }
+      // With sticky positioning, we don't need to add padding to the body
+      document.body.style.paddingTop = '0';
+      
+      // Force layout recalculation
+      this.cdr.detectChanges();
     }
   }
 
@@ -246,8 +296,22 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     this.navbarService.toggleSearchBar(!this.navbarService.showSearchBar());
   }
 
-  onAnimationDone(event: AnimationEvent) {
-    // بعد انتهاء الرسوم المتحركة، نتأكد من تحديث ارتفاع الهيدر
+  onAnimationDone(event: AnimationEvent): void {
+    // After animation completes, recalculate header height
     this.onSetHeaderHeight();
+
+    // If the animation was hiding the third layer, ensure it's properly hidden
+    if (event.toState === 'hidden' || 
+        (event.fromState !== 'void' && !this.navbarService.thirdLayerVisible())) {
+      // Force third layer to be hidden again to ensure it stays hidden
+      setTimeout(() => {
+        this.navbarService.forceThirdLayerVisibility(false);
+      }, 50);
+    }
+  }
+
+  // Add direct method to force close third layer
+  forceCloseThirdLayer(): void {
+    this.navbarService.forceThirdLayerVisibility(false);
   }
 }

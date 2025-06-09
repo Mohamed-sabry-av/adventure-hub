@@ -7,7 +7,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
-
 @Component({
   selector: 'app-downloads',
   templateUrl: './downloads.component.html',
@@ -19,14 +18,11 @@ export class DownloadsComponent implements OnInit {
   downloads: any[] = [];
   isLoading = true;
   error: string | null = null;
-
   private accountService = inject(WooCommerceAccountService);
   private localStorageService = inject(LocalStorageService);
-
   ngOnInit(): void {
     this.loadDownloads();
   }
-
   loadDownloads(): void {
     const customerId = this.getCustomerId();
     if (!customerId) {
@@ -34,7 +30,6 @@ export class DownloadsComponent implements OnInit {
       this.isLoading = false;
       return;
     }
-
     this.accountService.getDownloads(customerId).subscribe({
       next: (data) => {
         this.downloads = data;
@@ -47,15 +42,12 @@ export class DownloadsComponent implements OnInit {
       },
     });
   }
-
   getCustomerId(): number | null {
     const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
-
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
-
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -63,10 +55,8 @@ export class DownloadsComponent implements OnInit {
       day: 'numeric',
     });
   }
-
   getFileIcon(filename: string): string {
     const extension = filename.split('.').pop()?.toLowerCase() || '';
-
     const iconMap: { [key: string]: string } = {
       pdf: 'pi-file-pdf',
       doc: 'pi-file-word',
@@ -85,23 +75,18 @@ export class DownloadsComponent implements OnInit {
       mp4: 'pi-video',
       default: 'pi-file',
     };
-
     return `pi ${iconMap[extension] || iconMap['default']}`;
   }
-
   getRemainingDownloads(download: any): string {
     if (!download.download_limit) return 'Unlimited';
-
     const remaining = download.download_limit - download.download_count;
     return remaining.toString();
   }
-
   isDownloadExpired(download: any): boolean {
     if (!download.access_expires) return false;
-
     const expiryDate = new Date(download.access_expires);
     const now = new Date();
-
     return expiryDate < now;
   }
 }
+

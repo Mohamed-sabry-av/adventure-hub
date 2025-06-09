@@ -228,7 +228,7 @@ export class CheckoutFormComponent {
 
   async payNow() {
     if (this.isPaying) {
-      console.log('Payment already in progress');
+
       return;
     }
 
@@ -266,7 +266,9 @@ export class CheckoutFormComponent {
       const email = this.billingForm.get('email')?.value;
       if (email) {
         this.klaviyoService.subscribeToNewsletter(email).subscribe({
-          next: () => console.log('Newsletter subscription successful'),
+          next: () => {
+            // Log was removed here
+          },
           error: (error) => console.error('Newsletter subscription failed', error)
         });
       }
@@ -326,7 +328,7 @@ export class CheckoutFormComponent {
         this.isLoading = false;
         this.isPaying = false;
             } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        console.log('Payment succeeded:', paymentIntent.id);
+
         this.currentPaymentIntentId = paymentIntent.id;
         this.pollOrderStatus(paymentIntent.id);
       }
@@ -388,7 +390,9 @@ export class CheckoutFormComponent {
       const email = this.billingForm.get('email')?.value;
       if (email) {
         this.klaviyoService.subscribeToNewsletter(email).subscribe({
-          next: () => console.log('Newsletter subscription successful'),
+          next: () => {
+            // Log was removed here
+          },
           error: (error) => console.error('Newsletter subscription failed', error)
         });
       }
@@ -407,7 +411,7 @@ export class CheckoutFormComponent {
         )
         .subscribe({
           next: (response) => {
-            console.log('COD order created successfully:', response);
+
             if (response && response.id) {
               // Clear the cart after successful order creation
               this.cartService.clearUserCart();
@@ -458,7 +462,7 @@ export class CheckoutFormComponent {
       takeWhile((response) => !(response.success && response.orderId), true),
       tap((response) => {
         if (response.success && response.orderId) {
-          console.log('Order created successfully, navigating to order page');
+
           this.router.navigate(['/order-received', response.orderId]);
           this.cartService.clearUserCart();
           this.isLoading = false;
@@ -666,7 +670,7 @@ export class CheckoutFormComponent {
       if (userId) {
         this.wooCommerceAccountService.getCustomerDetails(userId).subscribe({
           next: (userDetails) => {
-            console.log('Retrieved user details:', userDetails);
+
             this.populateFormWithUserDetails(userDetails);
           },
           error: (error) => {
@@ -758,8 +762,7 @@ export class CheckoutFormComponent {
             this.checkoutService.getSelectedShippingCountry(location.country_code);
             this.loadStatesForShippingCountry(location.country_code);
           }
-          
-          console.log('Set form country from localStorage geolocation:', location.country_code);
+
         } else {
           // If no saved location, try to detect it
           this.checkoutService.setDefaultCountryBasedOnGeolocation();
@@ -822,11 +825,10 @@ export class CheckoutFormComponent {
         if (this.billingForm.get('city')?.value) {
           this.billingForm.get('city')?.setValue('');
         }
-        
-        console.log('Loaded billing states for country:', countryCode, country.states);
+
       } else {
         this.availableBillingStates.next([]);
-        console.log('No states available for country:', countryCode);
+
       }
     });
   }
@@ -844,11 +846,10 @@ export class CheckoutFormComponent {
         if (this.shippingForm.get('city')?.value && this.isShippingDifferent) {
           this.shippingForm.get('city')?.setValue('');
         }
-        
-        console.log('Loaded shipping states for country:', countryCode, country.states);
+
       } else {
         this.availableShippingStates.next([]);
-        console.log('No states available for shipping country:', countryCode);
+
       }
     });
   }
@@ -868,3 +869,4 @@ export class CheckoutFormComponent {
     }
   }
 }
+

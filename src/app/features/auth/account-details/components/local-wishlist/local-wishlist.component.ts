@@ -56,7 +56,7 @@ export class LocalWishlistComponent implements OnInit, OnDestroy {
           this.isEmpty = items.length === 0;
           this.isLoading = false;
           this.cdr.detectChanges();
-          console.log('Processed wishlist items:', this.wishlistItems);
+
         },
         error: (err: any) => {
           this.error = 'Failed to load wishlist. Please try again later.';

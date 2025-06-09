@@ -3,7 +3,6 @@ import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from
 import { AccountAuthService } from '../../features/auth/account-auth.service';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -12,7 +11,6 @@ export class AuthGuard implements CanActivate {
     private accountService: AccountAuthService,
     private router: Router
   ) {}
-
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot

@@ -98,27 +98,18 @@
       <div class="flex flex-col md:flex-row gap-8 mb-8">
         <!-- Left side: Images -->
         <div class="md:w-1/2 lg:w-3/5 mobile-order-1">
-          <!-- Product Images - Critical for viewing -->
+          <!-- Product Images -->
           <app-product-images [productImages]="productData.images" [selectedColor]="selectedColor"
             [selectedVariation]="selectedVariation">
           </app-product-images>
 
-          <!-- Desktop Description - Only visible on desktop -->
+          <!-- Desktop Description -->
           <div class="desktop-description">
-            @defer (on viewport) {
             <app-product-desc [product]="productData"></app-product-desc>
-            } @placeholder (minimum 200ms) {
-            <div class="animate-pulse mt-8" aria-label="Loading product description">
-              <div class="h-7 bg-gray-200 rounded mb-4 w-1/4" aria-hidden="true"></div>
-              <div class="h-4 bg-gray-200 rounded mb-2 w-full" aria-hidden="true"></div>
-              <div class="h-4 bg-gray-200 rounded mb-2 w-full" aria-hidden="true"></div>
-              <div class="h-4 bg-gray-200 rounded mb-2 w-3/4" aria-hidden="true"></div>
-            </div>
-            }
           </div>
         </div>
 
-        <!-- Product Info - Critical for purchase decisions (Right side, sticky) -->
+        <!-- Product Info -->
         <div class="md:w-1/2 lg:w-2/5 sticky-wrapper mobile-order-2">
           <div class="sticky-info">
             <app-product-info [productInfo]="productData" (selectedAttributeChange)="onSelectedColorChange($event)"
@@ -128,25 +119,15 @@
         </div>
       </div>
 
-      <!-- Mobile Description - Only visible on mobile -->
+      <!-- Mobile Description -->
       <div class="mobile-description mobile-order-3 mt-6 mb-8">
-        @defer (on viewport) {
         <app-product-desc [product]="productData"></app-product-desc>
-        } @placeholder (minimum 200ms) {
-        <div class="animate-pulse" aria-label="Loading product description">
-          <div class="h-7 bg-gray-200 rounded mb-4 w-1/4" aria-hidden="true"></div>
-          <div class="h-4 bg-gray-200 rounded mb-2 w-full" aria-hidden="true"></div>
-          <div class="h-4 bg-gray-200 rounded mb-2 w-full" aria-hidden="true"></div>
-          <div class="h-4 bg-gray-200 rounded mb-2 w-3/4" aria-hidden="true"></div>
-        </div>
-        }
       </div>
     </article>
 
     <!-- Related Products - Lowest priority, load last -->
     @defer (on viewport; on idle) {
     <section aria-labelledby="related-products-heading">
-      <h2 id="related-products-heading" class="text-xl font-semibold mb-6">You May Also Like</h2>
       <app-product-related [productId]="productData.id"
         [relatedIds]="productData.related_ids || []"></app-product-related>
     </section>
@@ -168,7 +149,6 @@
     <!-- Recently Viewed Products - Only load on idle -->
     @defer (on viewport; on idle) {
     <section aria-labelledby="recently-viewed-heading">
-      <h2 id="recently-viewed-heading" class="text-xl font-semibold mb-6">Recently Viewed Products</h2>
       <app-recent-products-mini></app-recent-products-mini>
     </section>
     } @placeholder {

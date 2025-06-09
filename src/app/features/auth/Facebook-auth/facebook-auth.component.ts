@@ -94,7 +94,7 @@ export class FacebookAuthComponent implements AfterViewInit {
 
   // Handle login status change
   statusChangeCallback(response: any) {
-    console.log('Facebook Login Status:', response);
+
     if (response.status === 'connected') {
       // User is already logged in
       this.handleFacebookCredentialResponse(response);
@@ -123,10 +123,10 @@ export class FacebookAuthComponent implements AfterViewInit {
   handleFacebookCredentialResponse(response: any) {
     if (response.authResponse) {
       const accessToken = response.authResponse.accessToken;
-      console.log('Facebook Access Token:', accessToken);
+
       this.facebookService.loginWithFacebook(accessToken).subscribe({
         next: (res) => {
-          console.log('Facebook Login Success:', res);
+
           this.loginError = '';
           this.router.navigate(['/user/Useraccount']);
         },

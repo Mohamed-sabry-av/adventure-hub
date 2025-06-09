@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-
 @Component({
   selector: 'app-trust-symbols',
   imports: [],
@@ -7,5 +6,5 @@ import { Component } from '@angular/core';
   styleUrl: './trust-symbols.component.css'
 })
 export class TrustSymbolsComponent {
-
 }
+

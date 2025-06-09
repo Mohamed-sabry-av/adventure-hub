@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UnifiedWishlistService } from '../../../services/unified-wishlist.service';
 import { Subscription } from 'rxjs';
-
 @Component({
   selector: 'app-wishlist-icon',
   standalone: true,
@@ -25,17 +24,14 @@ import { Subscription } from 'rxjs';
       height: 36px;
       color: #ffffff;
     }
-    
     .pi-heart {
       font-size: 1.5rem;
       color: #ffffff;
       transition: color 0.2s ease;
     }
-    
     .wishlist-icon-container:hover .pi-heart {
       color: #f4663c;
     }
-    
     .wishlist-count {
       position: absolute;
       top: -8px;
@@ -56,21 +52,17 @@ import { Subscription } from 'rxjs';
 export class WishlistIconComponent implements OnInit, OnDestroy {
   wishlistCount: number = 0;
   private subscription: Subscription | null = null;
-
   constructor(private wishlistService: UnifiedWishlistService) {}
-
   ngOnInit(): void {
     this.subscription = this.wishlistService.getWishlistCount().subscribe(count => {
       this.wishlistCount = count;
     });
   }
-
   ngOnDestroy(): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
   }
-  
   get wishlistRoute(): string {
     return this.wishlistService.isLoggedIn() ? '/user/Useraccount/wishlist' : '/user/wishlist';
   }

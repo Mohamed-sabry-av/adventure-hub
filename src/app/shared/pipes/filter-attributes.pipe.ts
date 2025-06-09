@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { Attribute } from '../../interfaces/product';
-
 @Pipe({
   name: 'filter-attributes',
   pure:true,
@@ -16,3 +15,4 @@ export class FilterAttributesPipe implements PipeTransform {
     );
   }
 }
+

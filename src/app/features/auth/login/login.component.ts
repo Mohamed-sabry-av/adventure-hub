@@ -62,7 +62,7 @@ export class LoginComponent {
         
         this.wishlistService.syncWishlistOnLogin().subscribe({
           next: (result) => {
-            console.log('Wishlist sync result:', result);
+
           },
           error: (err) => {
             console.error('Error syncing wishlist:', err);
@@ -78,3 +78,4 @@ export class LoginComponent {
     });
   }
 }
+

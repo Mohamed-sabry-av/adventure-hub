@@ -138,7 +138,7 @@ export class FilterService {
         })
         .pipe(
           tap((response: HttpResponse<any>) => {
-            console.log('API Request URL:', `${response.url}`);
+
           }),
           map((response: HttpResponse<any>) => {
             return (response.body || []).map((product: any) => ({
@@ -236,7 +236,6 @@ getSearchFilters(searchTerm: string): Observable<{ [key: string]: { name: string
       params = params.set('attributes', JSON.stringify(formattedFilters));
     }
 
-    console.log('Generated Params:', params.toString());
     return params;
   }
 }

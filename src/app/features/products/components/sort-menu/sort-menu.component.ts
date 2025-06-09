@@ -6,7 +6,6 @@ import {
   Output,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
 @Component({
   selector: 'app-sort-menu',
   imports: [CommonModule, FormsModule],
@@ -23,9 +22,9 @@ export class SortMenuComponent {
     { name: 'Price: Low to High', value: 'price-asc' },
     { name: 'Price: High to Low', value: 'price-desc' },
   ];
-
   onSortChange(event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     this.sortChange.emit(selectElement.value);
   }
 }
+

@@ -23,8 +23,8 @@ export const environment = {
     
     // Stripe
     stripe: {
-      publishableKey: 'pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45',
-      secretKey: 'sk_test_51RGe55G0IhgrvppwWhuoe6UzUFXRcQf5duoJiNMmU0C9qlJxZbxtu0tm7guQaJUNdwVPUPdQCef2DH7CRCsgp2sG00Nmg3aqBs'
+      publishableKey: 'pk_live_51RGe55G0Ihgrvppw5jU5qRMTGdxOUukBRfqCGCxAXlBsURyoopUTXAewyPZxkhFfI1dQXiU84o4m1OBW1wgfIdST001vjd0v2f',
+      secretKey: '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'
     },
     
     // Tabby

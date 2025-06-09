@@ -5,7 +5,6 @@ import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { Product } from '../../../interfaces/product';
 import { HttpParams, HttpResponse } from '@angular/common/http';
 import { ProductService } from '../../../core/services/product.service';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -15,7 +14,6 @@ export class SaleProductsService {
     private cachingService: CacheService,
     private productsService: ProductService
   ) {}
-
   getProductsOnSale(
     page: number = 1,
     perPage: number = 20
@@ -26,7 +24,6 @@ export class SaleProductsService {
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
           .set('on_sale', 'true')
-          
           .set('_fields','id,name,price,images,categories,description,slug,sale_price,regular_price,on_sale,variations,currency,attributes,quantity_limits,tags,meta_data,stock_status,stock_quantity,date_created,status,type'
           )
           .set('page', page.toString())
@@ -52,3 +49,4 @@ export class SaleProductsService {
     );
   }
 }
+

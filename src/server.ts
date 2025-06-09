@@ -92,7 +92,7 @@ if (process.env['REDIS_URL']) {
       url: process.env['REDIS_URL']
     });
     redisClient.connect().then(() => {
-      console.log('Redis client connected');
+
     }).catch(err => {
       console.error('Redis connection error:', err);
     });
@@ -177,11 +177,10 @@ app.post(
       switch (event.type) {
         case 'payment_intent.succeeded': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
 
           const existingOrderId = paymentIntent.metadata['orderId'];
           if (existingOrderId && existingOrderId !== 'pending') {
-            console.log(`Order ${existingOrderId} already processed`);
+
             return res.json({ received: true });
           }
 
@@ -233,8 +232,7 @@ app.post(
               metadata: { orderId: orderResponse.data.id },
             });
 
-            console.log(`Stripe Order created: ${orderResponse.data.id}`);
-            console.log('Order response:', orderResponse.data);
+
             return res.json({ received: true });
           } catch (wooError: any) {
             console.error(`WooCommerce error: ${wooError.message}`, wooError.response?.data);
@@ -244,13 +242,13 @@ app.post(
 
         case 'payment_intent.payment_failed': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log(`Payment failed: ${paymentIntent.id}`);
+
           // Do not create an order on payment failure
           return res.json({ received: true });
         }
 
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+
           return res.json({ received: true });
       }
     } catch (err: any) {
@@ -344,8 +342,6 @@ app.post(
         WOOCOMMERCE_AUTH
       );
 
-      console.log(`COD Order created: ${orderResponse.data.id}`);
-      console.log('Order response:', orderResponse.data);
 
       // Return the order ID for redirection
       return res.json({
@@ -446,5 +442,6 @@ if (isMainModule(import.meta.url)) {
   app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
     console.log(`Server running in ${process.env['NODE_ENV'] || 'development'} mode`);
+
   });
 }

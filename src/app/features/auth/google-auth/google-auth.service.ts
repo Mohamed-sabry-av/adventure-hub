@@ -5,7 +5,6 @@ import { ApiService } from '../../../core/services/api.service';
 import { HttpClient } from '@angular/common/http';
 import { LocalStorageService } from '../../../core/services/local-storage.service';
 import { environment } from '../../../../environments/environment';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -16,7 +15,6 @@ export class GoogleAuthService {
   private readonly CUSTOM_API_URL = environment.customApiUrl;
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
-
   constructor(
     private WooApi: ApiService,
     private http: HttpClient,
@@ -25,7 +23,6 @@ export class GoogleAuthService {
     const token = this.localStorageService.getItem<string>(this.TOKEN_KEY);
     this.isLoggedInSubject.next(!!token);
   }
-
   loginWithGoogle(idToken: string): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${this.CUSTOM_API_URL}/google-login`, {
@@ -49,3 +46,4 @@ export class GoogleAuthService {
       );
   }
 }
+

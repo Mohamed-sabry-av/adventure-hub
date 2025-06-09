@@ -251,7 +251,6 @@ export class RelatedProductsService {
       // تحديث القائمة في localStorage
       this.localStorageService.setItem(this.STORAGE_KEY, prunedData);
 
-      console.log(`تم تنظيف قائمة المنتجات ذات الصلة: من ${totalEntries} إلى ${Object.keys(prunedData).length} منتج`);
     }
   }
 
@@ -289,3 +288,4 @@ export class RelatedProductsService {
     return result;
   }
 }
+

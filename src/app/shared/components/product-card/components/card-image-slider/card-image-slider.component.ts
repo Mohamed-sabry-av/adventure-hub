@@ -144,20 +144,6 @@ export class CardImageSliderComponent implements OnInit, OnChanges, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  getImageSrcset(image: any): string {
-    if (!image.srcset) {
-      return `${image.src} 1000w`;
-    }
-    const maxWidth = 780;
-    const srcsetEntries = image.srcset.split(',').filter((entry: any) => {
-      const width = parseInt(entry.match(/(\d+)w/)?.[1] || '0');
-      return width <= maxWidth;
-    });
-    return srcsetEntries.length > 0
-      ? srcsetEntries.join(',')
-      : `${image.src} ${maxWidth}w`;
-  }
-
   /**
    * Get all product tags to display
    */

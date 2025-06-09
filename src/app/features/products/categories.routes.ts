@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-
 export const categoryRoutes: Routes = [
     {
         path: ':mainCategorySlug/:subCategorySlug/:subSubCategorySlug/:subSubSubCategorySlug/:subSubSubSubCategorySlug',

@@ -9,14 +9,12 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
-
 @Component({
   selector: 'app-size-selector',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './size-selector.component.html',
   styleUrls: ['./size-selector.component.css'],
-
   animations: [
     trigger('slideUpDown', [
       transition(':enter', [
@@ -49,17 +47,14 @@ export class SizeSelectorComponent implements OnChanges {
   @Output() selectSize = new EventEmitter<string>();
   @Output() addToCart = new EventEmitter<void>();
   @Input() isMobile: boolean = false;
-
   sizeScrollIndex: number = 0;
   maxSizeScrollIndex: number = 0;
   visibleSizes: { size: string; inStock: boolean }[] = [];
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['uniqueSizes']) {
       this.updateVisibleSizes();
     }
   }
-
   updateVisibleSizes(): void {
     this.maxSizeScrollIndex = Math.max(
       0,
@@ -71,7 +66,6 @@ export class SizeSelectorComponent implements OnChanges {
       start + this.sizesPerPage
     );
   }
-
   onScrollSizes(direction: number): void {
     this.sizeScrollIndex = Math.max(
       0,
@@ -79,24 +73,21 @@ export class SizeSelectorComponent implements OnChanges {
     );
     this.updateVisibleSizes();
   }
-
   onSelectSize(size: string): void {
     this.selectSize.emit(size);
   }
-
   onAddToCart(): void {
     this.addToCart.emit();
   }
-
   isAddToCartDisabled(): boolean {
     return !this.selectedSize || this.uniqueSizes.length === 0;
   }
-  
   // Format the size value to use dots instead of dashes
   formatSizeName(size: string): string {
     if (!size) return '';
-    // Convert dash format to dot format (e.g., "1-l" to "1.L US")
+    // Convert dash format to dot format (e.g., "1-l" to "1.L")
     const formattedSize = size.replace(/-/g, '.').toUpperCase();
-    return `${formattedSize} US`;
+    return formattedSize;
   }
 }
+

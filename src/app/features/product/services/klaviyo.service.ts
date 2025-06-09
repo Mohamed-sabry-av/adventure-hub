@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment.prod';
-
 interface KlaviyoReview {
   id: string;
   attributes: {
@@ -12,16 +11,13 @@ interface KlaviyoReview {
     rating: number;
   };
 }
-
 @Injectable({
   providedIn: 'root',
 })
 export class KlaviyoService {
   private apiUrl = 'https://a.klaviyo.com/api/reviews/';
   private apiKey = environment.klaviyoPrivateApiKey;
-
   constructor(private http: HttpClient) {}
-
   getProductReviews(productId: string): Observable<{ data: KlaviyoReview[] }> {
     const catalogId = `$shopify:::$default:::${productId}`; // Adjust based on your platform
     return this.http.get<{ data: KlaviyoReview[] }>(
@@ -35,7 +31,6 @@ export class KlaviyoService {
       }
     );
   }
-
   createReview(
     productId: string,
     review: { rating: number; comment: string; reviewer: string }

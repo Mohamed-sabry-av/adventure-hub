@@ -238,8 +238,6 @@ export class CartService {
         let authToken: any = localStorage.getItem('auth_token');
         authToken = authToken ? JSON.parse(authToken) : '';
 
-        console.log(loadedCart);
-
         if (loadedCart) {
           this.store.dispatch(
             syncCartAction({
@@ -271,3 +269,4 @@ export class CartService {
     });
   }
 }
+

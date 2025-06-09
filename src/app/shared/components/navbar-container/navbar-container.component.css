@@ -3,6 +3,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  position: relative;
+  z-index: 990;
+  background-color: #222222; /* Match header background */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Add subtle shadow */
 }
 
 /* Style the top part of the navbar */
@@ -11,13 +15,36 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0 1rem;
+  padding: 0.25rem 1rem;
+  position: relative;
+  z-index: 991;
+}
+
+/* Style for subcategories container */
+.navbar-subcategories {
+  top: 100%;
+  z-index: 989;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  transform-origin: top;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: #222222; /* Match parent background */
+}
+
+/* Ensure the navbar container itself is properly positioned */
+nav {
+  position: relative;
+  width: 100%;
+  z-index: 990;
 }
 
 /* Ensure the currency selector aligns properly on mobile */
 @media (max-width: 768px) {
   .navbar-top {
     justify-content: flex-end;
+    padding: 0.25rem 1rem;
   }
   
   app-currency-selector {

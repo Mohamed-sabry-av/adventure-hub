@@ -4,7 +4,6 @@ import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { LocalWishlistService } from './local-wishlist.service';
 import { WooCommerceAccountService } from '../../features/auth/account-details/account-details.service';
 import { Product } from '../../interfaces/product';
-
 @Injectable({
   providedIn: 'root'
 })
@@ -13,7 +12,6 @@ export class UnifiedWishlistService {
     private localWishlistService: LocalWishlistService,
     private wooCommerceService: WooCommerceAccountService
   ) {}
-
   /**
    * Get wishlist items from appropriate source based on login status
    */
@@ -48,7 +46,6 @@ export class UnifiedWishlistService {
       return this.localWishlistService.getWishlist();
     }
   }
-
   /**
    * Check if a product is in the wishlist
    */
@@ -78,7 +75,6 @@ export class UnifiedWishlistService {
       return of(this.localWishlistService.isInWishlist(productId));
     }
   }
-
   /**
    * Add a product to the wishlist
    */
@@ -105,7 +101,6 @@ export class UnifiedWishlistService {
       return this.localWishlistService.addToWishlist(product);
     }
   }
-
   /**
    * Remove a product from the wishlist
    */
@@ -132,7 +127,6 @@ export class UnifiedWishlistService {
       return this.localWishlistService.removeFromWishlist(productId);
     }
   }
-
   /**
    * Get the count of wishlist items
    */
@@ -141,7 +135,6 @@ export class UnifiedWishlistService {
       map(items => items.length)
     );
   }
-
   /**
    * Toggle a product in the wishlist (add if not present, remove if present)
    */
@@ -166,7 +159,6 @@ export class UnifiedWishlistService {
       })
     );
   }
-
   /**
    * Sync local wishlist with WooCommerce wishlist when user logs in
    */
@@ -174,18 +166,15 @@ export class UnifiedWishlistService {
     if (!this.wooCommerceService.isLoggedIn()) {
       return of({ success: false, message: 'User not logged in' });
     }
-
     return this.localWishlistService.getWishlist().pipe(
       switchMap(localItems => {
         if (localItems.length === 0) {
           return of({ success: true, message: 'No local items to sync' });
         }
-
         // Add all local items to WooCommerce wishlist
         const addRequests = localItems.map(item => 
           this.wooCommerceService.addToWishlist(item.id)
         );
-
         return forkJoin(addRequests).pipe(
           map(() => ({ success: true, message: 'Wishlist synced successfully' })),
           catchError(error => {
@@ -198,7 +187,6 @@ export class UnifiedWishlistService {
       })
     );
   }
-
   /**
    * Check if user is logged in (convenience method)
    */

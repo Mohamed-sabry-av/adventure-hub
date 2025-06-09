@@ -28,9 +28,7 @@ import {
 import { UIService } from '../../shared/services/ui.service';
 import { HandleErrorsService } from '../../core/services/handel-errors.service';
 import { environment } from '../../../environments/environment';
-
 const CUSTOM_API_URL = environment.customApiUrl;
-
 export class CheckoutEffect {
   private actions$ = inject(Actions);
   private store = inject(Store<StoreInterface>);
@@ -40,7 +38,6 @@ export class CheckoutEffect {
   private router = inject(Router);
   private uiService = inject(UIService);
   private handleError = inject(HandleErrorsService);
-
   fetchCouponsEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(fetchCouponsAction),
@@ -49,7 +46,6 @@ export class CheckoutEffect {
         enteredCouponValue = enteredCouponValue?.code
           ? enteredCouponValue.code
           : enteredCouponValue;
-
         const options = {
           params: new HttpParams()
             .set('status', 'publish')
@@ -62,7 +58,6 @@ export class CheckoutEffect {
               const couponExpiry = item.date_expires
                 ? new Date(item.date_expires)
                 : null;
-
               return (
                 item.code === enteredCouponValue &&
                 (couponExpiry === null || couponExpiry > currentDate)
@@ -70,7 +65,7 @@ export class CheckoutEffect {
             })
           ),
           map((response: any) => {
-            console.log('Coupons loaded:', response);
+
             if (response?.length === 0) {
               this.store.dispatch(stopLoadingCouponAction());
             }
@@ -96,7 +91,6 @@ export class CheckoutEffect {
       })
     )
   );
-
   applyCouponEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(getCouponAction),
@@ -112,13 +106,12 @@ export class CheckoutEffect {
       switchMap(({ validCoupon, isLoggedIn, invalidCoupon }) => {
         const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
         if (isLoggedIn) {
-          console.log('Applying coupon for logged-in user');
+
           if (validCoupon) {
             const body = {
               coupon_code: validCoupon[0].code,
               action: 'apply',
             };
-
             return this.httpClient
               .post(
                 `${CUSTOM_API_URL}/cart/coupon`,
@@ -133,7 +126,6 @@ export class CheckoutEffect {
                       successMsg: 'Coupon applied successfully',
                     })
                   );
-
                   response.items = response.items.map((item: any) => ({
                     ...item,
                     images: {
@@ -141,7 +133,6 @@ export class CheckoutEffect {
                       imageAlt: item.images[0].alt,
                     },
                   }));
-
                   this.store.dispatch(stopLoadingCouponAction());
                   this.store.dispatch(
                     cartStatusAction({
@@ -198,7 +189,6 @@ export class CheckoutEffect {
               coupon_code: validCoupon[0].code,
               action: 'apply',
             };
-
             return this.httpClient
               .post(
                 `${CUSTOM_API_URL}/cart/guest/coupon`,
@@ -206,14 +196,13 @@ export class CheckoutEffect {
               )
               .pipe(
                 map((response: any) => {
-                  console.log(response);
+
                   this.store.dispatch(
                     getCouponStatusAction({
                       errorMsg: null,
                       successMsg: 'Coupon applied successfully',
                     })
                   );
-
                   response.items = response.items.map((item: any) => ({
                     ...item,
                     images: {
@@ -221,7 +210,6 @@ export class CheckoutEffect {
                       imageAlt: item.image.alt,
                     },
                   }));
-
                   this.store.dispatch(stopLoadingCouponAction());
                   this.store.dispatch(
                     cartStatusAction({
@@ -275,7 +263,6 @@ export class CheckoutEffect {
       })
     )
   );
-
   removeCouponEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(removeCouponAction),
@@ -287,7 +274,6 @@ export class CheckoutEffect {
             coupon_code: validCoupon,
             action: 'remove',
           };
-
           return this.httpClient
             .post(
               `${CUSTOM_API_URL}/cart/coupon`,
@@ -296,7 +282,7 @@ export class CheckoutEffect {
             )
             .pipe(
               map((response: any) => {
-                console.log('Coupon removed successfully:', response);
+
                 this.store.dispatch(stopLoadingCouponAction());
                 response.items = response.items.map((item: any) => ({
                   ...item,
@@ -320,7 +306,6 @@ export class CheckoutEffect {
             coupon_code: validCoupon,
             action: 'remove',
           };
-
           return this.httpClient
             .post(
               `${CUSTOM_API_URL}/cart/guest/coupon`,
@@ -328,7 +313,7 @@ export class CheckoutEffect {
             )
             .pipe(
               map((response: any) => {
-                console.log('Coupon removed successfully:', response);
+
                 this.store.dispatch(stopLoadingCouponAction());
                 response.items = response.items.map((item: any) => ({
                   ...item,
@@ -350,7 +335,6 @@ export class CheckoutEffect {
       })
     )
   );
-
   createOrderEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(createOrderAction),
@@ -362,7 +346,7 @@ export class CheckoutEffect {
           })
           .pipe(
             map((res: any) => {
-              console.log('Order created successfully:', res);
+
               const orderId = res.id;
               const orderKey = res.order_key;
               this.router.navigate([`/order-received/${orderId}`], {
@@ -389,14 +373,13 @@ export class CheckoutEffect {
       })
     )
   );
-
   getOrderDataEffect = createEffect(() =>
     this.actions$.pipe(
       ofType(fetchOrderDataAction),
       switchMap(({ orderId }) => {
         return this.wooApiService.getRequest(`orders/${orderId}`).pipe(
           map((res: any) => {
-            console.log('Order retrieved successfully:', res);
+
             return getOrderDataAction({ orderDetails: res });
           }),
           catchError((error: any) => {
@@ -409,3 +392,4 @@ export class CheckoutEffect {
     )
   );
 }
+

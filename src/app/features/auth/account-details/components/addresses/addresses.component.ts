@@ -13,7 +13,6 @@ import {
 } from '@angular/forms';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
-
 @Component({
   selector: 'app-addresses',
   templateUrl: './addresses.component.html',
@@ -31,16 +30,13 @@ export class AddressesComponent implements OnInit {
   shippingForm: FormGroup;
   isSaving = false;
   saveSuccess = false;
-
   private accountService = inject(WooCommerceAccountService);
   private localStorageService = inject(LocalStorageService);
   private fb = inject(FormBuilder);
-
   constructor() {
     this.billingForm = this.createAddressForm();
     this.shippingForm = this.createAddressForm();
   }
-
   createAddressForm(): FormGroup {
     return this.fb.group({
       first_name: ['', Validators.required],
@@ -56,11 +52,9 @@ export class AddressesComponent implements OnInit {
       phone: [''],
     });
   }
-
   ngOnInit(): void {
     this.loadAddresses();
   }
-
   loadAddresses(): void {
     const customerId = this.getCustomerId();
     if (!customerId) {
@@ -68,7 +62,6 @@ export class AddressesComponent implements OnInit {
       this.isLoading = false;
       return;
     }
-
     this.accountService.getCustomerDetails(customerId).subscribe({
       next: (data) => {
         this.customerDetails = data;
@@ -81,15 +74,12 @@ export class AddressesComponent implements OnInit {
       },
     });
   }
-
   getCustomerId(): number | null {
     const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
-
   formatAddress(address: any): string {
     if (!address) return 'No address provided';
-
     const parts = [
       address.address_1,
       address.address_2,
@@ -98,38 +88,31 @@ export class AddressesComponent implements OnInit {
       address.postcode,
       address.country,
     ].filter((part) => part && part.trim() !== '');
-
     return parts.join(', ');
   }
-
   editBillingAddress(): void {
     this.editingBilling = true;
     this.editingShipping = false;
     this.saveSuccess = false;
-
     // Populate the form with current billing address
     if (this.customerDetails && this.customerDetails.billing) {
       this.billingForm.patchValue(this.customerDetails.billing);
     }
   }
-
   editShippingAddress(): void {
     this.editingShipping = true;
     this.editingBilling = false;
     this.saveSuccess = false;
-
     // Populate the form with current shipping address
     if (this.customerDetails && this.customerDetails.shipping) {
       this.shippingForm.patchValue(this.customerDetails.shipping);
     }
   }
-
   cancelEdit(): void {
     this.editingBilling = false;
     this.editingShipping = false;
     this.error = null;
   }
-
   saveBillingAddress(): void {
     if (this.billingForm.invalid) {
       // Mark all fields as touched to show validation errors
@@ -139,16 +122,13 @@ export class AddressesComponent implements OnInit {
       });
       return;
     }
-
     const customerId = this.getCustomerId();
     if (!customerId) {
       this.error = 'Customer ID not found. Please login again.';
       return;
     }
-
     this.isSaving = true;
     this.error = null;
-
     this.accountService
       .updateBillingAddress(customerId, this.billingForm.value)
       .subscribe({
@@ -165,7 +145,6 @@ export class AddressesComponent implements OnInit {
         },
       });
   }
-
   saveShippingAddress(): void {
     if (this.shippingForm.invalid) {
       // Mark all fields as touched to show validation errors
@@ -175,16 +154,13 @@ export class AddressesComponent implements OnInit {
       });
       return;
     }
-
     const customerId = this.getCustomerId();
     if (!customerId) {
       this.error = 'Customer ID not found. Please login again.';
       return;
     }
-
     this.isSaving = true;
     this.error = null;
-
     this.accountService
       .updateShippingAddress(customerId, this.shippingForm.value)
       .subscribe({
@@ -201,14 +177,12 @@ export class AddressesComponent implements OnInit {
         },
       });
   }
-
   // In case we need to simulate a successful save when the API is not available
   simulateSave(isShipping: boolean): void {
     setTimeout(() => {
       const formData = isShipping
         ? this.shippingForm.value
         : this.billingForm.value;
-
       if (isShipping) {
         this.customerDetails.shipping = {
           ...this.customerDetails.shipping,
@@ -222,9 +196,9 @@ export class AddressesComponent implements OnInit {
         };
         this.editingBilling = false;
       }
-
       this.isSaving = false;
       this.saveSuccess = true;
     }, 1000);
   }
 }
+

@@ -5,12 +5,41 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --header-height: 92px; /* Only used for reference, not for spacing */
+}
+
+/* Add smooth scrolling to the entire page */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Poppins", sans-serif !important;
+  /* Ensure sticky headers work properly */
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
+
+/* Improve sticky header behavior */
+header {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Improve main content rendering */
+main {
+  position: relative;
+  z-index: 1;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: light;

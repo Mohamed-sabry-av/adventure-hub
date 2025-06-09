@@ -18,7 +18,6 @@ import {
   transition 
 } from '@angular/animations';
 import { Toast, ToastService } from '../../../core/services/toast.service';
-
 @Component({
   selector: 'app-toast',
   standalone: true,
@@ -63,7 +62,6 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
       gap: 10px;
       max-width: 350px;
     }
-
     .toast-message {
       display: flex;
       align-items: center;
@@ -74,7 +72,6 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
       margin-bottom: 8px;
       cursor: pointer;
     }
-
     .toast-icon {
       margin-right: 12px;
       font-size: 18px;
@@ -84,12 +81,10 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
       width: 24px;
       height: 24px;
     }
-
     .toast-content {
       flex: 1;
       font-size: 14px;
     }
-
     .toast-close {
       background: transparent;
       border: none;
@@ -103,28 +98,22 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
       height: 20px;
       width: 20px;
     }
-
     .toast-close:hover {
       opacity: 1;
     }
-
     /* Toast types */
     .success {
       background-color: #10b981;
     }
-
     .error {
       background-color: #ef4444;
     }
-
     .info {
       background-color: #3b82f6;
     }
-
     .warning {
       background-color: #f59e0b;
     }
-
     /* Responsive */
     @media (max-width: 480px) {
       .toast-container {
@@ -161,13 +150,11 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
 export class ToastComponent implements OnInit, OnDestroy {
   visibleToasts: Toast[] = [];
   private destroy$ = new Subject<void>();
-
   constructor(
     private toastService: ToastService,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
-
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.toastService.toasts$
@@ -178,11 +165,9 @@ export class ToastComponent implements OnInit, OnDestroy {
         });
     }
   }
-
   removeToast(id: number): void {
     this.toastService.remove(id);
   }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

@@ -3,7 +3,6 @@ import { AppContainerComponent } from '../../../../shared/components/app-contain
 import { BlogRelatedInfoComponent } from '../../components/blog-related-info/blog-related-info.component';
 import { BlogSectionsComponent } from '../../components/blog-sections/blog-sections.component';
 import { SeoService } from '../../../../core/services/seo.service';
-
 @Component({
   selector: 'app-blog-page',
   imports: [
@@ -17,11 +16,9 @@ import { SeoService } from '../../../../core/services/seo.service';
 })
 export class BlogPageComponent implements OnInit {
   private seoService = inject(SeoService);
-
   ngOnInit(): void {
     this.setupSeo();
   }
-
   /**
    * تحديث بيانات SEO الخاصة بصفحة المدونة الرئيسية
    */
@@ -33,11 +30,9 @@ export class BlogPageComponent implements OnInit {
     //   type: 'website',
     //   url: 'https://adventures-hub.com/blog',
     // });
-
     // إضافة المخطط المنظم (Schema.org) لصفحة المدونة
     this.addBlogSchema();
   }
-
   /**
    * إضافة مخطط Schema.org للمدونة لتحسين الفهرسة
    */
@@ -57,11 +52,9 @@ export class BlogPageComponent implements OnInit {
         }
       }
     };
-
     // إضافة المخطط إلى الصفحة
     this.addSchemaToHead(schema);
   }
-
   /**
    * إضافة مخطط JSON-LD إلى رأس الصفحة
    */
@@ -75,3 +68,4 @@ export class BlogPageComponent implements OnInit {
     }
   }
 }
+

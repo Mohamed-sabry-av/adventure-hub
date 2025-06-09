@@ -1,30 +1,21 @@
 <div class="slider-container w-full relative overflow-hidden">
-  @if (loading) {
-  <div class="flex justify-center items-center h-[450px] bg-gray-100">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-  </div>
-  } @else if (error) {
-  <div class="flex justify-center items-center h-[450px] bg-gray-100">
-    <p class="text-red-500">{{ error }}</p>
-  </div>
-  } @else if (bannerImages.length === 0) {
-  <div class="flex justify-center items-center h-[450px] bg-gray-100">
-    <p class="text-gray-500">No banner images available</p>
-  </div>
-  } @else {
-  <div #splideEl class="splide">
-    <div class="splide__track">
+  <!-- Display the first image as a static banner to show instantly -->
+  @if (bannerImages.length > 0) {
+  <div #splideEl class="splide w-full">
+    <div class="splide__track w-full">
       <ul class="splide__list">
         @for (banner of bannerImages; track $index) {
         <li class="splide__slide">
-          <div class="slide-item h-[450px] md:h-[500px] relative touch-action-manipulation">
+          <div class="slide-item relative touch-action-manipulation">
             @if (isMobile) {
             <img [src]="banner.small || 'assets/images/placeholder-banner-mobile.jpg'" alt="Banner image"
-              class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
+              class="w-full h-full object-cover touch-action-manipulation"
+              [attr.fetchpriority]="$index === 0 ? 'high' : 'auto'" loading="eager"
               onerror="this.src='assets/images/placeholder-banner-mobile.jpg'; this.onerror=null;" />
             } @else {
             <img [src]="banner.large || 'assets/images/placeholder-banner.jpg'" alt="Banner image"
-              class="w-full h-full object-cover touch-action-manipulation" loading="lazy"
+              class="w-full h-full object-cover touch-action-manipulation"
+              [attr.fetchpriority]="$index === 0 ? 'high' : 'auto'" loading="eager"
               onerror="this.src='assets/images/placeholder-banner.jpg'; this.onerror=null;" />
             }
           </div>
@@ -32,6 +23,33 @@
         }
       </ul>
     </div>
+  </div>
+  }
+  <!-- Loading skeleton with minimal height that doesn't take too much space -->
+  @if (loading && bannerImages.length === 0) {
+  <div class="skeleton-slider w-full bg-gray-200 overflow-hidden h-48 md:h-64 lg:h-80">
+    <!-- Simple pulse animation -->
+    <div class="animate-pulse w-full h-full relative">
+      <!-- Gradient overlay for shimmer effect -->
+      <div class="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 skeleton-shimmer"></div>
+
+      <!-- Simple loading indicator -->
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    </div>
+  </div>
+  }
+  <!-- Error state with minimal height -->
+  @if (error) {
+  <div class="flex justify-center items-center h-48 md:h-64 bg-gray-100">
+    <p class="text-red-500 text-sm">{{ error }}</p>
+  </div>
+  }
+  <!-- Empty state with minimal height -->
+  @if (!loading && !error && bannerImages.length === 0) {
+  <div class="flex justify-center items-center h-48 md:h-64 bg-gray-100">
+    <img src="assets/images/placeholder-banner.jpg" alt="Default banner" class="w-full h-full object-cover">
   </div>
   }
 </div>

@@ -4,7 +4,6 @@ import { CacheService } from '../../../../../core/services/cashing.service';
 import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { Product } from '../../../../../interfaces/product';
 import { HttpParams, HttpResponse } from '@angular/common/http';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -13,7 +12,6 @@ export class SortServiceService {
     private wooApi: ApiService,
     private cachingService: CacheService
   ) {}
-
   getSortedProducts(
     categoryId: number | null,
     filters: { [key: string]: string[] } = {},
@@ -57,7 +55,6 @@ export class SortServiceService {
       3000000
     );
   }
-
   private buildSortParams(
     categoryId: number | null,
     filters: { [key: string]: string[] },
@@ -75,16 +72,14 @@ export class SortServiceService {
         '_fields',
         'id,name,price,images,categories,description,sale_price,regular_price,on_sale,variations,currency,attributes'
       );
-
     if (categoryId) {
       params = params.set('category', categoryId.toString());
     }
-
     if (Object.keys(filters).length > 0) {
       const attributesJson = JSON.stringify(filters);
       params = params.set('attributes', attributesJson);
     }
-
     return params;
   }
 }
+

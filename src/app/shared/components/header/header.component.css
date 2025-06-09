@@ -16,6 +16,41 @@
   transform: scale(1.1);
 }
 
+/* Improved button styles for better touch targets */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 8px;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+/* حل مشكلة أزرار الهاتف التي تظهر في سطح المكتب */
+@media (min-width: 768px) {
+  .icon-btn.mobile-only {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn:active {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(0.97);
+}
+
+.icon-btn .pi {
+  font-size: 1.5rem;
+}
+
 /* Badge styles */
 .icon-container {
   position: relative;
@@ -61,60 +96,75 @@
   }
 }
 
-/* Header positioning */
+/* Header positioning - using sticky positioning for better content flow */
 header {
   @apply w-full bg-[#222222];
-  transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1), background-color 0.3s ease;
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
+  margin: 0;
+  /* Add new properties for better performance */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  transition: box-shadow 1s ease;
+}
+
+/* Make the content flow naturally */
+main {
+  position: relative;
+  z-index: 1;
 }
 
 /* Fix for the jumping issue */
 body {
   overflow-anchor: none; /* Disable browser scroll anchoring which can cause jumps */
+  scroll-padding-top: 0; /* Reset scroll padding to 0 */
 }
 
-/* Scrolled header styles */
+/* Scrolled header styles with improved animation */
 .is-scroll {
-  @apply fixed top-0 z-[1000] bg-[#222222];
-  transform: translateY(0);
-  transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
-  will-change: transform;
+  @apply bg-[#222222];
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.4s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-/* Header layers */
+/* Header layers with improved animations - extremely smooth */
 .header-top-layer {
-  transition: opacity 0.3s ease, max-height 0.3s ease;
+  transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
   overflow: hidden;
   z-index: 1;
-  margin-bottom: -1px;
+  transform-origin: top;
+  will-change: transform, opacity, max-height;
 }
 
 .header-middle-layer {
   z-index: 2;
   position: relative;
-  transition: padding 0.3s ease;
-  margin-bottom: -1px;
+  transition: padding 0.8s ease;
+  padding-bottom: 0; /* Reduce bottom padding to decrease space between layers */
 }
 
 .header-bottom-layer {
-  transition: opacity 0.4s ease, max-height 0.4s ease, transform 0.4s ease;
+  transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
   z-index: 1;
   transform-origin: top;
   will-change: transform, opacity, max-height;
   position: relative;
+  overflow: visible;
+  margin-top: -5px; /* Add negative margin to reduce space with layer above */
 }
 
+/* Improved hidden layer animation - much slower and smoother */
 .header-layer-hidden {
   opacity: 0;
   max-height: 0;
   visibility: hidden;
-  overflow: hidden;
-  transform: translateY(-20px);
+  transform: translateY(-5px); /* Reduced movement */
+  pointer-events: none;
+  transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .header-middle-compact {
@@ -176,14 +226,13 @@ body {
   animation: slide-second 6s infinite;
 }
 
-/* Header container layout */
+/* Header container layout - changed to sticky */
 .header-container {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
   width: 100%;
-  will-change: transform;
   z-index: 1000;
 }
 
@@ -196,7 +245,7 @@ body {
 .top-info-banner {
   position: relative;
   height: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(34, 34, 34, 1);
   padding: 0 1rem;
   color: white;
   display: flex;

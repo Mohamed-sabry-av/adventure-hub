@@ -5,7 +5,6 @@ import { Product } from '../../../interfaces/product';
 import { HttpParams, HttpResponse } from '@angular/common/http';
 import { HandleErrorsService } from '../../../core/services/handel-errors.service';
 import { CacheService } from '../../../core/services/cashing.service';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -15,7 +14,6 @@ export class ProductsBrandService {
     private cacheService: CacheService,
     private handleErrorService: HandleErrorsService
   ) {}
-
   getProductsByBrandTermId(
     brandTermId: number,
     page: number = 1,
@@ -34,7 +32,6 @@ export class ProductsBrandService {
       .set('stock_status', 'instock')
       .set('orderby', orderby)
       .set('order', order);
-
     if (Object.keys(filters).length > 0) {
       const formattedFilters = Object.fromEntries(
         Object.entries(filters).map(([key, values]) => [
@@ -44,7 +41,6 @@ export class ProductsBrandService {
       );
       params = params.set('attributes', JSON.stringify(formattedFilters));
     }
-
     return this.cacheService.cacheObservable(
       cacheKey,
       this.apiService
@@ -69,7 +65,6 @@ export class ProductsBrandService {
       300000
     );
   }
-
   getTotalProductsByBrandTermId(
     brandTermId: number,
     filters: { [key: string]: string[] } = {}
@@ -82,7 +77,6 @@ export class ProductsBrandService {
       .set('per_page', '1')
       .set('page', '1')
       .set('stock_status', 'instock');
-
     if (Object.keys(filters).length > 0) {
       const formattedFilters = Object.fromEntries(
         Object.entries(filters).map(([key, values]) => [
@@ -92,7 +86,6 @@ export class ProductsBrandService {
       );
       params = params.set('attributes', JSON.stringify(formattedFilters));
     }
-
     return this.cacheService.cacheObservable(
       cacheKey,
       this.apiService
@@ -114,7 +107,6 @@ export class ProductsBrandService {
       300000
     );
   }
-
   getBrandInfoBySlug(
     brandSlug: string
   ): Observable<{ id: number; name: string; slug: string } | null> {
@@ -128,7 +120,7 @@ export class ProductsBrandService {
         .pipe(
           map((response) => {
             const term = Array.isArray(response) && response.length > 0 ? response[0] : null;
-            console.log('Brand Term', term)
+
             return term ? { id: term.id, name: term.name, slug: term.slug } : null;
           }),
           catchError((error) => {
@@ -141,7 +133,6 @@ export class ProductsBrandService {
       300000
     );
   }
-
   getAllAttributesAndTermsByBrand(
     brandTermId: number
   ): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
@@ -171,14 +162,12 @@ export class ProductsBrandService {
       300000
     );
   }
-
   getAvailableAttributesAndTermsByBrand(
     brandTermId: number,
     filters: { [key: string]: string[] }
   ): Observable<{ [key: string]: { name: string; terms: { id: number; name: string }[] } }> {
     const cacheKey = `available_attributes_terms_brand_${brandTermId}_filters_${JSON.stringify(filters)}`;
     const params = new HttpParams().set('filters', JSON.stringify(filters));
-
     return this.cacheService.cacheObservable(
       cacheKey,
       this.apiService.getRequest<any>(`brands/${brandTermId}/available-filters`, { params }).pipe(

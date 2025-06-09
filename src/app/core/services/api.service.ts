@@ -99,7 +99,7 @@ export class ApiService {
     
     // Check if this request is already in progress
     if (this.pendingRequests.has(cacheKey)) {
-      console.log(`Return pending request for: ${endpoint}`);
+
       return this.pendingRequests.get(cacheKey) as Observable<T | HttpResponse<T>>;
     }
     
@@ -109,7 +109,7 @@ export class ApiService {
       if (!cached.data || (Array.isArray(cached.data.body) && cached.data.body.length === 0)) {
         this.cache.delete(cacheKey);
       } else {
-        console.log(`Cache hit for: ${endpoint}`);
+
         return of(cached.data);
       }
     }

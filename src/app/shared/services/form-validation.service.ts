@@ -1,6 +1,5 @@
 import { inject, Injectable } from '@angular/core';
 import { AbstractControl, FormGroup } from '@angular/forms';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -15,9 +14,9 @@ export class FormValidationService {
       return { valuesNotEqual: true };
     };
   }
-
   controlFieldIsInvalid(form: FormGroup, controlName: string) {
     const control = form.get(controlName)!;
     return control.dirty && control.touched && control.invalid;
   }
 }
+

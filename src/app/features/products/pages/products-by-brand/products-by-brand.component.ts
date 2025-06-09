@@ -22,10 +22,8 @@ import { SeoService } from '../../../../core/services/seo.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, of, throwError } from 'rxjs';
 import { debounceTime, finalize } from 'rxjs/operators';
-
 const BRAND_PRODUCTS_KEY = makeStateKey<any[]>('brand_products');
 const BRAND_INFO_KEY = makeStateKey<any>('brand_info');
-
 @Component({
   selector: 'app-brand-products',
   standalone: true,
@@ -43,7 +41,6 @@ const BRAND_INFO_KEY = makeStateKey<any>('brand_info');
 })
 export class ProductsByBrandComponent implements OnInit, OnDestroy {
   protected Object = Object;
-
   products: any[] = [];
   isLoading = false;
   isLoadingMore = false;
@@ -66,10 +63,8 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
   private scrollSubject = new Subject<void>();
   private destroyRef = inject(DestroyRef);
   private transferState = inject(TransferState);
-
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
-
   constructor(
     private productsBrandService: ProductsBrandService,
     private route: ActivatedRoute,
@@ -85,9 +80,12 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
-
+      
+      // Use a larger threshold to load more products earlier
+      const scrollThreshold = 900; 
+      
       if (
-        scrollTop + windowHeight >= documentHeight - 900 &&
+        scrollTop + windowHeight >= documentHeight - scrollThreshold &&
         !this.isLoading &&
         !this.isLoadingMore &&
         !this.isFetching &&
@@ -97,15 +95,12 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   async ngOnInit() {
     this.showSkeleton = true;
       this.cdr.markForCheck();
   }
-
   ngAfterViewInit() {
     this.loadInitialData();
-    
     if (this.filterSidebar) {
       this.filterSidebar.filtersChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
@@ -122,20 +117,16 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       console.warn('FilterSidebarComponent not initialized in ngAfterViewInit');
     }
   }
-
   async loadInitialData() {
     this.isLoading = true;
     this.showSkeleton = true;
     this.cdr.markForCheck();
-    
     try {
       this.currentBrandSlug = this.route.snapshot.paramMap.get('brandSlug');
-      
       if (!this.currentBrandSlug) {
         this.router.navigate(['/page-not-found']);
         return;
       }
-      
       // Try to get brand info from transfer state
       const cachedBrandInfo = this.transferState.get(BRAND_INFO_KEY, null);
       if (cachedBrandInfo) {
@@ -146,15 +137,12 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       } else {
         await this.loadBrandInfo();
       }
-
       if (!this.currentBrandTermId) {
         this.router.navigate(['/page-not-found']);
         return;
       }
-
       // Load attributes for the brand first
       await this.loadBrandAttributes(this.currentBrandTermId);
-
       // Only after attributes are loaded, try to get products from transfer state
       const cachedProducts = this.transferState.get(BRAND_PRODUCTS_KEY, null);
       if (cachedProducts) {
@@ -184,7 +172,6 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }
   }
-
   private async loadBrandInfo(): Promise<void> {
     try {
       this.brandInfo = await this.productsBrandService
@@ -197,7 +184,6 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
           })
         )
         .toPromise();
-
       if (this.brandInfo) {
         this.currentBrandTermId = this.brandInfo.id;
         this.brandName = this.brandInfo.name;
@@ -211,7 +197,6 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       throw error;
     }
   }
-
   private setupSEO(): void {
     // Always prioritize brand name and description over Yoast data
     this.schemaData = this.seoService.applySeoTags(this.brandInfo, {
@@ -219,23 +204,19 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       description: this.brandInfo?.description || (this.brandInfo?.yoast_head_json?.description || `Explore products at Adventures HUB Sports Shop.`),
     });
   }
-
   private async loadBrandAttributes(brandTermId: number): Promise<void> {
     try {
       const attributesData = await this.productsBrandService
         .getAllAttributesAndTermsByBrand(brandTermId)
         .toPromise();
-
       this.attributes = attributesData || {};
       this.cdr.markForCheck();
     } catch (error) {
       console.error('Error loading brand attributes:', error);
     }
   }
-
   private async loadProducts(brandTermId: number, page: number) {
     const isInitialLoad = page === 1;
-    
     if (isInitialLoad) {
       this.isFetching = true;
       this.isLoading = true;
@@ -244,7 +225,6 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
     } else {
       this.isLoadingMore = true;
     }
-
     try {
       const filters = this.filterSidebar?.selectedFilters || {};
       const products = await this.productsBrandService
@@ -257,17 +237,19 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
           filters
         )
         .toPromise();
-
       if (isInitialLoad) {
         this.products = products || [];
         this.transferState.set(BRAND_PRODUCTS_KEY, this.products);
       } else {
-        // Only append new products if we got results and we're not on the first page
+        // Improve handling of new products to prevent duplicates
         if (products && products.length > 0) {
-          this.products = [...this.products, ...products];
+          // Get existing product IDs for deduplication
+          const existingIds = new Set(this.products.map(p => p.id));
+          // Only add products that aren't already in the array
+          const uniqueNewProducts = products.filter(p => !existingIds.has(p.id));
+          this.products = [...this.products, ...uniqueNewProducts];
         }
       }
-      
       this.showEmptyState = this.products.length === 0;
     } catch (error) {
       console.error('Error loading products:', error);
@@ -278,16 +260,14 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.isLoadingMore = false;
       this.isInitialLoadComplete = true;
-      this.showSkeleton = false;
+      this.showSkeleton = this.products.length === 0;
       this.cdr.markForCheck();
     }
   }
-
   private async loadMoreProducts() {
     this.currentPage++;
     await this.loadProducts(this.currentBrandTermId!, this.currentPage);
   }
-
   private async loadTotalProducts(brandTermId: number) {
     try {
       const filters = this.filterSidebar?.selectedFilters || {};
@@ -302,43 +282,38 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }
   }
-
    async loadProductsWithFilters(
     brandTermId: number | null,
     filters: { [key: string]: string[] }
   ): Promise<void> {
-    if (!brandTermId) return;
-    
-    this.isFetching = true;
-    this.isLoading = true;
     this.currentPage = 1;
-    this.products = [];
-    this.isInitialLoadComplete = false;
+    this.isLoading = true;
     this.showSkeleton = true;
     this.showEmptyState = false;
     this.cdr.markForCheck();
 
     try {
-        const products = await this.productsBrandService
-          .getProductsByBrandTermId(
-            brandTermId,
-            this.currentPage,
+      if (!brandTermId) {
+        throw new Error('Brand term ID is required');
+      }
+
+      const products = await this.productsBrandService
+        .getProductsByBrandTermId(
+          brandTermId,
+          this.currentPage,
           this.itemsPerPage,
-            this.selectedOrderby,
-            this.selectedOrder,
-            filters
-          )
+          this.selectedOrderby,
+          this.selectedOrder,
+          filters
+        )
         .toPromise();
 
-        this.products = products || [];
-      
-      // Also update total count with filters
-        await this.loadTotalProducts(brandTermId);
+      this.products = products || [];
+      await this.loadTotalProducts(brandTermId);
     } catch (error) {
       console.error('Error loading filtered products:', error);
       this.products = [];
     } finally {
-      this.isFetching = false;
       this.isLoading = false;
       this.isInitialLoadComplete = true;
       this.showSkeleton = this.products.length === 0;
@@ -346,7 +321,6 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }
   }
-
   async onSortChange(sortValue: string) {
     switch (sortValue) {
       case 'popular':
@@ -373,33 +347,28 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
         this.selectedOrderby = 'date';
         this.selectedOrder = 'desc';
     }
-    
       this.isInitialLoadComplete = false;
       this.showSkeleton = true;
       this.showEmptyState = false;
     this.currentPage = 1;
     this.products = [];
-    
     const filters = this.filterSidebar?.selectedFilters || {};
     await this.loadProducts(this.currentBrandTermId!, this.currentPage);
   }
-
   openFilterDrawer() {
     this.filterDrawerOpen = true;
     this.cdr.markForCheck();
   }
-
   closeFilterDrawer() {
     this.filterDrawerOpen = false;
     this.cdr.markForCheck();
   }
-
   @HostListener('window:scroll', ['$event'])
   onScroll() {
     this.scrollSubject.next();
   }
-
   ngOnDestroy() {
     // Cleanup logic if needed
   }
 }
+

@@ -13,7 +13,6 @@ import {
 } from '@angular/forms';
 import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
-
 @Component({
   selector: 'app-account-details-edit',
   imports: [CommonModule, ReactiveFormsModule],
@@ -29,11 +28,9 @@ export class AccountDetailsEditComponent {
   saveSuccess = false;
   passwordForm: FormGroup;
   showPasswordForm = false;
-
   private accountService = inject(WooCommerceAccountService);
   private localStorageService = inject(LocalStorageService);
   private fb = inject(FormBuilder);
-
   constructor() {
     this.accountForm = this.fb.group({
       first_name: ['', Validators.required],
@@ -42,7 +39,6 @@ export class AccountDetailsEditComponent {
       username: ['', Validators.required],
       display_name: [''],
     });
-
     this.passwordForm = this.fb.group(
       {
         current_password: ['', Validators.required],
@@ -52,11 +48,9 @@ export class AccountDetailsEditComponent {
       { validator: this.passwordMatchValidator }
     );
   }
-
   ngOnInit(): void {
     this.loadCustomerDetails();
   }
-
   loadCustomerDetails(): void {
     const customerId = this.getCustomerId();
     if (!customerId) {
@@ -64,7 +58,6 @@ export class AccountDetailsEditComponent {
       this.isLoading = false;
       return;
     }
-
     this.accountService.getCustomerDetails(customerId).subscribe({
       next: (data) => {
         this.customerDetails = data;
@@ -78,7 +71,6 @@ export class AccountDetailsEditComponent {
       },
     });
   }
-
   populateForm(data: any): void {
     this.accountForm.patchValue({
       first_name: data.first_name,
@@ -88,12 +80,10 @@ export class AccountDetailsEditComponent {
       display_name: data.first_name + ' ' + data.last_name,
     });
   }
-
   getCustomerId(): number | null {
     const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
-
   saveAccountDetails(): void {
     if (this.accountForm.invalid) {
       // Mark all fields as touched to show validation errors
@@ -103,24 +93,20 @@ export class AccountDetailsEditComponent {
       });
       return;
     }
-
     const customerId = this.getCustomerId();
     if (!customerId) {
       this.error = 'Customer ID not found. Please login again.';
       return;
     }
-
     this.isSaving = true;
     this.error = null;
     this.saveSuccess = false;
-
     const formData = this.accountForm.value;
     this.accountService.updateCustomerDetails(customerId, formData).subscribe({
       next: (data) => {
         this.customerDetails = data;
         this.isSaving = false;
         this.saveSuccess = true;
-
         // Update the local storage if email has changed
         if (this.accountForm.value.email !== this.customerDetails.email) {
           const user = JSON.parse(
@@ -137,15 +123,12 @@ export class AccountDetailsEditComponent {
       },
     });
   }
-
   togglePasswordForm(): void {
     this.showPasswordForm = !this.showPasswordForm;
-
     if (!this.showPasswordForm) {
       this.passwordForm.reset();
     }
   }
-
   changePassword(): void {
     if (this.passwordForm.invalid) {
       // Mark all fields as touched to show validation errors
@@ -155,20 +138,16 @@ export class AccountDetailsEditComponent {
       });
       return;
     }
-
     const customerId = this.getCustomerId();
     if (!customerId) {
       this.error = 'Customer ID not found. Please login again.';
       return;
     }
-
     this.isSaving = true;
     this.error = null;
-
     const passwordData = {
       password: this.passwordForm.value.new_password,
     };
-
     this.accountService
       .updateCustomerDetails(customerId, passwordData)
       .subscribe({
@@ -185,11 +164,10 @@ export class AccountDetailsEditComponent {
         },
       });
   }
-
   passwordMatchValidator(group: FormGroup): { notMatched: boolean } | null {
     const password = group.get('new_password')?.value;
     const confirmPassword = group.get('confirm_password')?.value;
-
     return password === confirmPassword ? null : { notMatched: true };
   }
 }
+

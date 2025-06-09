@@ -18,7 +18,7 @@
 .product-card-wrapper {
   display: block;
   width: 100%;
-  height: var(--product-card-height-desktop);
+  /* height: var(--product-card-height-desktop); */
   margin-bottom: 0;
 }
 
@@ -38,7 +38,7 @@
   @apply relative rounded-lg shadow transition-all duration-300 bg-white flex flex-col;
   position: relative;
   overflow: visible; 
-  height: var(--product-card-height-desktop);
+  /* height: var(--product-card-height-desktop); */
   /* z-index: 1; */
 }
 

@@ -4,7 +4,6 @@ import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { CacheService } from '../../../core/services/cashing.service';
 import { environment } from '../../../../environments/environment';
-
 export interface BlogPost {
   id: number;
   title: { rendered: string };
@@ -17,29 +16,22 @@ export interface BlogPost {
     og_image: { url: string }[]
   };
 }
-
 @Injectable({ providedIn: 'root' })
 export class BlogService {
   private httpClient = inject(HttpClient);
   private apiService = inject(ApiService);
   private cacheService = inject(CacheService);
   private readonly WP_API_URL = `${environment.baseUrl}/wp-json/wp/v2`;
-
   blogData$ = new BehaviorSubject<BlogPost[]>([]);
   private cacheTimeMs = 60 * 60 * 1000; // 1 hour cache
-
   constructor() {
     // جلب المنشورات عند تهيئة الخدمة
     this.getPosts();
   }
-
   getPosts(page: number = 1, perPage: number = 10): void {
     const cacheKey = `blog_posts_page_${page}_per_${perPage}`;
-
     // محاولة استعادة من ذاكرة التخزين المؤقت أولاً
     const cachedData = this.getFromLocalCache(cacheKey);
-  
-
     // تحديث البيانات من الخادم بغض النظر عن وجود بيانات مخزنة مؤقتًا
     this.httpClient
       .get<BlogPost[]>(`${this.WP_API_URL}/posts`, {
@@ -62,12 +54,8 @@ export class BlogService {
         this.saveToLocalCache(cacheKey, response);
       });
   }
-
   getLatestPosts(count: number = 4): Observable<BlogPost[]> {
     const cacheKey = `latest_blog_posts_${count}`;
-
-
-
     return this.httpClient
       .get<BlogPost[]>(`${this.WP_API_URL}/posts`, {
         params: new HttpParams()
@@ -86,12 +74,8 @@ export class BlogService {
         })
       );
   }
-
   getPostBySlug(slug: string): Observable<BlogPost | null> {
     const cacheKey = `blog_post_${slug}`;
-
-
-
     return this.httpClient
       .get<BlogPost[]>(`${this.WP_API_URL}/posts`, {
         params: new HttpParams()
@@ -114,19 +98,15 @@ export class BlogService {
         })
       );
   }
-
   private getFromLocalCache<T>(key: string): T | null {
     try {
       const cachedString = localStorage.getItem(key);
       if (!cachedString) return null;
-
       const cached = JSON.parse(cachedString);
       const now = new Date().getTime();
-
       if (cached.expiry && cached.expiry > now) {
         return cached.data;
       }
-
       // تنظيف البيانات القديمة
       localStorage.removeItem(key);
       return null;
@@ -135,7 +115,6 @@ export class BlogService {
       return null;
     }
   }
-
   private saveToLocalCache<T>(key: string, data: T): void {
     try {
       const expiry = new Date().getTime() + this.cacheTimeMs;
@@ -145,7 +124,6 @@ export class BlogService {
       console.error('Error saving to cache:', e);
     }
   }
-
   // بيانات احتياطية في حالة فشل جلب المنشورات
   private getFallbackPosts(): BlogPost[] {
     return [
@@ -200,3 +178,4 @@ export class BlogService {
     ];
   }
 }
+

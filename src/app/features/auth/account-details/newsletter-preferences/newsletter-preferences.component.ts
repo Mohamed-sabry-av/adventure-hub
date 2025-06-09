@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractContro
 import { CommonModule } from '@angular/common';
 import { NewsletterService } from '../../services/newsletter.service';
 import { AccountAuthService } from '../../account-auth.service';
-
 @Component({
   selector: 'app-newsletter-preferences',
   standalone: true,
@@ -12,7 +11,6 @@ import { AccountAuthService } from '../../account-auth.service';
     <div class="newsletter-preferences">
       <h3>Newsletter Preferences</h3>
       <p>Stay up-to-date with our latest adventures and offers</p>
-      
       <form [formGroup]="newsletterForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
           <label for="email">Email</label>
@@ -29,7 +27,6 @@ import { AccountAuthService } from '../../account-auth.service';
             <div *ngIf="f['email'].errors['email']">Please enter a valid email</div>
           </div>
         </div>
-        
         <div class="form-group checkbox-group">
           <label class="checkbox-container">
             <input type="checkbox" formControlName="subscribed" />
@@ -37,15 +34,12 @@ import { AccountAuthService } from '../../account-auth.service';
             I want to receive newsletter emails
           </label>
         </div>
-        
         <button type="submit" [disabled]="loading || newsletterForm.pristine">
           {{ loading ? 'Saving...' : 'Save Preferences' }}
         </button>
-        
         <div *ngIf="success" class="success-message">
           Newsletter preferences updated successfully.
         </div>
-        
         <div *ngIf="error" class="error-message alert">
           {{ error }}
         </div>
@@ -59,47 +53,38 @@ import { AccountAuthService } from '../../account-auth.service';
       border-radius: 8px;
       margin-bottom: 20px;
     }
-    
     h3 {
       margin-top: 0;
       color: #333;
     }
-    
     p {
       color: #666;
       margin-bottom: 20px;
     }
-    
     .form-group {
       margin-bottom: 15px;
     }
-    
     label {
       display: block;
       margin-bottom: 5px;
       font-weight: 500;
     }
-    
     input[type="email"] {
       width: 100%;
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 4px;
     }
-    
     input[type="email"]:disabled {
       background-color: #f1f1f1;
       cursor: not-allowed;
     }
-    
     input.is-invalid {
       border-color: #dc3545;
     }
-    
     .checkbox-group {
       margin-top: 15px;
     }
-    
     .checkbox-container {
       display: flex;
       align-items: center;
@@ -108,7 +93,6 @@ import { AccountAuthService } from '../../account-auth.service';
       cursor: pointer;
       user-select: none;
     }
-    
     .checkbox-container input {
       position: absolute;
       opacity: 0;
@@ -116,7 +100,6 @@ import { AccountAuthService } from '../../account-auth.service';
       height: 0;
       width: 0;
     }
-    
     .checkmark {
       position: absolute;
       left: 0;
@@ -127,26 +110,21 @@ import { AccountAuthService } from '../../account-auth.service';
       border: 1px solid #ddd;
       border-radius: 3px;
     }
-    
     .checkbox-container:hover input ~ .checkmark {
       background-color: #ccc;
     }
-    
     .checkbox-container input:checked ~ .checkmark {
       background-color: #4CAF50;
       border-color: #4CAF50;
     }
-    
     .checkmark:after {
       content: "";
       position: absolute;
       display: none;
     }
-    
     .checkbox-container input:checked ~ .checkmark:after {
       display: block;
     }
-    
     .checkbox-container .checkmark:after {
       left: 7px;
       top: 3px;
@@ -156,7 +134,6 @@ import { AccountAuthService } from '../../account-auth.service';
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
     }
-    
     button {
       background-color: #4CAF50;
       color: white;
@@ -167,18 +144,15 @@ import { AccountAuthService } from '../../account-auth.service';
       font-weight: bold;
       margin-top: 10px;
     }
-    
     button:disabled {
       background-color: #cccccc;
       cursor: not-allowed;
     }
-    
     .error-message {
       color: #dc3545;
       font-size: 14px;
       margin-top: 5px;
     }
-    
     .error-message.alert {
       background-color: #f8d7da;
       border: 1px solid #f5c6cb;
@@ -186,7 +160,6 @@ import { AccountAuthService } from '../../account-auth.service';
       border-radius: 4px;
       margin-top: 15px;
     }
-    
     .success-message {
       color: #28a745;
       background-color: #d4edda;
@@ -204,7 +177,6 @@ export class NewsletterPreferencesComponent implements OnInit {
   success = false;
   error = '';
   userEmail: string | null = null;
-  
   constructor(
     private formBuilder: FormBuilder,
     private newsletterService: NewsletterService,
@@ -215,7 +187,6 @@ export class NewsletterPreferencesComponent implements OnInit {
       subscribed: [false]
     });
   }
-  
   ngOnInit(): void {
     // Get user email if available
     const user = this.accountAuthService.getUser();
@@ -226,29 +197,23 @@ export class NewsletterPreferencesComponent implements OnInit {
       });
     }
   }
-  
   // Getter for easy access to form fields
   get f(): { [key: string]: AbstractControl } { 
     return this.newsletterForm.controls; 
   }
-  
   onSubmit(): void {
     this.submitted = true;
     this.error = '';
     this.success = false;
-    
     // stop here if form is invalid
     if (this.newsletterForm.invalid) {
       return;
     }
-    
     if (!this.f['subscribed'].value) {
       this.success = true;
       return;
     }
-    
     this.loading = true;
-    
     this.newsletterService.subscribeToNewsletter(this.f['email'].value)
       .subscribe({
         next: () => {

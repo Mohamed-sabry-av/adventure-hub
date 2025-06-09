@@ -12,7 +12,6 @@ import { ServiceHighlightsComponent } from '../../../../shared/components/servic
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '../../services/blog.service';
 import { SeoService } from '../../../../core/services/seo.service';
-
 @Component({
   selector: 'app-blog-section-page',
   imports: [
@@ -28,39 +27,30 @@ export class BlogSectionPageComponent implements OnInit {
   private activatedRoute = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
   private seoService = inject(SeoService);
-
   post: BlogPost | null = null;
-
   ngOnInit() {
     // الحصول على بيانات المقال من الـ resolver
     const subscription = this.activatedRoute.data.subscribe(
       (response: any) => {
         this.post = response.post;
-
         if (this.post) {
           this.setupSeo();
         }
       }
     );
-
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
-
   /**
    * تحديث بيانات SEO الخاصة بالمقال
    */
   private setupSeo(): void {
     if (!this.post) return;
-
     // استخراج عنوان المقال من HTML
     const title = this.getTextFromHtml(this.post.title.rendered);
-
     // إنشاء وصف من محتوى المقال
     // const description = this.seoService.createDescriptionFromHtml(this.post.excerpt.rendered);
-
     // الحصول على رابط الصورة الرئيسية
     const imageUrl = this.post.yoast_head_json?.og_image?.[0]?.url || '';
-
     // // تحديث الميتا تاج
     // this.seoService.updateSeoTags({
     //   title: title,
@@ -71,17 +61,14 @@ export class BlogSectionPageComponent implements OnInit {
     //   url: `https://adventures-hub.com/${this.post.slug}`,
     //   keywords: `${title}, adventure, outdoor, hiking, camping, ${this.extractKeywords(title)}`,
     // });
-
     // إضافة مخطط Schema.org للمقال
     this.addArticleSchema();
   }
-
   /**
    * إضافة مخطط Schema.org للمقال لتحسين الفهرسة
    */
   private addArticleSchema(): void {
     if (!this.post) return;
-
     const articleSchema = {
       '@context': 'https://schema.org',
       '@type': 'BlogPosting',
@@ -108,10 +95,8 @@ export class BlogSectionPageComponent implements OnInit {
         '@id': `https://adventures-hub.com/${this.post.slug}`
       }
     };
-
     this.addSchemaToHead(articleSchema);
   }
-
   /**
    * إضافة مخطط JSON-LD إلى رأس الصفحة
    */
@@ -124,7 +109,6 @@ export class BlogSectionPageComponent implements OnInit {
       document.head.appendChild(script);
     }
   }
-
   /**
    * استخراج النص من HTML
    */
@@ -134,18 +118,15 @@ export class BlogSectionPageComponent implements OnInit {
       tempElement.innerHTML = html;
       return tempElement.textContent || tempElement.innerText || '';
     }
-
     // بديل للتنفيذ على الخادم (SSR)
     return html.replace(/<[^>]*>/g, '');
   }
-
   /**
    * استخراج الكلمات المفتاحية من النص
    */
   private extractKeywords(title: string): string {
     // إزالة الكلمات الشائعة والحروف
     const commonWords = ['a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'with', 'and', 'or', 'of'];
-
     return title
       .toLowerCase()
       .split(' ')
@@ -154,3 +135,4 @@ export class BlogSectionPageComponent implements OnInit {
       .join(', ');
   }
 }
+

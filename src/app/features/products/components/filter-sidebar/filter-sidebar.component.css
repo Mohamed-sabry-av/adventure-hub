@@ -1,6 +1,9 @@
 .filter-sidebar-container {
   display: flex;
   flex-direction: column;
+  position: relative;
+  max-width: 100%;
+  padding-right: 0.5rem;
 }
 
 .filter-group {
@@ -77,5 +80,6 @@ input[type="checkbox"]:checked {
     top: 1rem;
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
+    z-index: 10;
   }
 }

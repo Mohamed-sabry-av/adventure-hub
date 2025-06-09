@@ -7,7 +7,6 @@ import {
 import { OrderService } from '../../services/order.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
-
 @Component({
   selector: 'app-order-main-data',
   imports: [AsyncPipe, CurrencyPipe],
@@ -16,6 +15,6 @@ import { AsyncPipe, CurrencyPipe } from '@angular/common';
 })
 export class OrderMainDataComponent {
   private orderService = inject(OrderService);
-
   loadedOrder$: Observable<any> = this.orderService.loadedOrder$;
 }
+

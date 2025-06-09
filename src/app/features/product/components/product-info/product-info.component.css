@@ -133,21 +133,29 @@
 
 /* Product Options */
 .product-option {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .option-label {
   display: block;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  margin-top: 4px;
+}
+
+.selected-attribute {
+  font-weight: 600;
+  margin-left: 8px;
+  color: #333;
 }
 
 /* Color Options */
 .color-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 15px;
+  margin-top: 12px;
+  margin-bottom: 15px;
 }
 
 .color-option {
@@ -215,8 +223,9 @@
 .size-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 15px;
+  margin-top: 12px;
+  margin-bottom: 15px;
 }
 
 .size-option {
@@ -224,7 +233,7 @@
   border: 1px solid #d1d5db;
   border-radius: 4px;
   padding: 8px 12px;
-  min-width: 48px;
+  min-width: 52px;
   text-align: center;
   cursor: pointer;
   font-size: 14px;
@@ -342,7 +351,7 @@
   align-items: center;
   justify-content: center;
   height: 44px;
-  background-color: #3BB45A; /* تغيير لون زر إضافة إلى السلة لأزرق متوسط */
+  background-color: #EA580C; /* Changed to orange */
   color: white;
   border: none;
   border-radius: 4px;
@@ -356,12 +365,12 @@
 }
 
 .cart-btn:hover {
-  background-color: #339e40;
+  background-color: #D24D07; /* Darker orange */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .cart-btn:disabled {
-  background-color: #8abb99;
+  background-color: #F8B195; /* Lighter orange */
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -373,7 +382,7 @@
 .buy-btn {
   width: 100%;
   height: 44px;
-  background-color: #EA580C; /* تغيير لون زر الشراء الآن إلى اللون البرتقالي */
+  background-color: #22C55E; /* Changed to green */
   color: white;
   border: none;
   border-radius: 4px;
@@ -387,12 +396,12 @@
 }
 
 .buy-btn:hover {
-  background-color: #D24D07;
+  background-color: #16A34A; /* Darker green */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .buy-btn:disabled {
-  background-color: #6e6e6e;
+  background-color: #86EFAC; /* Lighter green */
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -476,7 +485,7 @@
 .sticky-footer .buy-now-btn {
   width: 100%;
   height: 46px;
-  background-color: #EA580C;
+  background-color: #22C55E; /* Changed to green */
   color: white;
   border: none;
   border-radius: 6px;
@@ -487,12 +496,12 @@
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease;
-  box-shadow: 0 2px 5px rgba(234, 88, 12, 0.3);
+  box-shadow: 0 2px 5px rgba(34, 197, 94, 0.3);
 }
 
 .sticky-footer .buy-now-btn:hover:not(:disabled) {
-  background-color: #D24D07;
-  box-shadow: 0 3px 7px rgba(234, 88, 12, 0.4);
+  background-color: #16A34A; /* Darker green */
+  box-shadow: 0 3px 7px rgba(34, 197, 94, 0.4);
 }
 
 .sticky-footer .buy-now-btn:disabled {
@@ -517,7 +526,7 @@
   padding: 1rem;
   border-radius: 8px;
   border: none;
-  background: #f4663c;
+  background: #EA580C; /* Changed to orange */
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -525,7 +534,7 @@
 }
 
 .sticky-footer .add-to-cart-btn:hover {
-  background: #e04b23;
+  background: #D24D07; /* Darker orange */
 }
 
 .quantity-btn {
@@ -598,7 +607,7 @@
   .sticky-add-to-cart .add-to-cart-btn {
     flex: 1;
     height: 44px;
-    background-color: #f4663c;
+    background-color: #EA580C;
     color: white;
     border: none;
     border-radius: 4px;
@@ -709,7 +718,7 @@ span:hover .hub-icon-product {
 .sticky-add-to-cart .buy-btn {
   min-width: 120px;
   height: 40px;
-  background-color: #EA580C;
+  background-color: #22C55E; /* Changed to green */
   color: white;
   border: none;
   border-radius: 6px;
@@ -720,16 +729,16 @@ span:hover .hub-icon-product {
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease;
-  box-shadow: 0 2px 5px rgba(234, 88, 12, 0.3);
+  box-shadow: 0 2px 5px rgba(34, 197, 94, 0.3);
 }
 
 .sticky-add-to-cart .buy-btn:hover:not(:disabled) {
-  background-color: #D24D07;
-  box-shadow: 0 3px 7px rgba(234, 88, 12, 0.4);
+  background-color: #16A34A; /* Darker green */
+  box-shadow: 0 3px 7px rgba(34, 197, 94, 0.4);
 }
 
 .sticky-add-to-cart .buy-btn:disabled {
-  background-color: #d1d5db;
+  background-color: #86EFAC; /* Lighter green */
   color: #9ca3af;
   cursor: not-allowed;
   box-shadow: none;

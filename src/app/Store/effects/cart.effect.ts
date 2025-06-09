@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { StoreInterface } from '../store';
@@ -24,11 +24,11 @@ import {
 } from '../actions/ui.action';
 import { UIService } from '../../shared/services/ui.service';
 import { Router } from '@angular/router';
-import { SideOptionsService } from '../../core/services/side-options.service';
 import { ApiService } from '../../core/services/api.service';
 
 const CUSTOM_API_URL = environment.customApiUrl;
 
+@Injectable()
 export class CartEffect {
   private actions$ = inject(Actions);
   private store = inject(Store<StoreInterface>);
@@ -37,7 +37,6 @@ export class CartEffect {
   private apiService = inject(ApiService);
   private uiService = inject(UIService);
   private router = inject(Router);
-  private sideOptionsService = inject(SideOptionsService);
 
   syncOfflineCartToLive = createEffect(() =>
     this.actions$.pipe(
@@ -104,7 +103,7 @@ export class CartEffect {
                     buttonName: buyItNow ? 'buy' : 'add',
                   })
                 );
-                this.sideOptionsService.closeSideOptions();
+                
                 if (buyItNow) {
                   this.router.navigateByUrl('/checkout', { replaceUrl: true });
                   return getUserCartAction({ userCart: response });
@@ -153,7 +152,6 @@ export class CartEffect {
                   buttonName: buyItNow ? 'buy' : 'add',
                 })
               );
-              this.sideOptionsService.closeSideOptions();
               localStorage.setItem('cartId', JSON.stringify(response.cart_id));
               if (buyItNow) {
                 this.router.navigateByUrl('/checkout', { replaceUrl: true });
@@ -212,8 +210,6 @@ export class CartEffect {
           const apiUrl = `${CUSTOM_API_URL}/cart${
             isLoggedIn ? '' : '/guest/load'
           }`;
-
-          console.log(apiUrl);
 
           const loadedData = this.cartService.loadedDataFromLS(isLoggedIn);
 
@@ -278,7 +274,6 @@ export class CartEffect {
                 })
               );
 
-              this.sideOptionsService.closeSideOptions();
               if (buyItNow) {
                 this.router.navigateByUrl('/checkout', { replaceUrl: true });
               } else {
@@ -307,8 +302,7 @@ export class CartEffect {
               
               // Handle invalid/expired cart ID for guest users
               if (isInvalidCart) {
-                console.log('Handling invalid cart ID for guest user');
-                
+
                 const emptyCart = {
                   items: [],
                   totals: {
@@ -628,3 +622,4 @@ export class CartEffect {
     )
   );
 }
+

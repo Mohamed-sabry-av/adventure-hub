@@ -5,23 +5,20 @@ import {
   getCouponStatusAction,
   getOrderDataAction,
 } from '../actions/checkout.action';
-
 export interface State {
   couponStatus: { success: string | null; error: string | null };
   coupondData: any;
   orderaData: any;
 }
-
 const initialState: State = {
   couponStatus: { success: null, error: null },
   coupondData: {},
   orderaData: null,
 };
-
 export const checkoutReducer = createReducer(
   initialState,
   on(getCouponStatusAction, (state, action) => {
-    console.log(action.errorMsg);
+
     return {
       ...state,
       couponStatus: { error: action.errorMsg, success: action.successMsg },
@@ -34,3 +31,4 @@ export const checkoutReducer = createReducer(
     return { ...state, orderaData: action.orderDetails };
   })
 );
+

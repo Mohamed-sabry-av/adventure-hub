@@ -7,15 +7,33 @@ Allow: /product/
 Allow: /category/
 Allow: /blog/
 Allow: /pages/
+Allow: /sitemap.xml
+Allow: /assets/
+
+# Product Categories
+Allow: /category/hiking/
+Allow: /category/camping/
+Allow: /category/climbing/
+Allow: /category/accessories/
+Allow: /category/clothing/
 
 # Prevent duplicate content and crawling of user/account pages
 Disallow: /checkout/
 Disallow: /user/
+Disallow: /myaccount/
+Disallow: /cart/
+Disallow: /order-received/
 Disallow: /*?*sort=
 Disallow: /*?*order=
 Disallow: /*?*filter=
 Disallow: /*?*add-to-cart=
 Disallow: /*?*lang=
+Disallow: /*?*search=
+Disallow: /*?*infinite_scroll=
+Disallow: /*?*per_page=
+Disallow: /*?*utm_source=
+Disallow: /*?*utm_medium=
+Disallow: /*?*utm_campaign=
 
 # Media and document crawling allowed
 Allow: /*.jpg$
@@ -24,6 +42,9 @@ Allow: /*.png$
 Allow: /*.gif$
 Allow: /*.webp$
 Allow: /*.pdf$
+Allow: /*.svg$
+Allow: /*.js$
+Allow: /*.css$
 
 # Sitemap location
 Sitemap: https://adventures-hub.com/sitemap.xml
@@ -42,6 +63,7 @@ Allow: /*.jpeg$
 Allow: /*.png$
 Allow: /*.gif$
 Allow: /*.webp$
+Allow: /*.svg$
 Crawl-delay: 0.5
 
 User-agent: Bingbot
@@ -50,4 +72,29 @@ Crawl-delay: 1
 
 User-agent: Yandex
 Allow: /
-Crawl-delay: 1 
+Crawl-delay: 1
+
+# AI Crawlers
+User-agent: GPTBot
+Allow: /product/
+Allow: /category/
+Allow: /blog/
+Allow: /pages/
+Disallow: /checkout/
+Disallow: /user/
+Disallow: /myaccount/
+Disallow: /cart/
+
+User-agent: AdsBot-Google
+Allow: /
+Disallow: /checkout/
+Disallow: /cart/
+
+# Specialized Rules for Social Media
+User-agent: Twitterbot
+Allow: /
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.webp$ 

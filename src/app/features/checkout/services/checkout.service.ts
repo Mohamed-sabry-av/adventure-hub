@@ -126,8 +126,7 @@ export class CheckoutService {
                 } else {
                   // If the detected country is not in the list, add it to the list
                   // This handles the case of countries not included in the WooCommerce allowed list
-                  console.log('Detected country not in allowed list. Adding:', location.country_code);
-                  
+
                   // Get country name from separate API or use country code as name
                   return this.getCountryNameForCode(location.country_code).pipe(
                     map(countryName => {
@@ -257,12 +256,12 @@ export class CheckoutService {
   getCartTotalPrice(): Observable<{ total: number; currency: string }> {
     return this.cartService.savedUserCart$.pipe(
       map((response: any) => {
-        console.log('Cart data in getCartTotalPrice:', response);
+
         const totals = response?.userCart?.totals;
         if (!totals) {
           throw new Error('Cart totals are not available');
         }
-        console.log('Cart totals:', totals);
+
         return {
           total: totals.total_price,
           currency: totals.currency_code || 'AED',
@@ -275,12 +274,12 @@ export class CheckoutService {
     return this.appliedCouponValue$.pipe(
       take(1),
       map((response: any) => {
-        console.log('Coupon data:', response);
+
         if (response?.code) {
           const coupon = [{ code: response.code }];
-          console.log('Applied coupon:', coupon);
+
           const isUsed = response.used_by?.includes(form.value.email);
-          console.log('Is coupon already used:', isUsed);
+
           this.emailIsUsed$.next(isUsed);
           return { isValid: !isUsed, coupon };
         }
@@ -336,11 +335,9 @@ export class CheckoutService {
               },
             };
 
-            console.log('Payment Intent payload sent to backend:', JSON.stringify(payload, null, 2));
-
             return this.httpClient.post<PaymentIntentResponse>(`${this.BACKEND_URL}/api/payment/create-intent`, payload).pipe(
               map(response => {
-                console.log('Payment Intent response:', response);
+
                 if (response.success && response.clientSecret) {
                   this.paymentIntentClientSecret$.next(response.clientSecret);
                   this.paymentIntentId$.next(response.paymentIntentId || null);
@@ -457,8 +454,6 @@ export class CheckoutService {
               meta_data: paymentToken ? [{ key: '_payment_intent_id', value: paymentToken }] : [],
             };
 
-            console.log('Order data sent to server:', orderData);
-
             if (!couponData.isValid && couponData.coupon.length > 0) {
               return throwError(() => new Error('Coupon already used. Order not created.'));
             }
@@ -467,7 +462,7 @@ export class CheckoutService {
               headers: { 'Content-Type': 'application/json' }
             }).pipe(
               map((response) => {
-                console.log('Order creation response:', response);
+
                 return response;
               }),
               catchError((error: HttpErrorResponse) => {
@@ -510,7 +505,7 @@ export class CheckoutService {
         if (location && location.country_code) {
           this.selectedBillingCountry$.next(location.country_code);
           this.selectedShippingCountry$.next(location.country_code);
-          console.log('Set default country from saved location:', location.country_code);
+
           return; // No need to fetch again
         }
       } catch (e) {
@@ -526,8 +521,7 @@ export class CheckoutService {
           if (countryCode) {
             this.selectedBillingCountry$.next(countryCode);
             this.selectedShippingCountry$.next(countryCode);
-            console.log('Set default country to:', countryCode);
-            
+
             // Save location for future visits
             this.geoLocationService.saveUserLocation(location);
           }

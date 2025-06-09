@@ -51,7 +51,6 @@ export class WishlistComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('Raw wishlist response:', response);
 
           // تحديد ما إذا كانت الاستجابة مصفوفة أو كائن وله خاصية items أو data
           let items = [];
@@ -75,7 +74,7 @@ export class WishlistComponent implements OnInit, OnDestroy {
           this.isEmpty = items.length === 0;
           this.isLoading = false;
           this.cdr.detectChanges();
-          console.log('Processed wishlist items:', this.wishlistItems);
+
         },
         error: (err) => {
           this.error =
@@ -176,3 +175,4 @@ export class WishlistComponent implements OnInit, OnDestroy {
     return product?.name || product?.title || 'Unnamed Product';
   }
 }
+

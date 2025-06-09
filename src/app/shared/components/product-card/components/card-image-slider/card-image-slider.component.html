@@ -21,9 +21,7 @@
         'color-selected': selectedColorIndex === i && selectedColorIndex >= 0
       }" [attr.aria-hidden]="i !== currentImageIndex && !(i === 1 && isHovered && !isMobile)">
       <a [routerLink]="['/product', product.slug]" [attr.aria-label]="'View ' + product.name">
-        <img [src]="getOptimizedImageUrl(image.src)" [srcset]="getImageSrcset(image)"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px" width="400" height="400"
-          [loading]="i === 0 ? 'eager' : 'lazy'" [attr.data-index]="i" [attr.fetchpriority]="i === 0 ? 'high' : 'low'"
+        <img [src]="getOptimizedImageUrl(image.src)" loading="lazy" [attr.data-index]="i"
           [alt]="image.alt || product.name" (load)="onImageLoad($event)" />
       </a>
     </div>

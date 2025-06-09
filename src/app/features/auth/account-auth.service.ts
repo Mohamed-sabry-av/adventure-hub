@@ -107,7 +107,7 @@ export class AccountAuthService {
 
       // إذا كان التوكن صالحًا محليًا، لا داعي للتحقق من الخادم
       if (tokenExpiry && tokenExpiry > Date.now()) {
-        console.log('Token is valid (local check)');
+
         this.isLoggedInSubject.next(true);
         return;
       }
@@ -115,14 +115,14 @@ export class AccountAuthService {
       this.verifyToken(true).subscribe({
         next: (response) => {
           if (response && response.valid === false) {
-            console.log('Token is invalid or expired');
+
             this.isLoggedInSubject.next(false);
           } else {
-            console.log('Token is valid');
+
           }
         },
         error: () => {
-          console.log('Token is invalid or expired');
+
           this.isLoggedInSubject.next(false);
         },
       });
@@ -147,7 +147,7 @@ export class AccountAuthService {
       )
       .pipe(
         tap((response: HttpResponse<LoginResponse>) => {
-          console.log('Cookies from response:', response.headers.get('Set-Cookie'));
+
           if (response.body?.token) {
             this.localStorageService.setItem(this.TOKEN_KEY, response.body.token);
             this.localStorageService.setItem(this.USER_KEY, {
@@ -193,9 +193,9 @@ export class AccountAuthService {
         observe: 'response',
       })
       .pipe(
-        tap((response) =>
-          console.log('Cart Cookies:', response.headers.get('Set-Cookie'))
-        )
+        tap((response) => {
+          // Log was removed here
+        })
       );
   }
 
@@ -206,10 +206,10 @@ export class AccountAuthService {
   }): Observable<any> {
     return this.WooApi.postRequest('customers', userData).pipe(
       tap((response) => {
-        console.log('SignUp successfully');
+        // Log was removed here
       }),
       catchError((error) => {
-        console.log('signUp failed', error);
+        // Log was removed here
         throw error;
       })
     );

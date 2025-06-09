@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-
 @Component({
   selector: 'app-blog-related-info',
   imports: [RouterLink],
@@ -8,3 +7,4 @@ import { RouterLink } from '@angular/router';
   styleUrl: './blog-related-info.component.css',
 })
 export class BlogRelatedInfoComponent {}
+

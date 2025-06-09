@@ -1,4 +1,4 @@
-<!-- Header content - no spacer needed as we're using body padding now -->
+<!-- Header with sticky positioning instead of fixed -->
 <header class="w-full header-container" [ngClass]="{
     'is-scroll': lastScrollY() > 0 && !isProductPage,
     'non-sticky': isProductPage || currentPage === 'checkout'
@@ -27,7 +27,8 @@
   <!-- Header content wrapper to maintain stable height -->
   <div class="header-content-wrapper">
     <!-- Layer 1: Top Info Banner - Only visible at the top of the page -->
-    <div class="header-top-layer" [class.header-layer-hidden]="lastScrollY() > 0" @layerAnimation>
+    <div class="header-top-layer" [class.header-layer-hidden]="lastScrollY() > 0"
+      [@layerAnimation]="lastScrollY() > 0 ? 'hidden' : 'visible'">
       <div class="top-info-banner">
         <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
           <strong>Free Delivery</strong> for orders over AED 100
@@ -42,12 +43,22 @@
     <div class="header-middle-layer" [class.header-middle-compact]="lastScrollY() > 10">
       <app-container>
         <div class="py-2 flex items-center justify-between relative">
-          <!-- Menu icon and Search icon -->
-          <div class="z-10 flex items-center">
-            <i class="pi pi-bars" (click)="onSiwtchSideNav(true)"></i>
-            <!-- Search icon moved to the left with some margin -->
-            <i class="pi pi-search md:hidden block ml-6" (click)="onShowSearchbar()" *ngIf="!showSearchbar()"></i>
-            <i class="pi pi-times md:hidden block ml-6" (click)="onShowSearchbar()" *ngIf="showSearchbar()"></i>
+          <!-- Menu icon and Search icon with improved click areas -->
+          <div class="z-10 flex items-center gap-2">
+            <!-- Menu icon with larger touch area -->
+            <button class="icon-btn p-2 mobile-only" (click)="onSiwtchSideNav(true)">
+              <i class="pi pi-bars text-xl"></i>
+            </button>
+
+            <!-- Search icon with larger touch area (search) -->
+            <button *ngIf="!showSearchbar()" class="icon-btn p-2 ml-2 mobile-only" (click)="onShowSearchbar()">
+              <i class="pi pi-search text-xl md:hidden block"></i>
+            </button>
+
+            <!-- Close search icon with larger touch area (X) -->
+            <button *ngIf="showSearchbar()" class="icon-btn p-2 ml-2 mobile-only" (click)="onShowSearchbar()">
+              <i class="pi pi-times text-xl md:hidden block"></i>
+            </button>
           </div>
 
           <!-- Logo - Centered on mobile -->
@@ -79,7 +90,7 @@
           </div>
         </div>
         @if (showSearchbar()) {
-        <div class="w-full -mt-[5px] md:hidden block z-10 pb-2" @layerAnimation>
+        <div class="w-full -mt-[5px] md:hidden block z-10 pb-2" [@layerAnimation]="'visible'">
           <app-search-bar />
         </div>
         }
@@ -87,7 +98,8 @@
     </div>
 
     <!-- Layer 3: Bottom - Navbar (using the new thirdLayerVisible signal) -->
-    <div class="header-bottom-layer" [class.header-layer-hidden]="!thirdLayerVisible()" @layerAnimation>
+    <div class="header-bottom-layer" [class.header-layer-hidden]="!thirdLayerVisible()"
+      [@layerAnimation]="thirdLayerVisible() ? 'visible' : 'hidden'" (@layerAnimation.done)="onAnimationDone($event)">
       @defer (on idle) {
       <app-navbar-container [mainCategories]="mainCategories" [allCategories]="allCategories" />
       }

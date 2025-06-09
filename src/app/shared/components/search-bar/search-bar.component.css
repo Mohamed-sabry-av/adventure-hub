@@ -1,13 +1,13 @@
 :host {
   display: block;
   position: relative;
-  z-index: 1001; /* Higher than overlay and results for the entire component */
+  z-index: 1050; /* Increased z-index to be higher than all header components */
 }
 
 /* Search Input Container */
 .search-input-container {
   position: relative;
-  z-index: 1002; /* Ensure the input is above everything */
+  z-index: 1052; /* Ensure the input is above everything */
 }
 
 /* Search Input Styling */
@@ -40,7 +40,7 @@ input:focus {
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
-  z-index: 999; /* Below the search input and results */
+  z-index: 1049; /* Below the search input but above header */
 }
 
 .search-results-container img {
@@ -61,7 +61,7 @@ input:focus {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   border-radius: 0.75rem;
   background: white;
-  z-index: 1000; /* Above the overlay but below the input */
+  z-index: 1051; /* Above the overlay but below the input */
   transform-origin: top center;
   overflow: hidden;
 }

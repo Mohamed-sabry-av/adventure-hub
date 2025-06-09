@@ -280,9 +280,7 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
       this.isLoadingMore = false;
       return;
     }
-    
-    console.log('Loading deferred products:', remainingIds.length);
-    
+
     // Load the remaining products with caching
     const cacheKey = `products_by_ids_${remainingIds.join('_')}`;
     

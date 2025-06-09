@@ -11,7 +11,6 @@ import { WooCommerceAccountService } from '../../account-details.service';
 import { LocalStorageService } from '../../../../../core/services/local-storage.service';
 import { Subject, catchError, finalize, forkJoin, of, takeUntil } from 'rxjs';
 import { RouterLink } from '@angular/router';
-
 @Component({
   selector: 'app-orders',
   templateUrl: './orders.component.html',
@@ -25,31 +24,25 @@ export class OrdersComponent implements OnInit, OnDestroy {
   error: string | null = null;
   hasOrders = false;
   private destroy$ = new Subject<void>();
-
   private accountService = inject(WooCommerceAccountService);
   private localStorageService = inject(LocalStorageService);
   private cdr = inject(ChangeDetectorRef);
-
   ngOnInit(): void {
     this.loadOrders();
   }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
   loadOrders(): void {
     this.isLoading = true;
     this.error = null;
-
     const customerId = this.getCustomerId();
     if (!customerId) {
       this.error = 'Customer ID not found. Please login again.';
       this.isLoading = false;
       return;
     }
-
     // استخدم WooCommerce REST API للحصول على الطلبات
     this.accountService.getOrders(customerId)
       .pipe(
@@ -69,7 +62,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
           if (Array.isArray(data)) {
             this.orders = this.processOrders(data);
             this.hasOrders = this.orders.length > 0;
-            console.log('Orders loaded:', this.orders);
+
           } else if (data && typeof data === 'object') {
             // تحقق مما إذا كان هناك بيانات في تنسيق مختلف
             if (Array.isArray(data.orders)) {
@@ -88,7 +81,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
         },
       });
   }
-
   private processOrders(orders: any[]): any[] {
     // معالجة بيانات الطلبات وتنسيقها
     return orders.map(order => {
@@ -107,12 +99,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
       return dateB - dateA;
     });
   }
-
   getCustomerId(): number | null {
     const customerIdStr: any = this.localStorageService.getItem('customerId');
     return customerIdStr ? parseInt(customerIdStr, 10) : null;
   }
-
   getOrderStatusLabel(status: string): string {
     const statusMap: { [key: string]: string } = {
       pending: 'Pending',
@@ -123,10 +113,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
       refunded: 'Refunded',
       failed: 'Failed',
     };
-
     return statusMap[status] || status;
   }
-
   getOrderStatusClass(status: string): string {
     const statusClassMap: { [key: string]: string } = {
       pending: 'status-pending',
@@ -137,26 +125,22 @@ export class OrdersComponent implements OnInit, OnDestroy {
       refunded: 'status-refunded',
       failed: 'status-failed',
     };
-
     return statusClassMap[status] || 'status-default';
   }
-
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
-
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
-
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
   }
-
   formatPrice(price: string | number): string {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     if (isNaN(numPrice)) return '$0.00';
     return `$${numPrice.toFixed(2)}`;
   }
 }
+

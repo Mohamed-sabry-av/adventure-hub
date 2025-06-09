@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   width: 100%; /* Full width of grid cell */
-  height: var(--product-card-height-desktop, 500px); /* Increased height for desktop */
+  height: var(--product-card-height-desktop, 460px); /* Reduced height for desktop */
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -119,7 +119,7 @@
   --product-grid-gap-mobile: 0.5px;
   --product-grid-gap-tablet: 2px;
   --product-grid-gap-desktop: 4px;
-  --product-card-height-desktop: 560px; /* Increased desktop height */
+  --product-card-height-desktop: 460px; /* Reduced desktop height */
   --product-card-height-tablet: 520px;
   --product-card-height-mobile: 440px;
   --product-card-height-small-mobile: 400px;
@@ -127,7 +127,7 @@
 
 /* Additional styles to ensure cards display properly in carousel */
 .splide__slide .product-card {
-  height: var(--product-card-height-desktop, 560px); /* Match desktop height in carousel */
+  height: var(--product-card-height-desktop, 460px); /* Match reduced desktop height in carousel */
   margin: 0 5px; /* Add spacing between carousel cards */
 }
 

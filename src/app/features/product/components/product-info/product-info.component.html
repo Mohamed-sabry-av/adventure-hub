@@ -166,6 +166,7 @@
         (paymentSucceeded)="onWalletPaymentSucceeded($event)"></app-wallet-payment>
     </div>
 
+    <!-- Uncomment when ready for production -->
     <app-tabby-promo [price]="getPriceInfo().price" currency="AED" lang="en" source="product"
       [publicKey]="tabbyConfig.publicKey" [merchantCode]="tabbyConfig.merchantCode"
       [shouldInheritBg]="true"></app-tabby-promo>

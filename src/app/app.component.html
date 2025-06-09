@@ -3,10 +3,11 @@
     <app-header />
   </header>
 
-  <app-side-cart />
-  <app-side-options />
-  <main class="flex-1 bg-white w-full" role="main">
+  <!-- No spacer needed with sticky positioning -->
+
+  <main class="flex-1 bg-white w-full main-content" role="main">
     <router-outlet />
+    <app-side-cart></app-side-cart>
   </main>
 
   <!-- Service Highlights Banner - Above Footer -->

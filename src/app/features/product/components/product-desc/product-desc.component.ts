@@ -177,7 +177,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit, OnChanges {
     }
     try {
       // Skip extra console log that might slow down processing
-      // console.log('Raw description:', description);
+      // 
       
       let processedDescription = description;
       
@@ -269,7 +269,6 @@ export class ProductDescComponent implements OnInit, AfterViewInit, OnChanges {
         const src = img.getAttribute('data-src');
         if (src) {
           img.src = src;
-          img.loading = 'lazy';
           img.removeAttribute('data-src');
           img.onload = () => {
             this.calculateSectionPositions();

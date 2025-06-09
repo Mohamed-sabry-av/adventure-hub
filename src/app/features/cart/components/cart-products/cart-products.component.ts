@@ -15,7 +15,6 @@ import { RouterLink } from '@angular/router';
 import { UIService } from '../../../../shared/services/ui.service';
 import { CartStatus } from '../../model/cart.model';
 import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
-
 @Component({
   selector: 'app-cart-products',
   imports: [AsyncPipe, FormsModule, CurrencySvgPipe, RouterLink],
@@ -27,22 +26,17 @@ export class CartProductsComponent {
   private uiService = inject(UIService);
   private destroyRef = inject(DestroyRef);
   productCount = viewChild<ElementRef<HTMLParagraphElement>>('productCount');
-
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
-
   progressValue: number = 0;
-
   ngOnInit() {
     const subscribtion = this.cartService.savedUserCart$.subscribe(
       (response: any) => {
         this.progressValue = response?.userCart.totals?.total_price;
       }
     );
-
     this.destroyRef.onDestroy(() => subscribtion.unsubscribe());
   }
-
   onUpdateProductQuantity(
     selectedProduct: any,
     action: 'increase' | 'decrease'
@@ -52,14 +46,13 @@ export class CartProductsComponent {
         ? selectedProduct.quantity + 1
         : selectedProduct.quantity - 1;
     if (newQuantity < 1) return;
-
     this.cartService.updateQuantityOfProductInCart(
       newQuantity,
       selectedProduct
     );
   }
-
   onDeleteProduct(selectedProduct: Product) {
     this.cartService.deleteProductFromCart(selectedProduct);
   }
 }
+

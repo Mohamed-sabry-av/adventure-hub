@@ -1,8 +1,9 @@
 .related-categories {
-  background-color: #f8f9fa;
+  background-color: #fff;
   padding: 3rem 0;
   width: 100%;
   overflow-x: hidden;
+  will-change: transform;
 }
 
 .container-fluid {
@@ -11,22 +12,40 @@
   margin: 0 auto;
 }
 
-.adventure-card {
+h2 {
+  font-size: 28px;
+  letter-spacing: 1px;
+  color: #333;
+  margin-bottom: 2rem;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+}
+
+h2:after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: #2196F3;
+}
+
+.category-card {
   display: block;
-  height: 300px;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 0.75rem;
   position: relative;
   margin: 0;
   width: 100%;
-  background-color: #ffffff;
-}
-
-.adventure-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+  aspect-ratio: 16/9; /* Horizontal rectangle ratio like in the example */
+  background-color: #f8f9fa;
+  contain: layout style;
+  backface-visibility: hidden;
 }
 
 .category-image-container {
@@ -36,20 +55,96 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: 0;
+  background-color: #f8f9fa;
 }
 
-.adventure-card img {
+.category-image-container img {
   height: 100%;
   width: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  transition: transform 0.5s ease;
-  max-height: 100%;
+  transition: transform 0.3s ease;
+  font-size: 0;
 }
 
-.adventure-card:hover img {
+.category-card:hover img {
   transform: scale(1.05);
+}
+
+/* Skeleton loading animation */
+.skeleton-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+  will-change: transform;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Category label styling */
+.adventure-card span.bg-black {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+}
+
+/* Explore button styling */
+.adventure-card span.bg-white {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.adventure-card span.bg-white:hover {
+  background-color: #f0f0f0;
+}
+
+.adventure-card span.bg-white svg {
+  margin-left: 4px;
+  width: 14px;
+  height: 14px;
 }
 
 /* Larger screens */
@@ -57,11 +152,27 @@
   .adventure-card {
     height: 380px;
   }
+  
+  h2 {
+    font-size: 32px;
+  }
+  
+  .adventure-card span.bg-black {
+    font-size: 13px;
+  }
+  
+  .adventure-card span.bg-white {
+    font-size: 14px;
+  }
 }
 
 @media (min-width: 1400px) and (max-width: 1599px) {
   .adventure-card {
     height: 350px;
+  }
+  
+  h2 {
+    font-size: 30px;
   }
 }
 
@@ -82,11 +193,19 @@
   .adventure-card {
     height: 240px;
   }
+  
+  h2 {
+    font-size: 24px;
+  }
 }
 
 @media (max-width: 768px) {
   .adventure-card {
     height: 220px;
+  }
+  
+  h2 {
+    font-size: 22px;
   }
 }
 
@@ -98,6 +217,15 @@
   .related-categories {
     padding: 2rem 0.5rem;
   }
+  
+  h2 {
+    font-size: 20px;
+  }
+  
+  h2:after {
+    width: 40px;
+    height: 2px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -108,6 +236,10 @@
   .adventure-card span {
     font-size: 0.7rem;
   }
+  
+  h2 {
+    font-size: 18px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -115,11 +247,7 @@
     height: 140px;
   }
   
-  .adventure-card .p-3 {
-    padding: 0.5rem;
-  }
-  
-  .adventure-card .p-4 {
+  .adventure-card .p-2 {
     padding: 0.5rem;
   }
 }

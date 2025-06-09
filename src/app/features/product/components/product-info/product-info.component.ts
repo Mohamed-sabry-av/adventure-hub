@@ -126,7 +126,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const product = this.productInfo();
-    console.log('product',product)
+
     if (product) {
       // Reset state
       this.quantity = 1;
@@ -779,8 +779,9 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   formatSizeName(size: string): string {
     if (!size) return '';
-    // Convert dash format to dot format (e.g., "1-l" to "1.L US")
+    // Convert dash format to dot format (e.g., "1-l" to "1.L")
     const formattedSize = size.replace(/-/g, '.').toUpperCase();
-    return `${formattedSize} US`;
+    return formattedSize;
   }
 }
+

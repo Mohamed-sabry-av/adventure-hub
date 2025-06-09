@@ -14,7 +14,7 @@ export class RecentlyVisitedService {
   private platformId = inject(PLATFORM_ID);
 
   constructor() {
-    console.log('RecentlyVisitedService - Initializing');
+
     this.loadFromLocalStorage();
   }
 
@@ -58,14 +58,14 @@ export class RecentlyVisitedService {
 
     this.recentlyVisitedProductsSubject.next(updatedProducts);
     this.saveToLocalStorage(updatedProducts);
-    console.log('RecentlyVisitedService - Product removed:', productId);
+
   }
 
 
 
   private loadFromLocalStorage(): void {
     if (!isPlatformBrowser(this.platformId)) {
-      console.log('RecentlyVisitedService - Not in browser environment, skipping localStorage loading');
+
       return;
     }
     
@@ -95,3 +95,4 @@ export class RecentlyVisitedService {
     }
   }
 }
+
