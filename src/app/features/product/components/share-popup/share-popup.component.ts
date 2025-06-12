@@ -120,7 +120,7 @@ export class SharePopupComponent {
         }, 2000);
       })
       .catch((err) => {
-        console.error('Could not copy text: ', err);
+        
         this.legacyCopyToClipboard();
       });
   }
@@ -150,7 +150,7 @@ export class SharePopupComponent {
       // Remove the temporary element
       document.body.removeChild(tempInput);
     } catch (error) {
-      console.error('Legacy copy failed:', error);
+      
       this.uiService.showError('Please copy this URL manually: ' + this.productUrl);
     }
   }

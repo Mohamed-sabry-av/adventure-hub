@@ -10,29 +10,38 @@
   padding: 0;
   z-index: 1;
   border-bottom: 0; /* Remove any bottom border */
+  min-height: 20rem; /* Ensure minimum height */
+  aspect-ratio: 2.5 / 1; /* Set aspect ratio for the container */
 }
 
 /* Ensure no margins on elements */
 .splide {
   margin: 0 !important;
   padding: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .splide__track {
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden;
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .splide__list {
   margin: 0 !important;
   padding: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .splide__slide {
   margin: 0 !important;
   padding: 0 !important;
-  height: auto;
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .slide-item {
@@ -42,6 +51,7 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .slide-item img {
@@ -51,6 +61,7 @@
   margin: 0;
   padding: 0;
   object-fit: cover;
+  object-position: center;
 }
 
 /* Remove bottom margins and paddings */
@@ -58,6 +69,7 @@
   display: block;
   margin: 0 !important;
   padding: 0 !important;
+  width: 100%;
 }
 
 :host ::ng-deep .splide__pagination {
@@ -151,6 +163,8 @@
 .skeleton-slider {
   position: relative;
   overflow: hidden;
+  width: 100%;
+  aspect-ratio: 2.5 / 1;
 }
 
 .skeleton-shimmer {
@@ -208,8 +222,37 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .slide-content {
-    text-align: center;
-    align-items: center;
+  .slider-container {
+    aspect-ratio: 1 / 1;
+  }
+  .skeleton-slider {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1023px) {
+  .slider-container {
+    aspect-ratio: 2 / 1;
+  }
+  .skeleton-slider {
+    aspect-ratio: 2 / 1;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .slider-container {
+    aspect-ratio: 2.5 / 1;
+  }
+  .skeleton-slider {
+    aspect-ratio: 2.5 / 1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .slider-container {
+    aspect-ratio: 3 / 1;
+  }
+  .skeleton-slider {
+    aspect-ratio: 3 / 1;
   }
 }

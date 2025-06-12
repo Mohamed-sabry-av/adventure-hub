@@ -97,7 +97,7 @@ export class ContentPagesService {
       .pipe(
         map(response => this.processPageData(response)),
         catchError(error => {
-          console.error(`Error fetching page ID ${pageId}:`, error);
+          
           return of(null);
         }),
         // Important: shareReplay(1) means the observable will replay its most recent emission

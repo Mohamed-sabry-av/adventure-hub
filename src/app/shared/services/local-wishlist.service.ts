@@ -18,7 +18,7 @@ export class LocalWishlistService {
       this.wishlistItems$.next(storedWishlist);
       this.wishlistCount$.next(storedWishlist.length);
     } catch (error) {
-      console.error('Error loading wishlist from storage:', error);
+      
       this.wishlistItems$.next([]);
       this.wishlistCount$.next(0);
     }
@@ -29,7 +29,7 @@ export class LocalWishlistService {
       this.wishlistItems$.next(items);
       this.wishlistCount$.next(items.length);
     } catch (error) {
-      console.error('Error saving wishlist to storage:', error);
+      
     }
   }
   getWishlist(): Observable<Product[]> {
@@ -54,7 +54,7 @@ export class LocalWishlistService {
       this.saveWishlistToStorage(updatedItems);
       return of({ success: true, message: 'Product added to wishlist' });
     } catch (error) {
-      console.error('Error adding product to wishlist:', error);
+      
       return of({ success: false, message: 'Failed to add product to wishlist' });
     }
   }
@@ -69,7 +69,7 @@ export class LocalWishlistService {
       this.saveWishlistToStorage(updatedItems);
       return of({ success: true, message: 'Product removed from wishlist' });
     } catch (error) {
-      console.error('Error removing product from wishlist:', error);
+      
       return of({ success: false, message: 'Failed to remove product from wishlist' });
     }
   }
@@ -78,7 +78,7 @@ export class LocalWishlistService {
       this.saveWishlistToStorage([]);
       return of({ success: true, message: 'Wishlist cleared successfully' });
     } catch (error) {
-      console.error('Error clearing wishlist:', error);
+      
       return of({ success: false, message: 'Failed to clear wishlist' });
     }
   }

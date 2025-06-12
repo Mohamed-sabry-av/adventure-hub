@@ -129,6 +129,13 @@
   transition: transform 0.1s ease-out, opacity 0.3s ease;
 }
 
+.main-img.mobile-view {
+  width: auto;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
 .main-img.loading {
   opacity: 0.5;
 }
@@ -178,10 +185,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  z-index: 25;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: #333;
   transition: background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .fullscreen-btn:hover {
@@ -197,13 +206,27 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.95);
-  z-index: 9999;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
 
+/* Ensure fullscreen elements have higher z-index than any other components */
+.fullscreen-gallery,
+.fullscreen-gallery *,
+.fullscreen-container,
+.fullscreen-close,
+.fullscreen-prev,
+.fullscreen-next,
+.fullscreen-image,
+.fullscreen-counter,
+.fullscreen-thumbnails {
+  z-index: 101 !important;
+}
+
+/* Ensure fullscreen container has proper stacking context */
 .fullscreen-container {
   position: relative;
   width: 100%;
@@ -213,8 +236,10 @@
   justify-content: center;
   overflow: hidden;
   user-select: none;
+  z-index: 100; /* Create stacking context */
 }
 
+/* Make sure image is behind controls but still visible */
 .fullscreen-image {
   position: relative;
   max-width: 90%;
@@ -222,6 +247,27 @@
   overflow: hidden;
   transition: transform 0.2s ease-out;
   will-change: transform;
+  z-index: 5; /* Lower than controls */
+}
+
+/* Controls should be above image */
+.fullscreen-close,
+.fullscreen-prev, 
+.fullscreen-next,
+.zoom-toggle,
+.fullscreen-counter,
+.fullscreen-thumbnails {
+  z-index: 120 !important; /* Higher than image and container */
+}
+
+/* Add subtle glow to controls for better visibility */
+.fullscreen-close,
+.fullscreen-prev, 
+.fullscreen-next,
+.zoom-toggle {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .fullscreen-image.zoomed {
@@ -244,7 +290,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.3);
   border: none;
   cursor: pointer;
   display: flex;
@@ -253,12 +299,15 @@
   font-size: 24px;
   color: white;
   transition: background-color 0.2s;
-  z-index: 10;
+  z-index: 150;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .fullscreen-prev:hover,
 .fullscreen-next:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .fullscreen-prev {
@@ -277,19 +326,22 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.3);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 150;
   color: white;
   transition: background-color 0.2s;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .fullscreen-close:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* Zoom toggle button */
@@ -300,19 +352,22 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.3);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 150;
   color: white;
   transition: background-color 0.2s;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .zoom-toggle:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* Fullscreen counter */
@@ -326,7 +381,7 @@
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 14px;
-  z-index: 10;
+  z-index: 20;
 }
 
 /* Fullscreen thumbnails */
@@ -342,6 +397,7 @@
   margin: 0 auto;
   padding-bottom: 10px;
   justify-content: center;
+  z-index: 20;
 }
 
 .fullscreen-thumbnail {
@@ -485,14 +541,54 @@
   }
 
   .main-image {
-    height: 400px;
+    height: auto;
+    min-height: 300px;
+    max-height: 80vh;
     order: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .main-splide {
+    height: auto;
+    width: 100%;
+  }
+  
+  .image-slide {
+    padding: 20px 0;
+  }
+  
+  /* Disable zoom functionality on mobile */
+  .zoom-container {
+    cursor: default !important;
+  }
+  
+  /* Ensure images display at full size with contain */
+  .main-img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain !important;
+    transform: none !important;
   }
 
   .fullscreen-prev,
   .fullscreen-next {
     width: 40px;
     height: 40px;
+  }
+  
+  /* Reduce font size for navigation buttons */
+  :host ::ng-deep .main-splide .splide__arrow svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Make prev/next text smaller */
+  .product-navigation span {
+    font-size: 12px;
   }
 
   .fullscreen-thumbnail {
@@ -504,10 +600,6 @@
   .zoom-toggle {
     width: 36px;
     height: 36px;
-  }
-
-  .main-splide {
-    height: 100%;
   }
 
   /* Hide native Splide pagination on mobile */
@@ -527,5 +619,64 @@
 
   .thumbnails-column::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Prevent any transform effects on mobile */
+  .main-img,
+  .main-img.mobile-view,
+  .splide__slide img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  
+  /* Ensure fullscreen controls are bigger on mobile for better touch targets */
+  .fullscreen-prev,
+  .fullscreen-next,
+  .fullscreen-close,
+  .zoom-toggle {
+    width: 60px !important;
+    height: 60px !important;
+    background: rgba(255, 255, 255, 0.5);
+    color: #333;
+  }
+  
+  /* Make the fullscreen button more visible on mobile */
+  .fullscreen-btn {
+    width: 50px !important;
+    height: 50px !important;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    z-index: 25;
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  /* Add space around button content to increase touch target */
+  .fullscreen-btn svg,
+  .fullscreen-prev svg,
+  .fullscreen-next svg,
+  .fullscreen-close svg,
+  .zoom-toggle svg {
+    padding: 8px;
+    box-sizing: content-box;
+  }
+
+  /* Prevent any other elements from overlapping our controls */
+  .splide__slide, 
+  .splide__track, 
+  .splide__list {
+    overflow: visible !important;
+  }
+  
+  /* Make sure thumbnails are easier to tap */
+  .fullscreen-thumbnail {
+    width: 70px;
+    height: 70px;
+    margin: 0 5px;
   }
 }

@@ -23,15 +23,17 @@
   </div>
 
   <!-- Main image Splide with zoom functionality -->
-  <div class="main-image zoom-container" [class.single-image]="images.length === 1" (mousemove)="zoom($event)"
-    (mouseleave)="resetZoom()" (click)="toggleZoom()" #zoomContainer>
+  <div class="main-image" [ngClass]="{
+    'single-image': images.length === 1,
+    'zoom-container': !isMobile
+  }" (mousemove)="zoom($event)" (mouseleave)="resetZoom()" (click)="!isMobile && toggleZoom()" #zoomContainer>
     <div class="splide main-splide" #splideMain>
       <div class="splide__track">
         <ul class="splide__list">
           <li class="splide__slide" *ngFor="let image of images; let i = index; trackBy: trackByFn">
             <div class="image-slide">
               <img [src]="image.src" [alt]="image.alt || productName()" class="main-img"
-                [class.loading]="isImageLoading" width="640" height="640" loading="lazy" (load)="onImageLoad()"
+                [class.loading]="isImageLoading" [class.mobile-view]="isMobile" loading="lazy" (load)="onImageLoad()"
                 (error)="onImageError()" />
             </div>
           </li>
@@ -39,7 +41,8 @@
       </div>
     </div>
 
-    <button class="fullscreen-btn" (click)="openFullscreen(); $event.stopPropagation()" title="View fullscreen">
+    <button class="fullscreen-btn" (click)="openFullscreen(); $event.stopPropagation()"
+      (touchstart)="openFullscreen(); $event.stopPropagation()" title="View fullscreen" aria-label="View fullscreen">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
         <path
           d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z" />
@@ -54,12 +57,22 @@
 </div>
 
 <!-- Fullscreen image popup -->
-<div class="fullscreen-gallery" *ngIf="isFullscreen()" (click)="closeFullscreen()">
+<div class="fullscreen-gallery" *ngIf="fullscreenService.isFullscreen()" (click)="closeFullscreen()">
   <div class="fullscreen-container" #fullscreenContainer (click)="$event.stopPropagation()"
     (mousemove)="zoomFullscreen($event)" (touchmove)="zoomFullscreen($event)">
 
+    <!-- Fullscreen image (placed first to be in the back) -->
+    <div class="fullscreen-image" [class.zoomed]="fullscreenZoomLevel() > 1"
+      [style.transform]="'scale(' + fullscreenZoomLevel() + ')'"
+      [style.transform-origin]="fullscreenPosition().x + '% ' + fullscreenPosition().y + '%'">
+      <img *ngIf="images[selectedImageIndex]" [src]="images[selectedImageIndex].src"
+        [alt]="images[selectedImageIndex].alt || productName()" (load)="onImageLoad()" (error)="onImageError()" />
+    </div>
+
+    <!-- Controls placed after image to ensure they're rendered on top -->
     <!-- Close button -->
-    <button class="fullscreen-close" (click)="closeFullscreen()">
+    <button class="fullscreen-close" (click)="closeFullscreen(); $event.stopPropagation()"
+      (touchstart)="closeFullscreen(); $event.stopPropagation()" aria-label="Close fullscreen view">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -69,36 +82,23 @@
 
     <!-- Navigation buttons - Only show if multiple images -->
     <ng-container *ngIf="images.length > 1">
-      <button class="fullscreen-prev" (click)="prevImage(); $event.stopPropagation()">❮</button>
-      <button class="fullscreen-next" (click)="nextImage(); $event.stopPropagation()">❯</button>
+      <button class="fullscreen-prev" (click)="prevImage(); $event.stopPropagation()"
+        (touchstart)="prevImage(); $event.stopPropagation()" aria-label="Previous image">❮</button>
+      <button class="fullscreen-next" (click)="nextImage(); $event.stopPropagation()"
+        (touchstart)="nextImage(); $event.stopPropagation()" aria-label="Next image">❯</button>
     </ng-container>
 
     <!-- Zoom toggle button -->
-    <button class="zoom-toggle" (click)="toggleFullscreenZoom(); $event.stopPropagation()">
-      <svg *ngIf="fullscreenZoomLevel() === 1" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round">
+    <button class="zoom-toggle" (click)="toggleFullscreenZoom(); $event.stopPropagation()"
+      (touchstart)="toggleFullscreenZoom(); $event.stopPropagation()" aria-label="Toggle zoom">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"></circle>
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         <line x1="11" y1="8" x2="11" y2="14"></line>
         <line x1="8" y1="11" x2="14" y2="11"></line>
       </svg>
-      <svg *ngIf="fullscreenZoomLevel() > 1" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        <line x1="8" y1="11" x2="14" y2="11"></line>
-      </svg>
     </button>
-
-    <!-- Fullscreen image -->
-    <div class="fullscreen-image" [class.zoomed]="fullscreenZoomLevel() > 1"
-      [style.transform]="'scale(' + fullscreenZoomLevel() + ')'"
-      [style.transform-origin]="fullscreenPosition().x + '% ' + fullscreenPosition().y + '%'">
-      <img *ngIf="images[selectedImageIndex]" [src]="images[selectedImageIndex].src"
-        [alt]="images[selectedImageIndex].alt || productName()" (load)="onImageLoad()" (error)="onImageError()" />
-    </div>
 
     <!-- Image counter - Only show if multiple images -->
     <div class="fullscreen-counter" *ngIf="images.length > 1">

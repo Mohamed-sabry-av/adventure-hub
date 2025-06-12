@@ -327,7 +327,7 @@ export class SearchBarService {
           }));
         }),
         catchError((error) => {
-          console.error('API Error:', error);
+          
           return of([]);
         })
       ),
@@ -379,7 +379,7 @@ export class SearchBarService {
         };
         
         this.speechRecognition.onerror = (event: any) => {
-          console.error('Speech recognition error', event.error);
+          
           this.ngZone.run(() => {
             this.isListening = false;
             this.voiceSearchStatusSubject.next({isListening: false});
@@ -460,7 +460,7 @@ export class SearchBarService {
               }));
             }),
             catchError(error => {
-              console.error('Error fetching products:', error);
+              
               return of([]);
             })
           ),
@@ -468,7 +468,7 @@ export class SearchBarService {
           .getRequest(`products/categories?search=${searchTerm}&per_page=8`)
           .pipe(
             catchError(error => {
-              console.error('Error fetching categories:', error);
+              
               return of([]);
             })
           )

@@ -39,7 +39,7 @@ export class FacebookAuthService {
           }
         }),
         catchError((error) => {
-          console.error('Facebook login failed:', error);
+          
           throw error;
         })
       );

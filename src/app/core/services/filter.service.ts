@@ -39,7 +39,7 @@ export class FilterService {
           return attributesMap;
         }),
         catchError((error) => {
-          console.error(`Error fetching attributes for category ${categoryId}:`, error);
+          
           this.handleErrorsService.handelError(error);
           return of({});
         }),
@@ -71,7 +71,7 @@ export class FilterService {
       availableAttributes: this.getAvailableAttributesAndTerms(categoryId, filters),
     }).pipe(
       catchError((error) => {
-        console.error('Error fetching products and filters:', error);
+        
         return of({ products: [], attributes: {}, availableAttributes: {} });
       })
     );
@@ -106,7 +106,7 @@ export class FilterService {
           return attributesMap;
         }),
         catchError((error) => {
-          console.error(`Error fetching available attributes for category ${categoryId}:`, error);
+          
           this.handleErrorsService.handelError(error);
           return of({});
         }),
@@ -138,16 +138,23 @@ export class FilterService {
         })
         .pipe(
           tap((response: HttpResponse<any>) => {
-
+            // Log the total number of products found
           }),
           map((response: HttpResponse<any>) => {
-            return (response.body || []).map((product: any) => ({
+            // Filter products to ensure they are in stock
+            const products = (response.body || []).filter((product: any) => 
+              product.stock_status === 'instock' && 
+              (product.variations?.length === 0 || product.variations?.some((v: any) => v.stock_status === 'instock'))
+            );
+            
+            // Limit images to 3 per product
+            return products.map((product: any) => ({
               ...product,
               images: product.images?.slice(0, 3) || [],
             }));
           }),
           catchError((error) => {
-            console.error('Error fetching filtered products:', error);
+            
             this.handleErrorsService.handelError(error);
             return of([]);
           }),
@@ -181,7 +188,7 @@ getSearchFilters(searchTerm: string): Observable<{ [key: string]: { name: string
         return attributesMap;
       }),
       catchError((error) => {
-        console.error(`Error fetching search filters for ${searchTerm}:`, error);
+        
         this.handleErrorsService.handelError(error);
         return of({});
       }),

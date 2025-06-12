@@ -48,7 +48,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         catchError(err => {
-          console.error('Error loading orders from primary source:', err);
+          
           // محاولة استراتيجية بديلة للحصول على الطلبات
           return this.accountService.getCustomerOrders();
         }),
@@ -77,7 +77,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.error = 'Failed to load orders. Please try again later.';
-          console.error('Error loading orders:', err);
+          
         },
       });
   }

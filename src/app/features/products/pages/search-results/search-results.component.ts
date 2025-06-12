@@ -173,7 +173,7 @@ export class SearchResultsComponent implements OnInit {
         await this.loadSearchResults();
       }
     } catch (error) {
-      console.error('Error in loadInitialData:', error);
+      
       this.showEmptyState = true;
     } finally {
       this.isLoading = false;
@@ -201,7 +201,7 @@ export class SearchResultsComponent implements OnInit {
       this.transferState.set(SEARCH_FILTERS_KEY, this.attributes);
       this.cdr.markForCheck();
     } catch (error) {
-      console.error('Error loading search filters:', error);
+      
       this.attributes = {};
     }
   }
@@ -236,7 +236,7 @@ export class SearchResultsComponent implements OnInit {
       
       this.showEmptyState = this.products.length === 0;
     } catch (error) {
-      console.error('Error loading search results:', error);
+      
       this.products = [];
       this.showEmptyState = true;
       this.totalProducts = 0; // Ensure totalProducts is 0 on error
@@ -269,7 +269,7 @@ export class SearchResultsComponent implements OnInit {
       )
       .pipe(
         catchError((error) => {
-          console.error('Error in search with filters:', error);
+          
           return of([]);
         }),
         finalize(() => {
@@ -323,7 +323,7 @@ export class SearchResultsComponent implements OnInit {
         this.products = [...this.products, ...products];
       }
     } catch (error) {
-      console.error('Error loading more results:', error);
+      
     } finally {
       this.isLoadingMore = false;
       this.cdr.markForCheck();

@@ -49,7 +49,7 @@ export class ProductService {
           return products;
         }),
         catchError((error) => {
-          console.error('Error fetching all products:', error);
+          
           return of([]); // إرجاع مصفوفة فريدة فارغة في حالة الخطأ
         }),
         shareReplay(1)
@@ -75,15 +75,13 @@ export class ProductService {
         map((response: HttpResponse<any>) => {
           const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
           if (isNaN(total)) {
-            console.warn(
-              'X-WP-Total header not found or invalid, defaulting to 0'
-            );
+            
             return 0;
           }
           return total;
         }),
         catchError((error) => {
-          console.error('Error fetching total products:', error);
+          
           return of(0); // إرجاع 0 كقيمة افتراضية
         })
       ),
@@ -143,7 +141,7 @@ export class ProductService {
           return response.body as Product;
         }),
         catchError((error) => {
-          console.error(`Error fetching product ${id}:`, error);
+          
           return this.handleErrorsService.handelError(error);
         }),
         shareReplay(1)
@@ -176,7 +174,7 @@ export class ProductService {
       this.getProductById(productId).pipe(
         map((product: Product) => this.extractVariationsFromProduct(product)),
         catchError(error => {
-          console.error(`Error extracting variations for product ${productId}:`, error);
+          
           return of([]);
         })
       )
@@ -195,7 +193,7 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
         return response.body as Variation;
       }),
       catchError((error) => {
-        console.error(`Error fetching variation ${variationId} for product ${productId}:`, error);
+        
         return this.handleErrorsService.handelError(error);
       }),
       shareReplay(1)
@@ -222,7 +220,7 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
           alt: media.alt_text || '',
         })),
         catchError((error) => {
-          console.error(`Error fetching media ${mediaId}:`, error);
+          
           return of(null);
         })
       ),
@@ -256,7 +254,7 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
           return products;
         }),
         catchError((error) => {
-          console.error('Error fetching products by IDs:', error);
+          
           return of([]);
         }),
         shareReplay(1)
@@ -272,8 +270,8 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
       cacheKey,
       this.WooAPI.getRequestProducts<any>('products', {
         params: new HttpParams()
-          .set('slug', slug),
-
+          .set('slug', slug)
+          .set('stock_status', 'instock'),
         observe: 'response',
       }).pipe(
         map((response: HttpResponse<any>) => {
@@ -284,7 +282,7 @@ getVariationById(productId: number, variationId: number): Observable<Variation> 
           return product as Product;
         }),
         catchError((error) => {
-          console.error(`Error fetching product with slug ${slug}:`, error);
+          
           return of(null);
         }),
         shareReplay(1)

@@ -300,24 +300,24 @@
 
 /* تحسين أنماط زر Deals في القائمة الجانبية */
 .deals-button-mobile {
-  background: linear-gradient(to right, #f4663c, #f97316);
+  background: linear-gradient(to right, #3b82f6, #4f46e5);
   color: white;
-  font-weight: 600;
-  padding: 12px 20px;
-  margin: 12px auto;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  display: flex;
-  width: 90%;
-  max-width: 300px;
-  box-shadow: 0 2px 8px rgba(244, 102, 60, 0.4);
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  width : 90px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
 .deals-button-mobile:hover {
-  background: linear-gradient(to right, #e94426, #ea580c);
-  box-shadow: 0 4px 12px rgba(244, 102, 60, 0.5);
-  transform: translateY(-2px);
+  background: linear-gradient(to right, #2563eb, #4338ca);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
 }
 
 .deals-button-mobile:active {

@@ -85,9 +85,9 @@ export class SizeSelectorComponent implements OnChanges {
   // Format the size value to use dots instead of dashes
   formatSizeName(size: string): string {
     if (!size) return '';
-    // Convert dash format to dot format (e.g., "1-l" to "1.L")
-    const formattedSize = size.replace(/-/g, '.').toUpperCase();
-    return formattedSize;
+    // For size-selector, we don't have direct access to the product attributes
+    // So we just return the original value and let the parent component handle the formatting if needed
+    return size;
   }
 }
 

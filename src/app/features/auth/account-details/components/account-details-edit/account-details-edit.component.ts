@@ -67,7 +67,7 @@ export class AccountDetailsEditComponent {
       error: (err) => {
         this.error = 'Failed to load account details. Please try again later.';
         this.isLoading = false;
-        console.error('Error loading customer details:', err);
+        
       },
     });
   }
@@ -119,7 +119,7 @@ export class AccountDetailsEditComponent {
       error: (err) => {
         this.error = 'Failed to update account details. Please try again.';
         this.isSaving = false;
-        console.error('Error updating customer details:', err);
+        
       },
     });
   }
@@ -160,7 +160,7 @@ export class AccountDetailsEditComponent {
         error: (err) => {
           this.error = 'Failed to update password. Please try again.';
           this.isSaving = false;
-          console.error('Error updating password:', err);
+          
         },
       });
   }

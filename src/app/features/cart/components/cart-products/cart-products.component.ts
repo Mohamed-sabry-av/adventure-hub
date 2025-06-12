@@ -29,10 +29,22 @@ export class CartProductsComponent {
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
   cartStatus$: Observable<CartStatus> = this.uiService.cartStatus$;
   progressValue: number = 0;
+  progressPercentage: number = 0;
+  
   ngOnInit() {
     const subscribtion = this.cartService.savedUserCart$.subscribe(
       (response: any) => {
-        this.progressValue = response?.userCart.totals?.total_price;
+        const cartTotal = response?.userCart.totals?.total_price || 0;
+        // Calculate how much more is needed to reach 100 AED for free shipping
+        if (cartTotal >= 100) {
+          this.progressValue = 0; // No additional amount needed
+          this.progressPercentage = 100; // Full progress bar
+        } else {
+          // Calculate remaining amount needed (100 - current total)
+          this.progressValue = Math.max(0, 100 - cartTotal);
+          // Calculate progress percentage (current total / 100) * 100
+          this.progressPercentage = Math.min(100, Math.max(0, (cartTotal / 100) * 100));
+        }
       }
     );
     this.destroyRef.onDestroy(() => subscribtion.unsubscribe());

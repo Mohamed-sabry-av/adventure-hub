@@ -66,8 +66,9 @@
           stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        <span class="hidden sm:inline">Previous:</span>
-        <span class="ml-1 font-medium truncate max-w-[150px] inline-block" [innerHTML]="previousProduct.title"></span>
+        <span class="hidden sm:inline text-sm md:text-base">Previous:</span>
+        <span class="ml-1 font-medium truncate max-w-[150px] inline-block text-xs sm:text-sm md:text-base"
+          [innerHTML]="previousProduct.title"></span>
       </button>
       } @else {
       <div></div> <!-- Empty div for spacing -->
@@ -77,8 +78,9 @@
       <button (click)="navigateToProduct(nextProduct.slug)"
         class="flex items-center text-gray-700 hover:text-primary-600 transition-colors"
         aria-label="Go to next product">
-        <span class="hidden sm:inline">Next:</span>
-        <span class="mx-1 font-medium truncate max-w-[150px] inline-block" [innerHTML]="nextProduct.title"></span>
+        <span class="hidden sm:inline text-sm md:text-base">Next:</span>
+        <span class="mx-1 font-medium truncate max-w-[150px] inline-block text-xs sm:text-sm md:text-base"
+          [innerHTML]="nextProduct.title"></span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24"
           stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

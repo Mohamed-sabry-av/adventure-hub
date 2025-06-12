@@ -114,7 +114,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
     } else {
-      console.warn('FilterSidebarComponent not initialized in ngAfterViewInit');
+      
     }
   }
   async loadInitialData() {
@@ -159,7 +159,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
         ]);
       }
     } catch (error) {
-      console.error('Error in loadInitialData:', error);
+      
       this.schemaData = this.seoService.applySeoTags(null, {
         title: 'Brand Products - Adventures HUB Sports Shop',
         description: 'Explore products by brand at Adventures HUB Sports Shop.',
@@ -178,7 +178,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
         .getBrandInfoBySlug(this.currentBrandSlug!)
         .pipe(
           catchError((error) => {
-            console.error('Brand not found:', error);
+            
             this.router.navigate(['/page-not-found']);
             return throwError(() => new Error('Brand not found'));
           })
@@ -193,7 +193,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
         this.router.navigate(['/page-not-found']);
       }
     } catch (error) {
-      console.error('Error loading brand info:', error);
+      
       throw error;
     }
   }
@@ -212,7 +212,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       this.attributes = attributesData || {};
       this.cdr.markForCheck();
     } catch (error) {
-      console.error('Error loading brand attributes:', error);
+      
     }
   }
   private async loadProducts(brandTermId: number, page: number) {
@@ -252,7 +252,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       }
       this.showEmptyState = this.products.length === 0;
     } catch (error) {
-      console.error('Error loading products:', error);
+      
       if (isInitialLoad) this.products = [];
       this.showEmptyState = this.products.length === 0;
     } finally {
@@ -277,7 +277,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       this.totalProducts = total ?? 0;
       this.cdr.markForCheck();
     } catch (error) {
-      console.error('Error loading total products:', error);
+      
       this.totalProducts = 0;
       this.cdr.markForCheck();
     }
@@ -311,7 +311,7 @@ export class ProductsByBrandComponent implements OnInit, OnDestroy {
       this.products = products || [];
       await this.loadTotalProducts(brandTermId);
     } catch (error) {
-      console.error('Error loading filtered products:', error);
+      
       this.products = [];
     } finally {
       this.isLoading = false;

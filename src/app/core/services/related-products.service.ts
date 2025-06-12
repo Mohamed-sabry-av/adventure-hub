@@ -50,8 +50,8 @@ export class RelatedProductsService {
       batches.push(
         this.productService.getProductsByIds(batchIds).pipe(
           map(products => products.filter(p => 
-            p.stock_status === 'instock' || 
-            (p.variations?.length === 0 && (p.stock_quantity ?? 0) > 0)
+            p.stock_status === 'instock' && 
+            (p.variations?.length === 0 || p.variations?.some(v => v.stock_status === 'instock'))
           )),
           catchError(() => of([]))
         )
@@ -268,7 +268,7 @@ export class RelatedProductsService {
         this.localStorageService.setItem(this.STORAGE_KEY, {});
       }
     } catch (error) {
-      console.error('Error loading related products IDs from localStorage:', error);
+      
       // في حالة وجود خطأ، نبدأ مع مصفوفة فارغة
       this.localStorageService.setItem(this.STORAGE_KEY, {});
     }

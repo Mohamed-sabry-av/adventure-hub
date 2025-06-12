@@ -79,7 +79,7 @@ export class BreadcrumbRoutesComponent implements OnInit {
 
       this.isDataFullyLoaded = true;
     } catch (error) {
-      console.error('Error loading subcategories:', error);
+      
       this.subcategories = [];
       this.isDataFullyLoaded = true;
     }
@@ -102,7 +102,7 @@ export class BreadcrumbRoutesComponent implements OnInit {
     try {
       await this.router.navigate(newPath);
     } catch (error) {
-      console.error('Navigation error:', error);
+      
     }
   }
 }

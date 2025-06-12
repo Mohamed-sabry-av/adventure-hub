@@ -1,12 +1,13 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import { BehaviorSubject, catchError, Observable, tap, of, throwError, delay, timer } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, tap, of, throwError, delay, timer, switchMap } from 'rxjs';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { LoginResponse, User } from '../../interfaces/user.model';
 import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 import { KlaviyoTrackingService } from '../../shared/services/klaviyo-tracking.service';
+import { RecaptchaService } from './services/recaptcha.service';
 
 @Injectable({
   providedIn: 'root',
@@ -29,7 +30,8 @@ export class AccountAuthService {
   constructor(
     private WooApi: ApiService,
     private http: HttpClient,
-    private localStorageService: LocalStorageService
+    private localStorageService: LocalStorageService,
+    private recaptchaService: RecaptchaService
   ) {
     const token = this.localStorageService.getItem<string>(this.TOKEN_KEY);
     const tokenExpiry = this.localStorageService.getItem<number>(this.TOKEN_EXPIRY_KEY);
@@ -92,7 +94,7 @@ export class AccountAuthService {
           this.tokenValidationInProgress = false;
         }),
         catchError((error) => {
-          console.error('Token verification failed:', error);
+          
           this.tokenValidationInProgress = false;
           this.logout();
           return silent ? of({ valid: false, error }) : throwError(() => error);
@@ -180,7 +182,7 @@ export class AccountAuthService {
           }
         }),
         catchError((error) => {
-          console.error('Login failed:', error);
+          
           throw error;
         })
       );
@@ -203,16 +205,32 @@ export class AccountAuthService {
     username: string;
     email: string;
     password: string;
+    recaptchaToken?: string;
   }): Observable<any> {
-    return this.WooApi.postRequest('customers', userData).pipe(
-      tap((response) => {
-        // Log was removed here
-      }),
-      catchError((error) => {
-        // Log was removed here
-        throw error;
-      })
-    );
+    // If recaptchaToken is provided, verify it first
+    if (userData.recaptchaToken) {
+      return this.recaptchaService.verifyToken(userData.recaptchaToken).pipe(
+        switchMap(response => {
+          if (response.success) {
+            // Remove recaptchaToken from userData before sending to WooCommerce
+            const { recaptchaToken, ...userDataWithoutToken } = userData;
+            return this.WooApi.postRequest('customers', userDataWithoutToken);
+          } else {
+            return throwError(() => new Error('reCAPTCHA verification failed'));
+          }
+        }),
+        tap((response) => {
+          // Log was removed here
+        }),
+        catchError((error) => {
+          // Log was removed here
+          throw error;
+        })
+      );
+    } else {
+      // Fallback for no recaptcha token (should not happen)
+      return throwError(() => new Error('reCAPTCHA verification is required'));
+    }
   }
 
   logout(): void {

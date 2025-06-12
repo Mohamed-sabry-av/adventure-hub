@@ -1,0 +1,5 @@
+// Styles for payment component
+.paymentOptionActive {
+  border: 2px solid #3BB45A;
+  border-radius: 0.5rem;
+} 

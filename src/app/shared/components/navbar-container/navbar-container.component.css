@@ -41,7 +41,7 @@ nav {
 }
 
 /* Ensure the currency selector aligns properly on mobile */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .navbar-top {
     justify-content: flex-end;
     padding: 0.25rem 1rem;

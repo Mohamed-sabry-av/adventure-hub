@@ -83,7 +83,7 @@ export class WishlistComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.isEmpty = true;
           this.cdr.detectChanges();
-          console.error('Error loading wishlist:', err);
+          
         },
       });
   }
@@ -110,7 +110,7 @@ export class WishlistComponent implements OnInit, OnDestroy {
           this.error =
             err.error?.message ||
             'Failed to remove item from wishlist. Please try again.';
-          console.error('Error removing from wishlist:', err);
+          
           this.cdr.detectChanges();
         },
       });
@@ -149,7 +149,7 @@ export class WishlistComponent implements OnInit, OnDestroy {
           this.error =
             err.error?.message ||
             'Failed to add product to cart. Please try again.';
-          console.error('Error adding to cart:', err);
+          
           this.cdr.detectChanges();
         },
       });

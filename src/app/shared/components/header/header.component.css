@@ -31,7 +31,7 @@
 }
 
 /* حل مشكلة أزرار الهاتف التي تظهر في سطح المكتب */
-@media (min-width: 768px) {
+@media (min-width: 960px) {
   .icon-btn.mobile-only {
     display: none !important;
     pointer-events: none !important;
@@ -128,12 +128,12 @@ body {
 .is-scroll {
   @apply bg-[#222222];
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: box-shadow 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+  transition: box-shadow 0.3s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 /* Header layers with improved animations - extremely smooth */
 .header-top-layer {
-  transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
   overflow: hidden;
   z-index: 1;
   transform-origin: top;
@@ -143,12 +143,12 @@ body {
 .header-middle-layer {
   z-index: 2;
   position: relative;
-  transition: padding 0.8s ease;
+  transition: padding 0.4s ease;
   padding-bottom: 0; /* Reduce bottom padding to decrease space between layers */
 }
 
 .header-bottom-layer {
-  transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
   z-index: 1;
   transform-origin: top;
   will-change: transform, opacity, max-height;
@@ -157,14 +157,14 @@ body {
   margin-top: -5px; /* Add negative margin to reduce space with layer above */
 }
 
-/* Improved hidden layer animation - much slower and smoother */
+/* Improved hidden layer animation - much faster and smoother */
 .header-layer-hidden {
   opacity: 0;
   max-height: 0;
   visibility: hidden;
   transform: translateY(-5px); /* Reduced movement */
   pointer-events: none;
-  transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .header-middle-compact {
@@ -178,6 +178,16 @@ body {
   top: auto !important;
   transform: none !important;
   box-shadow: none !important;
+}
+
+/* Add styles to hide header in fullscreen mode */
+.fullscreen-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
 }
 
 /* Banner animations */

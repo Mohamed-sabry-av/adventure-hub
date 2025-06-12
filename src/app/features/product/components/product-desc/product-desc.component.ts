@@ -131,7 +131,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit, OnChanges {
         this.cdr.markForCheck();
       }, 800);
     } else {
-      console.warn(`Section ${sectionId} not found`);
+      
     }
   }
 
@@ -187,7 +187,7 @@ export class ProductDescComponent implements OnInit, AfterViewInit, OnChanges {
       
       this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(processedDescription);
     } catch (error) {
-      console.error('Error sanitizing product description:', error);
+      
       const sanitizedText = this.sanitizer.sanitize(SecurityContext.HTML, description) || '';
       this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(sanitizedText);
     }

@@ -48,7 +48,7 @@ export class FacebookAuthComponent implements AfterViewInit {
           this.initFB();
         })
         .catch(err => {
-          console.error('Failed to load Facebook SDK:', err);
+          
           this.loginError = 'Failed to load Facebook login';
         });
     }
@@ -77,10 +77,10 @@ export class FacebookAuthComponent implements AfterViewInit {
   initFB() {
     // Initialize the Facebook SDK with your app ID
     FB.init({
-      appId: environment.socialAuth.facebook.appId,
+      // appId: environment.socialAuth.facebook.appId,
       cookie: true,
       xfbml: true,
-      version: environment.socialAuth.facebook.version
+      // version: environment.socialAuth.facebook.version
     });
 
     this.checkLoginStatus();
@@ -132,7 +132,7 @@ export class FacebookAuthComponent implements AfterViewInit {
         },
         error: (err) => {
           this.loginError = err.error?.message || 'Facebook login failed';
-          console.error('Facebook login failed:', err);
+          
         },
       });
     }

@@ -109,7 +109,7 @@ export class WishlistButtonComponent implements OnInit, OnDestroy {
           this.isProcessing = false;
         },
         error: (error) => {
-          console.error('Error toggling wishlist item:', error);
+          
           this.isProcessing = false;
         }
       });

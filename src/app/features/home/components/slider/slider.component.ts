@@ -121,7 +121,7 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     } catch (error) {
-      console.error('Error loading cached banners:', error);
+      
     }
   }
   
@@ -137,7 +137,7 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         localStorage.setItem(BANNER_CACHE_KEY, JSON.stringify(cacheData));
       } catch (error) {
-        console.error('Error caching banners:', error);
+        
       }
     }
   }
@@ -159,41 +159,10 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private updateSliderSize(): void {
     if (this.splideEl && this.splide) {
-      const containerWidth = this.splideEl.nativeElement.offsetWidth;
-      const windowHeight = window.innerHeight;
-      
-      // Calculate appropriate height based on screen width and aspect ratio
-      let sliderHeight: number;
-      
-      if (containerWidth < 768) {
-        // Mobile - 16:9 aspect ratio with a minimum height
-        sliderHeight = Math.max(Math.round(containerWidth * 0.5625), 250);
-      } else if (containerWidth < 1200) {
-        // Tablet - slightly wider aspect ratio
-        sliderHeight = Math.round(containerWidth * 0.45);
-      } else {
-        // Desktop - wider aspect ratio
-        sliderHeight = Math.round(containerWidth * 0.4);
-      }
-      
-      // Limit height to 70% of viewport height for usability
-      sliderHeight = Math.min(sliderHeight, windowHeight * 0.7);
-      
-      // Update the height of the slider container
+      // Let CSS handle the aspect ratio
       this.ngZone.runOutsideAngular(() => {
-        if (this.splideEl) {
-          this.renderer.setStyle(this.splideEl.nativeElement, 'height', `${sliderHeight}px`);
-          
-          // Find all slide items and set their height
-          const slideItems = this.splideEl.nativeElement.querySelectorAll('.slide-item');
-          slideItems.forEach((item: Element) => {
-            this.renderer.setStyle(item, 'height', `${sliderHeight}px`);
-          });
-          
-          // Refresh Splide to apply changes
-          if (this.splide) {
-            this.splide.refresh();
-          }
+        if (this.splide) {
+          this.splide.refresh();
         }
       });
     }
@@ -249,7 +218,7 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         },
         error: (err) => {
-          console.error('Error loading banner images:', err);
+          
           this.error = 'Failed to load banner images';
           this.loading = false;
           this.cdr.markForCheck();
@@ -272,25 +241,6 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
       // Ensure splideEl is not null (already checked above)
       const splideElement = this.splideEl!.nativeElement;
       
-      // Calculate appropriate height based on screen width
-      const containerWidth = splideElement.offsetWidth;
-      const windowHeight = window.innerHeight;
-      
-      // Get height based on device and aspect ratio
-      let height: string;
-      if (this.isMobile) {
-        // Mobile device
-        const mobileHeight = Math.max(Math.round(containerWidth * 0.5625), 250);
-        height = `${Math.min(mobileHeight, windowHeight * 0.7)}px`;
-      } else {
-        // Desktop device
-        const desktopHeight = Math.round(containerWidth * 0.4);
-        height = `${Math.min(desktopHeight, windowHeight * 0.7)}px`;
-      }
-      
-      // Set the height of the container
-      this.renderer.setStyle(splideElement, 'height', height);
-      
       this.splide = new Splide(splideElement, {
         type: 'loop',
         perPage: 1,
@@ -298,10 +248,9 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
         interval: 5000,
         pauseOnHover: true,
         arrows: true,
-        pagination: false,
+        pagination: true,
         speed: 800,
         rewind: true,
-        height: height,
         lazyLoad: 'sequential',
         easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
         role: 'region',

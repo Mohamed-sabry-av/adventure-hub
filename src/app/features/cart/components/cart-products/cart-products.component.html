@@ -7,20 +7,20 @@
   <!-- Free Shipping Container -->
   <div class="mb-12 text-[#4d4f3a]">
     <p class="text-center text-base mb-2">
-      @if (progressValue > 100) {
+      @if (progressValue === 0) {
       <span class="font-semibold">
         Your order is eligible for free shipping!
       </span>
       }@else {
       <span>
-        Spend <strong>{{ progressValue }}</strong> more for
+        Spend <strong>{{ progressValue }} AED</strong> more for
         <strong>free shipping!</strong>
       </span>
       }
     </p>
 
     <div class="h-2 rounded-lg w-full bg-gray-200 overflow-hidden">
-      <div class="h-full bg-[#4d4f3a] transition-all duration-500" [style.width.%]="progressValue"></div>
+      <div class="h-full bg-[#4d4f3a] transition-all duration-500" [style.width.%]="progressPercentage"></div>
     </div>
   </div>
 
@@ -34,10 +34,10 @@
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <a [routerLink]="[`/product/${item.slug}`]">
-        <img loading="lazy" [src]="item.image.thumbnail" [alt]="item.image.alt"
-          class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer" />
-      </a>
+      <!-- <a [routerLink]="['/product', item.slug]"> -->
+      <img loading="lazy" [src]="item.image.thumbnail" [alt]="item.image.alt"
+        class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer" />
+      <!-- </a> -->
 
       <div class="flex-1">
         <div class="flex justify-between flex-col md:flex-row">
@@ -45,9 +45,9 @@
             <p class="font-normal text-[#b2b48d]">
               {{ item.name.split(" ")[0] }}
             </p>
-            <a [routerLink]="[`/product/${item.slug}`]">
-              <p class="text-base cursor-pointer hover:underline" [innerHTML]="item.name"></p>
-            </a>
+            <!-- <a [routerLink]="['/product', item.slug]"> -->
+            <p class="text-base cursor-pointer hover:underline" [innerHTML]="item.name"></p>
+            <!-- </a> -->
             <div>
               <p class="text-base" [innerHTML]="item.prices.price | currencySvg"></p>
               @if (item.prices.regular_price !== item.prices.price &&

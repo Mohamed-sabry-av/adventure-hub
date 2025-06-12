@@ -91,7 +91,7 @@ export class RecentlyVisitedService {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(products));
     } catch (error) {
-      console.error('RecentlyVisitedService - Error saving to localStorage:', error);
+      
     }
   }
 }

@@ -80,8 +80,8 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
         snap: true,
         role: 'region',
         label: 'Recommended Products',
-        padding: { left: 0, right: 0 },
-        trimSpace: true,
+        // gap: '1rem',
+        padding: { left: '1rem', right: '1rem' },        trimSpace: true,
         updateOnMove: true,
         arrowPath: 'm15.5 0.932-4.3 4.38 14.5 14.6-14.5 14.5 4.3 4.4 14.6-14.6 4.4-4.3-4.4-4.4-14.6-14.6z',
         breakpoints: {
@@ -170,7 +170,7 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
           }
         }
       } catch (error) {
-        console.error('Error loading cached recommended products:', error);
+        
       }
     }
     
@@ -195,7 +195,7 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
           timestamp: Date.now()
         }));
       } catch (error) {
-        console.error('Error saving recommended products to cache:', error);
+        
       }
     }
   }
@@ -220,7 +220,7 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
           }
         },
         error: (error) => {
-          console.error('Error getting in-stock product IDs:', error);
+          
           this.loadFeaturedProductsInPhases();
         }
       });
@@ -261,7 +261,7 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
         }
       },
       error: (error) => {
-        console.error('Error loading initial product batch:', error);
+        
         this.loadFeaturedProductsInPhases();
       }
     });
@@ -308,7 +308,7 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
         this.isLoadingMore = false;
       },
       error: (error) => {
-        console.error('Error loading deferred products:', error);
+        
         this.isLoadingMore = false;
       }
     });
@@ -390,7 +390,7 @@ export class RecommendedProductsComponent implements OnInit, AfterViewInit, OnDe
       },
       error: () => {
         // Just silently fail - we already have some products
-        console.error('Failed to load additional featured products');
+        
         this.isLoadingMore = false;
       }
     });

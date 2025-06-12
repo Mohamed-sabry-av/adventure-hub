@@ -88,7 +88,7 @@ export class CardDetailsComponent {
       this.categoryPathArray = slugs;
       return this.categoryPathArray;
     } catch (error) {
-      console.error('Error getting category path:', error);
+      
       return [this.product.categories[0].slug];
     }
   }

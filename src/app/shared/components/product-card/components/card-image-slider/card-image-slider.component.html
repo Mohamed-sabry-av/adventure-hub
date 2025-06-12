@@ -16,14 +16,18 @@
 
     <!-- Images -->
     <div class="slide" *ngFor="let image of product?.images; let i = index" [ngClass]="{
-        'active': i === currentImageIndex || (i === 0 && !isMobile && currentImageIndex === 0),
+        'active': i === currentImageIndex,
         'second-image': i === 1 && isHovered && !isMobile,
         'color-selected': selectedColorIndex === i && selectedColorIndex >= 0
       }" [attr.aria-hidden]="i !== currentImageIndex && !(i === 1 && isHovered && !isMobile)">
-      <a [routerLink]="['/product', product.slug]" [attr.aria-label]="'View ' + product.name">
+      <a [routerLink]="['/product', product.slug]" [attr.aria-label]="'View ' + product.name"
+        [class.disable-link-mobile]="isMobile">
         <img [src]="getOptimizedImageUrl(image.src)" loading="lazy" [attr.data-index]="i"
           [alt]="image.alt || product.name" (load)="onImageLoad($event)" />
       </a>
+      <!-- Mobile-only product link layer - separate from images to avoid navigation conflicts -->
+      <a *ngIf="isMobile" [routerLink]="['/product', product.slug]" class="mobile-product-link"
+        (click)="$event.stopPropagation()" [attr.aria-label]="'View ' + product.name"></a>
     </div>
 
     <!-- Image indicator dots for mobile -->

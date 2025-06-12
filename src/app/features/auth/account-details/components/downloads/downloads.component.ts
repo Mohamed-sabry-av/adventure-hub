@@ -38,7 +38,7 @@ export class DownloadsComponent implements OnInit {
       error: (err) => {
         this.error = 'Failed to load downloads. Please try again later.';
         this.isLoading = false;
-        console.error('Error loading downloads:', err);
+        
       },
     });
   }

@@ -33,6 +33,7 @@ import {
 } from '@angular/animations';
 import { WishlistIconComponent } from './wishlist-icon/wishlist-icon.component';
 import { CartService } from '../../../features/cart/service/cart.service';
+import { FullscreenService } from '../../../shared/services/fullscreen.service';
 
 @Component({
   selector: 'app-header',
@@ -73,7 +74,7 @@ import { CartService } from '../../../features/cart/service/cart.service';
           pointerEvents: 'auto'
         }),
         animate(
-          '1000ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          '500ms cubic-bezier(0.25, 0.1, 0.25, 1)',
           style({ 
             opacity: 0, 
             maxHeight: 0, 
@@ -92,7 +93,7 @@ import { CartService } from '../../../features/cart/service/cart.service';
           pointerEvents: 'none'
         }),
         animate(
-          '1000ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          '500ms cubic-bezier(0.25, 0.1, 0.25, 1)',
           style({ 
             opacity: 1, 
             maxHeight: '200px', 
@@ -114,6 +115,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   private cartService = inject(CartService);
   private platformId = inject(PLATFORM_ID);
+  private fullscreenService = inject(FullscreenService);
 
   isAuth$: Observable<boolean> = this.accountAuthService.isLoggedIn$;
   cartCount: number = 0;
@@ -135,6 +137,9 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   
   // Use the thirdLayerVisible signal from NavbarService
   thirdLayerVisible = this.navbarService.thirdLayerVisible;
+  
+  // Add isFullScreenMode property to track fullscreen state
+  isFullScreenMode = false;
   
   // Thresholds for showing/hiding layers
   readonly SCROLL_THRESHOLD = 300; // Increased threshold for better stability
@@ -184,6 +189,12 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     effect(() => {
       this.scrollDirection.set(this.navbarService.scrollDirection());
     });
+    
+    // Add effect to sync fullscreen mode
+    effect(() => {
+      this.isFullScreenMode = this.fullscreenService.isFullscreen();
+      this.cdr.markForCheck();
+    });
   }
 
   ngOnInit() {
@@ -193,7 +204,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: any) => {
         this.currentPage = event.url === '/checkout' ? 'checkout' : '';
-        this.isProductPage = event.url.startsWith('/product'); // Check if URL starts with /product
+        this.isProductPage = event.url.includes('/product/'); // Check if URL contains /product/
         this.showNavbar.set(!this.isProductPage); // Show navbar by default unless on product page
         
         // Set initial header height for body padding

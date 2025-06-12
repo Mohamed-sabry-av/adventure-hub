@@ -45,7 +45,7 @@ export class BlogService {
       })
       .pipe(
         catchError(error => {
-          console.error('Error fetching posts:', error);
+          
           return of([]);
         })
       )
@@ -69,7 +69,7 @@ export class BlogService {
       .pipe(
         tap(posts => this.saveToLocalCache(cacheKey, posts)),
         catchError(error => {
-          console.error('Error fetching latest posts:', error);
+          
           return of(this.getFallbackPosts().slice(0, count));
         })
       );
@@ -93,7 +93,7 @@ export class BlogService {
           }
         }),
         catchError(error => {
-          console.error(`Error fetching post with slug ${slug}:`, error);
+          
           return of(null);
         })
       );
@@ -111,7 +111,7 @@ export class BlogService {
       localStorage.removeItem(key);
       return null;
     } catch (e) {
-      console.error('Error retrieving from cache:', e);
+      
       return null;
     }
   }
@@ -121,7 +121,7 @@ export class BlogService {
       const cacheObj = { data, expiry };
       localStorage.setItem(key, JSON.stringify(cacheObj));
     } catch (e) {
-      console.error('Error saving to cache:', e);
+      
     }
   }
   // بيانات احتياطية في حالة فشل جلب المنشورات

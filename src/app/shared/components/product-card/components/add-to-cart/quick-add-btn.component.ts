@@ -17,7 +17,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { SizeSelectorComponent } from '../size-selector/size-selector.component';
+// import { SizeSelectorComponent } from '../size-selector/size-selector.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProductService } from '../../../../../core/services/product.service';
@@ -204,7 +204,7 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
 
   onAddToCart() {
     if (!this.product) {
-      console.error('No product provided');
+      
       return;
     }
 
@@ -382,9 +382,25 @@ export class MobileQuickAddComponent implements OnInit, OnDestroy, AfterViewInit
   
   formatSizeName(size: string): string {
     if (!size) return '';
-    // Convert dash format to dot format (e.g., "1-l" to "1.L")
-    const formattedSize = size.replace(/-/g, '.').toUpperCase();
-    return formattedSize;
+    
+    // Look up the original name from product attributes
+    if (this.product && this.product.attributes) {
+      const sizeAttribute = this.product.attributes.find((attr: any) => attr.name === 'Size' || attr.name === 'pa_size');
+      if (sizeAttribute && sizeAttribute.options) {
+        // Check if options are objects with name and slug properties
+        if (typeof sizeAttribute.options[0] === 'object') {
+          const option = sizeAttribute.options.find((opt: any) => 
+            (opt.slug === size) || (opt.value === size) || (opt.name?.toLowerCase() === size.toLowerCase())
+          );
+          if (option && option.name) {
+            return option.name;
+          }
+        }
+      }
+    }
+    
+    // Fallback to the original value if no mapping found
+    return size;
   }
 
   /**

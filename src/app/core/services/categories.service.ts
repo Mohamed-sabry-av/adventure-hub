@@ -61,7 +61,7 @@ export class CategoriesService {
           }
         }),
         catchError((error) => {
-          console.error('Error fetching categories:', error);
+          
           return this.handleErrorsService.handelError(error);
         }),
         shareReplay(1)
@@ -87,7 +87,7 @@ export class CategoriesService {
         return this.fetchAllCategories(page + 1, updatedCategories);
       }),
       catchError((error) => {
-        console.error(`Error fetching categories at page ${page}:`, error);
+        
         return this.handleErrorsService.handelError(error);
       })
     );
@@ -124,7 +124,7 @@ export class CategoriesService {
             }
           }),
           catchError((error) => {
-            console.error(`Error fetching category by slug "${slug}":`, error);
+            
             return this.handleErrorsService.handelError(error);
           })
         );
@@ -141,7 +141,7 @@ export class CategoriesService {
         return category || null;
       }),
       catchError((error) => {
-        console.error(`Error finding category by slug "${slug}":`, error);
+        
         return this.handleErrorsService.handelError(error);
       })
     );
@@ -164,7 +164,7 @@ export class CategoriesService {
         return category || null;
       }),
       catchError((error) => {
-        console.error(`Error finding category by id "${id}":`, error);
+        
         return this.handleErrorsService.handelError(error);
       })
     );

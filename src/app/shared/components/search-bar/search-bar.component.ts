@@ -189,7 +189,7 @@ export class SearchBarComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         (error) => {
-          console.error('Error fetching search results:', error);
+          
           this.loading = false;
           this.cdr.markForCheck();
         }
@@ -301,7 +301,7 @@ export class SearchBarComponent implements OnInit, OnDestroy {
 
       return slugs;
     } catch (error) {
-      console.error('Error building category path:', error);
+      
       // Fallback to simple slug-only array
       return [category.slug];
     }

@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, catchError, map, from, switchMap } from 'rxjs';
+import { ConfigService } from '../../core/services/config.service';
 import { environment } from '../../../environments/environment';
 
 // Add type definition for MaxMind's geoip2 library
@@ -31,8 +32,17 @@ export class GeoLocationService {
   private readonly MAXMIND_LICENSE_KEY = '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';
   private readonly WC_API_URL = environment.apiUrl;
   private readonly WC_SITE_URL = 'https://adventures-hub.com'; // Base URL of your WooCommerce site
+  private apiUrl: string = '';
+  private configService = inject(ConfigService);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Get API URL from config
+    this.configService.getConfig().subscribe(config => {
+      if (config && config.apiUrl) {
+        this.apiUrl = config.apiUrl;
+      }
+    });
+  }
 
   getUserLocation(): Observable<GeoLocationResponse | null> {
     // Try to get from local storage first for returning visitors
@@ -42,7 +52,7 @@ export class GeoLocationService {
         const parsed = JSON.parse(savedLocation);
         return of(parsed);
       } catch (e) {
-        console.error('Error parsing saved location:', e);
+        
       }
     }
     
@@ -66,7 +76,7 @@ export class GeoLocationService {
         return this.getLocationFromWooCommerceAPI();
       }),
       catchError(error => {
-        console.error('Error getting geolocation from WooCommerce API:', error);
+        
         // Fallback to our custom endpoint
         return this.getLocationFromCustomAPI();
       })
@@ -88,7 +98,7 @@ export class GeoLocationService {
         return null;
       }),
       catchError(error => {
-        console.error('Error getting geolocation from WooCommerce Store API:', error);
+        
         // Fallback to our custom endpoint
         return this.getLocationFromCustomAPI();
       })
@@ -112,7 +122,7 @@ export class GeoLocationService {
         return this.getLocationFromMaxMindClientSide();
       }),
       catchError(error => {
-        console.error('Error getting geolocation from custom API:', error);
+        
         // Fallback to MaxMind's free database on client side
         return this.getLocationFromMaxMindClientSide();
       })
@@ -139,14 +149,14 @@ export class GeoLocationService {
       };
       
       script.onerror = () => {
-        console.error('Failed to load MaxMind script');
+        
         resolve(null);
       };
       
       document.head.appendChild(script);
     })).pipe(
       catchError(error => {
-        console.error('Error with client-side geolocation:', error);
+        
         return of(null);
       })
     );
@@ -167,7 +177,7 @@ export class GeoLocationService {
       this.saveUserLocation(result);
       resolve(result);
     }, (error: any) => {
-      console.error('MaxMind client-side lookup failed:', error);
+      
       resolve(null);
     });
   }
@@ -177,7 +187,7 @@ export class GeoLocationService {
     try {
       localStorage.setItem('user_location', JSON.stringify(location));
     } catch (e) {
-      console.error('Error saving location to localStorage:', e);
+      
     }
   }
 } 

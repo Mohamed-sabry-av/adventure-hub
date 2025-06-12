@@ -211,7 +211,7 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
         this.isLoadingMore = false;
       },
       error: (error) => {
-        console.error('Error loading remaining direct products:', error);
+        
         
         // If direct products fail, try loading from localStorage
         const numAdditionalNeeded = this.maxProductsToShow - this.relatedProducts.length;
@@ -257,7 +257,7 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
         }, 100);
       },
       error: (error) => {
-        console.error('Error loading additional products:', error);
+        
         this.cdr.markForCheck();
       }
     });
@@ -304,7 +304,7 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
           }
         },
         error: (error) => {
-          console.error('Error loading related products:', error);
+          
           this.relatedProducts = [];
           this.cdr.markForCheck();
         },
@@ -341,7 +341,7 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
         this.isLoadingMore = false;
       },
       error: (error) => {
-        console.error('Error loading remaining localStorage products:', error);
+        
         this.isLoadingMore = false;
       }
     });

@@ -62,7 +62,7 @@ export class WalletPaymentComponent implements AfterViewInit {
             .toPromise();
 
         } catch (error) {
-          console.error('Failed to load user details:', error);
+          
         }
       }
     }
@@ -83,7 +83,7 @@ export class WalletPaymentComponent implements AfterViewInit {
 
   private async initWalletPayments() {
     if (!this.stripe || !this.elements || !this.googlePayButtonRef) {
-      console.error('Stripe, elements, or googlePayButtonRef is not available');
+      
       this.checkoutService.walletPaymentAvailable$.next(false);
       return;
     }
@@ -234,7 +234,7 @@ export class WalletPaymentComponent implements AfterViewInit {
             });
 
             if (error) {
-              console.error('Payment failed:', error.message);
+              
               event.complete('fail');
               return;
             }
@@ -247,7 +247,7 @@ export class WalletPaymentComponent implements AfterViewInit {
               event.complete('fail');
             }
           } catch (error: any) {
-            console.error('Error processing payment:', error);
+            
             event.complete('fail');
           }
         });
@@ -298,7 +298,7 @@ export class WalletPaymentComponent implements AfterViewInit {
               }
             }
           } catch (error) {
-            console.error('Error handling shipping address change:', error);
+            
             // Provide default shipping options on error
           event.updateWith({
             status: 'success',
@@ -315,7 +315,7 @@ export class WalletPaymentComponent implements AfterViewInit {
 
       }
     } catch (error) {
-      console.error('Error initializing wallet payments:', error);
+      
     }
   }
 

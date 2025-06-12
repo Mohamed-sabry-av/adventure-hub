@@ -36,7 +36,7 @@ export class UnifiedWishlistService {
           return items;
         }),
         catchError(error => {
-          console.error('Error fetching WooCommerce wishlist:', error);
+          
           // Fall back to local wishlist if WooCommerce fails
           return this.localWishlistService.getWishlist();
         })
@@ -92,7 +92,7 @@ export class UnifiedWishlistService {
           }
         }),
         catchError(error => {
-          console.error('Error adding to WooCommerce wishlist:', error);
+          
           // Fall back to local wishlist if WooCommerce fails
           return this.localWishlistService.addToWishlist(product);
         })
@@ -118,7 +118,7 @@ export class UnifiedWishlistService {
           }
         }),
         catchError(error => {
-          console.error('Error removing from WooCommerce wishlist:', error);
+          
           // Fall back to local wishlist if WooCommerce fails
           return this.localWishlistService.removeFromWishlist(productId);
         })
@@ -178,7 +178,7 @@ export class UnifiedWishlistService {
         return forkJoin(addRequests).pipe(
           map(() => ({ success: true, message: 'Wishlist synced successfully' })),
           catchError(error => {
-            console.error('Error syncing wishlist:', error);
+            
             return of({ success: false, message: 'Failed to sync wishlist' });
           }),
           // Clear local wishlist after successful sync

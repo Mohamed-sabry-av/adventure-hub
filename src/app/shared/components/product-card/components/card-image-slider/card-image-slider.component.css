@@ -255,7 +255,7 @@
 @media (max-width: 767px) {
   /* Override any desktop hover effects */
   .slider-container.hovered .slide.active {
-    opacity: 1 !important;
+    opacity: 1;
   }
   
   .slider-container.hovered .slide.second-image {
@@ -282,8 +282,14 @@
   
   /* Keep selected color visible without hover */
   .slide.color-selected {
-    opacity: 1 !important;
+    opacity: 1;
     z-index: 3;
+  }
+  
+  /* Ensure non-active slides are hidden on mobile */
+  .slide:not(.active) {
+    opacity: 0;
+    z-index: 0;
   }
   
   .image-slider {
@@ -351,4 +357,22 @@
     padding: 3px 6px;
     font-size: 9px;
   }
+}
+
+/* Prevent unintended clicks on mobile */
+.disable-link-mobile {
+  pointer-events: none; /* Disable the link in mobile view */
+}
+
+.mobile-product-link {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  top: 20%;
+  left: 20%;
+  z-index: 5;
+  cursor: pointer;
+  background-color: transparent;
+  border-radius: 5px;
+  pointer-events: auto;
 }

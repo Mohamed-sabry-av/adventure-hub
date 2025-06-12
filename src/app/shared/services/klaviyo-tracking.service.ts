@@ -27,7 +27,7 @@ export class KlaviyoTrackingService {
         window._learnq.push(['identify', userProperties]);
       }
     } catch (e) {
-      console.error('Error identifying user in Klaviyo:', e);
+      
     }
   }
   /**
@@ -40,7 +40,7 @@ export class KlaviyoTrackingService {
         window._learnq.push(['track', eventName, properties]);
       }
     } catch (e) {
-      console.error(`Error tracking ${eventName} in Klaviyo:`, e);
+      
     }
   }
   /**
@@ -61,7 +61,7 @@ export class KlaviyoTrackingService {
       };
       this.trackEvent('Viewed Product', productData);
     } catch (e) {
-      console.error('Error tracking product view in Klaviyo:', e);
+      
     }
   }
   /**
@@ -78,7 +78,7 @@ export class KlaviyoTrackingService {
       };
       this.trackEvent('Viewed Category', categoryData);
     } catch (e) {
-      console.error('Error tracking category view in Klaviyo:', e);
+      
     }
   }
   /**
@@ -93,7 +93,7 @@ export class KlaviyoTrackingService {
       };
       this.trackEvent('Searched Site', searchData);
     } catch (e) {
-      console.error('Error tracking search in Klaviyo:', e);
+      
     }
   }
   /**
@@ -121,7 +121,7 @@ export class KlaviyoTrackingService {
       };
       this.trackEvent('Started Checkout', checkoutData);
     } catch (e) {
-      console.error('Error tracking checkout started in Klaviyo:', e);
+      
     }
   }
   /**
@@ -179,7 +179,7 @@ export class KlaviyoTrackingService {
         );
       }
     } catch (e) {
-      console.error('Error tracking order completed in Klaviyo:', e);
+      
     }
   }
   /**
@@ -197,7 +197,7 @@ export class KlaviyoTrackingService {
       };
       this.trackEvent('Button Clicked', buttonData);
     } catch (e) {
-      console.error('Error tracking button click in Klaviyo:', e);
+      
     }
   }
   /**

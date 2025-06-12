@@ -1,8 +1,8 @@
 <div class="slider-container w-full relative overflow-hidden">
   <!-- Display the first image as a static banner to show instantly -->
   @if (bannerImages.length > 0) {
-  <div #splideEl class="splide w-full">
-    <div class="splide__track w-full">
+  <div #splideEl class="splide w-full h-full">
+    <div class="splide__track w-full h-full">
       <ul class="splide__list">
         @for (banner of bannerImages; track $index) {
         <li class="splide__slide">
@@ -27,7 +27,7 @@
   }
   <!-- Loading skeleton with minimal height that doesn't take too much space -->
   @if (loading && bannerImages.length === 0) {
-  <div class="skeleton-slider w-full bg-gray-200 overflow-hidden h-48 md:h-64 lg:h-80">
+  <div class="skeleton-slider w-full bg-gray-200 overflow-hidden">
     <!-- Simple pulse animation -->
     <div class="animate-pulse w-full h-full relative">
       <!-- Gradient overlay for shimmer effect -->
@@ -42,13 +42,13 @@
   }
   <!-- Error state with minimal height -->
   @if (error) {
-  <div class="flex justify-center items-center h-48 md:h-64 bg-gray-100">
+  <div class="skeleton-slider flex justify-center items-center bg-gray-100">
     <p class="text-red-500 text-sm">{{ error }}</p>
   </div>
   }
   <!-- Empty state with minimal height -->
   @if (!loading && !error && bannerImages.length === 0) {
-  <div class="flex justify-center items-center h-48 md:h-64 bg-gray-100">
+  <div class="skeleton-slider flex justify-center items-center bg-gray-100">
     <img src="assets/images/placeholder-banner.jpg" alt="Default banner" class="w-full h-full object-cover">
   </div>
   }

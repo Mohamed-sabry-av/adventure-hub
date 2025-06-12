@@ -40,7 +40,7 @@ export class SaleProductsService {
           return products;
         }),
         catchError((error) => {
-          console.error('Error fetching products on sale:', error);
+          
           return of([]);
         }),
         shareReplay(1)

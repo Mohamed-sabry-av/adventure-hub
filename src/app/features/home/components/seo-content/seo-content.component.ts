@@ -35,7 +35,7 @@ export class SeoContentComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error loading categories for SEO content:', err);
+        
       }
     });
   }

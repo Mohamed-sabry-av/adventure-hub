@@ -80,7 +80,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
   wishlistSuccess: boolean = true;
   private wishlistSubscription: Subscription | null = null;
   showOutOfStockVariations: boolean = true;
-  tabbyConfig: { publicKey: string; merchantCode: string };
+  // tabbyConfig: { publicKey: string; merchantCode: string };
   loadingMap$: Observable<{ [key: string]: boolean }>;
   linkCopied: boolean = false;
   isHubProduct: boolean = false;
@@ -108,7 +108,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
     private tabbyConfigService: TabbyConfigService
   ) {
     this.loadingMap$ = this.uiService.loadingMap$;
-    this.tabbyConfig = this.tabbyConfigService.getConfig();
+    // this.tabbyConfig = this.tabbyConfigService.getConfig();
     this.walletPaymentAvailable$ = this.checkoutService.walletPaymentAvailable$;
     
     // Track product changes using effect (within injection context)
@@ -483,7 +483,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         error: (error) => {
-          console.error('Error polling order status:', error);
+          
           this.router.navigate(['/']);
         },
       });
@@ -616,7 +616,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
         }, 2000);
       },
       (err) => {
-        console.error('Could not copy text: ', err);
+        
         this.uiService.showError('Failed to copy link');
       }
     );
@@ -717,7 +717,7 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
                 return jsonStr !== '[object Object]' ? jsonStr : '1 Year';
               }
             } catch (e) {
-              console.error('Error stringifying warranty object:', e);
+              
             }
             
             return '1 Year'; // Default fallback
@@ -779,9 +779,26 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
 
   formatSizeName(size: string): string {
     if (!size) return '';
-    // Convert dash format to dot format (e.g., "1-l" to "1.L")
-    const formattedSize = size.replace(/-/g, '.').toUpperCase();
-    return formattedSize;
+    
+    // Look up the original name from product attributes
+    const product = this.productInfo();
+    if (product && product.attributes) {
+      const sizeAttribute = product.attributes.find((attr: any) => attr.name === 'Size' || attr.name === 'pa_size');
+      if (sizeAttribute && sizeAttribute.options) {
+        // Check if options are objects with name and slug properties
+        if (typeof sizeAttribute.options[0] === 'object') {
+          const option = sizeAttribute.options.find((opt: any) => 
+            (opt.slug === size) || (opt.value === size) || (opt.name?.toLowerCase() === size.toLowerCase())
+          );
+          if (option && option.name) {
+            return option.name;
+          }
+        }
+      }
+    }
+    
+    // Fallback to the original value if no mapping found
+    return size;
   }
 }
 

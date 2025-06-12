@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -8,7 +8,7 @@ import {
   StripeElements,
   StripePaymentRequestButtonElement,
 } from '@stripe/stripe-js';
-import { environment } from '../../../../environments/environment';
+import { ConfigService } from '../../../core/services/config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,8 +19,8 @@ export class WalletPaymentService {
   private paymentRequest: any = null;
   private prButton: StripePaymentRequestButtonElement | null = null;
 
-  private readonly STRIPE_PUBLISHABLE_KEY = 'pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45';
-  private readonly API_URL = environment.apiUrl || 'https://api.example.com';
+  private apiUrl: string = 'https://api.example.com'; // Default fallback
+  private configService = inject(ConfigService);
 
   private walletAvailabilitySubject = new BehaviorSubject<{
     googlePay: boolean;
@@ -34,16 +34,41 @@ export class WalletPaymentService {
 
   constructor(private http: HttpClient) {
     this.initStripe();
+    
+    // Get API URL from config
+    this.configService.getConfig().subscribe(config => {
+      if (config && config.apiUrl) {
+        this.apiUrl = config.apiUrl;
+      }
+    });
   }
 
   private async initStripe() {
-    this.stripe = await loadStripe(this.STRIPE_PUBLISHABLE_KEY);
-    if (!this.stripe) {
-      console.error('Failed to initialize Stripe');
-      return;
+    try {
+      // Get Stripe key from config
+      const config = this.configService.currentConfig;
+      if (!config || !config.stripePublishableKey) {
+        // Wait for config to load
+        this.configService.getConfig().subscribe(config => {
+          if (config && config.stripePublishableKey) {
+            this.loadStripe(config.stripePublishableKey);
+          }
+        });
+        return;
+      }
+      
+      this.loadStripe(config.stripePublishableKey);
+    } catch (error) {
+      console.error('Failed to initialize Stripe:', error);
     }
-
-    this.elements = this.stripe.elements();
+  }
+  
+  private async loadStripe(publishableKey: string) {
+    this.stripe = await loadStripe(publishableKey);
+    
+    if (this.stripe) {
+      this.elements = this.stripe.elements();
+    }
   }
 
   async initPaymentRequest(
@@ -52,7 +77,7 @@ export class WalletPaymentService {
     productName: string = 'Product'
   ): Promise<boolean> {
     if (!this.stripe || !this.elements) {
-      console.error('Stripe or Elements not initialized');
+      
       return false;
     }
 
@@ -93,14 +118,14 @@ export class WalletPaymentService {
 
       return false;
     } catch (error) {
-      console.error('Error initializing payment request:', error);
+      
       return false;
     }
   }
 
   mountWalletButton(elementRef: HTMLElement): boolean {
     if (!this.stripe || !this.elements || !this.paymentRequest) {
-      console.error('Stripe, Elements or PaymentRequest not initialized');
+      
       return false;
     }
 
@@ -119,14 +144,14 @@ export class WalletPaymentService {
       this.prButton.mount(elementRef);
       return true;
     } catch (error) {
-      console.error('Error mounting payment request button:', error);
+      
       return false;
     }
   }
 
   setupPaymentRequestListeners(onSuccess: (result: any) => void, onError: (error: any) => void) {
     if (!this.paymentRequest) {
-      console.error('PaymentRequest not initialized');
+      
       return;
     }
 
@@ -185,10 +210,10 @@ export class WalletPaymentService {
       currency: currency.toLowerCase()
     };
 
-    return this.http.post(`${this.API_URL}/api/create-payment-intent`, payload)
+    return this.http.post(`${this.apiUrl}/api/create-payment-intent`, payload)
       .pipe(
         catchError(error => {
-          console.error('Error creating payment intent:', error);
+          
           return throwError(() => new Error('Failed to create payment intent'));
         })
       );

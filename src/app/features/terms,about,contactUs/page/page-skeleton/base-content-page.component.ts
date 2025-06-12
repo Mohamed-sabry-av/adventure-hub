@@ -101,7 +101,7 @@ export abstract class BaseContentPageComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error fetching page content:', error);
+          
           // Only show error state if we don't have existing data
           if (!this.pageData) {
             this.isLoading = false;

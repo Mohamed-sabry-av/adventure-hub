@@ -121,6 +121,15 @@ export class CardImageSliderComponent implements OnInit, OnChanges, OnDestroy {
     const newIndex = this.currentImageIndex + direction;
     if (newIndex >= 0 && newIndex < this.product.images.length) {
       this.currentImageIndex = newIndex;
+      
+      // Force clear any other conditions that might keep the first image active
+      if (this.isMobile) {
+        // Force update detection
+        setTimeout(() => {
+          this.cdr.detectChanges();
+        }, 0);
+      }
+      
       this.cdr.markForCheck();
     }
   }
@@ -141,6 +150,14 @@ export class CardImageSliderComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.currentImageIndex = index;
+    
+    // Force update in mobile view
+    if (this.isMobile) {
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      }, 0);
+    }
+    
     this.cdr.markForCheck();
   }
 

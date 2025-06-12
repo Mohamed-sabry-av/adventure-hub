@@ -19,6 +19,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { VariationService } from '../../../../core/services/variation.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import Splide from '@splidejs/splide';
+import { FullscreenService } from '../../../../shared/services/fullscreen.service';
 
 @Component({
   selector: 'app-product-images',
@@ -33,6 +34,7 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
   private cdr = inject(ChangeDetectorRef);
   private variationService = inject(VariationService);
   private platformId = inject(PLATFORM_ID);
+  public fullscreenService = inject(FullscreenService);
   
   productImages = input<any>();
   selectedColor = input<string | null>(null);
@@ -47,7 +49,6 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
   selectedImageIndex: number = 0;
 
   isZoomed: boolean = false;
-  isFullscreen = signal(false);
   fullscreenZoomLevel = signal(1);
   fullscreenPosition = signal({ x: 50, y: 50 });
 
@@ -188,13 +189,20 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     // Initialize main slider
-    this.mainSplide = new Splide(this.splideMainRef.nativeElement, {
+    const mainSlideOptions = {
       type: 'fade',
       rewind: true,
       pagination: false,
       arrows: this.images.length > 1, // Only show arrows if there are multiple images
-      height: '500px',
-    });
+      height: this.isMobile ? 'auto' : '500px',
+      heightRatio: this.isMobile ? 0.9 : 1,
+      perPage: 1, // Show only one image per page
+      perMove: 1, // Move only one image at a time
+      speed: 400, // Transition speed in ms
+      waitForTransition: true // Wait for transition to finish before allowing another
+    };
+
+    this.mainSplide = new Splide(this.splideMainRef.nativeElement, mainSlideOptions);
 
     // Sync the two sliders if thumbnails exist
     if (this.thumbsSplide && this.images.length > 1) {
@@ -251,24 +259,89 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
 
   // Open fullscreen image view
   openFullscreen(index?: number): void {
-    if (index !== undefined) {
-      this.selectedImageIndex = index;
-      if (this.mainSplide) {
-        this.mainSplide.go(index);
+    if (isPlatformBrowser(this.platformId)) {
+      // Prevent opening fullscreen while gallery is loading
+      if (this.isGalleryLoading()) {
+        return;
       }
+      
+      // Reset zoom level when opening fullscreen
+      this.fullscreenZoomLevel.set(1);
+      this.fullscreenPosition.set({ x: 50, y: 50 });
+      
+      // Set selected image index if provided
+      if (typeof index === 'number') {
+        this.selectedImageIndex = index;
+      }
+      
+      // Enter fullscreen mode
+      this.fullscreenService.enterFullscreen();
+      
+      // Add keyboard listener for navigation
+      if (isPlatformBrowser(this.platformId)) {
+        document.addEventListener('keydown', this.handleKeyboardEvent.bind(this));
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        
+        // For mobile: add additional handling to ensure buttons work
+        if (this.isMobile) {
+          // Add a small delay to ensure fullscreen is properly rendered before attaching events
+          setTimeout(() => {
+            this.setupMobileControls();
+          }, 100);
+        }
+      }
+      
+      this.cdr.detectChanges();
     }
-    document.body.classList.add('overflow-hidden');
-    this.isFullscreen.set(true);
-    this.fullscreenZoomLevel.set(1);
-    this.fullscreenPosition.set({ x: 50, y: 50 });
-    this.cdr.detectChanges();
   }
 
   // Close fullscreen image view
   closeFullscreen(): void {
-    document.body.classList.remove('overflow-hidden');
-    this.isFullscreen.set(false);
+    this.fullscreenService.exitFullscreen();
+    
+    // Remove keyboard listener when exiting fullscreen
+    if (isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('keydown', this.handleKeyboardEvent);
+      document.body.style.overflow = '';
+      
+      // For mobile: clean up any added event listeners
+      if (this.isMobile) {
+        this.cleanupMobileControls();
+      }
+    }
+    
     this.cdr.detectChanges();
+  }
+
+  // Setup additional touch handlers for mobile devices
+  private setupMobileControls(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    
+    const fullscreenButtons = document.querySelectorAll('.fullscreen-prev, .fullscreen-next, .fullscreen-close, .zoom-toggle');
+    
+    fullscreenButtons.forEach(button => {
+      // Add touch feedback
+      button.addEventListener('touchstart', () => {
+        (button as HTMLElement).style.transform = 'scale(0.95)';
+        (button as HTMLElement).style.opacity = '0.9';
+      });
+      
+      button.addEventListener('touchend', () => {
+        (button as HTMLElement).style.transform = 'scale(1)';
+        (button as HTMLElement).style.opacity = '1';
+      });
+    });
+  }
+
+  // Clean up mobile event handlers
+  private cleanupMobileControls(): void {
+    // Nothing specific to clean up since our handlers are attached to elements 
+    // that will be removed when fullscreen gallery is closed
+  }
+
+  // Use service's isFullscreen getter in the template
+  get isFullscreen() {
+    return this.fullscreenService.isFullscreen;
   }
 
   // Zoom functionality for fullscreen view
@@ -298,12 +371,16 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
-  // Toggle zoom level in fullscreen view
+  // Toggle fullscreen zoom
   toggleFullscreenZoom(): void {
-    this.fullscreenZoomLevel.set(this.fullscreenZoomLevel() === 1 ? 2.5 : 1);
-    if (this.fullscreenZoomLevel() === 1) {
-      this.fullscreenPosition.set({ x: 50, y: 50 });
+    // If on mobile, ensure we only toggle between 1x and 2x zoom for better performance
+    if (this.isMobile) {
+      this.fullscreenZoomLevel.set(this.fullscreenZoomLevel() === 1 ? 2 : 1);
+    } else {
+      // On desktop, toggle between 1x and 3x zoom
+      this.fullscreenZoomLevel.set(this.fullscreenZoomLevel() === 1 ? 3 : 1);
     }
+    this.cdr.detectChanges();
   }
 
   // Reset fullscreen zoom
@@ -317,7 +394,7 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
   // Handle keyboard navigation in fullscreen mode
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent): void {
-    if (!this.isFullscreen()) return;
+    if (!this.isFullscreen) return;
 
     switch (event.key) {
       case 'Escape':
@@ -330,8 +407,17 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
         this.nextImage();
         break;
       case ' ':
-        this.toggleFullscreenZoom();
-        event.preventDefault();
+        // Only prevent default space behavior if we're in fullscreen mode
+        // and the active element is not an input, textarea, or other form control
+        const activeElement = document.activeElement;
+        const isFormControl = activeElement instanceof HTMLInputElement || 
+                             activeElement instanceof HTMLTextAreaElement ||
+                             activeElement instanceof HTMLSelectElement;
+        
+        if (!isFormControl) {
+          this.toggleFullscreenZoom();
+          event.preventDefault();
+        }
         break;
     }
   }
@@ -373,34 +459,55 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
   selectImage(index: number): void {
     if (index === this.selectedImageIndex) return;
     
-      this.selectedImageIndex = index;
+    this.selectedImageIndex = index;
     this.isImageLoading = true;
     
+    // Make sure both sliders are in sync
     if (this.mainSplide) {
       this.mainSplide.go(index);
     }
+    
+    if (this.thumbsSplide) {
+      this.thumbsSplide.go(index);
+    }
+    
+    // Reset any zoom that might be active
+    this.isZoomed = false;
+    this.resetAllZoom();
     
     this.cdr.detectChanges();
   }
 
   nextImage(): void {
     const nextIndex = (this.selectedImageIndex + 1) % this.images.length;
-    this.selectImage(nextIndex);
+    this.selectedImageIndex = nextIndex;
     
+    // Update UI to reflect new index
+    this.isImageLoading = true;
+    
+    // Move splide manually to ensure it moves one image only
     if (this.mainSplide) {
-      this.mainSplide.go('>');
+      this.mainSplide.go(nextIndex);
     }
+    
+    this.cdr.detectChanges();
   }
 
   prevImage(): void {
     const prevIndex = this.selectedImageIndex - 1 < 0 
       ? this.images.length - 1 
       : this.selectedImageIndex - 1;
-    this.selectImage(prevIndex);
+    this.selectedImageIndex = prevIndex;
     
+    // Update UI to reflect new index
+    this.isImageLoading = true;
+    
+    // Move splide manually to ensure it moves one image only
     if (this.mainSplide) {
-      this.mainSplide.go('<');
-  }
+      this.mainSplide.go(prevIndex);
+    }
+    
+    this.cdr.detectChanges();
   }
 
   onImageLoad(): void {
@@ -414,6 +521,13 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   zoom(event: MouseEvent) {
+    // Force disable zoom on mobile devices
+    if (this.isMobile) {
+      this.isZoomed = false;
+      this.resetAllZoom();
+      return;
+    }
+    
     if (this.isZoomed) {
       // Calculate relative position in the container
       const rect = this.zoomContainer.nativeElement.getBoundingClientRect();
@@ -429,6 +543,13 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   resetZoom() {
+    // Force disable zoom on mobile devices
+    if (this.isMobile) {
+      this.isZoomed = false;
+      this.resetAllZoom();
+      return;
+    }
+    
     this.isZoomed = false;
     const img = this.zoomContainer.nativeElement.querySelector('.splide__slide.is-active img');
     if (img) {
@@ -437,11 +558,28 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   toggleZoom() {
+    // Force disable zoom on mobile devices
+    if (this.isMobile) {
+      this.isZoomed = false;
+      this.resetAllZoom();
+      return;
+    }
+    
     this.isZoomed = !this.isZoomed;
     const img = this.zoomContainer.nativeElement.querySelector('.splide__slide.is-active img');
     if (img) {
       img.style.transform = this.isZoomed ? 'scale(2)' : 'scale(1)';
     }
+  }
+  
+  // Helper method to reset zoom on all images
+  private resetAllZoom() {
+    if (!this.zoomContainer || !this.zoomContainer.nativeElement) return;
+    
+    const allImages = this.zoomContainer.nativeElement.querySelectorAll('.splide__slide img');
+    allImages.forEach((img: HTMLElement) => {
+      img.style.transform = 'scale(1)';
+    });
   }
 
   trackByFn(index: number, item: any): string {
@@ -450,5 +588,18 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
 
   get images(): { src: string; alt: string }[] {
     return this.getGalleryImages();
+  }
+
+  // Mobile-specific implementations
+  @HostListener('window:orientationchange', ['$event'])
+  onOrientationChange(event: Event) {
+    // When device orientation changes, update the UI
+    if (isPlatformBrowser(this.platformId) && this.isMobile) {
+      // Add a small delay to allow the browser to complete orientation change
+      setTimeout(() => {
+        this.updateSplide();
+        this.cdr.detectChanges();
+      }, 300);
+    }
   }
 }

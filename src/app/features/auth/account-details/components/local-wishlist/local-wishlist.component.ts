@@ -13,13 +13,14 @@ import { UnifiedWishlistService } from '../../../../../shared/services/unified-w
 import { CartService } from '../../../../../features/cart/service/cart.service';
 import { Product } from '../../../../../interfaces/product';
 import { UIService } from '../../../../../shared/services/ui.service';
+import { CurrencySvgPipe } from '../../../../../shared/pipes/currency.pipe';
 
 @Component({
   selector: 'app-local-wishlist',
   templateUrl: './local-wishlist.component.html',
   styleUrls: ['./local-wishlist.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, CurrencySvgPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CartService, UnifiedWishlistService]
 })
@@ -63,7 +64,7 @@ export class LocalWishlistComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.isEmpty = true;
           this.cdr.detectChanges();
-          console.error('Error loading wishlist:', err);
+          
         },
       });
   }
@@ -89,7 +90,7 @@ export class LocalWishlistComponent implements OnInit, OnDestroy {
         error: (err: any) => {
           this.wishlistItems[index].isRemoving = false;
           this.error = 'Failed to remove item from wishlist. Please try again.';
-          console.error('Error removing from wishlist:', err);
+          
           this.cdr.detectChanges();
         },
       });
@@ -151,18 +152,18 @@ export class LocalWishlistComponent implements OnInit, OnDestroy {
     return product?.name || 'Unnamed Product';
   }
 
-  getProductPrice(product: Product): string {
+  getProductPrice(product: Product): number | string {
     if (!product) return 'N/A';
     
-    // Handle different price formats
+    // Return the raw price value without currency formatting
     if (typeof product.price === 'string') {
-      return `$${parseFloat(product.price).toFixed(2)}`;
+      return parseFloat(product.price);
     } else if (typeof product.price === 'number') {
-      return `$${product.price.toFixed(2)}`;
-    } else if (product.regular_price) {
-      return `$${parseFloat(product.regular_price).toFixed(2)}`;
+      return product.price;
     } else if (product.sale_price) {
-      return `$${parseFloat(product.sale_price).toFixed(2)}`;
+      return parseFloat(product.sale_price);
+    } else if (product.regular_price) {
+      return parseFloat(product.regular_price);
     }
     
     return 'N/A';

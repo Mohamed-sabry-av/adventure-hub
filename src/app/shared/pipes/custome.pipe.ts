@@ -13,7 +13,7 @@ export const handleError = <T>(defaultValue: T, logMessage: string) =>
   (source: Observable<T>): Observable<T> =>
     source.pipe(
       catchError(error => {
-        console.error(logMessage, error);
+        
         return of(defaultValue);
       })
     );

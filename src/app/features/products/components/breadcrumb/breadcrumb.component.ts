@@ -150,7 +150,7 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
           mostSpecificCategoryItems = categoryItems;
         }
       } catch (error) {
-        console.error('Error processing category:', error);
+        
       }
     }
 
@@ -216,7 +216,7 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
       
       return items;
     } catch (error) {
-      console.error('Error building category hierarchy:', error);
+      
       // Fallback to just the provided category
       return [{
         label: category.name,
@@ -335,9 +335,7 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
             });
             currentParentId = category.id;
           } else {
-            console.warn(
-              `Category with slug "${slug}" not found or not a child of parent ${currentParentId}`
-            );
+            
             break;
           }
         }

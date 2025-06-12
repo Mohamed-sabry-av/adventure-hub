@@ -16,7 +16,7 @@ export class ProductTagsService {
    */
   getProductTags(product: any, variations: any[] = []): string[] {
     if (!product) {
-      console.warn('No product provided to getProductTags');
+      
       return [];
     }
 

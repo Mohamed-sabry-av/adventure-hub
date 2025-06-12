@@ -60,7 +60,7 @@ export class TabbyPromoComponent implements OnInit, OnChanges {
     script.src = 'https://checkout.tabby.ai/tabby-promo.js';
     script.async = true;
     script.onload = () => this.initializeTabbyPromo();
-    script.onerror = () => console.error('Failed to load Tabby Promo script');
+    script.onerror = () => 
     document.body.appendChild(script);
   }
   private initializeTabbyPromo() {

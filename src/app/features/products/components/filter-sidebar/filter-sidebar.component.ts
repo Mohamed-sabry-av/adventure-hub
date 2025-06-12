@@ -172,7 +172,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
           this.updateUI();
         },
         error: (error) => {
-          console.error('Error updating available attributes:', error);
+          
           this.errorMessage = 'Failed to update filters.';
           this.updateUI();
         },
@@ -196,7 +196,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
       this.initializeSections();
       this.isLoadingAttributes = false;
     } catch (error) {
-      console.error('Error processing external attributes:', error);
+      
       this.errorMessage = 'Failed to process filters.';
       this.isLoadingAttributes = false;
     }
@@ -231,11 +231,11 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
         this.initializeSections();
       } else {
         this.errorMessage = 'No attributes available.';
-        console.warn('No data received from filter service.');
+        
       }
     } catch (error) {
       this.errorMessage = 'Failed to load filters.';
-      console.error('Error loading attributes:', error);
+      
     } finally {
       this.isLoadingAttributes = false;
       this.updateUI();
@@ -328,7 +328,7 @@ export class FilterSidebarComponent implements OnInit, OnChanges {
           this.updateUI();
         },
         error: (error) => {
-          console.error('Error updating attributes:', error);
+          
           this.errorMessage = 'Failed to update filters.';
           this.updateUI();
         },

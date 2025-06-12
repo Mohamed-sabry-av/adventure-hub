@@ -148,7 +148,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.loadProducts(true, filters);
       });
     } else {
-      console.warn('FilterSidebarComponent not initialized');
+      
     }
   }
 
@@ -174,7 +174,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           .getCategoryBySlug(deepestSlug)
           .pipe(
             catchError((error) => {
-              console.error('Category not found:', error);
+              
               // إذا لم يتم العثور على الفئة، قم بتوجيه المستخدم إلى صفحة 404
               this.router.navigate(['/page-not-found']);
               return throwError(() => new Error('Category not found'));
@@ -203,7 +203,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           pageTitle = this.currentCategory.yoast_head_json.title;
 
         } else {
-          console.warn('Yoast SEO title not found, using category name:', this.currentCategory?.name);
+          
           pageTitle = this.currentCategory?.name || 'Products';
         }
         
@@ -219,7 +219,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       await this.loadProducts(true);
       await this.loadTotalProducts();
     } catch (error) {
-      console.error('Error in loadInitialData:', error);
+      
       // تحقق ما إذا كان الخطأ بسبب عدم وجود الفئة، وفي هذه الحالة انتقل إلى صفحة 404
       if (String(error).includes('Category not found')) {
         this.router.navigate(['/page-not-found']);
@@ -267,7 +267,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       )
       .pipe(
         catchError((error) => {
-          console.error('Error loading products:', error);
+          
           return of([]);
         }),
         finalize(() => {
@@ -307,7 +307,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       }
       this.cdr.markForCheck();
     } catch (error) {
-      console.error('Error loading total products:', error);
+      
       this.totalProducts = 0;
       this.cdr.markForCheck();
     }
@@ -351,7 +351,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           .getCategoryById(categoryId)
           .pipe(
             catchError((error) => {
-              console.error('Category not found by ID:', error);
+              
               // إذا لم يتم العثور على الفئة، قم بتوجيه المستخدم إلى صفحة 404
               this.router.navigate(['/page-not-found']);
               return throwError(() => new Error('Category not found'));
@@ -394,7 +394,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       // Track new category view after category change
       this.trackCategoryView();
     } catch (error) {
-      console.error('Error in onCategoryIdChange:', error);
+      
       // تحقق ما إذا كان الخطأ بسبب عدم وجود الفئة، وفي هذه الحالة انتقل إلى صفحة 404
       if (String(error).includes('Category not found')) {
         this.router.navigate(['/page-not-found']);

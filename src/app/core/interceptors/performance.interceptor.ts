@@ -34,10 +34,7 @@ export const performanceInterceptor: HttpInterceptorFn = (req, next) => {
           // Only log slow requests (over 300ms) in production
           const shouldLog = timeElapsed > 300 || isDevMode();
           if (shouldLog) {
-            console.info(
-              `🚀 ${req.method} ${req.url.split('?')[0]} => ${timeElapsed}ms`,
-              requestId
-            );
+           
           }
 
           // Track very slow requests for analytics
@@ -54,10 +51,7 @@ export const performanceInterceptor: HttpInterceptorFn = (req, next) => {
       error: (error) => {
         const timeElapsed = Date.now() - startTime;
         if (isPlatformBrowser(platformId)) {
-          console.error(
-            `${req.method} ${req.url.split('?')[0]} failed in ${timeElapsed}ms`,
-            error
-          );
+        
         }
       }
     })

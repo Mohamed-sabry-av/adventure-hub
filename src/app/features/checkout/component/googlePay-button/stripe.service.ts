@@ -1,14 +1,24 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { ConfigService } from '../../../../core/services/config.service';
+
 @Injectable({
   providedIn: 'root',
 })
 export class StripeService {
-  private stripePromise: Promise<Stripe | null>;
+  private stripePromise: Promise<Stripe | null> | null = null;
+  private configService = inject(ConfigService);
+  
   constructor() {
-    this.stripePromise = loadStripe('pk_test_51RGe55G0IhgrvppwwIADEDYdoX8XFiOhi4hHHl9pztg3JjECc5QHfQOn7N0Wjyyrw6n6BZJtNF7GFXtakPSvwHkx00vBmKZw45');
+    // Get Stripe key from config service
+    this.configService.getConfig().subscribe(config => {
+      if (config && config.stripePublishableKey) {
+        this.stripePromise = loadStripe(config.stripePublishableKey);
+      }
+    });
   }
+  
   getStripe(): Promise<Stripe | null> {
-    return this.stripePromise;
+    return this.stripePromise || Promise.resolve(null);
   }
 }

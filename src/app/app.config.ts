@@ -1,4 +1,4 @@
-import { ApplicationConfig, isDevMode } from '@angular/core';
+import { ApplicationConfig, isDevMode, APP_INITIALIZER } from '@angular/core';
 import { 
   provideRouter, 
   withComponentInputBinding, 
@@ -25,9 +25,52 @@ import { reducers } from './Store/store';
 import { performanceInterceptor } from './core/interceptors/performance.interceptor';
 import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { GeoLocationService } from './shared/services/geo-location.service';
+import { ConfigService } from './core/services/config.service';
+import { ApiService } from './core/services/api.service';
+
+// Function to initialize config before app starts
+export function initializeApp(configService: ConfigService) {
+  return () => {
+    console.log('Initializing application configuration...');
+    return configService.loadConfig()
+      .catch(error => {
+        console.error('Failed to initialize app with config:', error);
+        // Still return a resolved promise to allow app to start
+        // The app should handle fallback mechanisms
+        return Promise.resolve();
+      });
+  };
+}
+
+// Function to preload critical resources after config is loaded
+export function preloadCriticalResources(apiService: ApiService) {
+  return () => {
+    // Wait a bit to ensure config is fully loaded
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        apiService.preloadCriticalResources();
+        resolve();
+      }, 1000);
+    });
+  };
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // APP_INITIALIZER for loading config before app starts
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [ConfigService],
+      multi: true
+    },
+    // APP_INITIALIZER for preloading critical resources
+    {
+      provide: APP_INITIALIZER,
+      useFactory: preloadCriticalResources,
+      deps: [ApiService],
+      multi: true
+    },
     provideRouter(
       routes,
       withPreloading(PreloadAllModules),

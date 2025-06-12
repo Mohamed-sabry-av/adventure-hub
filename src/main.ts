@@ -7,4 +7,5 @@ import 'zone.js';
 bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));
 
+  
   // loadGapiInsideDOM();

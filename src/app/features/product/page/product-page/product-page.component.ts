@@ -153,7 +153,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           }
         }
       } catch (error) {
-        console.error('Error reading from localStorage:', error);
+        
       }
     }
 
@@ -185,7 +185,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           };
           localStorage.setItem(localStorageKey, JSON.stringify(dataToCache));
         } catch (error) {
-          console.error('Error saving to localStorage:', error);
+          
         }
       }
       
@@ -216,7 +216,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
             this.cdr.markForCheck();
           }
         } catch (error) {
-          console.error('Error updating cached product data:', error);
+          
         }
       }
     });
@@ -264,7 +264,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       
       this.klaviyoTracking.trackEvent('Viewed Product', productData);
     } catch (e) {
-      console.error('Error tracking product view:', e);
+      
     }
   }
 
@@ -274,7 +274,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   }
 
   private handleError(message: string) {
-    console.error(message);
+    
     this.isLoading = false;
     this.cdr.markForCheck();
   }
@@ -312,7 +312,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       
       this.klaviyoTracking.trackEvent('Selected Product Variant', variantData);
     } catch (e) {
-      console.error('Error tracking variation selection:', e);
+      
     }
   }
 

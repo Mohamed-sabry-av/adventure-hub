@@ -9,6 +9,7 @@ import { isPlatformBrowser } from '@angular/common';
   template: `
     <div class="recaptcha-container">
       <div 
+        *ngIf="isBrowser"
         class="g-recaptcha" 
         [attr.data-sitekey]="siteKey" 
         data-callback="onRecaptchaSuccess">
@@ -18,20 +19,23 @@ import { isPlatformBrowser } from '@angular/common';
   styleUrls: ['./recapcha.component.css'],
 })
 export class RecapchaComponent implements AfterViewInit {
-  @Input() siteKey: string = '6LeQIvQqAAAAAIQvKnVxCJomja56lB29ywRm7gbh'; // Site Key من Google
+  @Input() siteKey: string = '6LfvcForAAAAADIIAlTLPI3k1x2-25tG26HlrhxI'; // Site Key من Google
   @Output() recaptchaSuccess = new EventEmitter<string>(); // لإرسال الـ token للكومبوننت الأب
   recaptchaToken: string | null = null;
+  isBrowser: boolean = false;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngAfterViewInit() {
-    if (isPlatformBrowser(this.platformId)) {
+    if (this.isBrowser) {
       // نشغل الكود في المتصفح بس
       this.loadRecaptchaScript().then(() => {
         // نحدد الـ callback ديناميكيًا بعد تحميل السكربت
         (window as any).onRecaptchaSuccess = this.onRecaptchaSuccess.bind(this);
       }).catch(err => {
-        console.error('Failed to load reCAPTCHA script:', err);
+        
       });
     }
   }
@@ -55,11 +59,10 @@ export class RecapchaComponent implements AfterViewInit {
   onRecaptchaSuccess(token: string) {
     this.recaptchaToken = token;
     this.recaptchaSuccess.emit(token);
-
   }
 
   resetRecaptcha() {
-    if (isPlatformBrowser(this.platformId) && (window as any).grecaptcha) {
+    if (this.isBrowser && (window as any).grecaptcha) {
       this.recaptchaToken = null;
       (window as any).grecaptcha.reset();
     }

@@ -71,7 +71,7 @@ export class SaleProductsComponent implements OnInit, AfterViewInit, OnDestroy {
         role: 'region',
         label: 'Sale Products',
         // gap: '1rem',
-        padding: { left: 0, right: 0 },
+        padding: { left: '1rem', right: '1rem' },
         // focus: 'center',
         trimSpace: true,
         updateOnMove: true,

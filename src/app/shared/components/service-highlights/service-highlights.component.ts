@@ -11,6 +11,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       border-top: 1px solid #eaeaea;
       padding: 2.5rem 0;
       margin-top: 2rem;
+      width: 100%;
+      overflow-x: hidden;
     }
     
     /* Title styling */
@@ -37,6 +39,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
     
     .highlights-wrapper {
       gap: 1.5rem;
+      width: 100%;
+      flex-wrap: wrap;
     }
     
     .service-highlight-item {
@@ -100,17 +104,24 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         padding: 1.5rem 0;
       }
       
+      .highlights-wrapper {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .service-highlight-item {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        flex-basis: 100%;
+        min-width: 0;
+      }
+      
       .highlight-title-container {
         margin-bottom: 1.5rem;
       }
       
       .highlight-title {
         font-size: 1.5rem;
-      }
-      
-      .service-highlight-item {
-        margin-bottom: 1rem;
-        padding: 1rem;
       }
       
       .service-highlight-icon-container {
@@ -128,6 +139,17 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       
       .service-highlight-text:last-child {
         font-size: 0.75rem;
+      }
+    }
+    
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .highlights-wrapper {
+        flex-wrap: wrap;
+      }
+      
+      .service-highlight-item {
+        flex-basis: calc(50% - 1.5rem);
+        min-width: 0;
       }
     }
   `]

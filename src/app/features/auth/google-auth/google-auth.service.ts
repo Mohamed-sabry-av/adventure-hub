@@ -40,7 +40,7 @@ export class GoogleAuthService {
           }
         }),
         catchError((error) => {
-          console.error('Google login failed:', error);
+          
           throw error;
         })
       );

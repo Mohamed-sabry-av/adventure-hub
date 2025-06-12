@@ -65,7 +65,7 @@ export class LoginComponent {
 
           },
           error: (err) => {
-            console.error('Error syncing wishlist:', err);
+            
           }
         });
         

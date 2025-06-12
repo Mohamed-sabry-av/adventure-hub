@@ -28,7 +28,7 @@ export class HandleErrorsService {
     }
     
     // Log detailed error to console for debugging
-    console.error('Error details:', detailedError);
+    
     
     // Show user-friendly message as a toast notification
     this.toastService.error(errorMessage);

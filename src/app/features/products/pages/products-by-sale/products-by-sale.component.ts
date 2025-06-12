@@ -66,7 +66,7 @@ export class ProductsBySaleComponent implements OnInit {
       ]);
       this.loadAvailableAttributes();
     } catch (error) {
-      console.error('Error in ngOnInit:', error);
+      
       this.schemaData = this.seoService.applySeoTags(null, {
         title: 'On Sale Products - Adventures HUB Sports Shop',
       });
@@ -160,7 +160,7 @@ export class ProductsBySaleComponent implements OnInit {
         }
       }
     } catch (error) {
-      console.error('Error loading products:', error);
+      
       if (isInitialLoad) this.products = [];
     } finally {
       this.isLoading = false;
@@ -187,7 +187,7 @@ export class ProductsBySaleComponent implements OnInit {
       this.totalProducts = response?.length ? 1000 : 0; // استبدل بقيمة ديناميكية إذا كان الـ API يدعم ذلك
       this.cdr.markForCheck();
     } catch (error) {
-      console.error('Error loading total products:', error);
+      
       this.totalProducts = 0;
       this.cdr.markForCheck();
     }
@@ -237,7 +237,7 @@ export class ProductsBySaleComponent implements OnInit {
     //     .toPromise();
     //   
     // } catch (error) {
-    //   console.error('Error loading attributes:', error);
+    //   
     // }
   }
   openFilterDrawer() {

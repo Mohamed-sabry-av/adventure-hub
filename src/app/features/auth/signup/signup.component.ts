@@ -91,7 +91,7 @@ export class SignupComponent {
 
               },
               error: (err) => {
-                console.error('Error syncing wishlist:', err);
+                
               }
             });
             

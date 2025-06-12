@@ -98,7 +98,7 @@ export class RelatedCategoriesComponent implements OnInit {
         timeout(5000), // Set 5-second timeout
         take(1),
         catchError(err => {
-          console.error('Error loading categories:', err);
+          
           return of([]);
         })
       ),
@@ -106,7 +106,7 @@ export class RelatedCategoriesComponent implements OnInit {
         timeout(5000), // Set 5-second timeout
         take(1),
         catchError(err => {
-          console.error('Error loading category images:', err);
+          
           return of([]);
         })
       )
@@ -168,7 +168,7 @@ export class RelatedCategoriesComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Error in forkJoin:', err);
+        
         this.loading = false;
         this.cdr.markForCheck();
       }

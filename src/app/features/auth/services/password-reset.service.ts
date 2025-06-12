@@ -1,20 +1,31 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
-import { environment } from '../../../../environments/environment';
+import { ConfigService } from '../../../core/services/config.service';
+
 @Injectable({
   providedIn: 'root'
 })
 export class PasswordResetService {
-  private readonly API_URL = environment.customApiUrl;
-  constructor(private apiService: ApiService) {}
+  private configService = inject(ConfigService);
+  private apiUrl: string = '';
+  
+  constructor(private apiService: ApiService) {
+    // Get API URL from config
+    this.configService.getConfig().subscribe(config => {
+      if (config && config.apiUrl) {
+        this.apiUrl = `${config.apiUrl}/wp-json/custom/v1`;
+      }
+    });
+  }
+  
   /**
    * Request password reset for a specific email address
    * @param email - Email address for password reset
    */
   requestPasswordReset(email: string): Observable<any> {
     return this.apiService.postExternalRequest(
-      `${this.API_URL}/forgot-password`,
+      `${this.apiUrl}/forgot-password`,
       { email },
       {
         headers: {

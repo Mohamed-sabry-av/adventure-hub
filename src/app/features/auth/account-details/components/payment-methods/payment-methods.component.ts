@@ -62,7 +62,7 @@ export class PaymentMethodsComponent implements OnInit {
       error: (err) => {
         this.error = 'Failed to load payment methods. Please try again later.';
         this.isLoading = false;
-        console.error('Error loading payment methods:', err);
+        
       },
     });
   }

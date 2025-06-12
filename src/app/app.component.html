@@ -5,7 +5,7 @@
 
   <!-- No spacer needed with sticky positioning -->
 
-  <main class="flex-1 bg-white w-full main-content" role="main">
+  <main class="flex-1 bg-white w-full main-content relative z-10" role="main">
     <router-outlet />
     <app-side-cart></app-side-cart>
   </main>
@@ -23,4 +23,7 @@
   <div aria-live="polite" role="status">
     <app-toast />
   </div>
+
+  <!-- WhatsApp Button -->
+  <app-whatsapp-button *ngIf="!isCheckoutPage"></app-whatsapp-button>
 </div>

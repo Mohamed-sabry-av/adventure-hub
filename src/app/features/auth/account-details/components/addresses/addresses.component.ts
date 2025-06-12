@@ -70,7 +70,7 @@ export class AddressesComponent implements OnInit {
       error: (err) => {
         this.error = 'Failed to load addresses. Please try again later.';
         this.isLoading = false;
-        console.error('Error loading addresses:', err);
+        
       },
     });
   }
@@ -141,7 +141,7 @@ export class AddressesComponent implements OnInit {
         error: (err) => {
           this.error = 'Failed to update billing address. Please try again.';
           this.isSaving = false;
-          console.error('Error updating billing address:', err);
+          
         },
       });
   }
@@ -173,7 +173,7 @@ export class AddressesComponent implements OnInit {
         error: (err) => {
           this.error = 'Failed to update shipping address. Please try again.';
           this.isSaving = false;
-          console.error('Error updating shipping address:', err);
+          
         },
       });
   }

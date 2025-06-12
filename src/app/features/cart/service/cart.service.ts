@@ -245,7 +245,7 @@ export class CartService {
             })
           );
         } else {
-          console.warn('No Loaded Items In Offline Cart');
+          
         }
       }
     });

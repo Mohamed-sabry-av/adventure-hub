@@ -80,10 +80,9 @@
 
     <!-- Sales/Deals (moved under categories) -->
     <div class="drawer-section">
-      <a routerLink="/product/sale" class="deals-button-mobile flex items-center justify-center"
-        (click)="onSiwtchSideNav(false)">
+      <a routerLink="/product/sale" class="deals-button-mobile" (click)="onSiwtchSideNav(false)">
         <i class="pi pi-percentage text-sm mr-2"></i>
-        <span class="text-base font-bold">Deals</span>
+        <span class="text-white">Deals</span>
       </a>
     </div>
 
@@ -120,8 +119,8 @@
     <a routerLink="/product/sale"
       class="deals-button-desktop text-white font-semibold px-7 py-2 rounded-lg text-base flex items-center gap-2"
       [class]="{ hidden: !showNavbar() }">
-      <i class="pi pi-percentage text-sm"></i>
-      <span>Deals</span>
+      <i class="pi pi-percentage text-sm mr-2"></i>
+      <span class="text-base font-bold">Deals</span>
     </a>
   </ul>
 </div>

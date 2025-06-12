@@ -132,7 +132,7 @@ export class RecentProductsMiniComponent implements OnInit, OnChanges, AfterView
             .slice(0, this.maxProductsToShow);
         }),
         catchError(error => {
-          console.error('RecentProductsMini - Error loading products:', error);
+          
           return of([] as Product[]);
         }),
         finalize(() => {
@@ -154,7 +154,7 @@ export class RecentProductsMiniComponent implements OnInit, OnChanges, AfterView
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('RecentProductsMini - Subscription error:', error);
+          
           this.isLoading = false;
           this.recentProducts = [];
           this.cdr.markForCheck();

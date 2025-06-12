@@ -57,7 +57,10 @@
                 <!-- Product info -->
                 <div class="product-info">
                     <h3 class="text-lg font-medium mb-2">{{ getProductName(item) }}</h3>
-                    <p class="price mb-3">{{ getProductPrice(item) }}</p>
+                    <div class="price">
+                        <span class="current-price regular-price"
+                            [innerHTML]="getProductPrice(item) | currencySvg"></span>
+                    </div>
 
                     <!-- Added to cart notification -->
                     <div *ngIf="item.addedToCart" class="text-green-600 text-sm mb-3">
@@ -65,7 +68,7 @@
                     </div>
 
                     <div class="flex space-x-2">
-                        <a [routerLink]="['/product', item.id || item.id]" class="view-btn">
+                        <a [routerLink]="['/product', item.slug || item.id]" class="view-btn">
                             <i class="pi pi-eye mr-1"></i> View
                         </a>
 

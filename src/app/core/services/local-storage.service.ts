@@ -47,7 +47,7 @@ export class LocalStorageService {
       }
       return parsedData.value as T;
     } catch (error) {
-      console.error('Error getting from localStorage:', error);
+      
       this.removeItem(key);
       return null;
     }
@@ -61,7 +61,7 @@ export class LocalStorageService {
     try {
       this.storage.removeItem(key);
     } catch (error) {
-      console.error('Error removing from localStorage:', error);
+      
     }
   }
   /**
@@ -71,7 +71,7 @@ export class LocalStorageService {
    */
   private migrateOldData(key: string, oldCategories: Category[]): void {
     if (!this.storage) return;
-    console.warn('Migrating old localStorage data...');
+    
     this.setItem(key, oldCategories); 
   }
 }

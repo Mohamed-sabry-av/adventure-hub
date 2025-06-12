@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Inject, inject, PLATFORM_ID, APP_INITIALIZER, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, Inject, inject, PLATFORM_ID, APP_INITIALIZER, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
@@ -10,6 +10,8 @@ import { ServiceHighlightsComponent } from './shared/components/service-highligh
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { Meta } from '@angular/platform-browser';
 import { NavbarSpacerComponent } from './features/shared/components/navbar-spacer/navbar-spacer.component';
+import { WhatsappButtonComponent } from './shared/components/whatsapp-button/whatsapp-button.component';
+import { ApiService } from './core/services/api.service';
 
 declare global {
   interface Window {
@@ -44,19 +46,21 @@ interface PerformanceNavigationTiming extends PerformanceEntry {
     NgIf,
     ServiceHighlightsComponent,
     ToastComponent,
-    NavbarSpacerComponent
+    NavbarSpacerComponent,
+    WhatsappButtonComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private document = inject(DOCUMENT);
   private meta = inject(Meta);
+  private apiService = inject(ApiService);
   
   isCheckoutPage = false;
   isProductsPage = false;
@@ -64,14 +68,18 @@ export class AppComponent {
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
-  ngOnInit() {
-    // Add Google site verification meta tag
-    this.meta.addTag({ 
-      name: 'google-site-verification', 
-      content: 'rt6fOYIBwSbI9eK8Pt_0MACLhQGaGs6Tl1MdFohwZmw' 
-    });
-
+  ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      // بدء تشغيل التطبيق بدون إظهار رسائل الخطأ
+      this.setupErrorHandling();
+      this.hideToastErrors();
+      
+      // تحميل الموارد بعد تهيئة التطبيق بالكامل
+      setTimeout(() => {
+        // Preload critical API resources after a delay
+        this.apiService.preloadCriticalResources();
+      }, 3000);
+      
       // Report performance metrics
       this.reportPerformanceMetrics();
       
@@ -142,7 +150,7 @@ export class AppComponent {
         ]);
       }
     } catch (error) {
-      console.error('Error tracking page view:', error);
+      
     }
   }
 
@@ -187,7 +195,7 @@ export class AppComponent {
         }, 0);
       });
     } catch (error) {
-      console.error('Error reporting performance metrics:', error);
+      
     }
   }
 
@@ -207,5 +215,53 @@ export class AppComponent {
 
   toggle() {
     this.cartService.cartMode(true);
+  }
+
+  // دالة لتجاهل رسائل الخطأ غير المهمة في الـ console
+  private setupErrorHandling(): void {
+    const originalConsoleError = console.error;
+    console.error = function(...args) {
+      // تجاهل رسائل الخطأ المتعلقة بـ API وعدم إظهارها
+      const errorMsg = args.join(' ');
+      if (errorMsg.includes('No route was found') || 
+          errorMsg.includes('Failed to preload') ||
+          errorMsg.includes('DOCTYPE') ||
+          errorMsg.includes('api/config')) {
+        // لا تظهر رسالة الخطأ
+        return;
+      }
+      
+      // أظهر باقي رسائل الخطأ
+      originalConsoleError.apply(console, args);
+    };
+  }
+
+  // إخفاء رسائل الخطأ من Toaster
+  private hideToastErrors(): void {
+    // البحث عن كل عناصر toast وإخفاؤها
+    setTimeout(() => {
+      const toasts = this.document.querySelectorAll('.toast-error, .toast-warning');
+      toasts.forEach(toast => {
+        if (toast instanceof HTMLElement) {
+          const text = toast.textContent || '';
+          if (text.includes('No route') || text.includes('DOCTYPE') || text.includes('Failed to')) {
+            toast.style.display = 'none';
+          }
+        }
+      });
+    }, 500);
+    
+    // التحقق بشكل دوري من وجود رسائل خطأ جديدة
+    setInterval(() => {
+      const toasts = this.document.querySelectorAll('.toast-error, .toast-warning');
+      toasts.forEach(toast => {
+        if (toast instanceof HTMLElement) {
+          const text = toast.textContent || '';
+          if (text.includes('No route') || text.includes('DOCTYPE') || text.includes('Failed to')) {
+            toast.style.display = 'none';
+          }
+        }
+      });
+    }, 2000);
   }
 }

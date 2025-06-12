@@ -126,7 +126,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
     }
     
     this.uiService.showError(displayErrorMessage);
-    console.error('Cart error:', error);
+    
   }
 
   retryLoadCart() {

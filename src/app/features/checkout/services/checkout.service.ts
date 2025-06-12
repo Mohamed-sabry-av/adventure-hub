@@ -147,7 +147,7 @@ export class CheckoutService {
                 }
               }
             } catch (e) {
-              console.error('Error parsing saved location:', e);
+              
             }
           }
           
@@ -155,7 +155,7 @@ export class CheckoutService {
           return of(countries);
         }),
         catchError((error: any) => {
-          console.error('Error fetching countries:', error);
+          
           return throwError(() => new Error(error.error?.message || 'Failed to fetch countries'));
         })
       );
@@ -170,7 +170,7 @@ export class CheckoutService {
         return country ? country.name : null;
       }),
       catchError(error => {
-        console.error('Error fetching world countries:', error);
+        
         return of(null);
       })
     );
@@ -509,7 +509,7 @@ export class CheckoutService {
           return; // No need to fetch again
         }
       } catch (e) {
-        console.error('Error parsing saved location:', e);
+        
       }
     }
 
@@ -528,7 +528,7 @@ export class CheckoutService {
         }
       },
       (error) => {
-        console.error('Error getting geolocation:', error);
+        
       }
     );
   }

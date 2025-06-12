@@ -77,7 +77,7 @@ export class CheckoutEffect {
             });
           }),
           catchError((error: any) => {
-            console.error('Error fetching coupons:', error);
+            
             this.store.dispatch(stopLoadingCouponAction());
             this.uiService.showError('Failed to fetch coupons');
             return of(
@@ -144,7 +144,7 @@ export class CheckoutEffect {
                   return getUserCartAction({ userCart: response });
                 }),
                 catchError((error: any) => {
-                  console.error('Error applying coupon:', error);
+                  
                   this.store.dispatch(stopLoadingCouponAction());
                   const errorMessage =
                     error.error?.data?.data?.reason || 'Failed to apply coupon';
@@ -221,7 +221,7 @@ export class CheckoutEffect {
                   return getUserCartAction({ userCart: response });
                 }),
                 catchError((error: any) => {
-                  console.error('Error applying coupon:', error);
+                  
                   this.store.dispatch(stopLoadingCouponAction());
                   const errorMessage =
                     error.error?.data?.data?.reason || 'Failed to apply coupon';
@@ -294,7 +294,7 @@ export class CheckoutEffect {
                 return getUserCartAction({ userCart: response });
               }),
               catchError((error: any) => {
-                console.error('Error removing coupon:', error);
+                
                 this.store.dispatch(stopLoadingCouponAction());
                 this.uiService.showError('Failed to remove coupon');
                 return of(error);
@@ -325,7 +325,7 @@ export class CheckoutEffect {
                 return getUserCartAction({ userCart: response });
               }),
               catchError((error: any) => {
-                console.error('Error removing coupon:', error);
+                
                 this.store.dispatch(stopLoadingCouponAction());
                 this.uiService.showError('Failed to remove coupon');
                 return of(error);
@@ -383,7 +383,7 @@ export class CheckoutEffect {
             return getOrderDataAction({ orderDetails: res });
           }),
           catchError((error: any) => {
-            console.error('Error retrieving order:', error);
+            
             this.uiService.showError('Failed to retrieve order data');
             return of();
           })

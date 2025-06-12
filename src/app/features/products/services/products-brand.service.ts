@@ -56,7 +56,7 @@ export class ProductsBrandService {
             }));
           }),
           catchError((error) => {
-            console.error(`Error fetching products for brand term ${brandTermId}:`, error);
+            
             this.handleErrorService.handelError(error);
             return of([]);
           }),
@@ -99,7 +99,7 @@ export class ProductsBrandService {
             return isNaN(total) ? 0 : total;
           }),
           catchError((error) => {
-            console.error(`Error fetching total products for brand term ${brandTermId}:`, error);
+            
             this.handleErrorService.handelError(error);
             return of(0);
           })
@@ -124,7 +124,7 @@ export class ProductsBrandService {
             return term ? { id: term.id, name: term.name, slug: term.slug } : null;
           }),
           catchError((error) => {
-            console.error(`Error fetching brand info for slug ${brandSlug}:`, error);
+            
             this.handleErrorService.handelError(error);
             return of(null);
           }),
@@ -153,7 +153,7 @@ export class ProductsBrandService {
           }, {});
         }),
         catchError((error) => {
-          console.error(`Error fetching attributes for brand ${brandTermId}:`, error);
+          
           this.handleErrorService.handelError(error);
           return of({});
         }),
@@ -184,7 +184,7 @@ export class ProductsBrandService {
           }, {});
         }),
         catchError((error) => {
-          console.error(`Error fetching available attributes for brand ${brandTermId}:`, error);
+          
           this.handleErrorService.handelError(error);
           return of({});
         }),

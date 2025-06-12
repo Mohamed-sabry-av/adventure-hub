@@ -1,6 +1,6 @@
 <div class="product-info">
   <!-- Product Tags -->
-  <div class="product-tags flex flex-wrap gap-2 mb-4" *ngIf="getProductTags().length > 0">
+  <div class="product-tags flex flex-wrap gap-2 mb-2" *ngIf="getProductTags().length > 0">
     <span *ngFor="let tag of getProductTags()" [ngClass]="getTagClass(tag)"
       class="inline-block px-2 py-1 text-xs font-medium rounded-md" [class.hub-tag-wrapper]="tag === 'HUB'">
       <ng-container *ngIf="tag !== 'HUB'; else hubTag">
@@ -12,7 +12,7 @@
     </span>
   </div>
 
-  <h1 class="text-3xl font-medium text-olive mb-2 flex items-start justify-between">
+  <h1 class="text-3xl font-medium text-olive mb-1 flex items-start justify-between">
     {{ productInfo()?.name }}
     <button
       class="share-button ml-2 flex items-center justify-center text-gray-600 hover:text-orange-500 transition-colors"
@@ -22,13 +22,13 @@
   </h1>
 
   <!-- Warranty Information -->
-  <div class="warranty-info mb-4" *ngIf="getWarrantyInfo()">
+  <div class="warranty-info mb-2" *ngIf="getWarrantyInfo()">
     <i class="pi pi-shield"></i>
     <span class="font-medium">{{ getWarrantyInfo() }}</span>
   </div>
 
   <!-- Price -->
-  <div class="flex items-baseline mb-4 gap-2">
+  <div class="flex items-baseline mb-2 gap-2">
     <span class="text-2xl font-bold" [innerHTML]="getNumericPrice(getPriceInfo().price) | currencySvg"></span>
     <ng-container *ngIf="getPriceInfo().isOnSale">
       <span class="text-gray-500 line-through text-lg ml-2"
@@ -37,7 +37,7 @@
   </div>
 
   <!-- Stock Status Message -->
-  <div class="stock-status mt-2 mb-3">
+  <div class="stock-status mt-1 mb-2">
     <ng-container *ngIf="isCompletelyOutOfStock">
       <span class="text-red-500 font-medium flex items-center">
         <i class="pi pi-times-circle mr-1"></i> Out of Stock
@@ -58,7 +58,7 @@
     </ng-container>
   </div>
 
-  <div class="product-brand" *ngIf="brandName !== 'brand'">
+  <div class="product-brand mb-2" *ngIf="brandName !== 'brand'">
     <span class="brand-label"></span>
     <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
   </div>
@@ -67,7 +67,7 @@
   <div *ngIf="productInfo()?.type === 'variable' && !isCompletelyOutOfStock">
     <!-- Color Options -->
     <ng-container *ngIf="getVariationOptions('Color').length">
-      <div class="product-option">
+      <div class="product-option mb-3">
         <div class="color-options">
           <div *ngFor="let option of getVariationOptions('Color'); let i = index" class="color-option"
             [class.active]="selectedAttributes['Color'] === option.value" [class.out-of-stock]="!option.inStock"
@@ -84,7 +84,7 @@
 
     <!-- Size Options (Filtered by Selected Color, including out of stock) -->
     <ng-container *ngIf="getVariationOptions('Size', selectedAttributes['Color']).length">
-      <div class="product-option">
+      <div class="product-option mb-3">
         <div class="size-options">
           <div *ngFor="let option of getVariationOptions('Size', selectedAttributes['Color']); let i = index"
             class="size-option" [class.active]="selectedAttributes['Size'] === option.value"
@@ -100,26 +100,22 @@
     </ng-container>
   </div>
 
-
-
-
   <!-- Delivery Estimation -->
   <app-delivery-estimate [isHubProduct]="isHubProduct"></app-delivery-estimate>
-
 
   <!-- Prompt to Select Variation -->
   <div *ngIf="
       !allVariationAttributesSelected &&
       !isCompletelyOutOfStock &&
       productInfo()?.type === 'variable'
-    ">
+    " class="mb-2">
     <span class="text-gray-500">Please select all options to check availability</span>
   </div>
 
   <!-- Quantity Controls, Add to Cart, Buy Now, and Wallet Payment Buttons -->
   <div *ngIf="(allVariationAttributesSelected || productInfo()?.type === 'simple') && isProductInStock">
     <!-- Quantity and Add to Cart in same row -->
-    <div class="cart-action-row mt-6 mb-4" [class.hidden]="isFooterVisible$">
+    <div class="cart-action-row mt-4 mb-3" [class.hidden]="isFooterVisible$">
       <div class="quantity-selector">
         <button class="quantity-btn" (click)="onQuantityDown()" [disabled]="quantity <= 1"
           aria-label="Decrease quantity">
@@ -149,7 +145,7 @@
     </div>
 
     <!-- Buy Now button full width -->
-    <div class="buy-now-container mb-4" *ngIf="!(walletPaymentAvailable$ | async)">
+    <div class="buy-now-container mb-3" *ngIf="!(walletPaymentAvailable$ | async)">
       <button class="buy-btn" (click)="buyNow()" [disabled]="(loadingMap$ | async)?.['buy']" aria-label="Buy Now">
         <ng-container *ngIf="(loadingMap$ | async)?.['buy']; else buyNowText">
           <div class="spinner-container" role="status" aria-live="polite" aria-label="Processing purchase">
@@ -161,15 +157,15 @@
     </div>
 
     <!-- Wallet Payment Button -->
-    <div class="wallet-payment-container mb-4" aria-label="Wallet payment option">
+    <div class="wallet-payment-container mb-3" aria-label="Wallet payment option">
       <app-wallet-payment [product]="getCartProduct()"
         (paymentSucceeded)="onWalletPaymentSucceeded($event)"></app-wallet-payment>
     </div>
 
     <!-- Uncomment when ready for production -->
-    <app-tabby-promo [price]="getPriceInfo().price" currency="AED" lang="en" source="product"
+    <!-- <app-tabby-promo [price]="getPriceInfo().price" currency="AED" lang="en" source="product"
       [publicKey]="tabbyConfig.publicKey" [merchantCode]="tabbyConfig.merchantCode"
-      [shouldInheritBg]="true"></app-tabby-promo>
+      [shouldInheritBg]="true"></app-tabby-promo> -->
   </div>
 
   <!-- Out of Stock for Selected Variation -->
@@ -177,19 +173,19 @@
       allVariationAttributesSelected &&
       !isProductInStock &&
       !isCompletelyOutOfStock
-    ">
+    " class="mb-2">
     <span class="text-red-500 font-medium flex items-center">
       <i class="pi pi-times-circle mr-1"></i> This variation is out of stock
     </span>
   </div>
 
   <!-- Wishlist message -->
-  <div *ngIf="wishlistMessage" class="mt-2 text-sm" [class.text-green-500]="wishlistSuccess"
+  <div *ngIf="wishlistMessage" class="mt-2 text-sm mb-2" [class.text-green-500]="wishlistSuccess"
     [class.text-red-500]="!wishlistSuccess" role="alert" aria-live="assertive">
     {{ wishlistMessage }}
   </div>
 
-  <div class="mt-6 flex flex-col gap-y-1" aria-label="Shipping and return information">
+  <div class="mt-4 flex flex-col gap-y-1" aria-label="Shipping and return information">
     <p class="text-sm">
       <span><i class="pi pi-check-circle text-sm mr-1"></i></span> Free Shipping
       in UAE For orders above AED 100.

@@ -120,6 +120,24 @@
         </p>
       </div>
     </div>
+
+    <!-- Delivery Estimate - Only visible for UAE -->
+    @if ((selectedCountry$ | async) === 'AE') {
+    <div class="flex flex-col gap-y-1 mt-1 mb-1">
+      <div class="flex items-center gap-x-2">
+        <i class="pi pi-truck text-gray-500"></i>
+        <p class="text-sm text-gray-700">Delivering by <span class="font-semibold">{{ formattedDeliveryDate }}</span>
+        </p>
+      </div>
+      @if (deliveryEstimate && deliveryEstimate.orderWithinHours > 0) {
+      <p class="text-xs text-gray-500 ml-6">
+        Order within {{ deliveryEstimate.orderWithinHours }}h {{ deliveryEstimate.orderWithinMinutes }}m
+        to get it by this date
+      </p>
+      }
+    </div>
+    }
+
     <!-- Total -->
     <div class="flex justify-between text-xl text-black/80 font-semibold">
       <p>Total</p>

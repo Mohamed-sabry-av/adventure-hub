@@ -7,8 +7,9 @@ import {
 } from '@angular/animations';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { Component, inject, OnInit, OnDestroy, Input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { Observable, Subscription, takeUntil, Subject, of, catchError, finalize, take } from 'rxjs';
+import { Observable, Subscription, takeUntil, Subject, of, catchError, finalize, take, filter, map } from 'rxjs';
 import { CartService } from '../../service/cart.service';
 import { CurrencySvgPipe } from '../../../../shared/pipes/currency.pipe';
 import { WalletPaymentComponent } from '../../../checkout/component/googlePay-button/google-pay-button.component';
@@ -35,7 +36,7 @@ interface UserAddress {
 
 @Component({
   selector: 'app-cart-checkout',
-  imports: [RouterLink, AsyncPipe, CurrencySvgPipe, WalletPaymentComponent, NgIf],
+  imports: [RouterLink, AsyncPipe, CurrencySvgPipe, WalletPaymentComponent, NgIf, FormsModule],
   templateUrl: './cart-checkout.component.html',
   styleUrl: './cart-checkout.component.css',
 
@@ -77,6 +78,7 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
   // Cart data
   loadedCart$: Observable<any> = this.cartService.savedUserCart$;
   cartTotal: number = 0;
+  cartStatus$: Observable<any> = this.uiService.cartStatus$;
   
   // Error handling
   loadingError: boolean = false;
@@ -93,6 +95,13 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
   appliedCoupon: CouponData | null = null;
   couponError: string | null = null;
   discountAmount = 0;
+  
+  // New coupon system using checkout service
+  couponValue: string = '';
+  haveCoupon: boolean = false;
+  appliedCouponStatus$: Observable<any> = this.checkoutService.appliedCouponStatus$;
+  isCouponLoading$: Observable<boolean> = this.uiService.isCouponLoading$;
+  isUsed$: Observable<boolean> = this.checkoutService.emailIsUsed$;
   
   // Shipping calculation
   isLoadingShipping = true;
@@ -135,7 +144,7 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
         error => {
           this.loadingError = true;
           this.errorMessage = 'Failed to load cart data. Please try again.';
-          console.error('Cart loading error:', error);
+          
         }
       )
     );
@@ -157,6 +166,31 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
     
     // Check for any saved coupons in local storage or from previous sessions
     this.checkForSavedCoupons();
+    
+    // Check for applied coupons from the cart service
+    const couponSubscription = this.loadedCart$
+      .pipe(
+        filter((response: any) => response?.userCart?.coupons),
+        map((res: any) => {
+          const coupons = res.userCart.coupons || {};
+          const couponKeys = Object.keys(coupons);
+
+          const couponData =
+            couponKeys.length > 0 ? coupons[couponKeys[0]] : null;
+
+          if (couponData !== null) {
+            this.haveCoupon = true;
+          } else {
+            this.haveCoupon = false;
+          }
+
+          this.couponValue = couponData?.code || '';
+          return res.userCart;
+        })
+      )
+      .subscribe();
+      
+    this.subscriptions.add(couponSubscription);
   }
   
   ngOnDestroy() {
@@ -170,6 +204,7 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
   }
   
   toggleCoupon() {
+    // Keep this method for backward compatibility
     this.isCouponVisible = !this.isCouponVisible;
     if (!this.isCouponVisible) {
       this.couponCode = '';
@@ -178,53 +213,20 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
   }
   
   applyCoupon() {
+    // Redirect to the new method using checkout service
     if (!this.couponCode.trim()) {
       this.couponError = 'Please enter a valid coupon code';
       return;
     }
     
-    this.isApplyingCoupon = true;
-    this.couponError = null;
-    
-    // Call API to validate coupon
-    this.http.post<any>(`${environment.apiUrl}/api/validate-coupon`, {
-      code: this.couponCode.trim(),
-      cart_total: this.cartTotal
-    }).pipe(
-      takeUntil(this.destroy$),
-      catchError(error => {
-        console.error('Coupon validation error:', error);
-        this.couponError = error.error?.message || 'Failed to validate coupon. Please try again.';
-        return of(null);
-      }),
-      finalize(() => {
-        this.isApplyingCoupon = false;
-      })
-    ).subscribe(response => {
-      if (response && response.success) {
-        this.appliedCoupon = {
-          code: this.couponCode.trim(),
-          discount_amount: response.discount_amount,
-          discount_type: response.discount_type,
-          discount_value: response.discount_value
-        };
-        
-        this.discountAmount = response.discount_amount;
-        this.couponCode = '';
-        this.isCouponVisible = false;
-        
-        // Save coupon to local storage or session
-        this.saveCouponToStorage();
-        
-        // Recalculate shipping eligibility
-        this.checkFreeShipping();
-      } else if (!this.couponError) {
-        this.couponError = 'Invalid coupon code or coupon is expired';
-      }
-    });
+    this.couponValue = this.couponCode.trim();
+    this.onApplyCoupon();
+    this.isCouponVisible = false;
   }
   
   removeCoupon() {
+    // Redirect to the new method using checkout service
+    this.onRemoveCoupon();
     this.appliedCoupon = null;
     this.discountAmount = 0;
     
@@ -251,7 +253,7 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
       catchError(error => {
         this.handleAddressError('Unable to load your address information');
-        console.error('Error loading user details:', error);
+        
         return of(null);
       })
     ).subscribe(customerData => {
@@ -331,7 +333,7 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
       user_email: this.getUserEmail()
     }).pipe(
       catchError(error => {
-        console.error('Error requesting shipping quote:', error);
+        
         return of(null);
       })
     ).subscribe();
@@ -340,8 +342,19 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
   calculateTotal(): number {
     let total = this.cartTotal;
     
-    // Apply discount if coupon is applied
-    if (this.discountAmount > 0) {
+    // Get the latest cart data with applied coupon discounts
+    let cartData: any = null;
+    this.loadedCart$.pipe(take(1)).subscribe(data => {
+      cartData = data?.userCart;
+    });
+    
+    // Use the total from the cart data if available (includes coupon discounts)
+    if (cartData?.totals?.total_price) {
+      total = typeof cartData.totals.total_price === 'string'
+        ? parseFloat(cartData.totals.total_price.replace(/[^0-9.]/g, ''))
+        : cartData.totals.total_price;
+    } else if (this.discountAmount > 0) {
+      // Fallback to manual calculation if cart total doesn't include discount
       total -= this.discountAmount;
     }
     
@@ -421,7 +434,7 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
           this.discountAmount = this.appliedCoupon.discount_amount;
         }
       } catch (e) {
-        console.error('Error parsing saved coupon', e);
+        
         localStorage.removeItem('appliedCoupon');
       }
     }
@@ -469,5 +482,120 @@ export class CartCheckoutComponent implements OnInit, OnDestroy {
         this.isFreeShipping = this.cartTotal >= 100;
       }
     });
+  }
+
+  // Get discount amount from applied coupon
+  getDiscountAmount(): number {
+    let discount = 0;
+    let cartData: any = null;
+    
+    // Get the latest cart data
+    this.loadedCart$.pipe(take(1)).subscribe(data => {
+      cartData = data?.userCart;
+    });
+    
+    // Check if there are any coupons applied
+    if (cartData?.coupons) {
+      const coupons = cartData.coupons || {};
+      const couponKeys = Object.keys(coupons);
+      
+      if (couponKeys.length > 0) {
+        const couponData = coupons[couponKeys[0]];
+        if (couponData) {
+          // Try to get discount from different possible properties
+          if (couponData.discount) {
+            discount = parseFloat(couponData.discount);
+          } else if (couponData.discount_amount) {
+            discount = parseFloat(couponData.discount_amount);
+          } else if (couponData.amount) {
+            discount = parseFloat(couponData.amount);
+          }
+        }
+      }
+    } 
+    
+    // Calculate discount from totals if available
+    if (discount === 0 && cartData?.totals) {
+      // If there's a difference between subtotal and total, it might be the discount
+      const subtotal = parseFloat(cartData.totals.sub_total?.toString().replace(/[^0-9.]/g, '') || '0');
+      const total = parseFloat(cartData.totals.total_price?.toString().replace(/[^0-9.]/g, '') || '0');
+      
+      if (subtotal > total) {
+        discount = subtotal - total;
+      }
+    }
+    
+    // Fallback to the component's discount amount
+    if (discount === 0 && this.discountAmount > 0) {
+      discount = this.discountAmount;
+    }
+    
+    return discount;
+  }
+  
+  // Get coupon type (percentage or fixed amount)
+  getCouponType(): string {
+    let couponType = '';
+    let cartData: any = null;
+    
+    // Get the latest cart data
+    this.loadedCart$.pipe(take(1)).subscribe(data => {
+      cartData = data?.userCart;
+    });
+    
+    // Check if there are any coupons applied
+    if (cartData?.coupons) {
+      const coupons = cartData.coupons || {};
+      const couponKeys = Object.keys(coupons);
+      
+      if (couponKeys.length > 0) {
+        const couponData = coupons[couponKeys[0]];
+        if (couponData) {
+          // Check coupon type
+          if (couponData.discount_type) {
+            couponType = couponData.discount_type;
+          } else if (couponData.type) {
+            couponType = couponData.type;
+          }
+        }
+      }
+    }
+    
+    return couponType;
+  }
+  
+  // Get applied coupon code
+  getCouponCode(): string {
+    let couponCode = '';
+    let cartData: any = null;
+    
+    // Get the latest cart data
+    this.loadedCart$.pipe(take(1)).subscribe(data => {
+      cartData = data?.userCart;
+    });
+    
+    // Check if there are any coupons applied
+    if (cartData?.coupons) {
+      const coupons = cartData.coupons || {};
+      const couponKeys = Object.keys(coupons);
+      
+      if (couponKeys.length > 0) {
+        const couponData = coupons[couponKeys[0]];
+        if (couponData && couponData.code) {
+          couponCode = couponData.code;
+        }
+      }
+    }
+    
+    return couponCode;
+  }
+
+  // New coupon methods using checkout service
+  onApplyCoupon() {
+    this.checkoutService.applyCoupon(this.couponValue);
+  }
+  
+  onRemoveCoupon() {
+    this.checkoutService.removeCoupon(this.couponValue);
   }
 }

@@ -104,10 +104,68 @@
   height: 3rem;
 }
 
+/* Price styling updated to match card-details component */
 .price {
-  font-weight: 600;
-  color: #2d3748;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+  width: auto;
+  max-width: 100%;
+}
+
+.price ::ng-deep .current-price {
+  font-weight: 600;
+  font-size: 0.925rem;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.price ::ng-deep .current-price img {
+  max-height: 16px;
+  max-width: 16px;
+  object-fit: contain;
+  margin-right: 2px;
+}
+
+.price ::ng-deep .sale-price {
+  color: #dc2626; /* Red for sale prices */
+}
+
+.price ::ng-deep .regular-price {
+  color: #111827;
+}
+
+.price ::ng-deep .old-price {
+  text-decoration: line-through;
+  color: #6b7280;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .price {
+    display: inline-flex;
+    width: auto;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .price ::ng-deep .current-price, 
+  .price ::ng-deep .old-price {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  
+  .price ::ng-deep .current-price .flex,
+  .price ::ng-deep .old-price .flex {
+    display: inline-flex !important;
+    width: auto !important;
+    flex-wrap: nowrap !important;
+  }
 }
 
 /* Removing overlay */

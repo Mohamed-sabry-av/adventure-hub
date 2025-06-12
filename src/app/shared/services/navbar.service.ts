@@ -29,7 +29,7 @@ export class NavbarService {
   
   // Configuration - drastically reduced sensitivity
   private readonly SCROLL_THRESHOLD = 350;
-  private readonly DESKTOP_WIDTH_THRESHOLD = 768;
+  private readonly DESKTOP_WIDTH_THRESHOLD = 960;
   private readonly SCROLL_STABILITY_DELAY = 1500;
   private readonly INTENTIONAL_SCROLL_DELAY = 8000;
   private readonly MIN_SCROLL_DISTANCE = 80;
@@ -143,7 +143,7 @@ export class NavbarService {
         if (this.scrollThrottleTimer) return;
         
         this.scrollThrottleTimer = setTimeout(() => {
-          this.handleScroll();
+        this.handleScroll();
           this.scrollThrottleTimer = null;
         }, 50);
       });
@@ -327,19 +327,15 @@ export class NavbarService {
         }
       }, 500);
     }
-    // When scrolling up significantly, show the third layer
+    // When scrolling up, always show the third layer regardless of position
     else if (this.scrollDirection() === 'up' && this.totalUpScroll > this.RESET_SCROLL_THRESHOLD) {
       // Clear any existing timers
       if (this.intentionalScrollTimer) {
         clearTimeout(this.intentionalScrollTimer);
       }
       
-      // Set the third layer to visible after a delay
-      setTimeout(() => {
-        if (this.scrollDirection() === 'up') {
-          this.safelySetVisibility(true);
-        }
-      }, 250);
+      // Set the third layer to visible immediately when scrolling up
+      this.safelySetVisibility(true);
       
       // Set a long timer before hiding it again
       this.intentionalScrollTimer = setTimeout(() => {
@@ -374,14 +370,10 @@ export class NavbarService {
         }
       }, 400);
     } 
-    // When scrolling up significantly, show the navbar
+    // When scrolling up, always show the navbar regardless of position
     else if (this.scrollDirection() === 'up' && this.totalUpScroll > this.RESET_SCROLL_THRESHOLD) {
-      // Longer delay to reduce sensitivity
-      setTimeout(() => {
-        if (this.scrollDirection() === 'up') {
-          this.safelySetVisibility(true);
-        }
-      }, 300);
+      // Show immediately when scrolling up
+      this.safelySetVisibility(true);
       
       // Clear any pending hide timers
       if (this.intentionalScrollTimer) {
@@ -403,7 +395,7 @@ export class NavbarService {
    */
   private logDebug(message: string): void {
     if (this.debugMode && isPlatformBrowser(this.platformId)) {
-      console.log(`[NavbarService] ${message}`);
+      
     }
   }
 

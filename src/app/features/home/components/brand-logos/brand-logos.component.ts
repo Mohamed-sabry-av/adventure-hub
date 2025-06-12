@@ -192,7 +192,7 @@ export class BrandLogosComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (err) => {
           this.error = 'Failed to load brands';
-          console.error('Error loading brands:', err);
+          
           this.cdr.markForCheck();
         }
       });

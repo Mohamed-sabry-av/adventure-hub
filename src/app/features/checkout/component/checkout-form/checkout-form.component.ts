@@ -199,7 +199,7 @@ export class CheckoutFormComponent {
       // If Apple Pay or Google Pay is available, set to true
       this.checkoutService.walletPaymentAvailable$.next(!!result);
     } catch (error) {
-      console.error('Error detecting wallet payment availability:', error);
+      
       this.checkoutService.walletPaymentAvailable$.next(false);
     }
   }
@@ -251,7 +251,7 @@ export class CheckoutFormComponent {
         return;
       }
     } catch (error) {
-      console.error('Error checking cart items:', error);
+      
       this.uiService.showError('Unable to access your cart. Please try again.');
       this.router.navigate(['/cart']);
       return;
@@ -322,7 +322,7 @@ export class CheckoutFormComponent {
       });
 
       if (error) {
-        console.error('Payment failed:', error.message);
+        
         this.uiService.showError('Payment failed: ' + error.message);
         this.currentPaymentIntentId = null;
         this.isLoading = false;
@@ -333,7 +333,7 @@ export class CheckoutFormComponent {
         this.pollOrderStatus(paymentIntent.id);
       }
     } catch (error: any) {
-      console.error('Error processing payment:', error);
+      
       this.uiService.showError('An error occurred while processing the payment: ' + error.message);
       this.currentPaymentIntentId = null;
       this.isPaying = false;
@@ -378,7 +378,7 @@ export class CheckoutFormComponent {
         return;
       }
     } catch (error) {
-      console.error('Error checking cart items:', error);
+      
       this.uiService.showError('Unable to access your cart. Please try again.');
       this.router.navigate(['/cart']);
       return;
@@ -420,7 +420,7 @@ export class CheckoutFormComponent {
             }
           },
           error: (error) => {
-            console.error('Error creating COD order:', error);
+            
             const errorMessage = error.message || 'Please try again later';
             this.uiService.showError(`Error creating order: ${errorMessage}`);
             this.isPaying = false;
@@ -470,7 +470,7 @@ export class CheckoutFormComponent {
       })
     ).subscribe({
       error: (error) => {
-        console.error('Error checking order status:', error);
+        
         this.uiService.showError('An error occurred while checking order status: ' + (error.message || 'Please try again.'));
         this.router.navigate(['/']);
         this.isLoading = false;
@@ -674,7 +674,7 @@ export class CheckoutFormComponent {
             this.populateFormWithUserDetails(userDetails);
           },
           error: (error) => {
-            console.error('Error retrieving user details:', error);
+            
             // Still use basic info from localStorage if available
             this.populateBasicUserDetails();
           }
@@ -768,7 +768,7 @@ export class CheckoutFormComponent {
           this.checkoutService.setDefaultCountryBasedOnGeolocation();
         }
       } catch (e) {
-        console.error('Error parsing saved location:', e);
+        
         this.checkoutService.setDefaultCountryBasedOnGeolocation();
       }
     } else {
@@ -798,7 +798,7 @@ export class CheckoutFormComponent {
         }
       },
       error: (error) => {
-        console.error('Error validating cart:', error);
+        
         if (error.status === 404 || error.error?.message?.includes('Valid cart id')) {
           // Cart not found or invalid cart ID (guest user without cart)
           // this.uiService.showWarning('Your cart is empty. Please add products before proceeding to checkout.');

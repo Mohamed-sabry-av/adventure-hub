@@ -41,7 +41,7 @@ export class DashboardComponent implements OnInit {
       error: (err) => {
         this.error = 'Failed to load customer details. Please try again later.';
         this.isLoading = false;
-        console.error('Error loading customer details:', err);
+        
       },
     });
   }

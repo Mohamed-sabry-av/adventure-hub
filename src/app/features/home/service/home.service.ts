@@ -84,7 +84,7 @@ export class HomeService {
           }
         }
       } catch (error) {
-        console.error('Error loading cached data from localStorage:', error);
+        
       }
     }
   }
@@ -95,12 +95,18 @@ export class HomeService {
   private saveToLocalStorage(key: string, products: any[]): void {
     if (isPlatformBrowser(this.platformId) && products && products.length > 0) {
       try {
+        // Filter out any out-of-stock products before saving
+        const inStockProducts = products.filter(product => 
+          product.stock_status === 'instock' && 
+          (product.variations?.length === 0 || product.variations?.some((v: any) => v.stock_status === 'instock'))
+        );
+        
         localStorage.setItem(key, JSON.stringify({
-          products,
+          products: inStockProducts,
           timestamp: Date.now()
         }));
       } catch (error) {
-        console.error('Error saving data to localStorage:', error);
+        
       }
     }
   }
@@ -170,7 +176,7 @@ export class HomeService {
           return products;
         }),
         catchError((error) => {
-          console.error('Error fetching new arrivals products:', error);
+          
           this.loadingNewArrivals = false;
           return of(this.newArrivalsSubject.value.length > 0 ? this.newArrivalsSubject.value : []);
         }),
@@ -238,7 +244,7 @@ export class HomeService {
           return products;
         }),
         catchError((error) => {
-          console.error('Error fetching featured products:', error);
+          
           this.loadingFeaturedProducts = false;
           return of(this.featuredProductsSubject.value.length > 0 ? this.featuredProductsSubject.value : []);
         }),
@@ -307,7 +313,7 @@ export class HomeService {
           return products;
         }),
         catchError((error) => {
-          console.error('Error fetching sale products:', error);
+          
           this.loadingSaleProducts = false;
           return of(this.saleProductsSubject.value.length > 0 ? this.saleProductsSubject.value : []);
         }),
@@ -338,7 +344,7 @@ export class HomeService {
           return categories;
         }),
         catchError((error) => {
-          console.error('Error fetching categories:', error);
+          
           return of([]);
         }),
         shareReplay(1)
@@ -374,7 +380,7 @@ export class HomeService {
           return filteredBrands;
         }),
         catchError((error) => {
-          console.error('Error fetching brands:', error);
+          
           return of([]);
         }),
         shareReplay(1)
@@ -408,7 +414,7 @@ export class HomeService {
         map((response: HttpResponse<any>) => {
 
           if (!response.body) {
-            console.warn(`Received invalid response body for brand ID ${brandId}:`, response.body);
+            
             return null;
           }
           
@@ -440,7 +446,7 @@ export class HomeService {
           return formattedBrand;
         }),
         catchError((error) => {
-          console.error(`Error fetching brand with ID ${brandId}:`, error);
+          
           return of(null);
         }),
         shareReplay(1)
@@ -466,7 +472,7 @@ export class HomeService {
         map((response: HttpResponse<any>) => {
 
           if (!response.body || !Array.isArray(response.body)) {
-            console.warn('Received invalid response body for brands:', response.body);
+            
             return [];
           }
           
@@ -498,7 +504,7 @@ export class HomeService {
           return brands;
         }),
         catchError((error) => {
-          console.error('Error fetching all brands:', error);
+          
           return of([]);
         }),
         shareReplay(1)
@@ -537,7 +543,7 @@ export class HomeService {
         map((response: HttpResponse<any>) => {
 
           if (!response.body || !Array.isArray(response.body)) {
-            console.warn('Received invalid response body for featured brands:', response.body);
+            
             return [];
           }
           
@@ -574,7 +580,7 @@ export class HomeService {
           return brands;
         }),
         catchError((error) => {
-          console.error('Error fetching featured brands:', error);
+          
           return of([]);
         }),
         shareReplay(1)
@@ -620,7 +626,7 @@ export class HomeService {
           return [];
         }),
         catchError(error => {
-          console.error('Error fetching banner images:', error);
+          
           return of([]);
         }),
         shareReplay(1)
@@ -671,7 +677,7 @@ export class HomeService {
           return [];
         }),
         catchError(error => {
-          console.error('Error fetching category images:', error);
+          
           return of([]);
         }),
         shareReplay(1)

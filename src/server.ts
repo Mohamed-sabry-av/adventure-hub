@@ -375,6 +375,90 @@ app.get(
   }
 );
 
+// reCAPTCHA verification endpoint
+app.post('/api/verify-recaptcha', async (req: express.Request, res: express.Response) => {
+  try {
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'reCAPTCHA token is required' });
+    }
+    
+    // Verify the token with Google's API
+    const response = await axios.post(
+      'https://www.google.com/recaptcha/api/siteverify',
+      null,
+      {
+        params: {
+          secret: '6LfvcForAAAAAN0frTaHLtYvDAFOnf_ezFfKejil',
+          response: token
+        }
+      }
+    );
+    
+    if (response.data.success) {
+      return res.json({ success: true });
+    } else {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'reCAPTCHA verification failed',
+        details: response.data['error-codes']
+      });
+    }
+  } catch (error: any) {
+    console.error('Error verifying reCAPTCHA:', error);
+    return res.status(500).json({ success: false, error: 'Failed to verify reCAPTCHA' });
+  }
+});
+
+// Add API config endpoint to provide necessary client-side configuration
+app.get('/api/config', (req, res) => {
+  try {
+    console.log('API Config request received from:', req.headers['user-agent']);
+  // Only expose the minimum necessary client-side configurations
+  // No secrets or API keys that shouldn't be public
+  const clientConfig = {
+    consumerKey: process.env['WOOCOMMERCE_CONSUMER_KEY'],
+    consumerSecret: process.env['WOOCOMMERCE_CONSUMER_SECRET'],
+    apiUrl: process.env['WOOCOMMERCE_URL'],
+    stripePublishableKey: process.env['STRIPE_PUBLISHABLE_KEY'],
+    stripeSecretKey: process.env['STRIPE_SECRET_KEY'],
+    stripeWebhookSecret: process.env['STRIPE_WEBHOOK_SECRET'],
+    tabbyPublicKey: process.env['TABBY_PUBLIC_KEY'],
+    tabbyMerchantCode: process.env['TABBY_MERCHANT_CODE'],
+    gtmId: process.env['GTM_ID'],
+    fbAppId: process.env['FB_APP_ID'],
+    googleClientId: process.env['GOOGLE_CLIENT_ID'],
+    klaviyoPublicKey: process.env['KLAVIYO_PUBLIC_KEY']
+  };
+  
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    // Allow CORS for this endpoint
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.json(clientConfig);
+    console.log('Config response sent successfully');
+  } catch (error) {
+    console.error('Error serving config:', error);
+    res.status(500).json({ error: 'Failed to load configuration' });
+  }
+});
+
+// Add catch-all route for API requests that don't match any defined endpoints
+app.all('/api/*', (req, res) => {
+  const path = req.path;
+  const method = req.method;
+  console.warn(`API route not found: ${method} ${path}`);
+  res.status(404).json({
+    error: 'Not Found',
+    message: `No route was found matching the URL (${path}) and request method (${method}).`,
+    path: path,
+    method: method
+  });
+});
+
 // Add proper error handling for SSR
 const renderPage = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
@@ -382,7 +466,9 @@ const renderPage = async (req: express.Request, res: express.Response, next: exp
 
     // Skip SSR for static files and API requests
     if (originalUrl.match(/\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|svg)$/) || 
-        originalUrl.startsWith('/api/')) {
+        originalUrl.startsWith('/api/') || 
+        originalUrl.includes('api/config') ||
+        originalUrl.includes('wp-json')) {
       return next();
     }
 

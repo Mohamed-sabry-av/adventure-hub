@@ -10,7 +10,7 @@ import {
 } from '@angular/common/http';
 import { HandleErrorsService } from './handel-errors.service';
 import { AuthService } from './auth.service';
-import { environment } from '../../../environments/environment';
+import { ConfigService } from './config.service';
 
 interface CachedResponse {
   data: any;
@@ -21,16 +21,88 @@ interface CachedResponse {
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = environment.wordpressApiUrl;
+  private baseUrl: string = '';
   private cache = new Map<string, CachedResponse>();
   private pendingRequests = new Map<string, Observable<any>>();
   private static serverCache = new Map<string, any>();
+  
+  // Default cache durations
+  private DEFAULT_CACHE_DURATION = 300000; // 5 minutes
+  
   constructor(
     private http: HttpClient,
     private authService: AuthService,
     private handelErrorsService: HandleErrorsService,
+    private configService: ConfigService,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) {
+    // Clean up expired cache entries periodically
+    if (typeof window !== 'undefined') {
+      setInterval(() => this.cleanExpiredCache(), 60000); // Clean every minute
+    }
+    
+    // Get API URL from config
+    this.configService.getConfig().subscribe(config => {
+      if (config && config.apiUrl) {
+        this.baseUrl = `${config.apiUrl}/wp-json/wc/v3/`;
+      }
+    });
+  }
+
+  // Helper method to clean expired cache entries
+  private cleanExpiredCache() {
+    const now = Date.now();
+    for (const [key, value] of this.cache.entries()) {
+      if (value.expiry < now) {
+        this.cache.delete(key);
+      }
+    }
+  }
+  
+  /**
+   * Preload critical resources to improve initial load time
+   * Call this method after app initialization
+   */
+  preloadCriticalResources(): void {
+    // Skip on server
+    if (isPlatformServer(this.platformId)) {
+      return;
+    }
+    
+    // تأكد من أن baseUrl جاهز قبل تحميل الموارد
+    if (!this.baseUrl) {
+      console.log('Waiting for baseUrl before preloading resources');
+      // انتظر حتى يتم تعيين baseUrl قبل تحميل الموارد
+      this.configService.getConfig().subscribe(config => {
+        if (config && config.apiUrl) {
+          this.baseUrl = `${config.apiUrl}/wp-json/wc/v3/`;
+          this.performPreloading();
+        }
+      });
+      return;
+    }
+    
+    this.performPreloading();
+  }
+  
+  private performPreloading(): void {
+    // List of critical endpoints to preload with مسارات صحيحة
+    const criticalEndpoints = [
+      'products?per_page=4',
+      'products/categories?per_page=10',
+      'coupons?per_page=5'
+    ];
+    
+    // Preload each endpoint
+    for (const endpoint of criticalEndpoints) {
+      console.log(`Attempting to preload: ${endpoint}`);
+      this.getRequest(endpoint)
+        .subscribe({
+          next: (data) => console.log(`Successfully preloaded: ${endpoint}`),
+          error: (err) => console.log(`Error preloading ${endpoint}: ${err.message || 'Unknown error'}`)
+        });
+    }
+  }
 
   getRequest<T>(
     endpoint: string,
@@ -43,6 +115,11 @@ export class ApiService {
       return of(ApiService.serverCache.get(cacheKey));
     }
 
+    // Check if request is already pending
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey) as Observable<T>;
+    }
+
     // Check client-side cache
     const cached = this.cache.get(cacheKey);
     if (cached && cached.expiry > Date.now()) {
@@ -53,7 +130,8 @@ export class ApiService {
       }
     }
 
-    return this.http
+    // Create new request
+    const request = this.http
       .get<T>(`${this.baseUrl}${endpoint}`, {
         headers: this.authService.getAuthHeaders(),
         ...options,
@@ -62,21 +140,27 @@ export class ApiService {
         retry(2),
         map((data) => {
           if (data && !(Array.isArray(data) && data.length === 0)) {
-            this.cache.set(cacheKey, { data, expiry: Date.now() + 300000 });
+            this.cache.set(cacheKey, { data, expiry: Date.now() + this.DEFAULT_CACHE_DURATION });
             if (isPlatformServer(this.platformId)) {
-              ApiService.serverCache.set(cacheKey, data); // Cache on server
+              ApiService.serverCache.set(cacheKey, data);
             }
           }
+          // Remove from pending requests
+          this.pendingRequests.delete(cacheKey);
           return data;
         }),
         shareReplay(1),
-        catchError((error: HttpErrorResponse) =>
-          this.handelErrorsService.handelError(error)
-        )
+        catchError((error: HttpErrorResponse) => {
+          // Remove from pending requests on error
+          this.pendingRequests.delete(cacheKey);
+          return this.handelErrorsService.handelError(error);
+        })
       );
+      
+    // Store pending request
+    this.pendingRequests.set(cacheKey, request);
+    return request;
   }
-
- 
 
   getRequestProducts<T>(
     endpoint: string,
@@ -99,7 +183,6 @@ export class ApiService {
     
     // Check if this request is already in progress
     if (this.pendingRequests.has(cacheKey)) {
-
       return this.pendingRequests.get(cacheKey) as Observable<T | HttpResponse<T>>;
     }
     
@@ -109,7 +192,6 @@ export class ApiService {
       if (!cached.data || (Array.isArray(cached.data.body) && cached.data.body.length === 0)) {
         this.cache.delete(cacheKey);
       } else {
-
         return of(cached.data);
       }
     }
@@ -127,8 +209,8 @@ export class ApiService {
         retry(2),
         map((data:any) => {
           if (data && !(options.observe === 'response' && Array.isArray(data.body) && data.body.length === 0)) {
-            // Cache the response for 5 minutes (300000 ms)
-            this.cache.set(cacheKey, { data, expiry: Date.now() + 300000 });
+            // Cache the response
+            this.cache.set(cacheKey, { data, expiry: Date.now() + this.DEFAULT_CACHE_DURATION });
           }
           // Remove from pending requests once complete
           this.pendingRequests.delete(cacheKey);
@@ -154,6 +236,13 @@ export class ApiService {
     }
 
     const cacheKey = `${endpoint}_${JSON.stringify(body)}`;
+    
+    // Check if request is already pending
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey) as Observable<T>;
+    }
+    
+    // Check cache
     const cached = this.cache.get(cacheKey);
     if (cached && cached.expiry > Date.now()) {
       if (!cached.data || (Array.isArray(cached.data) && cached.data.length === 0)) {
@@ -163,7 +252,7 @@ export class ApiService {
       }
     }
 
-    return this.http
+    const request = this.http
       .post<T>(`${this.baseUrl}${endpoint}`, body, {
         headers: this.authService.getAuthHeaders(),
       })
@@ -171,15 +260,20 @@ export class ApiService {
         retry(2),
         map((data) => {
           if (data && !(Array.isArray(data) && data.length === 0)) {
-            this.cache.set(cacheKey, { data, expiry: Date.now() + 300000 });
+            this.cache.set(cacheKey, { data, expiry: Date.now() + this.DEFAULT_CACHE_DURATION });
           }
+          this.pendingRequests.delete(cacheKey);
           return data;
         }),
         shareReplay(1),
-        catchError((error: HttpErrorResponse) =>
-          this.handelErrorsService.handelError(error)
-        )
+        catchError((error: HttpErrorResponse) => {
+          this.pendingRequests.delete(cacheKey);
+          return this.handelErrorsService.handelError(error);
+        })
       );
+      
+    this.pendingRequests.set(cacheKey, request);
+    return request;
   }
 
   putRequest<T>(endpoint: string, body: any): Observable<T> {
