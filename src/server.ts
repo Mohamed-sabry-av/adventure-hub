@@ -15,6 +15,17 @@ import compression from 'compression';
 import { createClient } from 'redis';
 import mcache from 'memory-cache';
 
+/**
+ * Security Implementation Notes:
+ * 
+ * - API_SECRET_KEY: Used for internal server-to-server requests to access sensitive configurations
+ * - Config Management: We maintain separate public (client-side) and private (server-side) configurations
+ * - Secure Config Access: Internal requests must include x-internal-request header with API_SECRET_KEY
+ * - Sensitive Data Protection: API keys, auth credentials, and secrets are only exposed server-side
+ * 
+ * This approach prevents sensitive credentials from being included in client-side JavaScript.
+ */
+
 declare module 'express' {
   interface Request {
     rawBody?: Buffer;
@@ -54,6 +65,7 @@ const requiredEnvVars = [
   'WOOCOMMERCE_CONSUMER_SECRET',
   'CLIENT_URL',
   'STRIPE_PUBLISHABLE_KEY',
+  'API_SECRET_KEY', // Required for internal server-to-server secure API requests
 ];
 
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
@@ -68,6 +80,21 @@ const stripe = new Stripe(process.env['STRIPE_SECRET_KEY']!, {
   // apiVersion: '2024-10-28.acs', // Use a supported API version
 });
 
+// Function to get updated Stripe instance with fresh credentials if needed
+const getStripeInstance = async () => {
+  try {
+    // Try to get fresh config from internal API
+    const config = await fetchInternalConfig();
+    return new Stripe(config.stripeSecretKey, {
+      // apiVersion: '2024-10-28.acs', // Use a supported API version
+    });
+  } catch (error) {
+    console.error('Error getting updated Stripe instance, using default:', error);
+    // Fall back to initial instance
+    return stripe;
+  }
+};
+
 // WooCommerce API configuration
 const WOOCOMMERCE_API_URL = `${process.env['WOOCOMMERCE_URL']!}/wp-json/wc/v3`;
 const WOOCOMMERCE_AUTH = {
@@ -75,6 +102,24 @@ const WOOCOMMERCE_AUTH = {
     username: process.env['WOOCOMMERCE_CONSUMER_KEY']!,
     password: process.env['WOOCOMMERCE_CONSUMER_SECRET']!,
   },
+};
+
+// Function to get WooCommerce auth with updated credentials if needed
+const getWooCommerceAuth = async () => {
+  try {
+    // Try to get fresh config from internal API
+    const config = await fetchInternalConfig();
+    return {
+      auth: {
+        username: config.consumerKey,
+        password: config.consumerSecret,
+      },
+    };
+  } catch (error) {
+    console.error('Error getting updated WooCommerce auth, using default:', error);
+    // Fall back to initial values
+    return WOOCOMMERCE_AUTH;
+  }
 };
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
@@ -168,7 +213,8 @@ app.post(
 
     try {
       // Verify webhook signature using raw body
-      const event = stripe.webhooks.constructEvent(
+      const stripeInstance = await getStripeInstance();
+      const event = stripeInstance.webhooks.constructEvent(
         req.body,
         sig,
         process.env['STRIPE_WEBHOOK_SECRET']!
@@ -225,10 +271,11 @@ app.post(
                 meta_data: orderData.meta_data || [],
                 customer_note: !isUAE ? 'Our representative will contact you to arrange international shipping' : '',
               },
-              WOOCOMMERCE_AUTH
+              await getWooCommerceAuth()
             );
 
-            await stripe.paymentIntents.update(paymentIntent.id, {
+            const stripeInstance = await getStripeInstance();
+            await stripeInstance.paymentIntents.update(paymentIntent.id, {
               metadata: { orderId: orderResponse.data.id },
             });
 
@@ -272,7 +319,8 @@ app.post(
         return res.status(400).json({ success: false, error: 'Invalid order data' });
       }
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const stripeInstance = await getStripeInstance();
+      const paymentIntent = await stripeInstance.paymentIntents.create({
         amount: Math.round(amount * 100),
         currency,
         payment_method_types: ['card'],
@@ -339,7 +387,7 @@ app.post(
           meta_data: meta_data || [],
           customer_note: '',
         },
-        WOOCOMMERCE_AUTH
+        await getWooCommerceAuth()
       );
 
 
@@ -361,7 +409,8 @@ app.get(
   async (req: express.Request<OrderStatusParams>, res: express.Response) => {
     try {
       const { paymentIntentId } = req.params;
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const stripeInstance = await getStripeInstance();
+      const paymentIntent = await stripeInstance.paymentIntents.retrieve(paymentIntentId);
       const orderId = paymentIntent.metadata?.['orderId'];
 
       if (orderId && orderId !== 'pending') {
@@ -411,39 +460,204 @@ app.post('/api/verify-recaptcha', async (req: express.Request, res: express.Resp
   }
 });
 
+// Internal function to get configuration securely within the server
+const getServerConfig = () => {
+  // Return all configuration including sensitive data for server-side use
+  return {
+    apiUrl: process.env['WOOCOMMERCE_URL']!,
+    stripePublishableKey: process.env['STRIPE_PUBLISHABLE_KEY']!,
+    tabbyPublicKey: process.env['TABBY_PUBLIC_KEY']!,
+    tabbyMerchantCode: process.env['TABBY_MERCHANT_CODE']!,
+    gtmId: process.env['GTM_ID']!,
+    fbAppId: process.env['FB_APP_ID']!,
+    googleClientId: process.env['GOOGLE_CLIENT_ID']!,
+    klaviyoPublicKey: process.env['KLAVIYO_PUBLIC_KEY']!,
+    consumerKey: process.env['WOOCOMMERCE_CONSUMER_KEY']!,
+    consumerSecret: process.env['WOOCOMMERCE_CONSUMER_SECRET']!,
+    stripeSecretKey: process.env['STRIPE_SECRET_KEY']!,
+    stripeWebhookSecret: process.env['STRIPE_WEBHOOK_SECRET']!
+  };
+};
+
+// Internal function to get server config without exposing sensitive data
+const fetchInternalConfig = async () => {
+  try {
+    // Use internal request with secret key for secure data access
+    const response = await axios.get(`http://localhost:${process.env['PORT'] || 3000}/api/config`, {
+      headers: {
+        'x-internal-request': process.env['API_SECRET_KEY']
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching internal config:', error);
+    // Fallback to direct access from environment variables
+    return getServerConfig();
+  }
+};
+
 // Add API config endpoint to provide necessary client-side configuration
 app.get('/api/config', (req, res) => {
   try {
     console.log('API Config request received from:', req.headers['user-agent']);
-  // Only expose the minimum necessary client-side configurations
-  // No secrets or API keys that shouldn't be public
-  const clientConfig = {
-    consumerKey: process.env['WOOCOMMERCE_CONSUMER_KEY'],
-    consumerSecret: process.env['WOOCOMMERCE_CONSUMER_SECRET'],
-    apiUrl: process.env['WOOCOMMERCE_URL'],
-    stripePublishableKey: process.env['STRIPE_PUBLISHABLE_KEY'],
-    stripeSecretKey: process.env['STRIPE_SECRET_KEY'],
-    stripeWebhookSecret: process.env['STRIPE_WEBHOOK_SECRET'],
-    tabbyPublicKey: process.env['TABBY_PUBLIC_KEY'],
-    tabbyMerchantCode: process.env['TABBY_MERCHANT_CODE'],
-    gtmId: process.env['GTM_ID'],
-    fbAppId: process.env['FB_APP_ID'],
-    googleClientId: process.env['GOOGLE_CLIENT_ID'],
-    klaviyoPublicKey: process.env['KLAVIYO_PUBLIC_KEY']
-  };
+    
+    // Determine if this is a server-side request
+    const isServerSideRequest = req.headers['x-internal-request'] === process.env['API_SECRET_KEY'];
+    
+    // Create a base configuration object with public keys only
+    const clientConfig = {
+      apiUrl: process.env['WOOCOMMERCE_URL'],
+      stripePublishableKey: process.env['STRIPE_PUBLISHABLE_KEY'],
+      tabbyPublicKey: process.env['TABBY_PUBLIC_KEY'],
+      tabbyMerchantCode: process.env['TABBY_MERCHANT_CODE'],
+      gtmId: process.env['GTM_ID'],
+      fbAppId: process.env['FB_APP_ID'],
+      googleClientId: process.env['GOOGLE_CLIENT_ID'],
+      klaviyoPublicKey: process.env['KLAVIYO_PUBLIC_KEY'],
+    };
+    
+    // Only include sensitive keys for server-side usage if this is an internal request
+    if (isServerSideRequest) {
+      Object.assign(clientConfig, getServerConfig());
+    }
   
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    // Allow CORS for this endpoint
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.json(clientConfig);
-    console.log('Config response sent successfully');
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    
+    // Only allow CORS for public configs
+    if (!isServerSideRequest) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    }
+    
+    res.json(clientConfig);
+    console.log(`Config response sent successfully (${isServerSideRequest ? 'server-side' : 'client-side'} config)`);
   } catch (error) {
     console.error('Error serving config:', error);
     res.status(500).json({ error: 'Failed to load configuration' });
   }
+});
+
+// وسيط آمن للحصول على البيانات من WooCommerce
+app.get('/api/wc/:endpoint(*)', async (req, res) => {
+  try {
+    const endpoint = req.params['endpoint'];
+    const queryParams = new URLSearchParams(req.query as any).toString();
+    const url = `${WOOCOMMERCE_API_URL}/${endpoint}${queryParams ? '?' + queryParams : ''}`;
+    
+    console.log(`WooCommerce API Proxy: GET ${endpoint} | Full URL: ${url}`);
+    
+    const response = await axios.get(url, await getWooCommerceAuth());
+    
+    // إعادة هيدرز الاستجابة المهمة
+    if (response.headers['x-wp-total']) {
+      res.setHeader('X-WP-Total', response.headers['x-wp-total']);
+    }
+    if (response.headers['x-wp-totalpages']) {
+      res.setHeader('X-WP-TotalPages', response.headers['x-wp-totalpages']);
+    }
+    
+    console.log(`WooCommerce API Success: GET ${endpoint} | Status: ${response.status}`);
+    res.json(response.data);
+  } catch (error: any) {
+    const requestedEndpoint = req.params['endpoint'];
+    console.error(`WooCommerce API Error: GET ${requestedEndpoint} | ${error.message}`);
+    console.error('Request details:', {
+      requestedEndpoint,
+      params: req.query,
+      headers: req.headers['user-agent']
+    });
+    
+    if (error.response) {
+      console.error(`Response status: ${error.response.status}`);
+      console.error('Response data:', error.response.data);
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to WooCommerce API' });
+    }
+  }
+});
+
+// وسيط آمن لإرسال بيانات إلى WooCommerce
+app.post('/api/wc/:endpoint(*)', async (req, res) => {
+  try {
+    const endpoint = req.params['endpoint'];
+    const url = `${WOOCOMMERCE_API_URL}/${endpoint}`;
+    
+    console.log(`WooCommerce API Proxy: POST ${endpoint}`);
+    
+    const response = await axios.post(url, req.body, await getWooCommerceAuth());
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('WooCommerce API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to WooCommerce API' });
+    }
+  }
+});
+
+// وسيط آمن لتحديث بيانات في WooCommerce
+app.put('/api/wc/:endpoint(*)', async (req, res) => {
+  try {
+    const endpoint = req.params['endpoint'];
+    const url = `${WOOCOMMERCE_API_URL}/${endpoint}`;
+    
+    console.log(`WooCommerce API Proxy: PUT ${endpoint}`);
+    
+    const response = await axios.put(url, req.body, await getWooCommerceAuth());
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('WooCommerce API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to WooCommerce API' });
+    }
+  }
+});
+
+// وسيط آمن لحذف بيانات من WooCommerce
+app.delete('/api/wc/:endpoint(*)', async (req, res) => {
+  try {
+    const endpoint = req.params['endpoint'];
+    const url = `${WOOCOMMERCE_API_URL}/${endpoint}`;
+    
+    console.log(`WooCommerce API Proxy: DELETE ${endpoint}`);
+    
+    const response = await axios.delete(url, {
+      ...await getWooCommerceAuth(),
+      data: req.body
+    });
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('WooCommerce API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to WooCommerce API' });
+    }
+  }
+});
+
+// إضافة نقطة نهاية اختبار للتأكد من أن الخادم يعمل بشكل صحيح
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'ok',
+    server: 'Node.js Express',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    woocommerce_url: process.env['WOOCOMMERCE_URL'] || 'not set',
+    client_ip: req.ip || 'unknown',
+    headers: {
+      host: req.headers.host,
+      origin: req.headers.origin,
+      referer: req.headers.referer,
+      'user-agent': req.headers['user-agent']
+    }
+  });
 });
 
 // Add catch-all route for API requests that don't match any defined endpoints

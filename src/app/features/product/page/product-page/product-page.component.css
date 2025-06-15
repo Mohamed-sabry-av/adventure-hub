@@ -284,3 +284,16 @@
     gap: 6px; /* قلل المسافة بين الكروت */
   }
 }
+
+/* Force the header to not be sticky on product pages */
+:host ::ng-deep .header-container {
+  position: static !important;
+  top: auto !important;
+  z-index: 10 !important;
+}
+
+:host ::ng-deep header {
+  position: static !important;
+  top: auto !important;
+  z-index: 10 !important;
+}

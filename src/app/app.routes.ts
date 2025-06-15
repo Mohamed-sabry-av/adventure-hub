@@ -1,7 +1,25 @@
 import { Routes } from '@angular/router';
+import { maintenanceGuard } from './core/guards/maintenance.guard';
 
 export const routes: Routes = [
-
+  {
+    path: 'maintenance',
+    loadComponent: () =>
+      import('./features/maintenance/maintenance-page.component').then(
+        (m) => m.MaintenancePageComponent
+      ),
+    data: { animation: 'maintenance' },
+    pathMatch: 'full',
+  },
+  {
+    path: 'admin/maintenance-config',
+    loadComponent: () =>
+      import('./features/maintenance/maintenance-config.component').then(
+        (m) => m.MaintenanceConfigComponent
+      ),
+    data: { animation: 'maintenance-config' },
+    pathMatch: 'full',
+  },
   {
     path: '',
     loadComponent: () =>
@@ -10,11 +28,13 @@ export const routes: Routes = [
       ),
     data: { animation: '' },
     pathMatch: 'full',
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'user',
     loadChildren: () => import('./features/auth/auth.route').then(m => m.authroutes),
-    data: { animation: 'user' }
+    data: { animation: 'user' },
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'order-received/:orderId',
@@ -24,6 +44,7 @@ export const routes: Routes = [
       ),
     data: { animation: 'order' },
     pathMatch: 'full',
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'cart',
@@ -33,6 +54,7 @@ export const routes: Routes = [
       ),
     data: { animation: 'cart' },
     pathMatch: 'full',
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'checkout',
@@ -42,26 +64,31 @@ export const routes: Routes = [
       ),
     data: { animation: 'checkout' },
     pathMatch: 'full',
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'blog',
     loadChildren: () => import('./features/blog/blog.routes').then(m => m.blogRoutes),
-    data: { animation: 'blog' }
+    data: { animation: 'blog' },
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'product',
     loadChildren: () => import('./features/products/products.routes').then(m => m.productsRoutes),
-    data: { animation: 'product' }
+    data: { animation: 'product' },
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'pages',
     loadChildren: () => import('./features/terms,about,contactUs/pages.routes').then(m => m.pagesRoutes),
-    data: { animation: 'pages' }
+    data: { animation: 'pages' },
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'category',
     loadChildren: () => import('./features/products/categories.routes').then(m => m.categoryRoutes),
-    data: { animation: 'category' }
+    data: { animation: 'category' },
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'history',
@@ -71,6 +98,7 @@ export const routes: Routes = [
       ),
     data: { animation: 'history' },
     title: 'Browsing History',
+    canActivate: [maintenanceGuard]
   },
   {
     path: 'page-not-found',
@@ -80,6 +108,7 @@ export const routes: Routes = [
       ),
     data: { animation: 'notFound' },
     title: '404 - Not Found',
+    canActivate: [maintenanceGuard]
   },
   {
     path: '**',
@@ -89,5 +118,6 @@ export const routes: Routes = [
       ),
     data: { animation: 'notFound' },
     pathMatch: 'full',
+    canActivate: [maintenanceGuard]
   },
 ];

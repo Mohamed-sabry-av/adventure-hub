@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef, inject, AfterViewInit, Input } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ElementRef, inject, AfterViewInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Stripe, StripeElements, StripePaymentRequestButtonElement } from '@stripe/stripe-js';
 import { CheckoutService } from '../../services/checkout.service';
 import { StripeService } from '../../services/stripe.service';
@@ -20,7 +20,7 @@ interface ShippingOption {
   `,
   styles: []
 })
-export class WalletPaymentComponent implements AfterViewInit {
+export class WalletPaymentComponent implements AfterViewInit, OnChanges {
   private checkoutService = inject(CheckoutService);
   private stripeService = inject(StripeService);
   private accountService = inject(WooCommerceAccountService);
@@ -31,6 +31,7 @@ export class WalletPaymentComponent implements AfterViewInit {
   private prButton: StripePaymentRequestButtonElement | null = null;
   public googlePaySupported = false;
   public applePaySupported = false;
+  private previousProductPrice: string | null = null;
   
   // User details for pre-filling
   private userDetails: any = null;
@@ -49,6 +50,19 @@ export class WalletPaymentComponent implements AfterViewInit {
     // Try to load user details if user is logged in
     this.loadUserDetails();
     await this.initStripe();
+  }
+
+  // Detect changes to the product input, especially price changes
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['product'] && !changes['product'].firstChange) {
+      const currentPrice = this.product?.price;
+      // Only reinitialize if price has changed
+      if (currentPrice !== this.previousProductPrice && this.stripe && this.elements) {
+        this.previousProductPrice = currentPrice;
+        // Re-initialize payment request with updated price
+        this.initWalletPayments();
+      }
+    }
   }
   
   private async loadUserDetails() {
@@ -88,6 +102,12 @@ export class WalletPaymentComponent implements AfterViewInit {
       return;
     }
 
+    // Clean up previous button if it exists
+    if (this.prButton) {
+      this.prButton.destroy();
+      this.prButton = null;
+    }
+
     try {
       let total: number;
       let currency: string;
@@ -102,6 +122,8 @@ export class WalletPaymentComponent implements AfterViewInit {
           throw new Error('Product is out of stock');
         }
         total = this.normalizePrice(this.product.price) * this.product.quantity;
+        // Store the current price for comparison in ngOnChanges
+        this.previousProductPrice = this.product.price;
         currency = 'aed'; // Adjust based on your store's currency
         
         // Ensure we have a valid product name for the label

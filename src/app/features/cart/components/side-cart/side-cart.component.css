@@ -1,11 +1,11 @@
 :host ::ng-deep {
   --p-drawer-background: #e3f2fd !important;
-  z-index: 1022;
+  z-index: 998;
 }
 
 /* Additional overrides to ensure our styles take effect */
 :host ::ng-deep .p-drawer-mask.p-component-overlay {
-  z-index: 1022 !important;
+  z-index: 998 !important;
 }
 
 .scrollbar-thin {

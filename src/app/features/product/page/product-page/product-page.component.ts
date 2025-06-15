@@ -36,6 +36,9 @@ import { UIService } from '../../../../shared/services/ui.service';
 import { KlaviyoTrackingService } from '../../../../shared/services/klaviyo-tracking.service';
 
 const PRODUCT_DATA_KEY = makeStateKey<any>('product_data');
+const PRODUCT_CACHE_PREFIX = 'product_';
+const MAX_CACHED_PRODUCTS = 20; // Maximum number of products to cache
+const CACHE_REGISTRY_KEY = 'product_cache_registry';
 
 declare var _learnq: any;
 
@@ -84,6 +87,15 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private klaviyoTracking = inject(KlaviyoTrackingService);
 
   ngOnInit() {
+    // Force header to not be sticky on product pages
+    if (isPlatformBrowser(this.platformId)) {
+      document.documentElement.style.setProperty('--header-position', 'static');
+      const headerEl = document.querySelector('.header-container');
+      if (headerEl) {
+        (headerEl as HTMLElement).style.position = 'static';
+      }
+    }
+    
     // Listen for navigation events to reload product data
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
@@ -101,10 +113,85 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     if (initialSlug) {
       this.loadProductData(initialSlug);
     }
+    
+    // Clean expired cache entries on init
+    if (isPlatformBrowser(this.platformId)) {
+      this.cleanExpiredCacheEntries();
+    }
   }
 
   ngOnDestroy() {
+    // Reset header position when leaving product page
+    if (isPlatformBrowser(this.platformId)) {
+      document.documentElement.style.setProperty('--header-position', 'sticky');
+    }
     // SEO service handles schema cleanup
+  }
+
+  // Clean expired cache entries
+  private cleanExpiredCacheEntries() {
+    try {
+      // Get all localStorage keys
+      const allKeys = Object.keys(localStorage);
+      const now = Date.now();
+      const productKeys = allKeys.filter(key => key.startsWith(PRODUCT_CACHE_PREFIX));
+      
+      // Remove expired entries
+      productKeys.forEach(key => {
+        try {
+          const item = JSON.parse(localStorage.getItem(key) || '{}');
+          if (item.expiry && item.expiry < now) {
+            localStorage.removeItem(key);
+          }
+        } catch (e) {
+          localStorage.removeItem(key); // Remove invalid entries
+        }
+      });
+      
+      // Update cache registry
+      this.updateCacheRegistry();
+    } catch (error) {
+      // Silent fail if localStorage is not available
+    }
+  }
+  
+  // Update cache registry and enforce max cache size
+  private updateCacheRegistry() {
+    try {
+      // Get all product keys
+      const allKeys = Object.keys(localStorage);
+      const productKeys = allKeys.filter(key => key.startsWith(PRODUCT_CACHE_PREFIX) && key !== CACHE_REGISTRY_KEY);
+      
+      // Create registry entries with timestamps
+      const registry = productKeys.map(key => {
+        try {
+          const item = JSON.parse(localStorage.getItem(key) || '{}');
+          return {
+            key,
+            expiry: item.expiry || 0,
+            lastAccessed: item.lastAccessed || Date.now()
+          };
+        } catch (e) {
+          return { key, expiry: 0, lastAccessed: 0 };
+        }
+      });
+      
+      // Sort by last accessed (most recent first)
+      registry.sort((a, b) => b.lastAccessed - a.lastAccessed);
+      
+      // Remove oldest entries if we exceed the maximum
+      if (registry.length > MAX_CACHED_PRODUCTS) {
+        const toRemove = registry.slice(MAX_CACHED_PRODUCTS);
+        toRemove.forEach(item => {
+          localStorage.removeItem(item.key);
+        });
+      }
+      
+      // Save updated registry
+      localStorage.setItem(CACHE_REGISTRY_KEY, JSON.stringify(registry.slice(0, MAX_CACHED_PRODUCTS)));
+    } catch (error) {
+      // Silent fail if localStorage is not available
+    }
   }
 
   private loadProductData(slug: string) {
@@ -131,9 +218,9 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     }
 
     // Check localStorage cache first
-    if (typeof window !== 'undefined') {
+    if (isPlatformBrowser(this.platformId)) {
       try {
-        const localStorageKey = `product_${slug}`;
+        const localStorageKey = `${PRODUCT_CACHE_PREFIX}${slug}`;
         const localData = localStorage.getItem(localStorageKey);
         if (localData) {
           const parsedData = JSON.parse(localData);
@@ -141,11 +228,18 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           
           // Use cached data if not expired (10 minutes cache)
           if (expirationTime > Date.now()) {
+            // Update last accessed time
+            parsedData.lastAccessed = Date.now();
+            localStorage.setItem(localStorageKey, JSON.stringify(parsedData));
+            
             this.isLoading = false;
             this.processProductData(parsedData.data);
             
             // Make an API call in the background to refresh data
             this.refreshProductDataInBackground(slug);
+            
+            // Update cache registry
+            this.updateCacheRegistry();
             return;
           } else {
             // Remove expired data
@@ -153,7 +247,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           }
         }
       } catch (error) {
-        
+        // Silent fail and continue with API call
       }
     }
 
@@ -176,16 +270,20 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       this.transferState.set(makeStateKey(cacheKey), response);
       
       // Store in localStorage with expiration (10 minutes)
-      if (typeof window !== 'undefined') {
+      if (isPlatformBrowser(this.platformId)) {
         try {
-          const localStorageKey = `product_${slug}`;
+          const localStorageKey = `${PRODUCT_CACHE_PREFIX}${slug}`;
           const dataToCache = {
             data: response,
-            expiry: Date.now() + (10 * 60 * 1000) // 10 minutes
+            expiry: Date.now() + (10 * 60 * 1000), // 10 minutes
+            lastAccessed: Date.now()
           };
           localStorage.setItem(localStorageKey, JSON.stringify(dataToCache));
-        } catch (error) {
           
+          // Update cache registry
+          this.updateCacheRegistry();
+        } catch (error) {
+          // Silent fail
         }
       }
       
@@ -199,14 +297,18 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       catchError(() => EMPTY),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((response: any) => {
-      if (response && typeof window !== 'undefined') {
+      if (response && isPlatformBrowser(this.platformId)) {
         try {
-          const localStorageKey = `product_${slug}`;
+          const localStorageKey = `${PRODUCT_CACHE_PREFIX}${slug}`;
           const dataToCache = {
             data: response,
-            expiry: Date.now() + (10 * 60 * 1000) // 10 minutes
+            expiry: Date.now() + (10 * 60 * 1000), // 10 minutes
+            lastAccessed: Date.now()
           };
           localStorage.setItem(localStorageKey, JSON.stringify(dataToCache));
+          
+          // Update cache registry
+          this.updateCacheRegistry();
           
           // Only update UI if it's the same product currently being viewed
           if (this.lastLoadedSlug === slug) {
@@ -216,7 +318,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
             this.cdr.markForCheck();
           }
         } catch (error) {
-          
+          // Silent fail
         }
       }
     });
@@ -264,7 +366,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       
       this.klaviyoTracking.trackEvent('Viewed Product', productData);
     } catch (e) {
-      
+      // Silent fail
     }
   }
 
@@ -274,7 +376,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   }
 
   private handleError(message: string) {
-    
+    // Error handling
     this.isLoading = false;
     this.cdr.markForCheck();
   }
@@ -312,7 +414,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       
       this.klaviyoTracking.trackEvent('Selected Product Variant', variantData);
     } catch (e) {
-      
+      // Silent fail
     }
   }
 

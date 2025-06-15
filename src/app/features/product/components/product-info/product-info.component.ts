@@ -311,6 +311,10 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
           this.selectAttribute('Size', availableSizes[0].value);
         }
       }
+    } else if (name === 'Size') {
+      // For size changes, make sure we're not in loading state
+      // This ensures the image doesn't stay gray when only size changes
+      this.variationService.setLoadingState(false);
     }
 
     if (this.allVariationAttributesSelected) {
@@ -326,20 +330,29 @@ export class ProductInfoComponent implements OnInit, OnDestroy {
         // Set the selected variation immediately (for quick UI feedback)
         this.variationService.setSelectedVariation(selectedVariation);
         
-        // Then fetch the full variation data with all images
-        this.productInfoService.getFullVariationData(product, this.selectedAttributes)
-          .subscribe(fullVariation => {
-            if (fullVariation) {
-              // Update with complete variation data once it's available
-              this.variationService.setSelectedVariation(fullVariation);
-              this.variationSelected.emit(fullVariation);
-            } else {
-              // Fallback to the basic variation if full data couldn't be fetched
-              this.variationSelected.emit(selectedVariation);
-            }
-            // Turn off loading state after variation is selected
-            this.variationService.setLoadingState(false);
-          });
+        // Only fetch full variation data and show loading state when color changes
+        // Size changes don't typically affect images, so we can skip loading state
+        if (name === 'Color') {
+          // Then fetch the full variation data with all images
+          this.productInfoService.getFullVariationData(product, this.selectedAttributes)
+            .subscribe(fullVariation => {
+              if (fullVariation) {
+                // Update with complete variation data once it's available
+                this.variationService.setSelectedVariation(fullVariation);
+                this.variationSelected.emit(fullVariation);
+              } else {
+                // Fallback to the basic variation if full data couldn't be fetched
+                this.variationSelected.emit(selectedVariation);
+              }
+              // Turn off loading state after variation is selected
+              this.variationService.setLoadingState(false);
+            });
+        } else {
+          // For size changes, just emit the variation without loading state
+          this.variationSelected.emit(selectedVariation);
+          // Ensure loading state is off
+          this.variationService.setLoadingState(false);
+        }
         
         this.addFeedbackAnimation();
       }

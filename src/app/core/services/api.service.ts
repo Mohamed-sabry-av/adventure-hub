@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
-import { catchError, Observable, of } from 'rxjs';
+import { catchError, Observable, of, filter, take, switchMap } from 'rxjs';
 import { map, retry, shareReplay, tap } from 'rxjs/operators';
 import {
   HttpClient,
@@ -44,7 +44,22 @@ export class ApiService {
     // Get API URL from config
     this.configService.getConfig().subscribe(config => {
       if (config && config.apiUrl) {
-        this.baseUrl = `${config.apiUrl}/wp-json/wc/v3/`;
+        // استخدام نفس المضيف الحالي
+        if (typeof window !== 'undefined') {
+          const currentOrigin = window.location.origin;
+          
+          // في بيئة التطوير المحلية، استخدم المنفذ 3000 مباشرة
+          if (currentOrigin.includes('localhost')) {
+            this.baseUrl = `http://localhost:3000/api/wc/`;
+          } else {
+            // في بيئة الإنتاج، استخدم نفس المضيف
+            this.baseUrl = `${currentOrigin}/api/wc/`;
+          }
+          console.log(`Using dynamic API URL: ${this.baseUrl}`);
+        } else {
+          // للتشغيل على الخادم (SSR)
+          this.baseUrl = `http://localhost:3000/api/wc/`;
+        }
       }
     });
   }
@@ -75,7 +90,22 @@ export class ApiService {
       // انتظر حتى يتم تعيين baseUrl قبل تحميل الموارد
       this.configService.getConfig().subscribe(config => {
         if (config && config.apiUrl) {
-          this.baseUrl = `${config.apiUrl}/wp-json/wc/v3/`;
+          // استخدام نفس المضيف الحالي
+          if (typeof window !== 'undefined') {
+            const currentOrigin = window.location.origin;
+            
+            // في بيئة التطوير المحلية، استخدم المنفذ 3000 مباشرة
+            if (currentOrigin.includes('localhost')) {
+              this.baseUrl = `http://localhost:3000/api/wc/`;
+            } else {
+              // في بيئة الإنتاج، استخدم نفس المضيف
+              this.baseUrl = `${currentOrigin}/api/wc/`;
+            }
+            console.log(`Using dynamic API URL: ${this.baseUrl}`);
+          } else {
+            // للتشغيل على الخادم (SSR)
+            this.baseUrl = `http://localhost:3000/api/wc/`;
+          }
           this.performPreloading();
         }
       });
@@ -108,6 +138,24 @@ export class ApiService {
     endpoint: string,
     options: { params?: HttpParams } = {}
   ): Observable<T> {
+    // تحقق من جاهزية المصادقة أولاً
+    if (!this.authService.isAuthReady()) {
+      console.log(`Auth not ready for request to ${endpoint}, waiting...`);
+      return this.authService.isAuthReady().pipe(
+        filter(ready => ready), // انتظر حتى تصبح المصادقة جاهزة
+        take(1), // خذ أول قيمة true
+        switchMap(() => this.getRequestImpl<T>(endpoint, options)) // ثم أرسل الطلب
+      );
+    }
+    
+    return this.getRequestImpl<T>(endpoint, options);
+  }
+
+  // نقل منطق الطلب الحالي إلى طريقة منفصلة
+  private getRequestImpl<T>(
+    endpoint: string,
+    options: { params?: HttpParams } = {}
+  ): Observable<T> {
     const cacheKey = `ynaptic ${endpoint}_${options.params?.toString() || ''}`;
 
     // Check server-side cache first
@@ -133,7 +181,6 @@ export class ApiService {
     // Create new request
     const request = this.http
       .get<T>(`${this.baseUrl}${endpoint}`, {
-        headers: this.authService.getAuthHeaders(),
         ...options,
       })
       .pipe(
@@ -153,6 +200,7 @@ export class ApiService {
         catchError((error: HttpErrorResponse) => {
           // Remove from pending requests on error
           this.pendingRequests.delete(cacheKey);
+          console.error(`API Error for ${endpoint}:`, error.status, error.message);
           return this.handelErrorsService.handelError(error);
         })
       );
@@ -197,7 +245,6 @@ export class ApiService {
     }
 
     const httpOptions: Object = {
-      headers: this.authService.getAuthHeaders(),
       ...options,
       observe: options.observe || 'body',
     };
@@ -208,7 +255,8 @@ export class ApiService {
       .pipe(
         retry(2),
         map((data:any) => {
-          if (data && !(options.observe === 'response' && Array.isArray(data.body) && data.body.length === 0)) {
+          if (data && !(options.observe === 'response' && Array.isArray(data.body
+          ) && data.body.length === 0)) {
             // Cache the response
             this.cache.set(cacheKey, { data, expiry: Date.now() + this.DEFAULT_CACHE_DURATION });
           }
@@ -253,21 +301,17 @@ export class ApiService {
     }
 
     const request = this.http
-      .post<T>(`${this.baseUrl}${endpoint}`, body, {
-        headers: this.authService.getAuthHeaders(),
-      })
+      .post<T>(`${this.baseUrl}${endpoint}`, body)
       .pipe(
         retry(2),
         map((data) => {
-          if (data && !(Array.isArray(data) && data.length === 0)) {
-            this.cache.set(cacheKey, { data, expiry: Date.now() + this.DEFAULT_CACHE_DURATION });
-          }
+          this.cache.delete(cacheKey); // لأن البيانات قد تغيرت
           this.pendingRequests.delete(cacheKey);
           return data;
         }),
-        shareReplay(1),
         catchError((error: HttpErrorResponse) => {
           this.pendingRequests.delete(cacheKey);
+          console.error(`API Error for ${endpoint}:`, error.status, error.message);
           return this.handelErrorsService.handelError(error);
         })
       );
@@ -282,32 +326,30 @@ export class ApiService {
     }
 
     const cacheKey = `${endpoint}_${JSON.stringify(body)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached && cached.expiry > Date.now()) {
-      if (!cached.data || (Array.isArray(cached.data) && cached.data.length === 0)) {
-        this.cache.delete(cacheKey);
-      } else {
-        return of(cached.data);
-      }
+    
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey) as Observable<T>;
     }
-
-    return this.http
-      .put<T>(`${this.baseUrl}${endpoint}`, body, {
-        headers: this.authService.getAuthHeaders(),
-      })
+    
+    const request = this.http
+      .put<T>(`${this.baseUrl}${endpoint}`, body)
       .pipe(
         retry(2),
         map((data) => {
-          if (data && !(Array.isArray(data) && data.length === 0)) {
-            this.cache.set(cacheKey, { data, expiry: Date.now() + 300000 });
-          }
+          // تنظيف الكاش المرتبط بهذا الإندبوينت
+          this.cleanRelatedCache(endpoint);
+          this.pendingRequests.delete(cacheKey);
           return data;
         }),
-        shareReplay(1),
-        catchError((error: HttpErrorResponse) =>
-          this.handelErrorsService.handelError(error)
-        )
+        catchError((error: HttpErrorResponse) => {
+          this.pendingRequests.delete(cacheKey);
+          console.error(`API Error for ${endpoint}:`, error.status, error.message);
+          return this.handelErrorsService.handelError(error);
+        })
       );
+    
+    this.pendingRequests.set(cacheKey, request);
+    return request;
   }
 
   deleteRequest<T>(endpoint: string, body: any): Observable<T> {
@@ -315,34 +357,44 @@ export class ApiService {
       return of(null as any);
     }
 
-    const cacheKey = `${endpoint}_${JSON.stringify(body)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached && cached.expiry > Date.now()) {
-      if (!cached.data || (Array.isArray(cached.data) && cached.data.length === 0)) {
-        this.cache.delete(cacheKey);
-      } else {
-        return of(cached.data);
-      }
+    const cacheKey = `${endpoint}_delete`;
+    
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey) as Observable<T>;
     }
-
-    return this.http
-      .delete<T>(`${this.baseUrl}${endpoint}`, {
-        headers: this.authService.getAuthHeaders(),
-        body: body,
-      })
+    
+    const request = this.http
+      .delete<T>(`${this.baseUrl}${endpoint}`, { body })
       .pipe(
         retry(2),
         map((data) => {
-          if (data && !(Array.isArray(data) && data.length === 0)) {
-            this.cache.set(cacheKey, { data, expiry: Date.now() + 300000 });
-          }
+          // تنظيف الكاش المرتبط بهذا الإندبوينت
+          this.cleanRelatedCache(endpoint);
+          this.pendingRequests.delete(cacheKey);
           return data;
         }),
-        shareReplay(1),
-        catchError((error: HttpErrorResponse) =>
-          this.handelErrorsService.handelError(error)
-        )
+        catchError((error: HttpErrorResponse) => {
+          this.pendingRequests.delete(cacheKey);
+          console.error(`API Error for ${endpoint}:`, error.status, error.message);
+          return this.handelErrorsService.handelError(error);
+        })
       );
+    
+    this.pendingRequests.set(cacheKey, request);
+    return request;
+  }
+
+  // Helper to clean related cache entries
+  private cleanRelatedCache(endpoint: string): void {
+    // استخراج الجزء الرئيسي من الإندبوينت
+    const mainPart = endpoint.split('?')[0].split('/')[0];
+    
+    // مسح أي كاش مرتبط بنفس الإندبوينت
+    for (const key of this.cache.keys()) {
+      if (key.includes(mainPart)) {
+        this.cache.delete(key);
+      }
+    }
   }
 
   getExternalRequest<T>(

@@ -3,7 +3,7 @@
     'is-scroll': lastScrollY() > 0 && !isProductPage,
     'non-sticky': isProductPage || currentPage === 'checkout',
     'fullscreen-hidden': isFullScreenMode
-  }" #headerEl>
+  }" #headerEl [style.position]="isProductPage ? 'static' : 'sticky'">
   @if (currentPage === 'checkout') {
   <!-- Simplified Checkout Header -->
   <div class="checkout-header flex items-center justify-between px-4 py-3 bg-[#222222]">
@@ -29,7 +29,8 @@
   <div class="header-content-wrapper">
     <!-- Layer 1: Top Info Banner - Only visible at the top of the page -->
     <div class="header-top-layer" [class.header-layer-hidden]="lastScrollY() > 0"
-      [@layerAnimation]="lastScrollY() > 0 ? 'hidden' : 'visible'">
+      [@layerAnimation]="lastScrollY() > 0 ? 'hidden' : 'visible'"
+      [ngClass]="{'pointer-events-auto': lastScrollY() === 0, 'pointer-events-none': lastScrollY() > 0}">
       <div class="top-info-banner">
         <p class="absolute top-0 w-full text-center text-sm animate-slide-first">
           <strong>Free Delivery</strong> for orders over AED 100
@@ -91,7 +92,8 @@
           </div>
         </div>
         @if (showSearchbar()) {
-        <div class="w-full -mt-[5px] lg:hidden block z-10 pb-2" [@layerAnimation]="'visible'">
+        <div class="w-full -mt-[5px] lg:hidden block z-10 pb-2" [@layerAnimation]="'visible'"
+          class="pointer-events-auto">
           <app-search-bar />
         </div>
         }
@@ -100,7 +102,8 @@
 
     <!-- Layer 3: Bottom - Navbar (using the new thirdLayerVisible signal) -->
     <div class="header-bottom-layer" [class.header-layer-hidden]="!thirdLayerVisible()"
-      [@layerAnimation]="thirdLayerVisible() ? 'visible' : 'hidden'" (@layerAnimation.done)="onAnimationDone($event)">
+      [@layerAnimation]="thirdLayerVisible() ? 'visible' : 'hidden'" (@layerAnimation.done)="onAnimationDone($event)"
+      [ngClass]="{'pointer-events-auto': thirdLayerVisible(), 'pointer-events-none': !thirdLayerVisible()}">
       @defer (on idle) {
       <app-navbar-container [mainCategories]="mainCategories" [allCategories]="allCategories" />
       }

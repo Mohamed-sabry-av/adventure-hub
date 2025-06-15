@@ -94,6 +94,7 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
         // Keep loading state visible for a short time to show transition
         setTimeout(() => {
           this.isGalleryLoading.set(false);
+          this.isImageLoading = false; // Explicitly set to false to clear loading state
           this.cdr.detectChanges();
           this.updateSplide();
         }, 300);
@@ -128,7 +129,7 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-    this.mediaQuery = window.matchMedia('(max-width: 1172px)');
+    this.mediaQuery = window.matchMedia('(max-width: 767px)');
     this.isMobile = this.mediaQuery.matches;
     this.mediaQueryListener = (event: MediaQueryListEvent) => {
       this.isMobile = event.matches;
@@ -148,6 +149,9 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
           this.isGalleryLoading.set(true);
           this.isImageLoading = true;
           this.cdr.detectChanges();
+        } else {
+          // Clear loading states when variation service indicates loading is complete
+          this.clearLoadingStates();
         }
       });
   }
@@ -181,9 +185,11 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
         pagination: false,
         arrows: false,
         cover: true,
-        fixedWidth: 60,
+        fixedWidth: this.isMobile ? 60 : undefined,
         fixedHeight: 60,
         isNavigation: true,
+        easing: 'linear',
+        speed: 200,
         // focus: 'center',
       });
     }
@@ -198,8 +204,9 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
       heightRatio: this.isMobile ? 0.9 : 1,
       perPage: 1, // Show only one image per page
       perMove: 1, // Move only one image at a time
-      speed: 400, // Transition speed in ms
-      waitForTransition: true // Wait for transition to finish before allowing another
+      speed: 200,
+      easing: 'linear',
+      waitForTransition: false
     };
 
     this.mainSplide = new Splide(this.splideMainRef.nativeElement, mainSlideOptions);
@@ -226,6 +233,16 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
       this.selectedImageIndex = newIndex;
       this.cdr.detectChanges();
     });
+
+    // Add click event listeners directly to thumbnails for faster response
+    if (this.thumbsSplide) {
+      const thumbnails = this.splideThumbRef.nativeElement.querySelectorAll('.thumbnail-item');
+      thumbnails.forEach((thumbnail: HTMLElement, index: number) => {
+        thumbnail.addEventListener('click', () => {
+          this.selectImage(index);
+        });
+      });
+    }
 
     // Mount main slider
     this.mainSplide.mount();
@@ -460,15 +477,16 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
     if (index === this.selectedImageIndex) return;
     
     this.selectedImageIndex = index;
-    this.isImageLoading = true;
+    
+    // تجنب تعيين حالة التحميل إذا كانت الصورة محملة بالفعل
+    const img = this.splideMainRef?.nativeElement.querySelector(`.splide__slide:nth-child(${index + 1}) img`);
+    if (img && !img.complete) {
+      this.isImageLoading = true;
+    }
     
     // Make sure both sliders are in sync
     if (this.mainSplide) {
       this.mainSplide.go(index);
-    }
-    
-    if (this.thumbsSplide) {
-      this.thumbsSplide.go(index);
     }
     
     // Reset any zoom that might be active
@@ -512,11 +530,19 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
 
   onImageLoad(): void {
     this.isImageLoading = false;
+    // Ensure gallery loading state is also cleared
+    if (this.isGalleryLoading()) {
+      this.isGalleryLoading.set(false);
+    }
     this.cdr.detectChanges();
   }
 
   onImageError(): void {
     this.isImageLoading = false;
+    // Ensure gallery loading state is also cleared
+    if (this.isGalleryLoading()) {
+      this.isGalleryLoading.set(false);
+    }
     this.cdr.detectChanges();
   }
 
@@ -601,5 +627,12 @@ export class ProductImagesComponent implements OnInit, AfterViewInit, OnDestroy 
         this.cdr.detectChanges();
       }, 300);
     }
+  }
+
+  // Helper method to clear all loading states
+  private clearLoadingStates(): void {
+    this.isGalleryLoading.set(false);
+    this.isImageLoading = false;
+    this.cdr.detectChanges();
   }
 }

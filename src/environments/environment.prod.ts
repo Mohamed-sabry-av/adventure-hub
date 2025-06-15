@@ -1,13 +1,13 @@
-// export const environment = {
-//     production: true,
-//     // API and backend configurations
-//     apiUrl: 'https://adventures-hub.com',
-//     baseUrl: 'https://adventures-hub.com',
-//     wooCommerceUrl: 'https://adventures-hub.com',
-//     wordpressApiUrl: 'https://adventures-hub.com/wp-json/wc/v3/',
-//     customApiUrl: 'https://adventures-hub.com/wp-json/custom/v1',
-//     authApiUrl: 'https://adventures-hub.com/wp-json/jwt-auth/v1',
-//     wcStoreApiUrl: 'https://adventures-hub.com/wp-json/wc/store/v1',
+export const environment = {
+    production: true,
+    // API and backend configurations
+    apiUrl: 'https://adventures-hub.com',
+    baseUrl: 'https://adventures-hub.com',
+    wooCommerceUrl: 'https://adventures-hub.com',
+    wordpressApiUrl: 'https://adventures-hub.com/wp-json/wc/v3/',
+    customApiUrl: 'https://adventures-hub.com/wp-json/custom/v1',
+    authApiUrl: 'https://adventures-hub.com/wp-json/jwt-auth/v1',
+    wcStoreApiUrl: 'https://adventures-hub.com:/wp-json/wc/store/v1',
     
 //     // WooCommerce
 //     wooCommerce: {
@@ -55,4 +55,4 @@
 //         version: 'v17.0'
 //       }
 //     }
-//   };
+  };

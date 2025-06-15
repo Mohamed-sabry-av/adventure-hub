@@ -13,8 +13,9 @@
       <div class="splide__track">
         <ul class="splide__list">
           <li class="splide__slide" *ngFor="let image of images; let i = index; trackBy: trackByFn">
-            <div class="thumbnail-item" [class.active]="selectedImageIndex === i">
-              <img [src]="image.src" [alt]="image.alt || productName()" class="thumbnail-img" loading="lazy" />
+            <div class="thumbnail-item" [class.active]="selectedImageIndex === i" (click)="selectImage(i)">
+              <img [src]="image.src" [alt]="image.alt || productName()" class="thumbnail-img" loading="eager"
+                fetchpriority="high" />
             </div>
           </li>
         </ul>
@@ -33,8 +34,8 @@
           <li class="splide__slide" *ngFor="let image of images; let i = index; trackBy: trackByFn">
             <div class="image-slide">
               <img [src]="image.src" [alt]="image.alt || productName()" class="main-img"
-                [class.loading]="isImageLoading" [class.mobile-view]="isMobile" loading="lazy" (load)="onImageLoad()"
-                (error)="onImageError()" />
+                [class.loading]="isImageLoading" [class.mobile-view]="isMobile" loading="eager" fetchpriority="high"
+                (load)="onImageLoad()" (error)="onImageError()" />
             </div>
           </li>
         </ul>

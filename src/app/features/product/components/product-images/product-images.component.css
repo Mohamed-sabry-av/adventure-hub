@@ -49,10 +49,13 @@
 .thumbnails-column {
   display: flex;
   flex-direction: column;
+  gap: 10px;
   width: 80px;
   height: 500px;
-  overflow: hidden;
-  align-items: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scrollbar-width: thin;
 }
 
 .thumbnails-splide {
@@ -69,14 +72,19 @@
   border-radius: 4px;
   cursor: pointer;
   object-fit: contain;
-  border: 1px solid #ddd;
+  border: none;
   opacity: 0.7;
-  transition: opacity 0.3s, border-color 0.3s;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
   margin: 0 auto;
+  background-color: transparent;
+  will-change: opacity, border-color;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .thumbnail-item.active {
-  border: 2px solid #ef5e37;
+  border: 2px solid #ef5e37 !important;
   opacity: 1;
 }
 
@@ -84,6 +92,11 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* Main image */
@@ -124,9 +137,12 @@
   max-height: 100%;
   object-fit: contain;
   display: block;
-  will-change: transform;
+  will-change: transform, opacity;
   transform-origin: center;
-  transition: transform 0.1s ease-out, opacity 0.3s ease;
+  transition: transform 0.1s ease-out, opacity 0.2s ease;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .main-img.mobile-view {
@@ -145,6 +161,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none !important;
+}
+
+:host ::ng-deep .splide__slide * {
+  border: none !important;
+}
+
+:host ::ng-deep .splide__track,
+:host ::ng-deep .splide__list {
+  border: none !important;
 }
 
 :host ::ng-deep .main-splide .splide__arrow {
@@ -404,7 +430,7 @@
   width: 60px;
   height: 60px;
   flex-shrink: 0;
-  border: 2px solid transparent;
+  border: none;
   border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
@@ -413,7 +439,7 @@
 }
 
 .fullscreen-thumbnail.active {
-  border-color: white;
+  border: 2px solid white;
   opacity: 1;
 }
 
@@ -516,7 +542,7 @@
 }
 
 /* Mobile styles */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .product-gallery {
     flex-direction: column;
     gap: 10px;
@@ -527,6 +553,8 @@
     height: 80px;
     flex-direction: row;
     order: 2;
+    overflow-y: hidden;
+    overflow-x: auto;
   }
   
   /* Change thumbnails from vertical to horizontal on mobile */
@@ -538,8 +566,29 @@
   .thumbnail-item {
     width: 60px;
     height: 60px;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: transparent !important;
   }
-
+  
+  /* تأكيد إزالة الحدود من عناصر الصور المصغرة في وضع الجوال */
+  :host ::ng-deep .splide__slide,
+  :host ::ng-deep .splide__track,
+  :host ::ng-deep .splide__list,
+  :host ::ng-deep .splide__slide *,
+  .thumbnail-item,
+  .thumbnail-img {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  
+  /* تعديل مظهر الصور المصغرة النشطة فقط في وضع الجوال */
+  .thumbnail-item.active {
+    border: 2px solid #ef5e37 !important;
+  }
+  
   .main-image {
     height: auto;
     min-height: 300px;
@@ -679,4 +728,37 @@
     height: 70px;
     margin: 0 5px;
   }
+}
+
+/* تعديل عنصر الـ thumbnail داخل Splide */
+:host ::ng-deep .splide__slide .thumbnail-item {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+:host ::ng-deep .splide__slide .thumbnail-item.active {
+  border: 2px solid #ef5e37 !important;
+}
+
+/* تأكيد إزالة الحدود من عناصر الصور المصغرة */
+.splide__slide li,
+.splide__slide div,
+.splide__slide img {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* تحسين أداء الانتقال للـ Splide */
+:host ::ng-deep .splide__track {
+  overflow: visible;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+:host ::ng-deep .splide__list {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
