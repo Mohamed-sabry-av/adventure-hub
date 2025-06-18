@@ -11,9 +11,7 @@ import {
   signal,
   ViewChild,
   Inject,
-  AfterViewInit,
-  ApplicationRef,
-  NgZone
+  AfterViewInit
 } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../interfaces/category.model';
@@ -24,7 +22,7 @@ import { NavbarService } from '../../services/navbar.service';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { AccountAuthService } from '../../../features/auth/account-auth.service';
-import { debounceTime, filter, fromEvent, Observable, take } from 'rxjs';
+import { debounceTime, filter, fromEvent, Observable } from 'rxjs';
 import {
   animate,
   style,
@@ -191,63 +189,23 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       this.isFullScreenMode = this.fullscreenService.isFullscreen();
       this.cdr.markForCheck();
     });
-    
-    // Check if current route is a product page and set header position accordingly
-    if (isPlatformBrowser(this.platformId)) {
-      const currentUrl = this.router.url;
-      if (currentUrl.includes('/product/')) {
-        this.isProductPage = true;
-        document.documentElement.style.setProperty('--header-position', 'static');
-      } else {
-        document.documentElement.style.setProperty('--header-position', 'sticky');
-      }
-    }
   }
 
   ngOnInit() {
-    // Ensure app stability by marking stability when data fetching is done
-    if (isPlatformBrowser(this.platformId)) {
-      const appRef = inject(ApplicationRef);
-      const ngZone = inject(NgZone);
-      
-      // Execute critical initialization in NgZone
-      ngZone.run(() => {
-        // Fetch categories (which is the main async operation)
-        this.fetchAllCategories();
-        
-        // After a very short timeout, mark the application as stable
-        setTimeout(() => {
-          appRef.tick();
-        }, 100);
-      });
-    } else {
-      // For server-side, just fetch categories
-      this.fetchAllCategories();
-    }
+    this.fetchAllCategories();
 
     const subscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: any) => {
         this.currentPage = event.url === '/checkout' ? 'checkout' : '';
         this.isProductPage = event.url.includes('/product/'); // Check if URL contains /product/
-        
-        if (this.isProductPage) {
-          // Force disable sticky behavior immediately for product pages
-          document.documentElement.style.setProperty('--header-position', 'static');
-        } else {
-          // Reset to default sticky behavior for other pages
-          document.documentElement.style.setProperty('--header-position', 'sticky');
-        }
-        
         this.showNavbar.set(!this.isProductPage); // Show navbar by default unless on product page
         
         // Set initial header height for body padding
-        if (isPlatformBrowser(this.platformId)) {
-          setTimeout(() => {
-            this.onSetHeaderHeight();
-            this.cdr.detectChanges();
-          }, 10);
-        }
+        setTimeout(() => {
+          this.onSetHeaderHeight();
+          this.cdr.detectChanges();
+        }, 10);
       });
 
     if (isPlatformBrowser(this.platformId)) {
@@ -307,17 +265,10 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   private fetchAllCategories(): void {
     this.categoriesService
       .getAllCategories(['default'])
-      .pipe(take(1)) // Make sure the observable completes quickly
       .subscribe((categories) => {
         this.allCategories = categories || [];
         this.mainCategories = this.allCategories.filter((cat) => cat.parent === 0);
         this.cdr.detectChanges();
-        
-        // Stabilize the application after data is loaded
-        if (isPlatformBrowser(this.platformId)) {
-          const appRef = inject(ApplicationRef);
-          appRef.tick();
-        }
       });
   }
 
@@ -333,12 +284,6 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       
       // تعيين متغير CSS للاستخدام في جميع أنحاء التطبيق
       document.documentElement.style.setProperty('--header-height', `${height}px`);
-      
-      // On product pages, ensure header is absolutely not sticky
-      if (this.isProductPage) {
-        document.documentElement.style.setProperty('--header-position', 'static');
-        this.headerElement.nativeElement.style.position = 'static';
-      }
       
       // With sticky positioning, we don't need to add padding to the body
       document.body.style.paddingTop = '0';

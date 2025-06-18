@@ -642,6 +642,132 @@ app.delete('/api/wc/:endpoint(*)', async (req, res) => {
   }
 });
 
+// وسيط للتعامل مع نقاط نهاية API سلة التسوق المخصصة
+app.post('/api/custom/cart/guest', async (req, res) => {
+  try {
+    console.log('Proxying guest cart request to WordPress');
+    const response = await axios.post(
+      `${process.env['WOOCOMMERCE_URL']}/wp-json/custom/v1/cart/guest`,
+      req.body
+    );
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Guest Cart API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to Guest Cart API' });
+    }
+  }
+});
+
+app.post('/api/custom/cart/guest/add', async (req, res) => {
+  try {
+    console.log('Proxying add to guest cart request to WordPress');
+    const response = await axios.post(
+      `${process.env['WOOCOMMERCE_URL']}/wp-json/custom/v1/cart/guest/add`,
+      req.body
+    );
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Guest Cart Add API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to Guest Cart Add API' });
+    }
+  }
+});
+
+app.post('/api/custom/cart/guest/update', async (req, res) => {
+  try {
+    console.log('Proxying update guest cart request to WordPress');
+    const response = await axios.post(
+      `${process.env['WOOCOMMERCE_URL']}/wp-json/custom/v1/cart/guest/update`,
+      req.body
+    );
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Guest Cart Update API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to Guest Cart Update API' });
+    }
+  }
+});
+
+app.post('/api/custom/cart/guest/remove', async (req, res) => {
+  try {
+    console.log('Proxying remove from guest cart request to WordPress');
+    const response = await axios.post(
+      `${process.env['WOOCOMMERCE_URL']}/wp-json/custom/v1/cart/guest/remove`,
+      req.body
+    );
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Guest Cart Remove API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to Guest Cart Remove API' });
+    }
+  }
+});
+
+app.post('/api/custom/cart/guest/load', async (req, res) => {
+  try {
+    console.log('Proxying load guest cart request to WordPress');
+    const response = await axios.post(
+      `${process.env['WOOCOMMERCE_URL']}/wp-json/custom/v1/cart/guest/load`,
+      req.body
+    );
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Guest Cart Load API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to Guest Cart Load API' });
+    }
+  }
+});
+
+app.post('/api/custom/cart/guest/coupon', async (req, res) => {
+  try {
+    console.log('Proxying guest cart coupon request to WordPress');
+    const response = await axios.post(
+      `${process.env['WOOCOMMERCE_URL']}/wp-json/custom/v1/cart/guest/coupon`,
+      req.body
+    );
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Guest Cart Coupon API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to Guest Cart Coupon API' });
+    }
+  }
+});
+
+app.get('/api/custom/cart/guest/all', async (req, res) => {
+  try {
+    console.log('Proxying get all guest carts request to WordPress');
+    const response = await axios.get(
+      `${process.env['WOOCOMMERCE_URL']}/wp-json/custom/v1/cart/guest/all`
+    );
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Get All Guest Carts API Proxy Error:', error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Failed to proxy request to Get All Guest Carts API' });
+    }
+  }
+});
+
 // إضافة نقطة نهاية اختبار للتأكد من أن الخادم يعمل بشكل صحيح
 app.get('/api/status', (req, res) => {
   res.json({
@@ -660,6 +786,61 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Add endpoint to fetch banner data directly
+app.get('/api/banners', async (req, res) => {
+  try {
+    console.log('Fetching banner data from WP API');
+    const response = await axios.get('https://adventures-hub.com/wp-json/custom/v1/banners', {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    // Set headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    console.log('Banner data fetched successfully. Raw response:', typeof response.data, JSON.stringify(response.data).substring(0, 200) + '...');
+    
+    // Make sure we're sending the correct format - the API returns {banner_images: [...]}
+    // Just pass it through directly since the Angular app is expecting this format
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching banner data:', error);
+    res.status(500).json({ error: 'Failed to fetch banner data' });
+  }
+});
+
+// Add endpoint to fetch category images
+app.get('/api/category-images', async (req, res) => {
+  try {
+    console.log('Fetching category images from WP API');
+    const response = await axios.get('https://adventures-hub.com/wp-json/custom/v1/category-images', {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    // Set headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    console.log('Category images data fetched successfully');
+    
+    // Pass through the response data
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching category images:', error);
+    res.status(500).json({ error: 'Failed to fetch category images' });
+  }
+});
+
 // Add catch-all route for API requests that don't match any defined endpoints
 app.all('/api/*', (req, res) => {
   const path = req.path;
@@ -672,6 +853,286 @@ app.all('/api/*', (req, res) => {
     method: method
   });
 });
+
+// Add proxy endpoint for content type API
+app.get('/api/content-type/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    console.log(`Proxying content type request for slug: ${slug}`);
+    
+    // First try to check if it's a product
+    try {
+      const productResponse = await axios.get(`${WOOCOMMERCE_API_URL}/products`, {
+        params: {
+          slug: slug,
+          _fields: 'id'
+        },
+        ...await getWooCommerceAuth()
+      });
+      
+      if (productResponse.data && productResponse.data.length > 0) {
+        console.log(`Slug ${slug} determined to be a product`);
+        return res.json({ type: 'product' });
+      }
+    } catch (error: any) {
+      console.error(`Error checking if ${slug} is a product:`, error.message);
+    }
+    
+    // Then check if it's a category
+    try {
+      const categoryResponse = await axios.get(`${WOOCOMMERCE_API_URL}/products/categories`, {
+        params: {
+          slug: slug,
+          _fields: 'id'
+        },
+        ...await getWooCommerceAuth()
+      });
+      
+      if (categoryResponse.data && categoryResponse.data.length > 0) {
+        console.log(`Slug ${slug} determined to be a category`);
+        return res.json({ type: 'category' });
+      }
+    } catch (error: any) {
+      console.error(`Error checking if ${slug} is a category:`, error.message);
+    }
+    
+    // If we reach here, try the original API as a fallback
+    try {
+      const response = await axios.get(`https://adventures-hub.com/wp-json/api/v1/content-type/${slug}`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+        }
+      });
+      
+      console.log(`Content type for ${slug} from API: ${response.data.type}`);
+      return res.json(response.data);
+    } catch (error: any) {
+      console.error(`Error from content type API for ${slug}:`, error.message);
+      // Continue to the 404 response below
+    }
+    
+    // If all attempts fail, return 404
+    console.log(`Content type not found for slug: ${slug}`);
+    return res.status(404).json({ error: 'Content type not found', slug });
+    
+  } catch (error: any) {
+    console.error(`Error in content-type endpoint for slug ${req.params.slug}:`, error.message);
+    return res.status(500).json({ error: 'Failed to fetch content type' });
+  }
+});
+
+// Add route resolver middleware for slug-based routing
+const resolveSlugRoutes = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // Skip for static files, API endpoints, and existing defined routes
+  if (
+    req.originalUrl.match(/\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|svg)$/) ||
+    req.originalUrl.startsWith('/api/') ||
+    req.originalUrl.includes('wp-json') ||
+    // Skip known application routes
+    req.originalUrl.startsWith('/maintenance') ||
+    req.originalUrl.startsWith('/admin') ||
+    req.originalUrl.startsWith('/user') ||
+    req.originalUrl.startsWith('/order-received') ||
+    req.originalUrl.startsWith('/cart') ||
+    req.originalUrl.startsWith('/checkout') ||
+    req.originalUrl.startsWith('/history') ||
+    req.originalUrl.startsWith('/page-not-found') ||
+    req.originalUrl.startsWith('/blog') ||
+    req.originalUrl.startsWith('/pages') ||
+    req.originalUrl.startsWith('/brand/') ||
+    req.originalUrl.startsWith('/sale') ||
+    // Skip if this is the home page
+    req.originalUrl === '/' 
+  ) {
+    return next();
+  }
+
+  // Parse the URL to separate path from query parameters
+  const urlParts = req.originalUrl.split(/[?#]/);
+  const path = urlParts[0];
+  const queryString = urlParts.length > 1 ? `?${urlParts[1]}` : '';
+
+  // Handle redirects for old prefix routes - use 301 redirect for better performance
+  if (path.startsWith('/product/') || path.startsWith('/category/')) {
+    // Extract the slug from old URL format, preserving any query parameters
+    const oldSlug = path.split('/').filter(Boolean)[1];
+    if (oldSlug) {
+      console.log(`Redirecting old route ${path} to /${oldSlug}${queryString}`);
+      // Use 301 redirect with cache control header to improve performance
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+      return res.redirect(301, `/${oldSlug}${queryString}`);
+    }
+  }
+
+  // Check if this is a path with multiple segments (potential subcategory)
+  const pathSegments = path.split('/').filter(Boolean);
+  
+  // If we have multiple segments, this might be a subcategory path
+  if (pathSegments.length > 1) {
+    try {
+      // Get the last segment which should be the deepest category
+      const deepestSlug = pathSegments[pathSegments.length - 1];
+      
+      // Set a short cache time for these responses to improve performance
+      res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutes
+      
+      // Check if the deepest slug is a valid category
+      const categoryResponse = await axios.get(`${WOOCOMMERCE_API_URL}/products/categories`, {
+        params: {
+          slug: deepestSlug,
+          _fields: 'id'
+        },
+        ...await getWooCommerceAuth(),
+        timeout: 3000 // Add timeout to prevent hanging
+      }).catch(error => {
+        console.error(`Error checking if ${deepestSlug} is a category:`, error.message);
+        return { data: [] };
+      });
+      
+      if (categoryResponse.data && categoryResponse.data.length > 0) {
+        console.log(`Multi-segment path resolved as category: ${deepestSlug}`);
+        (req as any).contentType = 'category';
+        return next();
+      }
+      
+      // If not a category, check if it's a product (could be a product under a category path)
+      const productResponse = await axios.get(`${WOOCOMMERCE_API_URL}/products`, {
+        params: {
+          slug: deepestSlug,
+          _fields: 'id'
+        },
+        ...await getWooCommerceAuth(),
+        timeout: 3000 // Add timeout to prevent hanging
+      }).catch(error => {
+        console.error(`Error checking if ${deepestSlug} is a product:`, error.message);
+        return { data: [] };
+      });
+      
+      if (productResponse.data && productResponse.data.length > 0) {
+        console.log(`Multi-segment path resolved as product: ${deepestSlug}`);
+        (req as any).contentType = 'product';
+        return next();
+      }
+    } catch (error: any) {
+      console.error(`Error checking multi-segment path: ${req.originalUrl}`, error.message);
+      // Continue to single segment check
+    }
+  }
+
+  // Extract the slug - remove leading slash and any trailing slashes
+  const slug = pathSegments[0];
+  
+  if (!slug) {
+    return next();
+  }
+  
+  try {
+    // Set a short cache time for these responses to improve performance
+    res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutes
+    
+    // Use our internal content type detection directly instead of making an HTTP request
+    console.log(`Checking content type for slug: ${slug}`);
+    
+    // Use Promise.race to run both checks in parallel and take the first result
+    const contentTypePromise = Promise.race([
+      // Check if it's a product
+      axios.get(`${WOOCOMMERCE_API_URL}/products`, {
+        params: {
+          slug: slug,
+          _fields: 'id'
+        },
+        ...await getWooCommerceAuth(),
+        timeout: 3000 // Add timeout to prevent hanging
+      }).then(response => {
+        if (response.data && response.data.length > 0) {
+          console.log(`Slug ${slug} resolved as content type: product`);
+          return 'product';
+        }
+        return null;
+      }).catch((error) => {
+        console.error(`Error checking if ${slug} is a product:`, error.message);
+        return null;
+      }),
+      
+      // Check if it's a category
+      axios.get(`${WOOCOMMERCE_API_URL}/products/categories`, {
+        params: {
+          slug: slug,
+          _fields: 'id'
+        },
+        ...await getWooCommerceAuth(),
+        timeout: 3000 // Add timeout to prevent hanging
+      }).then(response => {
+        if (response.data && response.data.length > 0) {
+          console.log(`Slug ${slug} resolved as content type: category`);
+          return 'category';
+        }
+        return null;
+      }).catch((error) => {
+        console.error(`Error checking if ${slug} is a category:`, error.message);
+        return null;
+      })
+    ]);
+    
+    // Add a timeout to avoid hanging
+    const timeoutPromise = new Promise(resolve => {
+      setTimeout(() => resolve('unknown'), 3000);
+    });
+    
+    // Use the result of the race or the timeout
+    const contentType = await Promise.race([contentTypePromise, timeoutPromise]);
+    
+    if (contentType && contentType !== 'unknown') {
+      (req as any).contentType = contentType;
+      // Store the clean slug (without query params) for SSR
+      (req as any).cleanSlug = slug;
+      return next();
+    }
+    
+    // Fallback to the external API only if internal checks failed
+    try {
+      const response = await axios.get(`https://adventures-hub.com/wp-json/api/v1/content-type/${slug}`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+        timeout: 2000 // Add a timeout to prevent hanging
+      });
+      
+      const apiContentType = response.data.type;
+      console.log(`Slug ${slug} resolved as content type from API: ${apiContentType}`);
+      
+      // Add the content type to the request object for use in SSR
+      (req as any).contentType = apiContentType;
+      // Store the clean slug (without query params) for SSR
+      (req as any).cleanSlug = slug;
+      
+      // Continue with normal rendering
+      return next();
+    } catch (error: any) {
+      console.error(`Error from content type API for ${slug}:`, error.message);
+    }
+    
+    // If we reach here, we couldn't determine the content type
+    console.log(`Could not determine content type for slug: ${slug}, passing to next handler`);
+    return next();
+  } catch (error: any) {
+    console.error(`Error resolving content type for slug ${slug}:`, error.message);
+    // If we can't determine the content type, pass to next handler
+    // which will likely be the 404 handler
+    return next();
+  }
+};
+
+// Apply the resolver middleware before other route handlers but after API routes
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
+// Apply the slug resolution middleware
+app.use(resolveSlugRoutes);
 
 // Add proper error handling for SSR
 const renderPage = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -692,40 +1153,68 @@ const renderPage = async (req: express.Request, res: express.Response, next: exp
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
 
+    // If we have a content type from the slug resolver, add it to the SSR providers
+    const providers = [
+      { provide: APP_BASE_HREF, useValue: baseUrl },
+    ];
+    
+    if ((req as any).contentType) {
+      // Extract slug from URL (removing any query parameters)
+      const urlPath = originalUrl.split(/[?#]/)[0];
+      const pathSegments = urlPath.split('/').filter(Boolean);
+      const slug = (req as any).cleanSlug || (pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : '');
+      
+      providers.push({
+        provide: 'CONTENT_TYPE' as any,
+        useValue: { 
+          type: (req as any).contentType,
+          slug: slug
+        } as any
+      });
+      
+      console.log(`SSR rendering with content type: ${(req as any).contentType}, slug: ${slug}`);
+    }
+
+    // Render the app
     const html = await commonEngine.render({
       bootstrap,
       documentFilePath: indexHtml,
       url: `${protocol}://${headers.host}${originalUrl}`,
-      providers: [
-        { provide: APP_BASE_HREF, useValue: baseUrl },
-        { provide: 'REQUEST', useValue: req },
-        { provide: 'RESPONSE', useValue: res }
-      ],
+      publicPath: browserDistFolder,
+      providers,
     });
 
-    // Ensure Google site verification tag is in the HTML
-    const modifiedHtml = html.replace(
-      /<meta name="theme-color" content="#222222">/,
-      `<meta name="theme-color" content="#222222">\n  <meta name="google-site-verification" content="rt6fOYIBwSbI9eK8Pt_0MACLhQGaGs6Tl1MdFohwZmw" />`
-    );
-
-    res.send(modifiedHtml);
-  } catch (err) {
-    console.error('SSR Error:', err);
-    next(err);
+    // Send the rendered HTML
+    res.send(html);
+  } catch (error) {
+    console.error('Error during SSR rendering:', error);
+    
+    // Try to send a more graceful error response
+    try {
+      res.status(500).send(`
+        <html>
+          <head>
+            <title>Server Error</title>
+            <meta http-equiv="refresh" content="0;URL='${req.originalUrl}'">
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+            </style>
+          </head>
+          <body>
+            <h2>Loading...</h2>
+            <p>Please wait while we redirect you.</p>
+          </body>
+        </html>
+      `);
+    } catch (fallbackError) {
+      console.error('Error sending fallback response:', fallbackError);
+      next(error); // Pass to Express error handler
+    }
   }
 };
 
 // Apply caching middleware for SSR responses
 app.use(cache(300)); // Cache for 5 minutes
-
-// Handle API routes first
-app.use('/api', (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  next();
-});
 
 // Handle all other routes with SSR
 app.get('*', renderPage);
@@ -734,6 +1223,59 @@ app.get('*', renderPage);
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Server Error:', err);
   res.status(500).send('Internal Server Error');
+});
+
+// Add a proxy endpoint for WordPress category banner images
+app.get('/api/wp/category-banner/:categoryId', async (req: express.Request, res: express.Response) => {
+  try {
+    const categoryId = req.params['categoryId'];
+    const wooAuth = await getWooCommerceAuth();
+    
+    // Set a timeout to prevent hanging requests
+    const timeout = 5000;
+    
+    // Log the request
+    console.log(`Fetching category banner for ID: ${categoryId}`);
+    
+    // Make request to WordPress API
+    const response = await axios.get(
+      `${process.env['WOOCOMMERCE_URL']!}/wp-json/wp/v2/product_cat/${categoryId}`,
+      {
+        ...wooAuth,
+        timeout: timeout
+      }
+    );
+    
+    // Log successful response
+    console.log(`Category banner response received for ID: ${categoryId}`);
+    
+    // Extract banner image URL from response
+    let bannerUrl = null;
+    
+    // Check for ACF banner_image field
+    if (response.data.acf && response.data.acf.banner_image) {
+      bannerUrl = response.data.acf.banner_image;
+    } 
+    // Check for yoast_head_json.og_image
+    else if (response.data.yoast_head_json && 
+             response.data.yoast_head_json.og_image && 
+             response.data.yoast_head_json.og_image.length > 0) {
+      bannerUrl = response.data.yoast_head_json.og_image[0].url;
+    }
+    
+    // Return the banner URL or null
+    res.json({ banner_image: bannerUrl });
+    
+    // Add cache headers
+    res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    
+  } catch (error: any) {
+    console.error(`Error fetching category banner: ${error.message}`);
+    res.status(500).json({ 
+      error: 'Failed to fetch category banner',
+      message: error.message 
+    });
+  }
 });
 
 // Start the server

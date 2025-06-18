@@ -87,15 +87,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private klaviyoTracking = inject(KlaviyoTrackingService);
 
   ngOnInit() {
-    // Force header to not be sticky on product pages
-    if (isPlatformBrowser(this.platformId)) {
-      document.documentElement.style.setProperty('--header-position', 'static');
-      const headerEl = document.querySelector('.header-container');
-      if (headerEl) {
-        (headerEl as HTMLElement).style.position = 'static';
-      }
-    }
-    
     // Listen for navigation events to reload product data
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
@@ -121,10 +112,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Reset header position when leaving product page
-    if (isPlatformBrowser(this.platformId)) {
-      document.documentElement.style.setProperty('--header-position', 'sticky');
-    }
     // SEO service handles schema cleanup
   }
 

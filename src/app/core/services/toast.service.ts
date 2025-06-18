@@ -12,6 +12,7 @@ export interface Toast {
 export class ToastService {
   private toasts = new BehaviorSubject<Toast[]>([]);
   private toastCounter = 0;
+  private readonly MAX_TOASTS = 2;
   constructor() {}
   get toasts$(): Observable<Toast[]> {
     return this.toasts.asObservable();
@@ -63,10 +64,28 @@ export class ToastService {
    * @param duration Duration in milliseconds
    */
   private show(message: string, type: 'success' | 'error' | 'info' | 'warning', duration: number): void {
+    const currentToasts = this.toasts.getValue();
+    
+    // Check for duplicate message
+    const isDuplicate = currentToasts.some(toast => 
+      toast.message === message && toast.type === type
+    );
+    
+    if (isDuplicate) {
+      return; // Don't add duplicate toast
+    }
+    
     const id = ++this.toastCounter;
     const toast: Toast = { id, message, type, duration };
-    const currentToasts = this.toasts.getValue();
-    this.toasts.next([...currentToasts, toast]);
+    
+    // Limit to MAX_TOASTS by removing oldest if needed
+    let newToasts = [...currentToasts, toast];
+    if (newToasts.length > this.MAX_TOASTS) {
+      newToasts = newToasts.slice(newToasts.length - this.MAX_TOASTS);
+    }
+    
+    this.toasts.next(newToasts);
+    
     // Auto-remove the toast after its duration
     setTimeout(() => {
       this.remove(id);

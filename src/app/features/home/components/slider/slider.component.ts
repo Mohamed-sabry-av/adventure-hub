@@ -15,13 +15,14 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Subscription, take, fromEvent, BehaviorSubject, of } from 'rxjs';
+import { Subscription, take, fromEvent, BehaviorSubject, of, retry } from 'rxjs';
 import { HomeService } from '../../service/home.service';
 import Splide from '@splidejs/splide';
 
 interface BannerImage {
   large: string;
   small: string;
+  link?: string;
 }
 
 const BANNER_CACHE_KEY = 'cached_banner_images';
@@ -68,8 +69,10 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
       this.subscriptions.add(resizeSub);
     }
     
-    // Load fresh data from API
+    // Load fresh data from API - with small delay to ensure DOM is ready
+    setTimeout(() => {
     this.loadBannerImages();
+    }, 100);
   }
   
   ngAfterViewInit(): void {
@@ -187,41 +190,56 @@ export class SliderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   loadBannerImages(): void {
-    // Skip loading from API if we already have cached banners
-    if (this.bannerImages.length > 0) {
-      this.loading = false;
-      return;
+    // If we already have banners from cache, still fetch fresh ones but don't show loading
+    const showLoading = this.bannerImages.length === 0;
+    
+    if (showLoading) {
+      this.loading = true;
     }
     
-    this.loading = true;
-    
     const subscription = this.homeService.getBannerImages()
-      .pipe(take(1))
+      .pipe(
+        take(1),
+        // Add retry logic to handle intermittent failures
+        retry(2)
+      )
       .subscribe({
         next: (bannerImages) => {
+          console.log('Banner images loaded:', bannerImages?.length || 0);
+          
           if (bannerImages && bannerImages.length > 0) {
             // Cache the new banners
             this.cacheBanners(bannerImages);
             
             this.bannerImages = bannerImages;
+            
+            // Initialize Splide after images are loaded
+            if (isPlatformBrowser(this.platformId)) {
+              setTimeout(() => {
+                this.initSplide();
+                this.updateSliderSize();
+              }, 0);
+            }
+          } else {
+            console.warn('No banner images returned from API');
           }
           
           this.loading = false;
           this.cdr.markForCheck();
-          
-          // Initialize Splide after images are loaded
-          if (this.splideEl && isPlatformBrowser(this.platformId)) {
-            setTimeout(() => {
-              this.initSplide();
-              this.updateSliderSize();
-            }, 0);
-          }
         },
         error: (err) => {
-          
+          console.error('Failed to load banner images:', err);
           this.error = 'Failed to load banner images';
           this.loading = false;
           this.cdr.markForCheck();
+          
+          // Try to load again after a delay if we have no banners
+          if (this.bannerImages.length === 0) {
+            setTimeout(() => {
+              this.error = null;
+              this.loadBannerImages();
+            }, 3000);
+          }
         }
       });
     

@@ -60,7 +60,7 @@
 
   <div class="product-brand mb-2" *ngIf="brandName !== 'brand'">
     <span class="brand-label"></span>
-    <a [routerLink]="['/product/brand', brandSlug]" class="brand-link">{{ brandName }}</a>
+    <a [routerLink]="['brand', brandSlug]" class="brand-link">{{ brandName }}</a>
   </div>
 
   <!-- Variation Selection -->

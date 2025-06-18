@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { Observable, map, catchError, of, shareReplay, BehaviorSubject, forkJoin } from 'rxjs';
+import { Observable, map, catchError, of, shareReplay, BehaviorSubject, forkJoin, retry, timer } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { CacheService } from '../../../core/services/cashing.service';
 import { environment } from '../../../../environments/environment';
@@ -9,6 +9,7 @@ import { isPlatformBrowser } from '@angular/common';
 interface BannerImage {
   large: string;
   small: string;
+  link?: string;
 }
 
 interface CategoryImage {
@@ -591,23 +592,47 @@ export class HomeService {
     const cacheKey = 'banner_images';
     const cachedData = this.cachingService.get(cacheKey);
     
+    // Return cached data if available, but still fetch fresh data in background
     if (cachedData) {
+      // Start a background refresh if cache is older than 5 minutes
+      const cacheTimestamp = this.cachingService.getTimestamp(cacheKey);
+      if (cacheTimestamp && (Date.now() - cacheTimestamp > 300000)) { // 5 minutes
+        this.refreshBannerImages().subscribe();
+      }
       return cachedData;
     }
     
-    // Use the API service for the external request
-    const url = `${environment.customApiUrl}/banners`;
+    return this.fetchBannerImages();
+  }
+
+  /**
+   * Fetch banner images from API with retry logic
+   */
+  private fetchBannerImages(): Observable<BannerImage[]> {
+    const cacheKey = 'banner_images';
     
-    return this.http.get<{banner_images: BannerImage[]}>(url)
+    // Use the server's proxy endpoint instead of direct WordPress API
+    const origin = isPlatformBrowser(this.platformId) ? window.location.origin : '';
+    const isLocalhost = origin.includes('localhost');
+    const url = isLocalhost ? 'http://localhost:3000/api/banners' : '/api/banners';
+    
+    console.log('Fetching banner images from API:', url);
+    
+    return this.http.get<{banner_images: BannerImage[]} | BannerImage[]>(url)
       .pipe(
+        // Retry up to 3 times with exponential backoff
+        retry({count: 3, delay: (error, retryCount) => timer(retryCount * 1000)}),
         map(response => {
+          console.log('Banner API response received:', typeof response);
+          
           // Validate response structure
-          if (response && response.banner_images && Array.isArray(response.banner_images)) {
+          if (response && 'banner_images' in response && Array.isArray(response.banner_images)) {
             // Validate each banner image has required properties
             const validBannerImages = response.banner_images.filter((banner: any) => 
               banner && typeof banner === 'object' && 
               typeof banner.large === 'string' && 
-              typeof banner.small === 'string'
+              typeof banner.small === 'string' &&
+              (banner.link === undefined || typeof banner.link === 'string')
             );
             
             this.cachingService.set(cacheKey, validBannerImages, this.BANNERS_CACHE_TTL);
@@ -617,7 +642,8 @@ export class HomeService {
             const validBannerImages = response.filter((banner: any) => 
               banner && typeof banner === 'object' && 
               typeof banner.large === 'string' && 
-              typeof banner.small === 'string'
+              typeof banner.small === 'string' &&
+              (banner.link === undefined || typeof banner.link === 'string')
             );
             
             this.cachingService.set(cacheKey, validBannerImages, this.BANNERS_CACHE_TTL);
@@ -626,11 +652,18 @@ export class HomeService {
           return [];
         }),
         catchError(error => {
-          
+          console.error('Error fetching banner images:', error);
           return of([]);
         }),
         shareReplay(1)
       );
+  }
+
+  /**
+   * Refresh banner images in the background
+   */
+  private refreshBannerImages(): Observable<BannerImage[]> {
+    return this.fetchBannerImages();
   }
 
   /**
@@ -644,14 +677,16 @@ export class HomeService {
       return cachedData;
     }
     
-    // Use the API service for the external request
-    const url = `${environment.customApiUrl}/category-images`;
+    // Use the server's proxy endpoint instead of direct WordPress API
+    const origin = isPlatformBrowser(this.platformId) ? window.location.origin : '';
+    const isLocalhost = origin.includes('localhost');
+    const url = isLocalhost ? 'http://localhost:3000/api/category-images' : '/api/category-images';
     
-    return this.http.get<{category_images: CategoryImage[]}>(url)
+    return this.http.get<{category_images: CategoryImage[]} | CategoryImage[]>(url)
       .pipe(
         map(response => {
           // Validate response structure
-          if (response && response.category_images && Array.isArray(response.category_images)) {
+          if (response && 'category_images' in response && Array.isArray(response.category_images)) {
             // Validate each category image has required properties
             const validCategoryImages = response.category_images.filter((image: any) => 
               image && typeof image === 'object' && 

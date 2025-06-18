@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:ssr": "ng build && ng run advhub:server",
+    "dev:ssr": "ng run advhub:serve-ssr",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:advhub": "node dist/advhub/server/server.mjs",

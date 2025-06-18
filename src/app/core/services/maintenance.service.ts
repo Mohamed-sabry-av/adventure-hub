@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class MaintenanceService {
-  private isMaintenanceMode = new BehaviorSubject<boolean>(true);
+  private isMaintenanceMode = new BehaviorSubject<boolean>(false);
   private bypassKey = 'bypass_maintenance';
 
   constructor() {

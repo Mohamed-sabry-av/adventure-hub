@@ -17,7 +17,7 @@
                     <ul class="splide__list">
                         @for (brand of brands; track brand.id) {
                         <li class="splide__slide">
-                            <a [routerLink]="['/product/brand', brand.slug]" class="brand-logo">
+                            <a [routerLink]="['brand', brand.slug]" class="brand-logo">
                                 @if (brand.image && (brand.image.url || brand.image.src)) {
                                 <img [src]="brand.image.url || brand.image.src" [alt]="brand.name" class="brand-image"
                                     width="110" height="60" loading="eager" decoding="async" />

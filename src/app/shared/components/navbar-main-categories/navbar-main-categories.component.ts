@@ -126,7 +126,7 @@ selectedCategory(id: number | null) {
   }
 
   getCategoryRoute(category: Category): string[] {
-    const pathSegments: string[] = ['category'];
+    const pathSegments: string[] = ['/'];
     this.buildFullPath(category, pathSegments);
     return pathSegments;
   }

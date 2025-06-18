@@ -24,10 +24,7 @@ export class AuthService {
     
     // الاشتراك في تغييرات التكوين للتأكد من تحميل المعلومات الضرورية للمستخدم
     this.configService.getConfig().subscribe(config => {
-      if (config) {
-        // هنا يمكن الحصول على معلومات التكوين العامة إذا كانت ضرورية
-        console.log('Auth service received application config');
-      }
+      // هنا يمكن الحصول على معلومات التكوين العامة إذا كانت ضرورية
     });
   }
 
@@ -36,7 +33,7 @@ export class AuthService {
     try {
       // هنا يمكن إضافة منطق تحميل بيانات المستخدم مثل رمز الدخول
     } catch (error) {
-      console.error('Error loading user data', error);
+      // Error loading user data
     }
   }
 

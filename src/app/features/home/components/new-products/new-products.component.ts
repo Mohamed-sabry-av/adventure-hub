@@ -90,6 +90,7 @@ export class NewProductsComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           1180: {
             perPage: 4,
+            // gap: '1rem',
             padding: { left: 0, right: 0 }
           }
         }

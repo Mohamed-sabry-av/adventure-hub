@@ -26,7 +26,8 @@ import { UIService } from '../../shared/services/ui.service';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 
-const CUSTOM_API_URL = environment.customApiUrl;
+// تغيير المسار مباشرة للإشارة إلى المنفذ 3000
+const CUSTOM_API_URL = 'http://localhost:3000/api/custom';
 
 @Injectable()
 export class CartEffect {

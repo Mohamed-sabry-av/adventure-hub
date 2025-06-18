@@ -274,14 +274,15 @@ export class WalletPaymentComponent implements AfterViewInit, OnChanges {
           }
         });
 
-        this.paymentRequest.on('shippingaddresschange', (event: any) => {
+        this.paymentRequest.on('shippingaddresschange', async (event: any) => {
           try {
             // Extract address details
             const shippingAddress = event.shippingAddress || {};
             const countryCode = shippingAddress.country || 'AE';
             
-            // Log the address for debugging
-
+            // Set the selected shipping country in the checkout service
+            this.checkoutService.getSelectedShippingCountry(countryCode);
+            
             // International shipping
             if (countryCode !== 'AE') {
               event.updateWith({
@@ -294,10 +295,13 @@ export class WalletPaymentComponent implements AfterViewInit, OnChanges {
                 }]
               });
             } else {
-              // Check if order qualifies for free shipping
+              // Update cart total for UAE shipping calculation
+              const cartTotal = await this.checkoutService.getCartTotalPrice().pipe(take(1)).toPromise();
+              const currentTotal = cartTotal ? cartTotal.total : (total / 100);
+              const currentAmountInFils = Math.round(currentTotal * 100);
               const freeShippingThreshold = 10000; // AED 100 in fils
               
-              if (amountInFils >= freeShippingThreshold) {
+              if (currentAmountInFils >= freeShippingThreshold) {
                 event.updateWith({
                   status: 'success',
                   shippingOptions: [{
@@ -346,6 +350,12 @@ export class WalletPaymentComponent implements AfterViewInit, OnChanges {
     let billing: any = {};
     let shipping: any = {};
     
+    // Get the shipping country from address
+    const shippingCountry = shippingAddress?.country || 'AE';
+    
+    // Update checkout service with shipping country
+    this.checkoutService.getSelectedShippingCountry(shippingCountry);
+    
     // First try to use logged-in user details if available
     if (this.userDetails) {
       // Use billing from account if available
@@ -359,7 +369,11 @@ export class WalletPaymentComponent implements AfterViewInit, OnChanges {
       
       // Use shipping from account if available
       if (this.userDetails.shipping) {
-        shipping = { ...this.userDetails.shipping };
+        // Ensure we use the selected country from the wallet
+        shipping = { 
+          ...this.userDetails.shipping,
+          country: shippingCountry 
+        };
       }
     }
     
@@ -408,7 +422,7 @@ export class WalletPaymentComponent implements AfterViewInit, OnChanges {
       city: shipping.city || shippingAddress?.city || billingDetails?.address?.city || '',
       state: shipping.state || shippingAddress?.region || billingDetails?.address?.state || '',
       postcode: shipping.postcode || shippingAddress?.postalCode || billingDetails?.address?.postal_code || '',
-      country: shipping.country || shippingAddress?.country || billingDetails?.address?.country || 'AE',
+      country: shippingCountry, // Always use the shipping country from the wallet
     };
   
     // Prepare line items

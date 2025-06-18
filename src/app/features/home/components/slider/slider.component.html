@@ -7,17 +7,19 @@
         @for (banner of bannerImages; track $index) {
         <li class="splide__slide">
           <div class="slide-item relative touch-action-manipulation">
-            @if (isMobile) {
-            <img [src]="banner.small || 'assets/images/placeholder-banner-mobile.jpg'" alt="Banner image"
-              class="w-full h-full object-cover touch-action-manipulation"
-              [attr.fetchpriority]="$index === 0 ? 'high' : 'auto'" loading="eager"
-              onerror="this.src='assets/images/placeholder-banner-mobile.jpg'; this.onerror=null;" />
-            } @else {
-            <img [src]="banner.large || 'assets/images/placeholder-banner.jpg'" alt="Banner image"
-              class="w-full h-full object-cover touch-action-manipulation"
-              [attr.fetchpriority]="$index === 0 ? 'high' : 'auto'" loading="eager"
-              onerror="this.src='assets/images/placeholder-banner.jpg'; this.onerror=null;" />
-            }
+            <a [href]="banner.link || '#'" [attr.target]="banner.link ? '_blank' : null" class="block w-full h-full">
+              @if (isMobile) {
+              <img [src]="banner.small || 'assets/images/placeholder-banner-mobile.jpg'" alt="Banner image"
+                class="w-full h-full object-cover touch-action-manipulation"
+                [attr.fetchpriority]="$index === 0 ? 'high' : 'auto'" loading="eager"
+                onerror="this.src='assets/images/placeholder-banner-mobile.jpg'; this.onerror=null;" />
+              } @else {
+              <img [src]="banner.large || 'assets/images/placeholder-banner.jpg'" alt="Banner image"
+                class="w-full h-full object-cover touch-action-manipulation"
+                [attr.fetchpriority]="$index === 0 ? 'high' : 'auto'" loading="eager"
+                onerror="this.src='assets/images/placeholder-banner.jpg'; this.onerror=null;" />
+              }
+            </a>
           </div>
         </li>
         }

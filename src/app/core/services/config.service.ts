@@ -66,7 +66,6 @@ export class ConfigService {
     }
     
     this.loadingSubject.next(true);
-    console.log(`Fetching config from: ${this.configUrl}`);
     
     const request = this.http.get<AppConfig>(this.configUrl).pipe(
       tap(config => {
@@ -74,19 +73,12 @@ export class ConfigService {
         this.loadingSubject.next(false);
         this.configCache = this.extractPublicConfig(config);
         this.configExpiry = Date.now() + this.CACHE_DURATION;
-        console.log('Config loaded from server');
       }),
       catchError(error => {
-        console.error('Failed to load configuration from API', error);
-        console.error('Error status:', error.status);
-        console.error('Error message:', error.message);
-        
         this.loadingSubject.next(false);
         
         // إذا كان لدينا تكوين عام سابق، استخدمه كبديل للبيانات العامة فقط
         if (this.configCache && this.configExpiry > Date.now()) {
-          console.warn('Using cached public config as fallback');
-          
           // دمج البيانات العامة المخزنة مع قيم فارغة للبيانات الحساسة
           const safeConfig: AppConfig = {
             ...this.configCache,
@@ -101,7 +93,6 @@ export class ConfigService {
         }
         
         // إذا لم يكن لدينا تكوين سابق، استخدم بيانات environment كبديل
-        console.warn('Using environment fallback config');
         const fallbackConfig: AppConfig = {
           consumerKey: '',
           consumerSecret: '',
@@ -163,7 +154,6 @@ export class ConfigService {
     
     this.configSubject.next(serverConfig);
     this.loadingSubject.next(false);
-    console.log('Config loaded from server environment');
     
     return Promise.resolve(serverConfig);
   }

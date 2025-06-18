@@ -73,21 +73,64 @@ export const routes: Routes = [
     canActivate: [maintenanceGuard]
   },
   {
-    path: 'product',
-    loadChildren: () => import('./features/products/products.routes').then(m => m.productsRoutes),
-    data: { animation: 'product' },
+    path: 'brand/:brandSlug',
+    loadComponent: () =>
+      import('./features/products/pages/products-by-brand/products-by-brand.component').then(
+        (m) => m.ProductsByBrandComponent
+      ),
+    data: { animation: 'brand' },
+    canActivate: [maintenanceGuard]
+  },
+  {
+    path: 'sale',
+    loadComponent: () =>
+      import('./features/products/pages/products-by-sale/products-by-sale.component').then(
+        (m) => m.ProductsBySaleComponent
+      ),
+    data: { animation: 'sale' },
+    canActivate: [maintenanceGuard]
+  },
+  // Handle subcategory routes - up to 4 levels deep
+  {
+    path: ':cat1/:cat2/:cat3/:cat4',
+    loadComponent: () =>
+      import('./features/products/pages/Products/products.component').then(
+        (m) => m.ProductsComponent
+      ),
+    data: { animation: 'category' },
+    canActivate: [maintenanceGuard]
+  },
+  {
+    path: ':cat1/:cat2/:cat3',
+    loadComponent: () =>
+      import('./features/products/pages/Products/products.component').then(
+        (m) => m.ProductsComponent
+      ),
+    data: { animation: 'category' },
+    canActivate: [maintenanceGuard]
+  },
+  {
+    path: ':cat1/:cat2',
+    loadComponent: () =>
+      import('./features/products/pages/Products/products.component').then(
+        (m) => m.ProductsComponent
+      ),
+    data: { animation: 'category' },
+    canActivate: [maintenanceGuard]
+  },
+  {
+    path: ':slug',
+    loadComponent: () =>
+      import('./features/dynamic-content/dynamic-content.component').then(
+        (m) => m.DynamicContentComponent
+      ),
+    data: { animation: 'dynamic' },
     canActivate: [maintenanceGuard]
   },
   {
     path: 'pages',
     loadChildren: () => import('./features/terms,about,contactUs/pages.routes').then(m => m.pagesRoutes),
     data: { animation: 'pages' },
-    canActivate: [maintenanceGuard]
-  },
-  {
-    path: 'category',
-    loadChildren: () => import('./features/products/categories.routes').then(m => m.categoryRoutes),
-    data: { animation: 'category' },
     canActivate: [maintenanceGuard]
   },
   {

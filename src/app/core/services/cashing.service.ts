@@ -5,6 +5,7 @@ import { tap } from 'rxjs/operators';
 interface CacheContent {
   expiry: number;
   value: any;
+  timestamp: number;
 }
 
 @Injectable({
@@ -33,6 +34,14 @@ export class CacheService {
   }
 
   /**
+   * Get the timestamp when a cache entry was created
+   */
+  getTimestamp(key: string): number | undefined {
+    const data = this.cache.get(key);
+    return data?.timestamp;
+  }
+
+  /**
    * Set data to cache if it's not empty.
    */
   set(key: string, value: any, ttl: number = 300000): Observable<any> {
@@ -46,8 +55,9 @@ export class CacheService {
       return of(value);
     }
 
-    const expiry = new Date().getTime() + ttl;
-    this.cache.set(key, { expiry, value });
+    const now = new Date().getTime();
+    const expiry = now + ttl;
+    this.cache.set(key, { expiry, value, timestamp: now });
     return of(value);
   }
 

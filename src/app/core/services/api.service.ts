@@ -55,7 +55,6 @@ export class ApiService {
             // في بيئة الإنتاج، استخدم نفس المضيف
             this.baseUrl = `${currentOrigin}/api/wc/`;
           }
-          console.log(`Using dynamic API URL: ${this.baseUrl}`);
         } else {
           // للتشغيل على الخادم (SSR)
           this.baseUrl = `http://localhost:3000/api/wc/`;
@@ -86,7 +85,6 @@ export class ApiService {
     
     // تأكد من أن baseUrl جاهز قبل تحميل الموارد
     if (!this.baseUrl) {
-      console.log('Waiting for baseUrl before preloading resources');
       // انتظر حتى يتم تعيين baseUrl قبل تحميل الموارد
       this.configService.getConfig().subscribe(config => {
         if (config && config.apiUrl) {
@@ -101,7 +99,6 @@ export class ApiService {
               // في بيئة الإنتاج، استخدم نفس المضيف
               this.baseUrl = `${currentOrigin}/api/wc/`;
             }
-            console.log(`Using dynamic API URL: ${this.baseUrl}`);
           } else {
             // للتشغيل على الخادم (SSR)
             this.baseUrl = `http://localhost:3000/api/wc/`;
@@ -125,12 +122,7 @@ export class ApiService {
     
     // Preload each endpoint
     for (const endpoint of criticalEndpoints) {
-      console.log(`Attempting to preload: ${endpoint}`);
-      this.getRequest(endpoint)
-        .subscribe({
-          next: (data) => console.log(`Successfully preloaded: ${endpoint}`),
-          error: (err) => console.log(`Error preloading ${endpoint}: ${err.message || 'Unknown error'}`)
-        });
+      this.getRequest(endpoint).subscribe();
     }
   }
 
@@ -140,7 +132,6 @@ export class ApiService {
   ): Observable<T> {
     // تحقق من جاهزية المصادقة أولاً
     if (!this.authService.isAuthReady()) {
-      console.log(`Auth not ready for request to ${endpoint}, waiting...`);
       return this.authService.isAuthReady().pipe(
         filter(ready => ready), // انتظر حتى تصبح المصادقة جاهزة
         take(1), // خذ أول قيمة true
@@ -200,7 +191,6 @@ export class ApiService {
         catchError((error: HttpErrorResponse) => {
           // Remove from pending requests on error
           this.pendingRequests.delete(cacheKey);
-          console.error(`API Error for ${endpoint}:`, error.status, error.message);
           return this.handelErrorsService.handelError(error);
         })
       );

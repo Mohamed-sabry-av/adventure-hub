@@ -3,7 +3,7 @@
   [modal]="false" styleClass="sidenav-drawer">
   <div class="drawer-header flex justify-between items-center">
     <a class="block">
-      <img loading="lazy" src="header/adv-hub-logo-n.png" alt="Adventures hub logo" routerLink=""
+      <img loading="lazy" src="header/adv-hub-logo-n.png" alt="Adventures hub logo" routerLink="/"
         class="w-[200px] h-10 lg:w-[250px] lg:h-12 cursor-pointer" (click)="onSiwtchSideNav(false)" />
     </a>
 
@@ -80,7 +80,7 @@
 
     <!-- Sales/Deals (moved under categories) -->
     <div class="drawer-section">
-      <a routerLink="/product/sale" class="deals-button-mobile" (click)="onSiwtchSideNav(false)">
+      <a routerLink="/sale" class="deals-button-mobile" (click)="onSiwtchSideNav(false)">
         <i class="pi pi-percentage text-sm mr-2"></i>
         <span class="text-white">Deals</span>
       </a>
@@ -116,7 +116,7 @@
       </li>
       } }
     </div>
-    <a routerLink="/product/sale"
+    <a routerLink="/sale"
       class="deals-button-desktop text-white font-semibold px-7 py-2 rounded-lg text-base flex items-center gap-2"
       [class]="{ hidden: !showNavbar() }">
       <i class="pi pi-percentage text-sm mr-2"></i>

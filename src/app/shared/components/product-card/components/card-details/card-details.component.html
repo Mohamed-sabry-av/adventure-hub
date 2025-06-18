@@ -1,7 +1,7 @@
 <div class="card-details-container">
   <!-- Product Name -->
   <h3 class="product-name">
-    <a [routerLink]="['/product', product.slug]">{{ product.name }}</a>
+    <a [routerLink]="['/', product.slug]">{{ product.name }}</a>
   </h3>
 
   <!-- Categories/Brand -->
@@ -12,7 +12,7 @@
     </ng-container>
     <span *ngIf="product.categories && product.categories.length && getBrandName()">,
     </span>
-    <a *ngIf="getBrandName()" [routerLink]="['/product/brand', getBrandSlug()]" class="hover:underline"
+    <a *ngIf="getBrandName()" [routerLink]="['/brand', getBrandSlug()]" class="hover:underline"
       [innerHTML]="getBrandName()"></a>
   </div>
 

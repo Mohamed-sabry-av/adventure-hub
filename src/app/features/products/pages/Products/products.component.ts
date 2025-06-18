@@ -12,7 +12,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { ProductService } from '../../../../core/services/product.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { CategoriesService } from '../../../../core/services/categories.service';
 import { FilterService } from '../../../../core/services/filter.service';
@@ -22,8 +22,8 @@ import { FilterDrawerComponent } from '../../components/filter-drawer/filter-dra
 import { SortMenuComponent } from '../../components/sort-menu/sort-menu.component';
 import { ProductsGridComponent } from '../../components/products-grid/products-grid.component';
 import { SeoService } from '../../../../core/services/seo.service';
-import { catchError, finalize, of, Subject, throwError } from 'rxjs';
-import { debounceTime, tap } from 'rxjs/operators';
+import { catchError, finalize, of, Subject, throwError, filter } from 'rxjs';
+import { debounceTime, tap, takeUntil } from 'rxjs/operators';
 import isEqual from 'lodash/isEqual';
 import { UIService } from '../../../../shared/services/ui.service';
 import { KlaviyoTrackingService } from '../../../../shared/services/klaviyo-tracking.service';
@@ -67,6 +67,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
   schemaData: any;
   isInitialLoadComplete: boolean = false;
   private scrollSubject = new Subject<void>();
+  private destroy$ = new Subject<void>();
+  private categoryCache: Map<string, any> = new Map();
 
   @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
   @ViewChild(FilterDrawerComponent) filterDrawer!: FilterDrawerComponent;
@@ -86,7 +88,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private klaviyoTracking: KlaviyoTrackingService
   ) {
     this.showSkeleton = true; // ضمان ظهور الـ skeleton فورًا
-    this.scrollSubject.pipe(debounceTime(50)).subscribe(() => {
+    this.scrollSubject.pipe(debounceTime(50), takeUntil(this.destroy$)).subscribe(() => {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -105,10 +107,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     try {
-      const slugs = this.route.snapshot.url
-        .map((segment) => segment.path)
-        .filter((path) => path !== 'category');
-      const deepestSlug = slugs[slugs.length - 1];
+      // Initial setup for SEO
+      const slugs = this.getUrlSegments();
+      const deepestSlug = slugs.length > 0 ? slugs[slugs.length - 1] : null;
 
       if (deepestSlug) {
         this.schemaData = this.seoService.applySeoTags(null, {
@@ -130,26 +131,50 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     // Load initial data
-    this.loadInitialData().then(() => {
+    await this.loadInitialData();
+    
+    // Subscribe to route changes to handle client-side navigation
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(async () => {
+      // Only reload data if we're not in the initial load
+      if (this.isInitialLoadComplete) {
+        this.showSkeleton = true;
+        this.isInitialLoadComplete = false;
+        this.products = [];
+        this.cdr.detectChanges(); // Force update to show loading state
+        await this.loadInitialData();
       // Track category view after data is loaded
       this.trackCategoryView();
+      }
     });
+    
+    // Track category view after data is loaded
+    this.trackCategoryView();
   }
 
   ngAfterViewInit() {
-    this.loadInitialData();
+    // Only set up filter sidebar subscription, don't reload data here
     if (this.filterSidebar) {
-      this.filterSidebar.filtersChanges.subscribe((filters: any) => {
+      this.filterSidebar.filtersChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe((filters: any) => {
         this.currentPage = 1;
         this.products = [];
         this.isInitialLoadComplete = false;
         this.showSkeleton = true;
-        this.showEmptyState = false; // إخفاء الحالة الفارغة عند تغيير الفلاتر
+        this.showEmptyState = false; // Hide empty state when changing filters
         this.loadProducts(true, filters);
       });
-    } else {
-      
     }
+  }
+
+  private getUrlSegments(): string[] {
+    // Get the path portion of the URL without query parameters
+    const urlPath = this.router.url.split(/[?#]/)[0];
+    // Split the path into segments and filter out empty segments and 'category'
+    return urlPath.split('/').filter(segment => segment !== '' && segment !== 'category');
   }
 
   async loadInitialData() {
@@ -158,52 +183,75 @@ export class ProductsComponent implements OnInit, OnDestroy {
       this.products = cachedProducts;
       this.isInitialLoadComplete = true;
       this.showSkeleton = false;
-      this.showEmptyState = this.products.length === 0; // تحديث الحالة الفارغة
+      this.showEmptyState = this.products.length === 0; // Update empty state
       this.cdr.markForCheck();
       return;
     }
 
     try {
-      const slugs = this.route.snapshot.url
-        .map((segment) => segment.path)
-        .filter((path) => path !== 'category');
-      const deepestSlug = slugs[slugs.length - 1];
+      // Get all URL segments, filtering out 'category' if present
+      const slugs = this.getUrlSegments();
+      const deepestSlug = slugs.length > 0 ? slugs[slugs.length - 1] : null;
 
       if (deepestSlug) {
-        const categoryResponse = await this.categoriesService
-          .getCategoryBySlug(deepestSlug)
+        this.isLoading = true;
+        this.cdr.detectChanges(); // Force update to show loading state
+        
+        // Check if we have this category in cache
+        let categoryResponse = this.categoryCache.get(deepestSlug);
+        
+        if (!categoryResponse) {
+          // Try to get the category directly by slug
+          categoryResponse = await this.categoriesService
+            .getCategoryBySlugDirect(deepestSlug)
           .pipe(
             catchError((error) => {
-              
-              // إذا لم يتم العثور على الفئة، قم بتوجيه المستخدم إلى صفحة 404
-              this.router.navigate(['/page-not-found']);
-              return throwError(() => new Error('Category not found'));
+                console.error(`Error getting category by slug ${deepestSlug}:`, error);
+                return of(null);
             })
           )
           .toPromise();
 
-        // إذا لم يتم العثور على فئة، انتقل إلى صفحة 404
+          // If direct lookup fails, try the standard API endpoint
+          if (!categoryResponse) {
+            categoryResponse = await this.categoriesService
+              .getCategoryBySlug(deepestSlug)
+              .pipe(
+                catchError((error) => {
+                  console.error(`Error getting category by slug ${deepestSlug} (fallback):`, error);
+                  return of(null);
+                })
+              )
+              .toPromise();
+          }
+          
+          // Cache the category response if valid
+          if (categoryResponse) {
+            this.categoryCache.set(deepestSlug, categoryResponse);
+          }
+        }
+
+        // If category still not found, navigate to 404
         if (!categoryResponse) {
-          this.router.navigate(['/page-not-found']);
+          console.error(`Category not found for slug: ${deepestSlug}`);
+          this.router.navigate(['/page-not-found'], { skipLocationChange: true });
           return;
         }
 
         this.currentCategory = categoryResponse;
         this.currentCategoryId = this.currentCategory?.id ?? null;
 
-        // إذا كان معرف الفئة غير صالح، انتقل إلى صفحة 404
+        // If category ID is invalid, navigate to 404
         if (!this.currentCategoryId) {
-          this.router.navigate(['/page-not-found']);
+          this.router.navigate(['/page-not-found'], { skipLocationChange: true });
           return;
         }
 
-        // استخدام Yoast SEO title إجباريًا
+        // Use Yoast SEO title if available
         let pageTitle = 'All Products';
         if (this.currentCategory?.yoast_head_json?.title) {
           pageTitle = this.currentCategory.yoast_head_json.title;
-
         } else {
-          
           pageTitle = this.currentCategory?.name || 'Products';
         }
         
@@ -219,10 +267,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
       await this.loadProducts(true);
       await this.loadTotalProducts();
     } catch (error) {
-      
-      // تحقق ما إذا كان الخطأ بسبب عدم وجود الفئة، وفي هذه الحالة انتقل إلى صفحة 404
+      // Check if the error is because category not found, and navigate to 404
       if (String(error).includes('Category not found')) {
-        this.router.navigate(['/page-not-found']);
+        this.router.navigate(['/page-not-found'], { skipLocationChange: true });
         return;
       }
       this.schemaData = this.seoService.applySeoTags(null, {
@@ -232,7 +279,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.isInitialLoadComplete = true;
       this.showSkeleton = this.products.length === 0;
-      this.showEmptyState = this.products.length === 0; // تحديث الحالة الفارغة
+      this.showEmptyState = this.products.length === 0; // Update empty state
       this.cdr.markForCheck();
     }
   }
@@ -322,9 +369,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   getCurrentPath(): string[] {
-    return this.route.snapshot.url
-      .map((segment) => segment.path)
-      .filter((path) => path !== 'category');
+    return this.getUrlSegments();
   }
 
   async onCategoryIdChange(categoryId: number | null) {
@@ -347,27 +392,45 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     try {
       if (categoryId) {
-        const categoryResponse = await this.categoriesService
+        // Check if we have this category in cache by ID
+        let categoryResponse = null;
+        
+        // Look through cache for matching ID
+        for (const [, category] of this.categoryCache.entries()) {
+          if (category.id === categoryId) {
+            categoryResponse = category;
+            break;
+          }
+        }
+        
+        // If not in cache, fetch from API
+        if (!categoryResponse) {
+          categoryResponse = await this.categoriesService
           .getCategoryById(categoryId)
           .pipe(
             catchError((error) => {
-              
-              // إذا لم يتم العثور على الفئة، قم بتوجيه المستخدم إلى صفحة 404
-              this.router.navigate(['/page-not-found']);
-              return throwError(() => new Error('Category not found'));
+                console.error(`Error getting category by ID ${categoryId}:`, error);
+                return of(null);
             })
           )
           .toPromise();
 
-        // إذا لم يتم العثور على فئة، انتقل إلى صفحة 404
+          // Cache the response if valid
+          if (categoryResponse) {
+            this.categoryCache.set(categoryResponse.slug, categoryResponse);
+          }
+        }
+
+        // If category still not found, navigate to 404
         if (!categoryResponse) {
-          this.router.navigate(['/page-not-found']);
+          console.error(`Category not found for ID: ${categoryId}`);
+          this.router.navigate(['/page-not-found'], { skipLocationChange: true });
           return;
         }
 
         this.currentCategory = categoryResponse;
 
-        // استخدام Yoast SEO title إجباريًا
+        // Use Yoast SEO title if available
         let pageTitle = 'All Products';
         if (this.currentCategory?.yoast_head_json?.title) {
           pageTitle = this.currentCategory.yoast_head_json.title;
@@ -397,7 +460,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       
       // تحقق ما إذا كان الخطأ بسبب عدم وجود الفئة، وفي هذه الحالة انتقل إلى صفحة 404
       if (String(error).includes('Category not found')) {
-        this.router.navigate(['/page-not-found']);
+        this.router.navigate(['/page-not-found'], { skipLocationChange: true });
         return;
       }
       this.schemaData = this.seoService.applySeoTags(null, {
@@ -457,6 +520,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.scrollSubject.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @HostListener('window:scroll', ['$event'])

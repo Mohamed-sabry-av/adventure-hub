@@ -34,10 +34,10 @@
 
     <div class="flex items-center gap-x-6 border-b pb-4 mb-4 w-full">
       <!-- الصوره -->
-      <!-- <a [routerLink]="['/product', item.slug]"> -->
-      <img loading="lazy" [src]="item.image.thumbnail" [alt]="item.image.alt"
-        class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer" />
-      <!-- </a> -->
+      <a [routerLink]="[item.slug]">
+        <img loading="lazy" [src]="item.image.thumbnail" [alt]="item.image.alt"
+          class="md:w-[90px] md:h-[90px] w-[70px] h-[70px] object-cover cursor-pointer" />
+      </a>
 
       <div class="flex-1">
         <div class="flex justify-between flex-col md:flex-row">
@@ -45,9 +45,9 @@
             <p class="font-normal text-[#b2b48d]">
               {{ item.name.split(" ")[0] }}
             </p>
-            <!-- <a [routerLink]="['/product', item.slug]"> -->
-            <p class="text-base cursor-pointer hover:underline" [innerHTML]="item.name"></p>
-            <!-- </a> -->
+            <a [routerLink]="[item.slug]">
+              <p class="text-base cursor-pointer hover:underline" [innerHTML]="item.name"></p>
+            </a>
             <div>
               <p class="text-base" [innerHTML]="item.prices.price | currencySvg"></p>
               @if (item.prices.regular_price !== item.prices.price &&

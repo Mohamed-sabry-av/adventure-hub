@@ -31,25 +31,15 @@ export class CardDetailsComponent {
 
   /**
    * Returns an Observable of a full path array for the category route
-   * This includes the '/category' prefix and all category segments
+   * This includes all category segments without the '/category' prefix
    */
   getCategoryRouterPath(): Observable<(string | null)[] | null> {
     if (!this.product.categories || this.product.categories.length === 0) {
       return of(null);
     }
 
-    // If we already have the path array, return it prefixed with '/category'
-    if (this.categoryPathArray) {
-      return of(['/category', ...this.categoryPathArray]);
-    }
-
-    // Calculate the path and return as a router-ready array
-    return from(this.calculateCategoryPath()).pipe(
-      map(pathSegments => {
-        if (!pathSegments) return null;
-        return ['/category', ...pathSegments];
-      })
-    );
+    // Return with leading slash for absolute path
+    return of(['/', this.product.categories[0].slug]);
   }
 
   /**
@@ -62,15 +52,15 @@ export class CardDetailsComponent {
       );
 
       if (!category) {
-        return [this.product.categories[0].slug];
+        return ['/', this.product.categories[0].slug];
       }
 
       // Build the path segments by traversing the category hierarchy
-      const slugs: string[] = [];
+      const slugs: string[] = ['/'];
       let currentCategory = category;
 
       // Start with the current category
-      slugs.unshift(currentCategory.slug);
+      slugs.push(currentCategory.slug);
 
       // Add parent categories
       while (currentCategory.parent) {
@@ -80,7 +70,8 @@ export class CardDetailsComponent {
 
         if (!parentCategory) break;
 
-        slugs.unshift(parentCategory.slug);
+        // Insert parent slug after the leading slash
+        slugs.splice(1, 0, parentCategory.slug);
         currentCategory = parentCategory;
       }
 
@@ -89,7 +80,7 @@ export class CardDetailsComponent {
       return this.categoryPathArray;
     } catch (error) {
       
-      return [this.product.categories[0].slug];
+      return ['/', this.product.categories[0].slug];
     }
   }
 

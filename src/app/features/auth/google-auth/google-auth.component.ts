@@ -62,9 +62,37 @@ export class GoogleAuthComponent implements AfterViewInit {
   }
 
   private renderGoogleButton(clientId: string): void {
-    // Rest of your Google button rendering code
-    // ...
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: this.handleCredentialResponse.bind(this),
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+    
+    google.accounts.id.renderButton(
+      document.getElementById('googleSignInButton'),
+      { 
+        theme: 'outline',
+        size: 'large',
+        type: 'standard',
+        shape: 'rectangular',
+        text: 'continue_with',
+        logo_alignment: 'left'
+      }
+    );
   }
   
-  // Rest of the component
+  private handleCredentialResponse(response: any): void {
+    if (response && response.credential) {
+      this.googleService.loginWithGoogle(response.credential).subscribe({
+        next: (res) => {
+          this.loginError = '';
+          this.router.navigate(['/user/Useraccount']);
+        },
+        error: (err) => {
+          this.loginError = err.error?.message || 'Google login failed';
+        }
+      });
+    }
+  }
 }

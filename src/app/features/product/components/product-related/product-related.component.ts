@@ -349,7 +349,7 @@ export class ProductRelatedComponent implements OnInit, OnChanges, AfterViewInit
 
   onProductClick(productSlug: string): void {
     if (productSlug) {
-      this.router.navigate(['/product', productSlug]);
+      this.router.navigate([productSlug]);
     }
   }
 

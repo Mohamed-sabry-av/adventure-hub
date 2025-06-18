@@ -75,10 +75,10 @@ export class AppComponent implements OnInit {
       this.hideToastErrors();
       
       // تحميل الموارد بعد تهيئة التطبيق بالكامل
-      setTimeout(() => {
-        // Preload critical API resources after a delay
-        this.apiService.preloadCriticalResources();
-      }, 3000);
+      // setTimeout(() => {
+      //   // Preload critical API resources after a delay
+      //   this.apiService.preloadCriticalResources();
+      // }, 3000);
       
       // Report performance metrics
       this.reportPerformanceMetrics();

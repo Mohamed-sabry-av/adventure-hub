@@ -25,7 +25,7 @@
       } @else {
       <!-- Actual categories when loaded -->
       @for (category of categories; track category.id) {
-      <a [routerLink]="['/category', category.slug]" class="category-card rounded-lg overflow-hidden">
+      <a [routerLink]="[category.slug]" class="category-card rounded-lg overflow-hidden">
         <!-- Category Image with pre-integrated text -->
         <div class="category-image-container">
           @if (getImageUrl(category)) {

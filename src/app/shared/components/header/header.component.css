@@ -167,6 +167,15 @@ body {
   transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
+/* Pointer events utility classes */
+.pointer-events-auto {
+  pointer-events: auto;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+}
+
 .header-middle-compact {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
@@ -178,16 +187,6 @@ body {
   top: auto !important;
   transform: none !important;
   box-shadow: none !important;
-  position: static !important; /* Ensure header stays in normal flow */
-  z-index: 10 !important; /* Lower z-index than sticky header */
-}
-
-/* Make non-sticky header container also override the header-container class */
-.non-sticky.header-container {
-  position: relative !important;
-  position: static !important;
-  top: auto !important;
-  z-index: 10 !important;
 }
 
 /* Add styles to hide header in fullscreen mode */
@@ -248,7 +247,7 @@ body {
 
 /* Header container layout - changed to sticky */
 .header-container {
-  position: var(--header-position, sticky);
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;

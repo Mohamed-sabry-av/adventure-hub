@@ -7,7 +7,8 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   OnChanges,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectorRef
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map, switchMap, of as observableOf, from, firstValueFrom } from 'rxjs';
@@ -40,7 +41,8 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private categoriesService: CategoriesService
+    private categoriesService: CategoriesService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -67,9 +69,27 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
           return this.buildProductCategoryBreadcrumbs(this.paths);
         }
         
-        // Continue with existing category logic from URL params
+        // Get the current URL path segments for category breadcrumbs
+        const urlSegments = this.router.url.split('/').filter(segment => segment !== '' && segment !== 'category');
+        
+        if (urlSegments.length === 0) {
+          this.currentCategoryId = null;
+          this.categoryIdChange.emit(null);
+          const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Home', url: ['/'] }];
+          if (this.productName) {
+            breadcrumbItems.push({ label: this.productName });
+          }
+          return of(breadcrumbItems);
+        }
+
+        // For multi-segment paths, build breadcrumbs based on URL segments
+        if (urlSegments.length > 1) {
+          return this.buildMultiSegmentBreadcrumbs(urlSegments);
+        }
+        
+        // For single segment, use the standard approach
         const slugs = Object.keys(params)
-          .filter((key) => key.includes('CategorySlug'))
+          .filter((key) => key.includes('CategorySlug') || key === 'slug' || key === 'cat1' || key === 'cat2' || key === 'cat3' || key === 'cat4')
           .map((key) => params[key])
           .filter((s) => s);
 
@@ -89,7 +109,73 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
 
     this.breadcrumbs$.subscribe((breadcrumbs) => {
       this.categoryIdChange.emit(this.currentCategoryId);
+      this.cdr.markForCheck();
     });
+  }
+  
+  /**
+   * Build breadcrumbs for multi-segment paths (subcategories)
+   */
+  private async buildMultiSegmentBreadcrumbs(segments: string[]): Promise<BreadcrumbItem[]> {
+    const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Home', url: ['/'] }];
+    let currentPath: string[] = ['/'];
+    
+    try {
+      // Process each segment in order
+      for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        currentPath.push(segment);
+        
+        // Get category info for this segment
+        const categoryInfo = await firstValueFrom(
+          this.categoriesService.getCategoryBySlugDirect(segment)
+        ).catch(() => null);
+        
+        if (categoryInfo) {
+          // For last segment, set as current category
+          if (i === segments.length - 1) {
+            this.currentCategoryId = categoryInfo.id;
+          }
+          
+          // Add to breadcrumbs with the full path up to this point
+          breadcrumbItems.push({
+            label: categoryInfo.name,
+            url: [...currentPath], // Use full path for correct navigation
+            id: categoryInfo.id
+          });
+        } else {
+          // If we can't get info for this segment, just use the slug as label
+          breadcrumbItems.push({
+            label: segment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            url: [...currentPath]
+          });
+        }
+      }
+      
+      // Add product name if available
+      if (this.productName) {
+        breadcrumbItems.push({ label: this.productName });
+      }
+      
+      return breadcrumbItems;
+    } catch (error) {
+      console.error('Error building multi-segment breadcrumbs:', error);
+      
+      // Fallback: just use segments as is
+      segments.forEach((segment, index) => {
+        const path = ['/'].concat(segments.slice(0, index + 1));
+        breadcrumbItems.push({
+          label: segment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          url: path
+        });
+      });
+      
+      if (this.productName) {
+        breadcrumbItems.push({ label: this.productName });
+      }
+      
+      return breadcrumbItems;
+    }
   }
 
   /**
@@ -174,7 +260,7 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
         // Fallback if we can't get full info
         return [{
           label: category.name,
-          url: ['/category', category.slug],
+          url: ['/', category.slug],
           id: category.id
         }];
       }
@@ -198,18 +284,18 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
         currentCategory = parentCategory;
       }
       
-      // Build breadcrumb items from the chain
-      const slugChain: string[] = categoryChain.map(cat => cat.slug);
+      // Build the path segments as we go
+      let currentPath: string[] = ['/'];
       
       // Now create breadcrumb items for each level of the hierarchy
       for (let i = 0; i < categoryChain.length; i++) {
         const cat = categoryChain[i];
-        // For each category, include all parent slugs in the URL
-        const urlPath = ['/category', ...slugChain.slice(0, i + 1)];
+        currentPath.push(cat.slug);
         
+        // For each category, include the full path for proper navigation
         items.push({
           label: cat.name,
-          url: urlPath,
+          url: [...currentPath],
           id: cat.id
         });
       }
@@ -220,7 +306,7 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
       // Fallback to just the provided category
       return [{
         label: category.name,
-        url: ['/category', category.slug],
+        url: ['/', category.slug],
         id: category.id
       }];
     }
@@ -233,63 +319,63 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
       case 'sale':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'Products on Sale',
-          url: ['/sale']
+          url: ['/', 'sale']
         });
         break;
       case 'brand':
         breadcrumbItems.push({ 
           label: 'Brands',
-          url: ['/brands']
+          url: ['/', 'brands']
         });
         if (this.specialPageName) {
           const currentUrl = this.router.url;
           const brandSlug = currentUrl.split('/').pop() || '';
           breadcrumbItems.push({ 
             label: this.specialPageName,
-            url: ['/product/brand', brandSlug]
+            url: ['/', 'brand', brandSlug]
           });
         }
         break;
       case 'search':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'Search Results',
-          url: ['/search']
+          url: ['/', 'search']
         });
         break;
       case 'new':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'New Products',
-          url: ['/new']
+          url: ['/', 'new']
         });
         break;
       case 'featured':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'Featured Products',
-          url: ['/featured']
+          url: ['/', 'featured']
         });
         break;
       case 'popular':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'Popular Products',
-          url: ['/popular']
+          url: ['/', 'popular']
         });
         break;
       case 'bestsellers':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'Best Selling Products',
-          url: ['/bestsellers']
+          url: ['/', 'bestsellers']
         });
         break;
       case 'clearance':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'Clearance Items',
-          url: ['/clearance']
+          url: ['/', 'clearance']
         });
         break;
       case 'deals':
         breadcrumbItems.push({ 
           label: this.specialPageName || 'Special Deals',
-          url: ['/deals']
+          url: ['/', 'deals']
         });
         break;
       default:
@@ -326,7 +412,7 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
             validSlugs.push(category.slug);
             
             // For each category, build the URL path with all slugs up to this point
-            const urlPath = ['/category', ...validSlugs];
+            const urlPath = ['/'].concat(validSlugs);
             
             breadcrumbItems.push({
               label: category.name,

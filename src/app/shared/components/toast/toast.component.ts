@@ -30,7 +30,6 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
         class="toast-message"
         [ngClass]="toast.type"
         [@toastAnimation]="'visible'"
-        (click)="removeToast(toast.id)"
       >
         <div class="toast-icon">
           <ng-container [ngSwitch]="toast.type">
@@ -46,7 +45,7 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
           (click)="removeToast(toast.id); $event.stopPropagation()" 
           aria-label="Close notification"
         >
-          ×
+          ✕
         </button>
       </div>
     </div>
@@ -65,12 +64,22 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
     .toast-message {
       display: flex;
       align-items: center;
-      padding: 12px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 14px 18px;
+      border-radius: 8px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
       color: white;
       margin-bottom: 8px;
-      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .toast-message::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.3);
     }
     .toast-icon {
       margin-right: 12px;
@@ -80,16 +89,19 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
       align-items: center;
       width: 24px;
       height: 24px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
     }
     .toast-content {
       flex: 1;
       font-size: 14px;
+      font-weight: 500;
     }
     .toast-close {
       background: transparent;
       border: none;
       color: white;
-      font-size: 20px;
+      font-size: 16px;
       cursor: pointer;
       opacity: 0.7;
       transition: opacity 0.2s;
@@ -97,6 +109,10 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
       line-height: 1;
       height: 20px;
       width: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
     }
     .toast-close:hover {
       opacity: 1;
@@ -104,15 +120,19 @@ import { Toast, ToastService } from '../../../core/services/toast.service';
     /* Toast types */
     .success {
       background-color: #10b981;
+      border-left: 4px solid #059669;
     }
     .error {
       background-color: #ef4444;
+      border-left: 4px solid #dc2626;
     }
     .info {
       background-color: #3b82f6;
+      border-left: 4px solid #2563eb;
     }
     .warning {
       background-color: #f59e0b;
+      border-left: 4px solid #d97706;
     }
     /* Responsive */
     @media (max-width: 480px) {

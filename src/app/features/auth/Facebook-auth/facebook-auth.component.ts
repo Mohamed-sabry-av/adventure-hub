@@ -1,9 +1,9 @@
-import { Component, AfterViewInit, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, Inject, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FacebookAuthService } from './facebook-auth.service';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../../../environments/environment';
+import { ConfigService } from '../../../core/services/config.service';
 
 declare var FB: any;
 
@@ -17,13 +17,16 @@ declare var FB: any;
       <span class="facebook-icon"></span>
       Continue with Facebook
     </button>
-    <!-- <p class="error" *ngIf="loginError">{{ loginError }}</p> -->
+    <p class="error" *ngIf="loginError">{{ loginError }}</p>
   </div>
   `,
   styleUrls: ['./facebook-auth.component.css'],
 })
-export class FacebookAuthComponent implements AfterViewInit {
+export class FacebookAuthComponent implements OnInit {
   loginError: string = '';
+  private configService = inject(ConfigService);
+  private fbAppId: string = '';
+  private fbSDKLoaded = false;
 
   constructor(
     private router: Router,
@@ -31,110 +34,105 @@ export class FacebookAuthComponent implements AfterViewInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  ngAfterViewInit() {
+  ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.initFacebookSDK();
+      this.configService.getConfig().subscribe(config => {
+        if (config && config.fbAppId) {
+          this.fbAppId = config.fbAppId;
+          this.loadFacebookSDK();
+        }
+      });
     }
   }
 
-  initFacebookSDK() {
-    // Check if FB SDK is already loaded
-    if (typeof FB !== 'undefined') {
-      this.checkLoginStatus();
-    } else {
-      // Load the Facebook SDK asynchronously
-      this.loadFacebookScript()
-        .then(() => {
-          this.initFB();
-        })
-        .catch(err => {
-          
-          this.loginError = 'Failed to load Facebook login';
-        });
-    }
-  }
-
-  private loadFacebookScript(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Add the Facebook SDK script only if it's not already added
-      if (document.getElementById('facebook-jssdk')) {
-        resolve();
-        return;
+  private loadFacebookSDK(): void {
+    // Check if the SDK script is already loaded
+    if (document.getElementById('facebook-jssdk')) {
+      // If the script exists but FB is not defined, we need to wait
+      if (typeof FB !== 'undefined') {
+        this.initFacebookSDK();
       }
-
-      const script = document.createElement('script');
-      script.id = 'facebook-jssdk';
-      script.src = 'https://connect.facebook.net/en_US/sdk.js';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Facebook SDK failed to load'));
-      
-      document.head.appendChild(script);
-    });
-  }
-
-  initFB() {
-    // Initialize the Facebook SDK with your app ID
-    FB.init({
-      // appId: environment.socialAuth.facebook.appId,
-      cookie: true,
-      xfbml: true,
-      // version: environment.socialAuth.facebook.version
-    });
-
-    this.checkLoginStatus();
-  }
-
-  checkLoginStatus() {
-    FB.getLoginStatus((response: any) => {
-      this.statusChangeCallback(response);
-    });
-  }
-
-  // Handle login status change
-  statusChangeCallback(response: any) {
-
-    if (response.status === 'connected') {
-      // User is already logged in
-      this.handleFacebookCredentialResponse(response);
-    } else if (response.status === 'not_authorized') {
-      // User is logged in to Facebook but not authorized for this app
-      this.loginError = '';
-    } else {
-      // User is not logged in
-      this.loginError = '';
+      return;
     }
+
+    // Create and append the script tag
+    const script = document.createElement('script');
+    script.id = 'facebook-jssdk';
+    script.src = 'https://connect.facebook.net/en_US/sdk.js';
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      // Verify FB is defined before initializing
+      if (typeof FB !== 'undefined') {
+        this.initFacebookSDK();
+      } else {
+        this.loginError = 'Failed to load Facebook SDK';
+      }
+    };
+    
+    script.onerror = () => {
+      this.loginError = 'Failed to load Facebook login';
+    };
+    
+    document.head.appendChild(script);
+  }
+
+  private initFacebookSDK(): void {
+    if (typeof FB === 'undefined') {
+      return;
+    }
+    
+    FB.init({
+      appId: this.fbAppId,
+      cookie: true, 
+      xfbml: true,
+      version: 'v18.0'
+    });
+    
+    this.fbSDKLoaded = true;
   }
 
   signInWithFacebook() {
-    if (typeof FB !== 'undefined') {
-      FB.login(
-        (response: any) => {
-          this.statusChangeCallback(response);
-        },
-        { scope: 'public_profile,email' }
-      );
-    } else {
-      this.loginError = 'Facebook SDK not loaded';
+    // Double check FB is defined and SDK is loaded
+    if (typeof FB === 'undefined') {
+      this.loginError = 'Facebook SDK not loaded. Please try again later.';
+      return;
     }
-  }
-
-  handleFacebookCredentialResponse(response: any) {
-    if (response.authResponse) {
-      const accessToken = response.authResponse.accessToken;
-
-      this.facebookService.loginWithFacebook(accessToken).subscribe({
-        next: (res) => {
-
-          this.loginError = '';
-          this.router.navigate(['/user/Useraccount']);
-        },
-        error: (err) => {
-          this.loginError = err.error?.message || 'Facebook login failed';
-          
-        },
-      });
+    
+    if (!this.fbSDKLoaded) {
+      this.loginError = 'Facebook SDK still initializing. Please try again in a moment.';
+      return;
     }
+
+    FB.login(
+      (response: any) => {
+        if (response.status === 'connected') {
+          const authResponse = response.authResponse;
+          if (authResponse) {
+            // Get user data from Facebook Graph API
+            FB.api('/me', { fields: 'email,name' }, (userInfo: any) => {
+              // Use our service that now handles token generation locally
+              this.facebookService.loginWithFacebook(authResponse.accessToken).subscribe({
+                next: (res) => {
+                  this.loginError = '';
+                  this.router.navigate(['/user/Useraccount']);
+                },
+                error: (err) => {
+                  this.loginError = err.error?.message || 'Facebook login failed';
+                }
+              });
+            });
+          } else {
+            this.loginError = 'Failed to get Facebook authentication data';
+          }
+        } else if (response.status === 'not_authorized') {
+          this.loginError = 'You did not authorize this application';
+        } else {
+          this.loginError = 'Facebook login failed';
+        }
+      },
+      { scope: 'public_profile,email' }
+    );
   }
 }

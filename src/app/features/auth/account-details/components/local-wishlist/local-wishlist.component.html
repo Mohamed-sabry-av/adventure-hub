@@ -32,7 +32,7 @@
         </div>
         <h3 class="text-xl font-medium mb-2">Your wishlist is empty</h3>
         <p class="text-gray-600 mb-4">Browse our products and add items to your wishlist</p>
-        <a routerLink="/shop"
+        <a routerLink="shop"
             class="shop-button inline-block mt-4 px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
             Browse Products
         </a>
@@ -68,7 +68,7 @@
                     </div>
 
                     <div class="flex space-x-2">
-                        <a [routerLink]="['/product', item.slug || item.id]" class="view-btn">
+                        <a [routerLink]="[item.slug || item.id]" class="view-btn">
                             <i class="pi pi-eye mr-1"></i> View
                         </a>
 
